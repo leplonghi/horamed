@@ -15,4 +15,18 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  build: {
+    rollupOptions: {
+      external: [
+        '@capacitor/core',
+        '@capacitor/app',
+        '@capacitor/android',
+        '@capacitor/ios',
+        '@aparajita/capacitor-biometric-auth'
+      ]
+    }
+  },
+  optimizeDeps: {
+    exclude: ['@capacitor/core', '@capacitor/app', '@aparajita/capacitor-biometric-auth']
+  }
 }));
