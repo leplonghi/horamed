@@ -8,6 +8,7 @@ import { useSubscription } from "@/hooks/useSubscription";
 import UpgradeModal from "@/components/UpgradeModal";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import logo from "@/assets/horamend-logo.png";
 
 interface TimeSlotStats {
   label: string;
@@ -217,10 +218,7 @@ export default function Charts() {
       <div className="max-w-4xl mx-auto space-y-6">
         <div className="space-y-2">
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-full bg-primary flex items-center justify-center">
-              <Pill className="h-6 w-6 text-white" />
-            </div>
-            <h1 className="text-2xl font-bold text-foreground">HoraMed</h1>
+            <img src={logo} alt="HoraMed" className="h-10 w-auto" />
           </div>
           <h2 className="text-2xl font-bold text-foreground flex items-center gap-2">
             <TrendingUp className="h-6 w-6" />

@@ -18,6 +18,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { ArrowLeft, Plus, Trash2, Pill } from "lucide-react";
 import Navigation from "@/components/Navigation";
+import logo from "@/assets/horamend-logo.png";
 
 export default function AddItem() {
   const navigate = useNavigate();
@@ -354,10 +355,7 @@ export default function AddItem() {
       <div className="min-h-screen bg-background p-6 pb-24">
         <div className="max-w-4xl mx-auto space-y-6">
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-full bg-primary flex items-center justify-center">
-              <Pill className="h-6 w-6 text-white" />
-            </div>
-            <h1 className="text-2xl font-bold text-foreground">HoraMed</h1>
+            <img src={logo} alt="HoraMed" className="h-10 w-auto" />
           </div>
 
           <div className="flex items-center gap-4">

@@ -9,6 +9,7 @@ import { ptBR } from "date-fns/locale";
 import Navigation from "@/components/Navigation";
 import AdBanner from "@/components/AdBanner";
 import AdherenceChart from "@/components/AdherenceChart";
+import logo from "@/assets/horamend-logo.png";
 
 interface DoseInstance {
   id: string;
@@ -350,10 +351,7 @@ export default function Today() {
         <div className="max-w-4xl mx-auto space-y-6">
           {/* Header */}
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-full bg-primary flex items-center justify-center">
-              <Pill className="h-6 w-6 text-white" />
-            </div>
-            <h1 className="text-2xl font-bold text-foreground">HoraMed</h1>
+            <img src={logo} alt="HoraMed" className="h-10 w-auto" />
           </div>
 
           <AdBanner />

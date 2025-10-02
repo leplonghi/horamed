@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { Mail, Chrome, Pill } from "lucide-react";
+import logo from "@/assets/horamend-logo.png";
 
 export default function Auth() {
   const navigate = useNavigate();
@@ -90,10 +91,9 @@ export default function Auth() {
     <div className="min-h-screen bg-background flex items-center justify-center p-6">
       <Card className="w-full max-w-md p-8 space-y-6 shadow-xl">
         <div className="text-center space-y-3">
-          <div className="inline-block p-4 rounded-full bg-primary/10">
-            <span className="text-5xl">💊</span>
+          <div className="flex justify-center">
+            <img src={logo} alt="HoraMed" className="h-32 w-auto" />
           </div>
-          <h1 className="text-4xl font-bold text-primary">HoraMed</h1>
           <p className="text-muted-foreground text-lg">
             Gerencie sua rotina de medicamentos com facilidade
           </p>

@@ -14,6 +14,7 @@ import MedicationOCRWrapper from "@/components/MedicationOCRWrapper";
 import AdBanner from "@/components/AdBanner";
 import { useSubscription } from "@/hooks/useSubscription";
 import UpgradeModal from "@/components/UpgradeModal";
+import logo from "@/assets/horamend-logo.png";
 
 interface Item {
   id: string;
@@ -198,10 +199,7 @@ export default function Rotina() {
           {/* Header */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-full bg-primary flex items-center justify-center">
-                <Pill className="h-6 w-6 text-white" />
-              </div>
-              <h1 className="text-2xl font-bold text-foreground">HoraMed</h1>
+              <img src={logo} alt="HoraMed" className="h-10 w-auto" />
             </div>
             <div className="flex gap-2">
               <Button
