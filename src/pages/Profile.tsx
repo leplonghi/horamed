@@ -6,9 +6,11 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { toast } from "sonner";
-import { User, LogOut, Upload, FileText, Trash2, Pill } from "lucide-react";
+import { User, LogOut, Upload, FileText, Trash2, Pill, Crown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Navigation from "@/components/Navigation";
+import { useSubscription } from "@/hooks/useSubscription";
+import SubscriptionBadge from "@/components/SubscriptionBadge";
 
 export default function Profile() {
   const navigate = useNavigate();
@@ -24,6 +26,7 @@ export default function Profile() {
     avatar_url: "",
   });
   const [exams, setExams] = useState<any[]>([]);
+  const { subscription, isPremium, daysLeft, loading: subLoading } = useSubscription();
 
   useEffect(() => {
     loadProfile();
@@ -132,13 +135,45 @@ export default function Profile() {
                   <User className="h-12 w-12" />
                 </AvatarFallback>
               </Avatar>
-              <div>
+              <div className="flex-1">
                 <h3 className="text-2xl font-semibold">
                   {profile.full_name || "Usuário"}
                 </h3>
                 <p className="text-muted-foreground">{userEmail}</p>
+                <div className="mt-2">
+                  <SubscriptionBadge />
+                </div>
               </div>
             </div>
+
+            {!subLoading && (
+              <Card className="p-4 bg-gradient-to-r from-primary/10 to-primary/5 border-primary/20 mb-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Crown className="h-5 w-5 text-primary" />
+                      <h4 className="font-semibold">
+                        {isPremium ? 'Plano Premium' : 'Plano Gratuito'}
+                      </h4>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      {isPremium 
+                        ? 'Você tem acesso a todas as funcionalidades'
+                        : daysLeft !== null && daysLeft > 0
+                        ? `${daysLeft} dias restantes do período de teste`
+                        : 'Período de teste expirado'
+                      }
+                    </p>
+                  </div>
+                  <Button
+                    variant={isPremium ? "outline" : "default"}
+                    onClick={() => navigate('/planos')}
+                  >
+                    {isPremium ? 'Gerenciar' : 'Fazer Upgrade'}
+                  </Button>
+                </div>
+              </Card>
+            )}
 
             <div className="space-y-4">
               <div>

@@ -10,6 +10,10 @@ import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import Navigation from "@/components/Navigation";
 import MedicationOCR from "@/components/MedicationOCR";
+import MedicationOCRWrapper from "@/components/MedicationOCRWrapper";
+import AdBanner from "@/components/AdBanner";
+import { useSubscription } from "@/hooks/useSubscription";
+import UpgradeModal from "@/components/UpgradeModal";
 
 interface Item {
   id: string;
@@ -57,6 +61,8 @@ export default function Rotina() {
   const [activeTab, setActiveTab] = useState("todos");
   const [searchTerm, setSearchTerm] = useState("");
   const [showOCR, setShowOCR] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const { hasFeature, canAddMedication, isExpired } = useSubscription();
 
   useEffect(() => {
     fetchItems();
@@ -201,14 +207,31 @@ export default function Rotina() {
               <Button
                 size="icon"
                 className="rounded-full bg-success hover:bg-success/90"
-                onClick={() => setShowOCR(true)}
+                onClick={() => {
+                  if (!hasFeature('ocr')) {
+                    setShowUpgradeModal(true);
+                  } else {
+                    setShowOCR(true);
+                  }
+                }}
               >
                 <Camera className="h-5 w-5" />
               </Button>
               <Button
                 size="icon"
                 className="rounded-full"
-                onClick={() => navigate("/adicionar")}
+                onClick={() => {
+                  if (isExpired) {
+                    toast.error("Seu período de teste expirou. Faça upgrade para continuar!", {
+                      action: {
+                        label: "Ver Planos",
+                        onClick: () => navigate('/planos'),
+                      },
+                    });
+                  } else {
+                    navigate("/adicionar");
+                  }
+                }}
               >
                 <Plus className="h-5 w-5" />
               </Button>
@@ -216,6 +239,8 @@ export default function Rotina() {
           </div>
 
           <h2 className="text-2xl font-bold text-foreground">Minha Rotina</h2>
+
+          <AdBanner />
 
           {/* Search */}
           <div className="relative">
@@ -347,13 +372,19 @@ export default function Rotina() {
                 Fechar
               </Button>
             </div>
-            <MedicationOCR onResult={(result) => {
+            <MedicationOCRWrapper onResult={(result) => {
               setShowOCR(false);
               navigate(`/adicionar?name=${encodeURIComponent(result.name)}&dose=${encodeURIComponent(result.dose || '')}&category=${result.category || 'medicamento'}`);
             }} />
           </div>
         </div>
       )}
+
+      <UpgradeModal 
+        open={showUpgradeModal} 
+        onOpenChange={setShowUpgradeModal}
+        feature="OCR de receitas"
+      />
 
       <Navigation />
     </>

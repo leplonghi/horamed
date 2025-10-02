@@ -4,6 +4,10 @@ import { Card } from "@/components/ui/card";
 import { TrendingUp, Calendar, Pill, Target, Clock, AlertCircle, Lightbulb } from "lucide-react";
 import { format, subDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { useSubscription } from "@/hooks/useSubscription";
+import UpgradeModal from "@/components/UpgradeModal";
+import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
 interface TimeSlotStats {
   label: string;
@@ -28,10 +32,17 @@ export default function Charts() {
   const [timeSlotStats, setTimeSlotStats] = useState<TimeSlotStats[]>([]);
   const [missedItems, setMissedItems] = useState<MissedItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const { hasFeature } = useSubscription();
+  const navigate = useNavigate();
 
   useEffect(() => {
-    loadStats();
-  }, []);
+    if (!hasFeature('charts')) {
+      setShowUpgradeModal(true);
+    } else {
+      loadStats();
+    }
+  }, [hasFeature]);
 
   const loadStats = async () => {
     try {
@@ -135,6 +146,32 @@ export default function Charts() {
       <div className="min-h-screen bg-background p-6 flex items-center justify-center pb-24">
         <div className="animate-pulse text-muted-foreground">Carregando...</div>
       </div>
+    );
+  }
+
+  if (!hasFeature('charts')) {
+    return (
+      <>
+        <div className="min-h-screen bg-background p-6 pb-24">
+          <div className="max-w-4xl mx-auto space-y-6 text-center pt-20">
+            <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
+              <TrendingUp className="h-8 w-8 text-primary" />
+            </div>
+            <h2 className="text-2xl font-bold">Gráficos Avançados</h2>
+            <p className="text-muted-foreground max-w-md mx-auto">
+              Os gráficos avançados de adesão e estatísticas detalhadas estão disponíveis apenas no Plano Premium.
+            </p>
+            <Button onClick={() => navigate('/planos')} size="lg">
+              Ver Planos Premium
+            </Button>
+          </div>
+        </div>
+        <UpgradeModal 
+          open={showUpgradeModal} 
+          onOpenChange={setShowUpgradeModal}
+          feature="Gráficos avançados"
+        />
+      </>
     );
   }
 

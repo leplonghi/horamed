@@ -11,6 +11,7 @@ import WeeklyCalendar from "./pages/WeeklyCalendar";
 import Profile from "./pages/Profile";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
+import Plans from "./pages/Plans";
 import Navigation from "./components/Navigation";
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -30,6 +31,7 @@ const App = () => (
           <Route path="/adicionar" element={<ProtectedRoute><AddItem /></ProtectedRoute>} />
           <Route path="/perfil" element={<ProtectedRoute><Profile /><Navigation /></ProtectedRoute>} />
           <Route path="/graficos" element={<ProtectedRoute><Charts /><Navigation /></ProtectedRoute>} />
+          <Route path="/planos" element={<ProtectedRoute><Plans /></ProtectedRoute>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

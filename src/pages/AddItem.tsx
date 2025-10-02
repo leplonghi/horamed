@@ -268,7 +268,20 @@ export default function AddItem() {
           .select()
           .single();
 
-        if (itemError) throw itemError;
+        if (itemError) {
+          // Check if error is subscription limit
+          if (itemError.message?.includes('Limite de medicamentos atingido')) {
+            toast.error("Limite de medicamentos atingido. Faça upgrade para o plano Premium!", {
+              action: {
+                label: "Ver Planos",
+                onClick: () => navigate('/planos'),
+              },
+            });
+            setLoading(false);
+            return;
+          }
+          throw itemError;
+        }
 
         // Create schedules and doses
         for (const schedule of schedules) {

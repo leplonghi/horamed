@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { format, parseISO, differenceInYears } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import Navigation from "@/components/Navigation";
+import AdBanner from "@/components/AdBanner";
 
 interface DoseInstance {
   id: string;
@@ -296,6 +297,8 @@ export default function Today() {
             </div>
             <h1 className="text-2xl font-bold text-foreground">HoraMed</h1>
           </div>
+
+          <AdBanner />
 
           <div className="space-y-1">
             <h2 className="text-3xl font-bold text-foreground flex items-center gap-2">
