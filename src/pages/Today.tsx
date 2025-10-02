@@ -9,6 +9,7 @@ import { ptBR } from "date-fns/locale";
 import Navigation from "@/components/Navigation";
 import AdBanner from "@/components/AdBanner";
 import AdherenceChart from "@/components/AdherenceChart";
+import GoogleAd from "@/components/GoogleAd";
 import logo from "@/assets/horamend-logo.png";
 
 interface DoseInstance {
