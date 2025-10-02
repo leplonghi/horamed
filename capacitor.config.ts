@@ -5,7 +5,7 @@ const config: CapacitorConfig = {
   appName: 'horamed',
   webDir: 'dist',
   server: {
-    url: 'https://281a4314-4cea-4c93-9b25-b97f8d39e706.lovableproject.com?forceHideBadge=true',
+    url: 'https://horamed.lovable.app?forceHideBadge=true',
     cleartext: true
   },
   plugins: {

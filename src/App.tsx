@@ -3,6 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import Index from "./pages/Index";
 import Today from "./pages/Today";
 import Rotina from "./pages/Rotina";
@@ -25,31 +26,33 @@ const queryClient = new QueryClient();
 
 const App = () => {
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <BrowserRouter>
-          <Toaster />
-          <Sonner />
-          <Routes>
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/" element={<ProtectedRoute><Today /><Navigation /></ProtectedRoute>} />
-            <Route path="/index" element={<Index />} />
-            <Route path="/rotina" element={<ProtectedRoute><Rotina /><Navigation /></ProtectedRoute>} />
-            <Route path="/calendario" element={<ProtectedRoute><WeeklyCalendar /><Navigation /></ProtectedRoute>} />
-            <Route path="/adicionar" element={<ProtectedRoute><AddItem /></ProtectedRoute>} />
-            <Route path="/perfil" element={<ProtectedRoute><Profile /><Navigation /></ProtectedRoute>} />
-            <Route path="/profile/edit" element={<ProtectedRoute><ProfileEdit /></ProtectedRoute>} />
-            <Route path="/assinatura" element={<ProtectedRoute><SubscriptionManagement /></ProtectedRoute>} />
-            <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
-            <Route path="/privacy" element={<ProtectedRoute><Privacy /></ProtectedRoute>} />
-            <Route path="/help-support" element={<ProtectedRoute><HelpSupport /></ProtectedRoute>} />
-            <Route path="/graficos" element={<ProtectedRoute><Charts /><Navigation /></ProtectedRoute>} />
-            <Route path="/planos" element={<ProtectedRoute><Plans /></ProtectedRoute>} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <BrowserRouter>
+            <Toaster />
+            <Sonner />
+            <Routes>
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/" element={<ProtectedRoute><Today /><Navigation /></ProtectedRoute>} />
+              <Route path="/index" element={<Index />} />
+              <Route path="/rotina" element={<ProtectedRoute><Rotina /><Navigation /></ProtectedRoute>} />
+              <Route path="/calendario" element={<ProtectedRoute><WeeklyCalendar /><Navigation /></ProtectedRoute>} />
+              <Route path="/adicionar" element={<ProtectedRoute><AddItem /></ProtectedRoute>} />
+              <Route path="/perfil" element={<ProtectedRoute><Profile /><Navigation /></ProtectedRoute>} />
+              <Route path="/profile/edit" element={<ProtectedRoute><ProfileEdit /></ProtectedRoute>} />
+              <Route path="/assinatura" element={<ProtectedRoute><SubscriptionManagement /></ProtectedRoute>} />
+              <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
+              <Route path="/privacy" element={<ProtectedRoute><Privacy /></ProtectedRoute>} />
+              <Route path="/help-support" element={<ProtectedRoute><HelpSupport /></ProtectedRoute>} />
+              <Route path="/graficos" element={<ProtectedRoute><Charts /><Navigation /></ProtectedRoute>} />
+              <Route path="/planos" element={<ProtectedRoute><Plans /></ProtectedRoute>} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 };
 
