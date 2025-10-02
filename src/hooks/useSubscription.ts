@@ -37,7 +37,7 @@ export function useSubscription() {
         .from('subscriptions')
         .select('*')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error('Error loading subscription:', error);

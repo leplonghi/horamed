@@ -2,8 +2,9 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { ArrowLeft, CheckCircle2, Crown, Shield } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Crown, Shield, Sparkles, Coffee, Candy } from "lucide-react";
 import { useSubscription } from "@/hooks/useSubscription";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -113,10 +114,11 @@ export default function Plans() {
 
         {/* Premium Plan */}
         <Card className="p-4 border-2 border-primary bg-primary/5 relative overflow-hidden">
-          <div className="absolute top-3 right-3">
-            <div className="bg-primary text-primary-foreground text-xs font-semibold px-2 py-1 rounded">
+          <div className="absolute top-3 right-3 flex gap-2">
+            <Badge className="bg-primary text-primary-foreground">
+              <Sparkles className="h-3 w-3 mr-1" />
               Recomendado
-            </div>
+            </Badge>
           </div>
 
           <div className="space-y-4">
@@ -139,11 +141,33 @@ export default function Plans() {
               ))}
             </div>
 
-            <div className="pt-2">
-              <p className="text-2xl font-bold text-foreground">
-                R$ 25,40<span className="text-base font-normal text-muted-foreground">/mês</span>
-              </p>
-              <p className="text-sm text-muted-foreground">Cobrado mensalmente</p>
+            {/* Price Highlight */}
+            <div className="pt-2 space-y-3">
+              <div>
+                <p className="text-3xl font-bold text-foreground">
+                  R$ 9,90<span className="text-base font-normal text-muted-foreground">/mês</span>
+                </p>
+                <p className="text-sm text-muted-foreground">Cobrado mensalmente</p>
+              </div>
+
+              {/* Daily Cost Comparison */}
+              <div className="bg-muted/50 rounded-lg p-3 space-y-2">
+                <div className="flex items-center gap-2">
+                  <Candy className="h-4 w-4 text-primary" />
+                  <p className="text-sm font-medium text-foreground">
+                    Apenas R$ 0,33 por dia
+                  </p>
+                </div>
+                <p className="text-xs text-muted-foreground pl-6">
+                  Menos que uma bala! 🍬 Cuide da sua saúde com tecnologia de ponta por menos de R$ 10/mês.
+                </p>
+                <div className="flex items-center gap-2 pt-1">
+                  <Coffee className="h-4 w-4 text-muted-foreground" />
+                  <p className="text-xs text-muted-foreground">
+                    Mais barato que um cafézinho ☕
+                  </p>
+                </div>
+              </div>
             </div>
 
             {isPremium ? (
