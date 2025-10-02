@@ -65,7 +65,7 @@ export default function Profile() {
     navigate("/auth");
   };
 
-  const handleExportPDF = () => {
+  const handleExportPDF = async () => {
     if (!isPremium) {
       toast.error("Esta funcionalidade é exclusiva para usuários Premium", {
         action: {
@@ -75,7 +75,51 @@ export default function Profile() {
       });
       return;
     }
-    toast.info("Funcionalidade em desenvolvimento");
+
+    try {
+      toast.loading("Gerando PDF...");
+      
+      const { jsPDF } = await import('jspdf');
+      const doc = new jsPDF();
+      
+      // Header
+      doc.setFontSize(20);
+      doc.text('MedHora - Relatório de Saúde', 20, 20);
+      
+      // User Info
+      doc.setFontSize(12);
+      doc.text(`Email: ${userEmail}`, 20, 40);
+      doc.text(`Nome: ${profile.full_name || 'Não informado'}`, 20, 50);
+      
+      // Health Data
+      doc.setFontSize(16);
+      doc.text('Dados de Saúde', 20, 70);
+      doc.setFontSize(12);
+      doc.text(`Altura: ${profile.height_cm ? (profile.height_cm / 100).toFixed(2) + ' m' : 'Não informado'}`, 20, 85);
+      doc.text(`Peso: ${profile.weight_kg ? profile.weight_kg + ' kg' : 'Não informado'}`, 20, 95);
+      
+      if (bmi) {
+        doc.text(`IMC: ${bmi} - ${getBMIStatus(parseFloat(bmi))}`, 20, 105);
+      }
+      
+      // Subscription Info
+      doc.setFontSize(16);
+      doc.text('Informações de Assinatura', 20, 125);
+      doc.setFontSize(12);
+      doc.text(`Plano: ${isPremium ? 'Premium' : 'Gratuito'}`, 20, 140);
+      
+      // Footer
+      doc.setFontSize(10);
+      doc.text(`Gerado em: ${new Date().toLocaleDateString('pt-BR')}`, 20, 280);
+      
+      // Save
+      doc.save(`medhora-relatorio-${new Date().toISOString().split('T')[0]}.pdf`);
+      
+      toast.success("PDF gerado com sucesso!");
+    } catch (error) {
+      console.error("Erro ao gerar PDF:", error);
+      toast.error("Erro ao gerar PDF");
+    }
   };
 
   const bmi = calculateBMI();
