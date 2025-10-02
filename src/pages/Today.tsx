@@ -400,50 +400,6 @@ export default function Today() {
             </div>
           )}
 
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Card className="p-4 bg-primary/10 border-primary/20">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-primary/20">
-                <TrendingUp className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Adesão semanal</p>
-                <p className="text-2xl font-bold text-foreground">{stats.weeklyAdherence}%</p>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="p-4 bg-primary/10 border-primary/20">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-primary/20">
-                <Pill className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Hoje</p>
-                <p className="text-2xl font-bold text-foreground">{upcomingDoses.length}</p>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="p-4 bg-primary/10 border-primary/20">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-primary/20">
-                <Package className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Acabando</p>
-                <p className="text-2xl font-bold text-foreground">{lowStockItems.length}</p>
-              </div>
-            </div>
-          </Card>
-        </div>
-
-          {/* Weekly Adherence Chart */}
-          {weeklyAdherence.length > 0 && (
-            <AdherenceChart weeklyData={weeklyAdherence} />
-          )}
-
           {/* Upcoming Doses */}
           <div className="space-y-3">
             <h2 className="text-xl font-semibold flex items-center gap-2">
@@ -525,34 +481,75 @@ export default function Today() {
           {/* Low Stock Alerts */}
           {lowStockItems.length > 0 && (
             <div className="space-y-3">
-              <h2 className="text-xl font-semibold flex items-center gap-2">
-                <Package className="h-5 w-5 text-primary" />
+              <h2 className="text-xl font-semibold flex items-center gap-2 text-destructive">
+                <Package className="h-5 w-5" />
                 Estoque baixo
               </h2>
-
               {lowStockItems.map((item) => (
                 <Card
                   key={item.id}
-                  className="p-4 bg-primary/5 border-primary/20"
+                  className="p-5 border-destructive/30 bg-destructive/5"
                 >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="font-semibold text-foreground">{item.name}</h3>
-                    <p className="text-sm text-muted-foreground">
-                      {item.units_left} {item.unit_label} restantes
-                    </p>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="font-semibold text-foreground">{item.name}</h3>
+                      <p className="text-sm text-muted-foreground">
+                        {item.units_left} {item.unit_label} restantes
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-medium text-destructive">
+                        ~{item.projected_days_left} dias
+                      </p>
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <p className="text-sm font-medium text-primary">
-                      {item.projected_days_left}{" "}
-                      {item.projected_days_left === 1 ? "dia" : "dias"}
-                    </p>
-                    <p className="text-xs text-muted-foreground">até acabar</p>
-                  </div>
-                </div>
-              </Card>
+                </Card>
               ))}
             </div>
+          )}
+
+          {/* Stats Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Card className="p-4 bg-primary/10 border-primary/20">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-primary/20">
+                  <TrendingUp className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Adesão semanal</p>
+                  <p className="text-2xl font-bold text-foreground">{stats.weeklyAdherence}%</p>
+                </div>
+              </div>
+            </Card>
+
+            <Card className="p-4 bg-primary/10 border-primary/20">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-primary/20">
+                  <Pill className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Hoje</p>
+                  <p className="text-2xl font-bold text-foreground">{upcomingDoses.length}</p>
+                </div>
+              </div>
+            </Card>
+
+            <Card className="p-4 bg-primary/10 border-primary/20">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-primary/20">
+                  <Package className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Acabando</p>
+                  <p className="text-2xl font-bold text-foreground">{lowStockItems.length}</p>
+                </div>
+              </div>
+            </Card>
+          </div>
+
+          {/* Weekly Adherence Chart */}
+          {weeklyAdherence.length > 0 && (
+            <AdherenceChart weeklyData={weeklyAdherence} />
           )}
         </div>
       </div>
