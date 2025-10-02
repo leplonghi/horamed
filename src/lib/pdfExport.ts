@@ -62,12 +62,13 @@ export async function generateCompletePDF(data: ExportData, logoImage?: string) 
   
   doc.setFontSize(24);
   doc.setTextColor(...COLORS.primary);
-  doc.text('MedHora - Relatório Completo', 105, yPos, { align: 'center' });
+  doc.text('MedHora - Relatorio Completo', 105, yPos, { align: 'center' });
   yPos += 10;
 
   doc.setFontSize(10);
   doc.setTextColor(...COLORS.secondary);
-  doc.text(`Gerado em: ${format(new Date(), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}`, 105, yPos, { align: 'center' });
+  const currentDate = format(new Date(), "dd 'de' MMMM 'de' yyyy", { locale: ptBR });
+  doc.text(`Gerado em: ${currentDate}`, 105, yPos, { align: 'center' });
   yPos += 15;
 
   // Section: Personal Data
@@ -75,12 +76,12 @@ export async function generateCompletePDF(data: ExportData, logoImage?: string) 
   doc.rect(15, yPos, 180, 8, 'F');
   doc.setFontSize(14);
   doc.setTextColor(255, 255, 255);
-  doc.text('📋 Dados Pessoais', 20, yPos + 5.5);
+  doc.text('Dados Pessoais', 20, yPos + 5.5);
   yPos += 15;
 
   doc.setFontSize(11);
   doc.setTextColor(60, 60, 60);
-  doc.text(`Nome: ${data.profile.full_name || 'Não informado'}`, 20, yPos);
+  doc.text(`Nome: ${data.profile.full_name || 'Nao informado'}`, 20, yPos);
   yPos += 7;
   doc.text(`Email: ${data.userEmail}`, 20, yPos);
   yPos += 15;
@@ -90,14 +91,14 @@ export async function generateCompletePDF(data: ExportData, logoImage?: string) 
   doc.rect(15, yPos, 180, 8, 'F');
   doc.setFontSize(14);
   doc.setTextColor(255, 255, 255);
-  doc.text('❤️ Dados de Saúde', 20, yPos + 5.5);
+  doc.text('Dados de Saude', 20, yPos + 5.5);
   yPos += 15;
 
   doc.setFontSize(11);
   doc.setTextColor(60, 60, 60);
   
-  const height = data.profile.height_cm ? (data.profile.height_cm / 100).toFixed(2) + ' m' : 'Não informado';
-  const weight = data.profile.weight_kg ? data.profile.weight_kg + ' kg' : 'Não informado';
+  const height = data.profile.height_cm ? (data.profile.height_cm / 100).toFixed(2) + ' m' : 'Nao informado';
+  const weight = data.profile.weight_kg ? data.profile.weight_kg + ' kg' : 'Nao informado';
   
   doc.text(`Altura: ${height}`, 20, yPos);
   yPos += 7;
@@ -131,7 +132,7 @@ export async function generateCompletePDF(data: ExportData, logoImage?: string) 
     doc.rect(15, yPos, 180, 8, 'F');
     doc.setFontSize(14);
     doc.setTextColor(255, 255, 255);
-    doc.text('📊 Histórico de Evolução', 20, yPos + 5.5);
+    doc.text('Historico de Evolucao', 20, yPos + 5.5);
     yPos += 15;
 
     const historyData = data.healthHistory.map(h => {
@@ -180,7 +181,7 @@ export async function generateCompletePDF(data: ExportData, logoImage?: string) 
     doc.rect(15, yPos, 180, 8, 'F');
     doc.setFontSize(14);
     doc.setTextColor(255, 255, 255);
-    doc.text('💊 Medicamentos e Estoque', 20, yPos + 5.5);
+    doc.text('Medicamentos e Estoque', 20, yPos + 5.5);
     yPos += 15;
 
     const categoryLabels: Record<string, string> = {
@@ -198,7 +199,7 @@ export async function generateCompletePDF(data: ExportData, logoImage?: string) 
         item.name,
         categoryLabels[item.category] || item.category,
         item.dose_text || '-',
-        item.with_food ? 'Sim' : 'Não',
+        item.with_food ? 'Sim' : 'Nao',
         stockText,
       ];
     });
@@ -208,6 +209,9 @@ export async function generateCompletePDF(data: ExportData, logoImage?: string) 
       head: [['Medicamento', 'Categoria', 'Dosagem', 'Com alimento', 'Estoque']],
       body: itemsData,
       theme: 'striped',
+      styles: {
+        font: 'helvetica',
+      },
       headStyles: { 
         fillColor: COLORS.primary,
         fontSize: 9,
@@ -244,38 +248,50 @@ export async function generateCompletePDF(data: ExportData, logoImage?: string) 
     doc.rect(15, yPos, 180, 8, 'F');
     doc.setFontSize(14);
     doc.setTextColor(255, 255, 255);
-    doc.text('📅 Calendário de Medicamentos', 20, yPos + 5.5);
+    doc.text('Calendario de Medicamentos', 20, yPos + 5.5);
     yPos += 15;
 
     const scheduleData: any[] = [];
     
     data.items.forEach(item => {
-      item.schedules.forEach(schedule => {
-        const times = schedule.times || [];
-        const timesText = Array.isArray(times) 
-          ? times.map((t: any) => t.time || t).join(', ')
-          : 'Não definido';
-        
-        const freqLabels: Record<string, string> = {
-          daily: 'Diariamente',
-          weekly: 'Semanalmente',
-          monthly: 'Mensalmente',
-        };
+      if (item.schedules && item.schedules.length > 0) {
+        item.schedules.forEach(schedule => {
+          const times = schedule.times || [];
+          const timesText = Array.isArray(times) 
+            ? times.map((t: any) => typeof t === 'string' ? t : t.time || 'Nao definido').join(', ')
+            : JSON.stringify(times) !== '{}' ? JSON.stringify(times) : 'Nao definido';
+          
+          const freqLabels: Record<string, string> = {
+            daily: 'Diariamente',
+            weekly: 'Semanalmente',
+            monthly: 'Mensalmente',
+            specific_days: 'Dias especificos',
+          };
 
+          scheduleData.push([
+            item.name,
+            freqLabels[schedule.freq_type] || schedule.freq_type,
+            timesText,
+          ]);
+        });
+      } else {
         scheduleData.push([
           item.name,
-          freqLabels[schedule.freq_type] || schedule.freq_type,
-          timesText,
+          'Sem agendamento',
+          '-',
         ]);
-      });
+      }
     });
 
     if (scheduleData.length > 0) {
       autoTable(doc, {
         startY: yPos,
-        head: [['Medicamento', 'Frequência', 'Horários']],
+        head: [['Medicamento', 'Frequencia', 'Horarios']],
         body: scheduleData,
         theme: 'striped',
+        styles: {
+          font: 'helvetica',
+        },
         headStyles: { 
           fillColor: COLORS.primary,
           fontSize: 10,
@@ -292,6 +308,11 @@ export async function generateCompletePDF(data: ExportData, logoImage?: string) 
       });
 
       yPos = (doc as any).lastAutoTable.finalY + 15;
+    } else {
+      doc.setFontSize(10);
+      doc.setTextColor(100, 100, 100);
+      doc.text('Nenhum horario agendado encontrado.', 20, yPos);
+      yPos += 10;
     }
   }
 
@@ -310,7 +331,7 @@ export async function generateCompletePDF(data: ExportData, logoImage?: string) 
     doc.setTextColor(150, 150, 150);
     doc.setFontSize(7);
     doc.text(
-      'Este relatório é apenas informativo e não substitui consulta médica.',
+      'Este relatorio e apenas informativo e nao substitui consulta medica.',
       105,
       292,
       { align: 'center' }
