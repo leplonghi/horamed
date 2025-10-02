@@ -1,0 +1,366 @@
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Clock, Pill, TrendingUp, Package } from "lucide-react";
+import { toast } from "sonner";
+import { format, parseISO } from "date-fns";
+import { ptBR } from "date-fns/locale";
+
+interface DoseInstance {
+  id: string;
+  due_at: string;
+  status: string;
+  item_id: string;
+  items: {
+    name: string;
+    dose_text: string | null;
+    with_food: boolean;
+  };
+}
+
+interface LowStock {
+  id: string;
+  name: string;
+  units_left: number;
+  unit_label: string;
+  projected_days_left: number;
+}
+
+export default function Today() {
+  const [upcomingDoses, setUpcomingDoses] = useState<DoseInstance[]>([]);
+  const [lowStockItems, setLowStockItems] = useState<LowStock[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [greeting, setGreeting] = useState("");
+
+  useEffect(() => {
+    const hour = new Date().getHours();
+    if (hour < 12) setGreeting("Bom dia");
+    else if (hour < 18) setGreeting("Boa tarde");
+    else setGreeting("Boa noite");
+
+    fetchTodayData();
+  }, []);
+
+  const fetchTodayData = async () => {
+    try {
+      const now = new Date();
+      const endOfDay = new Date(now);
+      endOfDay.setHours(23, 59, 59, 999);
+
+      // Fetch upcoming doses for today
+      const { data: doses, error: dosesError } = await supabase
+        .from("dose_instances")
+        .select(`
+          id,
+          due_at,
+          status,
+          item_id,
+          items (name, dose_text, with_food)
+        `)
+        .eq("status", "scheduled")
+        .gte("due_at", now.toISOString())
+        .lte("due_at", endOfDay.toISOString())
+        .order("due_at", { ascending: true })
+        .limit(5);
+
+      if (dosesError) throw dosesError;
+      setUpcomingDoses(doses || []);
+
+      // Fetch low stock items
+      const { data: items, error: itemsError } = await supabase
+        .from("items")
+        .select(`
+          id,
+          name,
+          stock (units_left, unit_label, projected_end_at)
+        `)
+        .eq("is_active", true);
+
+      if (itemsError) throw itemsError;
+
+      const lowStock = items
+        ?.filter((item: any) => {
+          if (!item.stock?.[0]) return false;
+          const stock = item.stock[0];
+          if (!stock.projected_end_at) return false;
+          const daysLeft = Math.ceil(
+            (new Date(stock.projected_end_at).getTime() - now.getTime()) /
+              (1000 * 60 * 60 * 24)
+          );
+          return daysLeft <= 7 && daysLeft > 0;
+        })
+        .map((item: any) => ({
+          id: item.id,
+          name: item.name,
+          units_left: item.stock[0].units_left,
+          unit_label: item.stock[0].unit_label,
+          projected_days_left: Math.ceil(
+            (new Date(item.stock[0].projected_end_at).getTime() - now.getTime()) /
+              (1000 * 60 * 60 * 24)
+          ),
+        }))
+        .sort((a: LowStock, b: LowStock) => a.projected_days_left - b.projected_days_left);
+
+      setLowStockItems(lowStock || []);
+    } catch (error) {
+      console.error("Error fetching today data:", error);
+      toast.error("Erro ao carregar dados de hoje");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const markAsTaken = async (doseId: string, itemId: string) => {
+    try {
+      const takenAt = new Date();
+      const { error } = await supabase
+        .from("dose_instances")
+        .update({
+          status: "taken",
+          taken_at: takenAt.toISOString(),
+        })
+        .eq("id", doseId);
+
+      if (error) throw error;
+
+      // Decrement stock
+      const { data: stockData } = await supabase
+        .from("stock")
+        .select("units_left, units_total")
+        .eq("item_id", itemId)
+        .single();
+
+      if (stockData && stockData.units_left > 0) {
+        await supabase
+          .from("stock")
+          .update({ units_left: stockData.units_left - 1 })
+          .eq("item_id", itemId);
+      }
+
+      toast.success("Dose confirmada! 💚");
+      fetchTodayData();
+    } catch (error) {
+      console.error("Error marking dose as taken:", error);
+      toast.error("Erro ao confirmar dose");
+    }
+  };
+
+  const snoozeDose = async (doseId: string, minutes: number) => {
+    try {
+      const { data: dose } = await supabase
+        .from("dose_instances")
+        .select("due_at")
+        .eq("id", doseId)
+        .single();
+
+      if (dose) {
+        const newTime = new Date(dose.due_at);
+        newTime.setMinutes(newTime.getMinutes() + minutes);
+
+        await supabase
+          .from("dose_instances")
+          .update({
+            due_at: newTime.toISOString(),
+            status: "snoozed",
+          })
+          .eq("id", doseId);
+
+        toast.success(`Lembrete adiado por ${minutes} minutos`);
+        fetchTodayData();
+      }
+    } catch (error) {
+      console.error("Error snoozing dose:", error);
+      toast.error("Erro ao adiar lembrete");
+    }
+  };
+
+  const skipDose = async (doseId: string) => {
+    try {
+      await supabase
+        .from("dose_instances")
+        .update({ status: "skipped" })
+        .eq("id", doseId);
+
+      toast("Dose pulada");
+      fetchTodayData();
+    } catch (error) {
+      console.error("Error skipping dose:", error);
+      toast.error("Erro ao pular dose");
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 p-6 flex items-center justify-center">
+        <div className="animate-pulse text-muted-foreground">Carregando...</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 p-6 pb-24">
+      <div className="max-w-4xl mx-auto space-y-6">
+        {/* Header */}
+        <div className="space-y-2">
+          <h1 className="text-4xl font-bold text-foreground">
+            {greeting}! 👋
+          </h1>
+          <p className="text-muted-foreground text-lg">
+            {format(new Date(), "EEEE, d 'de' MMMM", { locale: ptBR })}
+          </p>
+        </div>
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Card className="p-4 bg-gradient-to-br from-success/10 to-success/5 border-success/20">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-success/10">
+                <TrendingUp className="h-5 w-5 text-success" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Adesão semanal</p>
+                <p className="text-2xl font-bold text-foreground">92%</p>
+              </div>
+            </div>
+          </Card>
+
+          <Card className="p-4 bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-primary/10">
+                <Pill className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Hoje</p>
+                <p className="text-2xl font-bold text-foreground">{upcomingDoses.length}</p>
+              </div>
+            </div>
+          </Card>
+
+          <Card className="p-4 bg-gradient-to-br from-warning/10 to-warning/5 border-warning/20">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-warning/10">
+                <Package className="h-5 w-5 text-warning" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Acabando</p>
+                <p className="text-2xl font-bold text-foreground">{lowStockItems.length}</p>
+              </div>
+            </div>
+          </Card>
+        </div>
+
+        {/* Upcoming Doses */}
+        <div className="space-y-3">
+          <h2 className="text-xl font-semibold flex items-center gap-2">
+            <Clock className="h-5 w-5 text-primary" />
+            Próximas doses
+          </h2>
+
+          {upcomingDoses.length === 0 ? (
+            <Card className="p-8 text-center">
+              <p className="text-muted-foreground">
+                Nenhuma dose programada para hoje! 🎉
+              </p>
+            </Card>
+          ) : (
+            upcomingDoses.map((dose) => (
+              <Card
+                key={dose.id}
+                className="p-5 hover:shadow-md transition-shadow bg-gradient-to-r from-card to-card/50"
+              >
+                <div className="space-y-4">
+                  <div className="flex items-start justify-between">
+                    <div className="space-y-1">
+                      <h3 className="text-lg font-semibold text-foreground">
+                        {dose.items.name}
+                      </h3>
+                      {dose.items.dose_text && (
+                        <p className="text-sm text-muted-foreground">
+                          {dose.items.dose_text}
+                        </p>
+                      )}
+                      {dose.items.with_food && (
+                        <p className="text-xs text-accent font-medium">
+                          🍽️ Tomar com alimento
+                        </p>
+                      )}
+                    </div>
+                    <div className="text-right">
+                      <p className="text-2xl font-bold text-primary">
+                        {format(parseISO(dose.due_at), "HH:mm")}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap gap-2">
+                    <Button
+                      onClick={() => markAsTaken(dose.id, dose.item_id)}
+                      className="flex-1 bg-success hover:bg-success/90"
+                    >
+                      ✓ Tomei
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => snoozeDose(dose.id, 15)}
+                      className="border-primary/30 hover:bg-primary/5"
+                    >
+                      +15 min
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => snoozeDose(dose.id, 30)}
+                      className="border-primary/30 hover:bg-primary/5"
+                    >
+                      +30 min
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      onClick={() => skipDose(dose.id)}
+                      className="text-muted-foreground"
+                    >
+                      Pular
+                    </Button>
+                  </div>
+                </div>
+              </Card>
+            ))
+          )}
+        </div>
+
+        {/* Low Stock Alerts */}
+        {lowStockItems.length > 0 && (
+          <div className="space-y-3">
+            <h2 className="text-xl font-semibold flex items-center gap-2">
+              <Package className="h-5 w-5 text-warning" />
+              Estoque baixo
+            </h2>
+
+            {lowStockItems.map((item) => (
+              <Card
+                key={item.id}
+                className="p-4 bg-gradient-to-r from-warning/5 to-warning/0 border-warning/30"
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="font-semibold text-foreground">{item.name}</h3>
+                    <p className="text-sm text-muted-foreground">
+                      {item.units_left} {item.unit_label} restantes
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-medium text-warning">
+                      {item.projected_days_left}{" "}
+                      {item.projected_days_left === 1 ? "dia" : "dias"}
+                    </p>
+                    <p className="text-xs text-muted-foreground">até acabar</p>
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
