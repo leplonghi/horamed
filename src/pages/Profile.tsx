@@ -10,6 +10,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import Navigation from "@/components/Navigation";
 import { useSubscription } from "@/hooks/useSubscription";
+import logo from "@/assets/horamend-logo.png";
 
 export default function Profile() {
   const navigate = useNavigate();
@@ -167,10 +168,7 @@ export default function Profile() {
         <div className="space-y-4">
           {/* Header */}
           <div className="flex items-center gap-3 mb-6">
-            <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
-              <CheckCircle2 className="h-5 w-5 text-primary-foreground" />
-            </div>
-            <h1 className="text-xl font-bold text-foreground">MedHora</h1>
+            <img src={logo} alt="MedHora" className="h-10 w-auto" />
           </div>
 
           {/* Plan Card */}
