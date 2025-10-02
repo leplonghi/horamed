@@ -22,6 +22,10 @@ export function useSubscription() {
 
   useEffect(() => {
     loadSubscription();
+    
+    // Auto-refresh subscription every 10 seconds
+    const interval = setInterval(loadSubscription, 10000);
+    return () => clearInterval(interval);
   }, []);
 
   const loadSubscription = async () => {

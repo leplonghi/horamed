@@ -54,18 +54,35 @@ export default function ProfileEdit() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
+      const weightValue = profile.weight_kg ? parseFloat(profile.weight_kg) : null;
+      const heightValue = profile.height_cm ? parseFloat(profile.height_cm) : null;
+
+      // Update profile
       const { error } = await supabase
         .from("profiles")
         .upsert({
           user_id: user.id,
           full_name: profile.full_name,
           nickname: profile.nickname,
-          weight_kg: profile.weight_kg ? parseFloat(profile.weight_kg) : null,
-          height_cm: profile.height_cm ? parseFloat(profile.height_cm) : null,
+          weight_kg: weightValue,
+          height_cm: heightValue,
           birth_date: profile.birth_date || null,
         });
 
       if (error) throw error;
+
+      // If weight or height changed, save to health history
+      if (weightValue || heightValue) {
+        await supabase
+          .from("health_history")
+          .insert({
+            user_id: user.id,
+            weight_kg: weightValue,
+            height_cm: heightValue,
+            recorded_at: new Date().toISOString(),
+          });
+      }
+
       toast.success("Perfil atualizado com sucesso!");
       navigate("/perfil");
     } catch (error: any) {

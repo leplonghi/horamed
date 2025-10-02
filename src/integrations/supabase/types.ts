@@ -62,6 +62,33 @@ export type Database = {
           },
         ]
       }
+      health_history: {
+        Row: {
+          created_at: string
+          height_cm: number | null
+          id: string
+          recorded_at: string
+          user_id: string
+          weight_kg: number | null
+        }
+        Insert: {
+          created_at?: string
+          height_cm?: number | null
+          id?: string
+          recorded_at?: string
+          user_id: string
+          weight_kg?: number | null
+        }
+        Update: {
+          created_at?: string
+          height_cm?: number | null
+          id?: string
+          recorded_at?: string
+          user_id?: string
+          weight_kg?: number | null
+        }
+        Relationships: []
+      }
       items: {
         Row: {
           category: string | null

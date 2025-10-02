@@ -12,7 +12,7 @@ import Profile from "./pages/Profile";
 import ProfileEdit from "./pages/ProfileEdit";
 import Notifications from "./pages/Notifications";
 import Privacy from "./pages/Privacy";
-
+import SubscriptionManagement from "./pages/SubscriptionManagement";
 import HelpSupport from "./pages/HelpSupport";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
@@ -36,6 +36,7 @@ const App = () => (
           <Route path="/adicionar" element={<ProtectedRoute><AddItem /></ProtectedRoute>} />
           <Route path="/perfil" element={<ProtectedRoute><Profile /><Navigation /></ProtectedRoute>} />
           <Route path="/profile/edit" element={<ProtectedRoute><ProfileEdit /></ProtectedRoute>} />
+          <Route path="/assinatura" element={<ProtectedRoute><SubscriptionManagement /></ProtectedRoute>} />
           <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
           <Route path="/privacy" element={<ProtectedRoute><Privacy /></ProtectedRoute>} />
           

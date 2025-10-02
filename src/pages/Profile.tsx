@@ -19,10 +19,11 @@ export default function Profile() {
     weight_kg: null,
     height_cm: null,
   });
-  const { subscription, isPremium, daysLeft } = useSubscription();
+  const { subscription, isPremium, daysLeft, refresh } = useSubscription();
 
   useEffect(() => {
     loadProfile();
+    refresh(); // Force refresh subscription on mount
   }, []);
 
   const loadProfile = async () => {
@@ -134,9 +135,9 @@ export default function Profile() {
 
               <Button 
                 className="w-full bg-primary hover:bg-primary/90"
-                onClick={() => navigate('/planos')}
+                onClick={() => navigate(isPremium ? '/assinatura' : '/planos')}
               >
-                {isPremium ? 'Gerenciar' : 'Assinar'}
+                {isPremium ? 'Gerenciar Assinatura' : 'Fazer Upgrade'}
               </Button>
             </div>
           </Card>

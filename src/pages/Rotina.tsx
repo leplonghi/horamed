@@ -253,36 +253,34 @@ export default function Rotina() {
 
           {/* Tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <div className="relative">
-              <TabsList className="w-full justify-start h-auto p-1 bg-transparent gap-2 overflow-x-auto flex-nowrap">
-                <TabsTrigger 
-                  value="todos" 
-                  className="rounded-full data-[state=active]:bg-primary data-[state=active]:text-white px-4 py-2 whitespace-nowrap"
-                >
-                  <Pill className="h-4 w-4 mr-2" />
-                  Todos {items.length}
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="medicamento" 
-                  className="rounded-full data-[state=active]:bg-secondary data-[state=active]:text-secondary-foreground px-4 py-2 whitespace-nowrap"
-                >
-                  <Pill className="h-4 w-4 mr-2" />
-                  Medicamentos {getCategoryCount("medicamento")}
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="vitamina" 
-                  className="rounded-full data-[state=active]:bg-secondary data-[state=active]:text-secondary-foreground px-4 py-2 whitespace-nowrap"
-                >
-                  ❤️ Vitaminas {getCategoryCount("vitamina")}
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="suplemento" 
-                  className="rounded-full data-[state=active]:bg-secondary data-[state=active]:text-secondary-foreground px-4 py-2 whitespace-nowrap"
-                >
-                  ⚡ Suplementos {getCategoryCount("suplemento")}
-                </TabsTrigger>
-              </TabsList>
-            </div>
+            <TabsList className="w-full justify-start h-auto p-1 bg-muted/50 gap-2 flex flex-wrap">
+              <TabsTrigger 
+                value="todos" 
+                className="rounded-full data-[state=active]:bg-primary data-[state=active]:text-white px-4 py-2"
+              >
+                <Pill className="h-4 w-4 mr-2" />
+                Todos {items.length}
+              </TabsTrigger>
+              <TabsTrigger 
+                value="medicamento" 
+                className="rounded-full data-[state=active]:bg-secondary data-[state=active]:text-secondary-foreground px-4 py-2"
+              >
+                <Pill className="h-4 w-4 mr-2" />
+                Medicamentos {getCategoryCount("medicamento")}
+              </TabsTrigger>
+              <TabsTrigger 
+                value="vitamina" 
+                className="rounded-full data-[state=active]:bg-secondary data-[state=active]:text-secondary-foreground px-4 py-2"
+              >
+                ❤️ Vitaminas {getCategoryCount("vitamina")}
+              </TabsTrigger>
+              <TabsTrigger 
+                value="suplemento" 
+                className="rounded-full data-[state=active]:bg-secondary data-[state=active]:text-secondary-foreground px-4 py-2"
+              >
+                ⚡ Suplementos {getCategoryCount("suplemento")}
+              </TabsTrigger>
+            </TabsList>
 
             <TabsContent value={activeTab} className="space-y-3 mt-6">
               {filteredItems.length === 0 ? (
