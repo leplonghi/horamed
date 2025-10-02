@@ -41,10 +41,9 @@ export default function Plans() {
 
   const freePlanFeatures = [
     "1 medicamento ativo",
-    "Histórico de 7 dias",
     "Notificações básicas",
     "Com anúncios",
-    "Suporte por email"
+    
   ];
 
   const premiumPlanFeatures = [
@@ -52,10 +51,8 @@ export default function Plans() {
     "Sem anúncios",
     "OCR de receitas médicas",
     "Histórico completo",
-    "Até 2 cuidadores",
     "Arquivo de ocorrências por IA",
     "Integração de calendário",
-    "Backup e restauração",
     "Suporte prioritário"
   ];
 
