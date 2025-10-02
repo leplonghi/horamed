@@ -4,6 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { User } from "lucide-react";
 import { Link } from "react-router-dom";
 import SubscriptionBadge from "./SubscriptionBadge";
+import { ThemeToggle } from "./ThemeToggle";
 import logo from "@/assets/horamend-logo.png";
 
 export default function Header() {
@@ -57,23 +58,27 @@ export default function Header() {
             <SubscriptionBadge />
           </div>
 
-          <Link to="/perfil" className="flex items-center gap-3">
-            <div className="flex flex-col items-end">
-              <span className="text-sm font-semibold text-foreground">
-                {userName || "Usuário"}
-              </span>
-              <span className="text-xs text-muted-foreground">
-                {userEmail}
-              </span>
-            </div>
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
             
-            <Avatar className="h-10 w-10">
-              <AvatarImage src={avatarUrl || undefined} alt="Avatar" />
-              <AvatarFallback className="bg-primary text-primary-foreground">
-                {userEmail ? getInitials(userEmail) : <User className="h-5 w-5" />}
-              </AvatarFallback>
-            </Avatar>
-          </Link>
+            <Link to="/perfil" className="flex items-center gap-3">
+              <div className="flex flex-col items-end">
+                <span className="text-sm font-semibold text-foreground">
+                  {userName || "Usuário"}
+                </span>
+                <span className="text-xs text-muted-foreground">
+                  {userEmail}
+                </span>
+              </div>
+              
+              <Avatar className="h-10 w-10">
+                <AvatarImage src={avatarUrl || undefined} alt="Avatar" />
+                <AvatarFallback className="bg-primary text-primary-foreground">
+                  {userEmail ? getInitials(userEmail) : <User className="h-5 w-5" />}
+                </AvatarFallback>
+              </Avatar>
+            </Link>
+          </div>
         </div>
       </div>
     </header>

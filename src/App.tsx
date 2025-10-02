@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { ThemeProvider } from "next-themes";
 import Index from "./pages/Index";
 import Today from "./pages/Today";
 import Rotina from "./pages/Rotina";
@@ -28,8 +29,9 @@ const App = () => {
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <BrowserRouter>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          <TooltipProvider>
+            <BrowserRouter>
             <Toaster />
             <Sonner />
             <Routes>
@@ -51,6 +53,7 @@ const App = () => {
             </Routes>
           </BrowserRouter>
         </TooltipProvider>
+      </ThemeProvider>
       </QueryClientProvider>
     </ErrorBoundary>
   );
