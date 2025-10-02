@@ -21,7 +21,23 @@ export function useSubscription() {
   const { toast } = useToast();
 
   useEffect(() => {
-    loadSubscription();
+    const initializeSubscription = async () => {
+      await loadSubscription();
+      
+      // Check if we need to sync with Stripe
+      const lastSync = localStorage.getItem('last_stripe_sync');
+      const now = Date.now();
+      const fiveMinutes = 5 * 60 * 1000;
+      
+      // Sync if never synced or last sync was more than 5 minutes ago
+      if (!lastSync || now - parseInt(lastSync) > fiveMinutes) {
+        console.log('Auto-syncing with Stripe...');
+        await syncWithStripeInternal();
+        localStorage.setItem('last_stripe_sync', now.toString());
+      }
+    };
+    
+    initializeSubscription();
     
     // Auto-refresh subscription every 10 seconds
     const interval = setInterval(loadSubscription, 10000);
@@ -61,9 +77,8 @@ export function useSubscription() {
     }
   };
 
-  const syncWithStripe = async () => {
+  const syncWithStripeInternal = async (showToast = false) => {
     try {
-      setLoading(true);
       const { data, error } = await supabase.functions.invoke('sync-subscription');
       
       if (error) throw error;
@@ -72,18 +87,30 @@ export function useSubscription() {
       
       if (data?.synced) {
         await loadSubscription();
-        toast({
-          title: 'Assinatura sincronizada',
-          description: data.subscribed ? 'Sua assinatura Premium está ativa!' : 'Nenhuma assinatura ativa encontrada',
-        });
+        if (showToast) {
+          toast({
+            title: 'Assinatura sincronizada',
+            description: data.subscribed ? 'Sua assinatura Premium está ativa!' : 'Nenhuma assinatura ativa encontrada',
+          });
+        }
       }
     } catch (error) {
       console.error('Sync error:', error);
-      toast({
-        title: 'Erro ao sincronizar',
-        description: 'Não foi possível sincronizar com o Stripe',
-        variant: 'destructive',
-      });
+      if (showToast) {
+        toast({
+          title: 'Erro ao sincronizar',
+          description: 'Não foi possível sincronizar com o Stripe',
+          variant: 'destructive',
+        });
+      }
+    }
+  };
+
+  const syncWithStripe = async () => {
+    try {
+      setLoading(true);
+      await syncWithStripeInternal(true);
+      localStorage.setItem('last_stripe_sync', Date.now().toString());
     } finally {
       setLoading(false);
     }
