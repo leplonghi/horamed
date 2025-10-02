@@ -8,111 +8,61 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Base colors - clean whites and soft grays */
-    --background: 0 0% 99%;
-    --foreground: 215 25% 15%;
-
-    /* Cards with subtle elevation */
+    --background: 210 40% 98%;
+    --foreground: 210 15% 10%;
     --card: 0 0% 100%;
-    --card-foreground: 215 25% 15%;
-
-    /* Popover/Dialog */
+    --card-foreground: 210 15% 10%;
     --popover: 0 0% 100%;
-    --popover-foreground: 215 25% 15%;
-
-    /* Primary - Health Green (vibrant, trustworthy) */
-    --primary: 142 76% 36%;
+    --popover-foreground: 210 15% 10%;
+    --primary: 210 100% 50%;
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 142 70% 50%;
-
-    /* Secondary - Trust Blue (calm, reliable) */
-    --secondary: 217 91% 60%;
-    --secondary-foreground: 0 0% 100%;
-
-    /* Muted - subtle grays for less prominent content */
-    --muted: 215 20% 95%;
-    --muted-foreground: 215 16% 47%;
-
-    /* Accent - Soft teal for highlights */
-    --accent: 174 62% 47%;
-    --accent-foreground: 0 0% 100%;
-
-    /* Destructive/Warning/Success */
+    --secondary: 210 15% 95%;
+    --secondary-foreground: 210 15% 10%;
+    --muted: 210 15% 95%;
+    --muted-foreground: 210 10% 40%;
+    --accent: 210 100% 95%;
+    --accent-foreground: 210 100% 50%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
     --warning: 38 92% 50%;
     --warning-foreground: 0 0% 100%;
-    --success: 142 76% 36%;
+    --success: 142 71% 45%;
     --success-foreground: 0 0% 100%;
-
-    /* Borders and inputs - softer, more refined */
-    --border: 215 20% 90%;
-    --input: 215 20% 90%;
-    --ring: 142 76% 36%;
-
+    --border: 210 15% 88%;
+    --input: 210 15% 88%;
+    --ring: 210 100% 50%;
     --radius: 0.75rem;
-
-    /* Gradients for hero sections and cards */
-    --gradient-hero: linear-gradient(135deg, hsl(142 76% 36%), hsl(174 62% 47%));
-    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%), hsl(142 10% 98%));
-    --gradient-subtle: linear-gradient(to bottom, hsl(0 0% 100%), hsl(215 20% 98%));
-
-    /* Shadows - soft and elegant */
-    --shadow-sm: 0 1px 2px 0 hsl(215 25% 15% / 0.05);
-    --shadow-md: 0 4px 6px -1px hsl(215 25% 15% / 0.1), 0 2px 4px -2px hsl(215 25% 15% / 0.06);
-    --shadow-lg: 0 10px 15px -3px hsl(215 25% 15% / 0.1), 0 4px 6px -4px hsl(215 25% 15% / 0.05);
-    --shadow-glow: 0 0 20px hsl(142 76% 36% / 0.2);
-
-    /* Transitions */
+    --shadow-soft: 0 2px 8px rgba(0, 0, 0, 0.05);
+    --shadow-medium: 0 4px 16px rgba(0, 0, 0, 0.08);
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .dark {
-    /* Dark mode - deep blues and greens */
-    --background: 215 30% 8%;
-    --foreground: 0 0% 98%;
-
-    --card: 215 28% 12%;
-    --card-foreground: 0 0% 98%;
-
-    --popover: 215 28% 12%;
-    --popover-foreground: 0 0% 98%;
-
-    /* Primary stays vibrant in dark mode */
-    --primary: 142 70% 45%;
-    --primary-foreground: 215 30% 8%;
-    --primary-glow: 142 70% 55%;
-
-    --secondary: 217 91% 65%;
-    --secondary-foreground: 215 30% 8%;
-
-    --muted: 215 25% 18%;
-    --muted-foreground: 215 15% 65%;
-
-    --accent: 174 62% 52%;
-    --accent-foreground: 215 30% 8%;
-
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 98%;
+    --background: 210 40% 8%;
+    --foreground: 210 10% 95%;
+    --card: 210 40% 10%;
+    --card-foreground: 210 10% 95%;
+    --popover: 210 40% 10%;
+    --popover-foreground: 210 10% 95%;
+    --primary: 210 100% 50%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 210 15% 15%;
+    --secondary-foreground: 210 10% 95%;
+    --muted: 210 15% 15%;
+    --muted-foreground: 210 10% 60%;
+    --accent: 210 100% 20%;
+    --accent-foreground: 210 100% 95%;
+    --destructive: 0 62% 50%;
+    --destructive-foreground: 0 0% 100%;
     --warning: 38 92% 50%;
-    --warning-foreground: 0 0% 98%;
-    --success: 142 70% 45%;
-    --success-foreground: 0 0% 98%;
-
-    --border: 215 25% 20%;
-    --input: 215 25% 20%;
-    --ring: 142 70% 45%;
-
-    /* Dark mode gradients */
-    --gradient-hero: linear-gradient(135deg, hsl(142 70% 25%), hsl(174 62% 30%));
-    --gradient-card: linear-gradient(180deg, hsl(215 28% 12%), hsl(142 30% 10%));
-    --gradient-subtle: linear-gradient(to bottom, hsl(215 28% 12%), hsl(215 25% 10%));
-
-    /* Dark mode shadows */
-    --shadow-sm: 0 1px 2px 0 hsl(0 0% 0% / 0.3);
-    --shadow-md: 0 4px 6px -1px hsl(0 0% 0% / 0.4), 0 2px 4px -2px hsl(0 0% 0% / 0.3);
-    --shadow-lg: 0 10px 15px -3px hsl(0 0% 0% / 0.4), 0 4px 6px -4px hsl(0 0% 0% / 0.3);
-    --shadow-glow: 0 0 30px hsl(142 70% 45% / 0.3);
+    --warning-foreground: 0 0% 100%;
+    --success: 142 71% 45%;
+    --success-foreground: 0 0% 100%;
+    --border: 210 15% 20%;
+    --input: 210 15% 20%;
+    --ring: 210 100% 50%;
+    --shadow-soft: 0 2px 8px rgba(0, 0, 0, 0.3);
+    --shadow-medium: 0 4px 16px rgba(0, 0, 0, 0.4);
   }
 }
 

@@ -17,6 +17,7 @@ export default function Profile() {
   const [uploading, setUploading] = useState(false);
   const [profile, setProfile] = useState<any>({
     full_name: "",
+    nickname: "",
     weight_kg: "",
     height_cm: "",
     birth_date: "",

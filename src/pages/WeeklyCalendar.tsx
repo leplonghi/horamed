@@ -1,223 +1,240 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Calendar, Clock, Pill } from "lucide-react";
-import { format, startOfWeek, addDays, parseISO } from "date-fns";
+import { Button } from "@/components/ui/button";
+import { ChevronLeft, ChevronRight, CheckCircle2, Circle } from "lucide-react";
+import { format, startOfWeek, endOfWeek, eachDayOfInterval, addWeeks, subWeeks, isSameDay, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { toast } from "sonner";
+import Navigation from "@/components/Navigation";
 
 interface DoseInstance {
   id: string;
   due_at: string;
   status: string;
+  item_id: string;
   items: {
     name: string;
-    category: string;
   };
 }
 
-interface DaySchedule {
-  date: Date;
-  dayName: string;
-  doses: DoseInstance[];
-}
-
-const CATEGORY_COLORS = {
-  medicamento: "bg-primary/10 text-primary border-primary/30",
-  suplemento: "bg-accent/10 text-accent border-accent/30",
-  vitamina: "bg-warning/10 text-warning border-warning/30",
-  pet: "bg-secondary/10 text-secondary border-secondary/30",
-};
-
 export default function WeeklyCalendar() {
-  const [weekSchedule, setWeekSchedule] = useState<DaySchedule[]>([]);
+  const [currentWeekStart, setCurrentWeekStart] = useState(
+    startOfWeek(new Date(), { weekStartsOn: 0 })
+  );
+  const [doses, setDoses] = useState<DoseInstance[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchWeekSchedule();
-  }, []);
+    fetchWeekDoses();
+  }, [currentWeekStart]);
 
-  const fetchWeekSchedule = async () => {
+  const fetchWeekDoses = async () => {
     try {
-      const today = new Date();
-      const weekStart = startOfWeek(today, { weekStartsOn: 0 });
+      const weekEnd = endOfWeek(currentWeekStart, { weekStartsOn: 0 });
 
-      const schedulePromises = Array.from({ length: 7 }, async (_, i) => {
-        const day = addDays(weekStart, i);
-        const dayStart = new Date(day);
-        dayStart.setHours(0, 0, 0, 0);
-        const dayEnd = new Date(day);
-        dayEnd.setHours(23, 59, 59, 999);
+      const { data, error } = await supabase
+        .from("dose_instances")
+        .select(`
+          id,
+          due_at,
+          status,
+          item_id,
+          items (name)
+        `)
+        .gte("due_at", currentWeekStart.toISOString())
+        .lte("due_at", weekEnd.toISOString())
+        .order("due_at", { ascending: true });
 
-        const { data } = await supabase
-          .from("dose_instances")
-          .select(`
-            id,
-            due_at,
-            status,
-            items (name, category)
-          `)
-          .gte("due_at", dayStart.toISOString())
-          .lte("due_at", dayEnd.toISOString())
-          .order("due_at", { ascending: true });
-
-        return {
-          date: day,
-          dayName: format(day, "EEE", { locale: ptBR }),
-          doses: data || [],
-        };
-      });
-
-      const schedule = await Promise.all(schedulePromises);
-      setWeekSchedule(schedule);
+      if (error) throw error;
+      setDoses(data || []);
     } catch (error) {
-      console.error("Error fetching week schedule:", error);
+      console.error("Error fetching week doses:", error);
+      toast.error("Erro ao carregar doses da semana");
     } finally {
       setLoading(false);
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "taken":
-        return "bg-success/20 border-success/50";
-      case "skipped":
-        return "bg-muted border-muted-foreground/30";
-      case "snoozed":
-        return "bg-warning/20 border-warning/50";
-      default:
-        return "bg-card border-border";
+  const toggleDoseStatus = async (doseId: string, currentStatus: string) => {
+    try {
+      const newStatus = currentStatus === "taken" ? "scheduled" : "taken";
+      const updateData: any = { status: newStatus };
+      
+      if (newStatus === "taken") {
+        updateData.taken_at = new Date().toISOString();
+        
+        const dose = doses.find(d => d.id === doseId);
+        if (dose) {
+          const { data: stockData } = await supabase
+            .from("stock")
+            .select("units_left")
+            .eq("item_id", dose.item_id)
+            .single();
+
+          if (stockData && stockData.units_left > 0) {
+            await supabase
+              .from("stock")
+              .update({ units_left: stockData.units_left - 1 })
+              .eq("item_id", dose.item_id);
+          }
+        }
+      } else {
+        updateData.taken_at = null;
+        
+        const dose = doses.find(d => d.id === doseId);
+        if (dose) {
+          const { data: stockData } = await supabase
+            .from("stock")
+            .select("units_left, units_total")
+            .eq("item_id", dose.item_id)
+            .single();
+
+          if (stockData && stockData.units_left < stockData.units_total) {
+            await supabase
+              .from("stock")
+              .update({ units_left: stockData.units_left + 1 })
+              .eq("item_id", dose.item_id);
+          }
+        }
+      }
+
+      const { error } = await supabase
+        .from("dose_instances")
+        .update(updateData)
+        .eq("id", doseId);
+
+      if (error) throw error;
+      
+      toast.success(newStatus === "taken" ? "Dose marcada como tomada! 💚" : "Dose desmarcada");
+      fetchWeekDoses();
+    } catch (error) {
+      console.error("Error toggling dose status:", error);
+      toast.error("Erro ao atualizar status da dose");
     }
   };
 
+  const goToPreviousWeek = () => {
+    setCurrentWeekStart(subWeeks(currentWeekStart, 1));
+  };
+
+  const goToNextWeek = () => {
+    setCurrentWeekStart(addWeeks(currentWeekStart, 1));
+  };
+
+  const weekDays = eachDayOfInterval({
+    start: currentWeekStart,
+    end: endOfWeek(currentWeekStart, { weekStartsOn: 0 }),
+  });
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 p-6 flex items-center justify-center">
-        <div className="animate-pulse text-muted-foreground">Carregando calendário...</div>
+      <div className="min-h-screen bg-background p-6 flex items-center justify-center">
+        <div className="animate-pulse text-muted-foreground">Carregando...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 p-6 pb-24">
-      <div className="max-w-6xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="space-y-2">
-          <h1 className="text-4xl font-bold flex items-center gap-3">
-            <Calendar className="h-9 w-9 text-primary" />
-            Calendário Semanal
-          </h1>
-          <p className="text-muted-foreground text-lg">
-            {format(weekSchedule[0]?.date || new Date(), "d 'de' MMMM", {
-              locale: ptBR,
-            })}{" "}
-            -{" "}
-            {format(weekSchedule[6]?.date || new Date(), "d 'de' MMMM", {
-              locale: ptBR,
-            })}
-          </p>
-        </div>
-
-        {/* Week Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-7 gap-3">
-          {weekSchedule.map((day, index) => {
-            const isToday = format(day.date, "yyyy-MM-dd") === format(new Date(), "yyyy-MM-dd");
-            
-            return (
-              <Card
-                key={index}
-                className={`p-4 space-y-3 transition-all hover:shadow-md ${
-                  isToday ? "ring-2 ring-primary shadow-lg" : ""
-                }`}
-              >
-                {/* Day Header */}
-                <div className="text-center pb-2 border-b">
-                  <p
-                    className={`text-sm font-semibold uppercase ${
-                      isToday ? "text-primary" : "text-muted-foreground"
-                    }`}
-                  >
-                    {day.dayName}
-                  </p>
-                  <p
-                    className={`text-2xl font-bold ${
-                      isToday ? "text-primary" : "text-foreground"
-                    }`}
-                  >
-                    {format(day.date, "d")}
-                  </p>
-                </div>
-
-                {/* Doses */}
-                <div className="space-y-2 min-h-[200px]">
-                  {day.doses.length === 0 ? (
-                    <p className="text-xs text-muted-foreground text-center pt-4">
-                      Sem doses
-                    </p>
-                  ) : (
-                    day.doses.map((dose) => (
-                      <div
-                        key={dose.id}
-                        className={`p-2 rounded-lg border transition-all hover:scale-105 ${getStatusColor(
-                          dose.status
-                        )}`}
-                      >
-                        <div className="flex items-start gap-2">
-                          <Clock className="h-3 w-3 text-muted-foreground mt-0.5 shrink-0" />
-                          <div className="flex-1 min-w-0">
-                            <p className="text-xs font-medium truncate">
-                              {format(parseISO(dose.due_at), "HH:mm")}
-                            </p>
-                            <p className="text-xs text-muted-foreground truncate">
-                              {dose.items.name}
-                            </p>
-                            <Badge
-                              variant="outline"
-                              className={`text-[10px] mt-1 ${
-                                CATEGORY_COLORS[
-                                  dose.items.category as keyof typeof CATEGORY_COLORS
-                                ] || ""
-                              }`}
-                            >
-                              {dose.items.category}
-                            </Badge>
-                          </div>
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </Card>
-            );
-          })}
-        </div>
-
-        {/* Legend */}
-        <Card className="p-4">
-          <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
-            <Pill className="h-4 w-4" />
-            Legenda
-          </h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="flex items-center gap-2">
-              <div className="h-3 w-3 rounded-full bg-success/50" />
-              <span className="text-xs">Tomado</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="h-3 w-3 rounded-full bg-warning/50" />
-              <span className="text-xs">Adiado</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="h-3 w-3 rounded-full bg-muted" />
-              <span className="text-xs">Pulado</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="h-3 w-3 rounded-full bg-card border-2 border-border" />
-              <span className="text-xs">Pendente</span>
+    <>
+      <div className="min-h-screen bg-background p-6 pb-24">
+        <div className="max-w-4xl mx-auto space-y-6">
+          <div className="space-y-2">
+            <h1 className="text-2xl font-bold text-primary">MedTracker</h1>
+            <div className="flex items-center justify-between">
+              <h2 className="text-3xl font-bold text-foreground">Calendário 📅</h2>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={goToPreviousWeek}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={goToNextWeek}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           </div>
-        </Card>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-7 gap-3">
+            {weekDays.map((day) => {
+              const dayDoses = doses.filter((dose) =>
+                isSameDay(parseISO(dose.due_at), day)
+              );
+              const isToday = isSameDay(day, new Date());
+
+              return (
+                <Card
+                  key={day.toISOString()}
+                  className={`p-3 ${
+                    isToday ? "border-primary border-2 bg-primary/5" : ""
+                  }`}
+                >
+                  <div className="space-y-2">
+                    <div className="text-center">
+                      <p className="text-xs text-muted-foreground uppercase">
+                        {format(day, "EEE", { locale: ptBR })}
+                      </p>
+                      <p className={`text-xl font-bold ${isToday ? "text-primary" : "text-foreground"}`}>
+                        {format(day, "d")}
+                      </p>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      {dayDoses.length === 0 ? (
+                        <p className="text-xs text-muted-foreground text-center py-2">
+                          Sem doses
+                        </p>
+                      ) : (
+                        dayDoses.map((dose) => (
+                          <div
+                            key={dose.id}
+                            className={`p-2 rounded-lg border ${
+                              dose.status === "taken"
+                                ? "bg-success/10 border-success/20"
+                                : "bg-card border-border"
+                            }`}
+                          >
+                            <div className="flex items-start justify-between gap-1">
+                              <div className="flex-1 min-w-0">
+                                <p className="text-xs font-medium truncate">
+                                  {dose.items.name}
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                  {format(parseISO(dose.due_at), "HH:mm")}
+                                </p>
+                              </div>
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                className="h-5 w-5 flex-shrink-0"
+                                onClick={() => toggleDoseStatus(dose.id, dose.status)}
+                              >
+                                {dose.status === "taken" ? (
+                                  <CheckCircle2 className="h-3 w-3 text-success" />
+                                ) : (
+                                  <Circle className="h-3 w-3 text-muted-foreground" />
+                                )}
+                              </Button>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                </Card>
+              );
+            })}
+          </div>
+        </div>
       </div>
-    </div>
+      <Navigation />
+    </>
   );
 }

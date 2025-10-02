@@ -6,6 +6,7 @@ import { Clock, Pill, TrendingUp, Package } from "lucide-react";
 import { toast } from "sonner";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import Navigation from "@/components/Navigation";
 
 interface DoseInstance {
   id: string;
@@ -32,6 +33,8 @@ export default function Today() {
   const [lowStockItems, setLowStockItems] = useState<LowStock[]>([]);
   const [loading, setLoading] = useState(true);
   const [greeting, setGreeting] = useState("");
+  const [nickname, setNickname] = useState("");
+  const [currentTime, setCurrentTime] = useState(new Date());
   const [stats, setStats] = useState({
     totalToday: 0,
     completed: 0,
@@ -46,7 +49,33 @@ export default function Today() {
     else setGreeting("Boa noite");
 
     fetchTodayData();
+    fetchProfile();
+
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+
+    return () => clearInterval(timer);
   }, []);
+
+  const fetchProfile = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("nickname")
+        .eq("user_id", user.id)
+        .single();
+
+      if (profile?.nickname) {
+        setNickname(profile.nickname);
+      }
+    } catch (error) {
+      console.error("Error fetching profile:", error);
+    }
+  };
 
   const fetchTodayData = async () => {
     try {
@@ -242,28 +271,36 @@ export default function Today() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 p-6 flex items-center justify-center">
+      <div className="min-h-screen bg-background p-6 flex items-center justify-center">
         <div className="animate-pulse text-muted-foreground">Carregando...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 p-6 pb-24">
-      <div className="max-w-4xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="space-y-2">
-          <h1 className="text-4xl font-bold text-foreground">
-            {greeting}! 👋
-          </h1>
-          <p className="text-muted-foreground text-lg">
-            {format(new Date(), "EEEE, d 'de' MMMM", { locale: ptBR })}
-          </p>
-        </div>
+    <>
+      <div className="min-h-screen bg-background p-6 pb-24">
+        <div className="max-w-4xl mx-auto space-y-6">
+          {/* Header */}
+          <div className="space-y-1 mb-6">
+            <h1 className="text-2xl font-bold text-primary">MedTracker</h1>
+            <h2 className="text-3xl font-bold text-foreground">
+              {greeting}{nickname ? `, ${nickname}` : ""}! 👋
+            </h2>
+            <div className="flex items-center gap-3 text-muted-foreground">
+              <p className="text-base">
+                {format(currentTime, "EEEE, d 'de' MMMM", { locale: ptBR })}
+              </p>
+              <span className="text-sm">•</span>
+              <p className="text-base font-mono">
+                {format(currentTime, "HH:mm:ss")}
+              </p>
+            </div>
+          </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card className="p-4 bg-gradient-to-br from-success/10 to-success/5 border-success/20">
+          {/* Stats Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Card className="p-4 bg-success/5 border-success/20">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-lg bg-success/10">
                 <TrendingUp className="h-5 w-5 text-success" />
@@ -275,7 +312,7 @@ export default function Today() {
             </div>
           </Card>
 
-          <Card className="p-4 bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
+          <Card className="p-4 bg-primary/5 border-primary/20">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-lg bg-primary/10">
                 <Pill className="h-5 w-5 text-primary" />
@@ -287,7 +324,7 @@ export default function Today() {
             </div>
           </Card>
 
-          <Card className="p-4 bg-gradient-to-br from-warning/10 to-warning/5 border-warning/20">
+          <Card className="p-4 bg-warning/5 border-warning/20">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-lg bg-warning/10">
                 <Package className="h-5 w-5 text-warning" />
@@ -300,25 +337,25 @@ export default function Today() {
           </Card>
         </div>
 
-        {/* Upcoming Doses */}
-        <div className="space-y-3">
-          <h2 className="text-xl font-semibold flex items-center gap-2">
-            <Clock className="h-5 w-5 text-primary" />
-            Próximas doses
-          </h2>
+          {/* Upcoming Doses */}
+          <div className="space-y-3">
+            <h2 className="text-xl font-semibold flex items-center gap-2">
+              <Clock className="h-5 w-5 text-primary" />
+              Próximas doses
+            </h2>
 
-          {upcomingDoses.length === 0 ? (
-            <Card className="p-8 text-center">
-              <p className="text-muted-foreground">
-                Nenhuma dose programada para hoje! 🎉
-              </p>
-            </Card>
-          ) : (
-            upcomingDoses.map((dose) => (
-              <Card
-                key={dose.id}
-                className="p-5 hover:shadow-md transition-shadow bg-gradient-to-r from-card to-card/50"
-              >
+            {upcomingDoses.length === 0 ? (
+              <Card className="p-8 text-center">
+                <p className="text-muted-foreground">
+                  Nenhuma dose programada para hoje! 🎉
+                </p>
+              </Card>
+            ) : (
+              upcomingDoses.map((dose) => (
+                <Card
+                  key={dose.id}
+                  className="p-5 hover:shadow-md transition-shadow"
+                >
                 <div className="space-y-4">
                   <div className="flex items-start justify-between">
                     <div className="space-y-1">
@@ -378,19 +415,19 @@ export default function Today() {
           )}
         </div>
 
-        {/* Low Stock Alerts */}
-        {lowStockItems.length > 0 && (
-          <div className="space-y-3">
-            <h2 className="text-xl font-semibold flex items-center gap-2">
-              <Package className="h-5 w-5 text-warning" />
-              Estoque baixo
-            </h2>
+          {/* Low Stock Alerts */}
+          {lowStockItems.length > 0 && (
+            <div className="space-y-3">
+              <h2 className="text-xl font-semibold flex items-center gap-2">
+                <Package className="h-5 w-5 text-warning" />
+                Estoque baixo
+              </h2>
 
-            {lowStockItems.map((item) => (
-              <Card
-                key={item.id}
-                className="p-4 bg-gradient-to-r from-warning/5 to-warning/0 border-warning/30"
-              >
+              {lowStockItems.map((item) => (
+                <Card
+                  key={item.id}
+                  className="p-4 bg-warning/5 border-warning/30"
+                >
                 <div className="flex items-center justify-between">
                   <div>
                     <h3 className="font-semibold text-foreground">{item.name}</h3>
@@ -407,10 +444,12 @@ export default function Today() {
                   </div>
                 </div>
               </Card>
-            ))}
-          </div>
-        )}
+              ))}
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+      <Navigation />
+    </>
   );
 }

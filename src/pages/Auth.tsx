@@ -87,160 +87,143 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-accent/10 flex items-center justify-center p-6">
-      <div className="w-full max-w-md space-y-6 animate-fade-in">
-        {/* Logo/Header */}
+    <div className="min-h-screen bg-background flex items-center justify-center p-6">
+      <Card className="w-full max-w-md p-8 space-y-6 shadow-xl">
         <div className="text-center space-y-3">
-          <div className="flex justify-center">
-            <div className="p-4 rounded-2xl bg-gradient-to-br from-primary to-accent shadow-glow">
-              <Pill className="h-12 w-12 text-white" />
-            </div>
+          <div className="inline-block p-4 rounded-full bg-primary/10">
+            <span className="text-5xl">💊</span>
           </div>
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-            MedHora
-          </h1>
-          <p className="text-muted-foreground">
-            Gerencie seus medicamentos com inteligência
+          <h1 className="text-4xl font-bold text-primary">MedTracker</h1>
+          <p className="text-muted-foreground text-lg">
+            Gerencie sua rotina de medicamentos com facilidade
           </p>
         </div>
 
-        {/* Auth Card */}
-        <Card className="p-6 shadow-lg backdrop-blur-sm bg-card/95">
-          <Tabs defaultValue="login" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-6">
-              <TabsTrigger value="login">Entrar</TabsTrigger>
-              <TabsTrigger value="signup">Criar conta</TabsTrigger>
-            </TabsList>
+        <Tabs defaultValue="login" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="login">Entrar</TabsTrigger>
+            <TabsTrigger value="signup">Criar conta</TabsTrigger>
+          </TabsList>
 
-            <TabsContent value="login" className="space-y-4">
-              <form onSubmit={handleEmailSignIn} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="login-email">E-mail</Label>
-                  <Input
-                    id="login-email"
-                    type="email"
-                    placeholder="seu@email.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    className="transition-all"
-                  />
-                </div>
+          <TabsContent value="login" className="space-y-4">
+            <form onSubmit={handleEmailSignIn} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="login-email">E-mail</Label>
+                <Input
+                  id="login-email"
+                  type="email"
+                  placeholder="seu@email.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+              </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="login-password">Senha</Label>
-                  <Input
-                    id="login-password"
-                    type="password"
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    className="transition-all"
-                  />
-                </div>
-
-                <Button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full bg-primary hover:bg-primary/90 transition-all"
-                >
-                  <Mail className="h-4 w-4 mr-2" />
-                  {loading ? "Entrando..." : "Entrar com E-mail"}
-                </Button>
-              </form>
-
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t border-border" />
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-card px-2 text-muted-foreground">ou</span>
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="login-password">Senha</Label>
+                <Input
+                  id="login-password"
+                  type="password"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
               </div>
 
               <Button
-                type="button"
-                variant="outline"
-                onClick={handleGoogleLogin}
+                type="submit"
                 disabled={loading}
-                className="w-full transition-all hover:bg-accent/10"
+                className="w-full"
               >
-                <Chrome className="h-4 w-4 mr-2" />
-                Entrar com Google
+                <Mail className="h-4 w-4 mr-2" />
+                {loading ? "Entrando..." : "Entrar com E-mail"}
               </Button>
-            </TabsContent>
+            </form>
 
-            <TabsContent value="signup" className="space-y-4">
-              <form onSubmit={handleEmailSignUp} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="signup-email">E-mail</Label>
-                  <Input
-                    id="signup-email"
-                    type="email"
-                    placeholder="seu@email.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    className="transition-all"
-                  />
-                </div>
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t border-border" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-card px-2 text-muted-foreground">ou</span>
+              </div>
+            </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="signup-password">Senha</Label>
-                  <Input
-                    id="signup-password"
-                    type="password"
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    minLength={6}
-                    className="transition-all"
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Mínimo de 6 caracteres
-                  </p>
-                </div>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleGoogleLogin}
+              disabled={loading}
+              className="w-full"
+            >
+              <Chrome className="h-4 w-4 mr-2" />
+              Entrar com Google
+            </Button>
+          </TabsContent>
 
-                <Button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full bg-primary hover:bg-primary/90 transition-all"
-                >
-                  <Mail className="h-4 w-4 mr-2" />
-                  {loading ? "Criando conta..." : "Criar conta"}
-                </Button>
-              </form>
+          <TabsContent value="signup" className="space-y-4">
+            <form onSubmit={handleEmailSignUp} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="signup-email">E-mail</Label>
+                <Input
+                  id="signup-email"
+                  type="email"
+                  placeholder="seu@email.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+              </div>
 
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t border-border" />
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-card px-2 text-muted-foreground">ou</span>
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="signup-password">Senha</Label>
+                <Input
+                  id="signup-password"
+                  type="password"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  minLength={6}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Mínimo de 6 caracteres
+                </p>
               </div>
 
               <Button
-                type="button"
-                variant="outline"
-                onClick={handleGoogleLogin}
+                type="submit"
                 disabled={loading}
-                className="w-full transition-all hover:bg-accent/10"
+                className="w-full"
               >
-                <Chrome className="h-4 w-4 mr-2" />
-                Cadastrar com Google
+                <Mail className="h-4 w-4 mr-2" />
+                {loading ? "Criando conta..." : "Criar conta"}
               </Button>
-            </TabsContent>
-          </Tabs>
-        </Card>
+            </form>
 
-        <p className="text-center text-xs text-muted-foreground">
-          Ao continuar, você concorda com nossos termos de uso e política de
-          privacidade
-        </p>
-      </div>
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t border-border" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-card px-2 text-muted-foreground">ou</span>
+              </div>
+            </div>
+
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleGoogleLogin}
+              disabled={loading}
+              className="w-full"
+            >
+              <Chrome className="h-4 w-4 mr-2" />
+              Cadastrar com Google
+            </Button>
+          </TabsContent>
+        </Tabs>
+      </Card>
     </div>
   );
 }

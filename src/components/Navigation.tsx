@@ -6,9 +6,9 @@ export default function Navigation() {
   const location = useLocation();
 
   const navItems = [
-    { path: "/", icon: Home, label: "Hoje" },
+    { path: "/", icon: Home, label: "Casa" },
     { path: "/rotina", icon: CalendarDays, label: "Rotina" },
-    { path: "/calendario", icon: Calendar, label: "Semana" },
+    { path: "/calendario", icon: Calendar, label: "Calendário" },
     { path: "/perfil", icon: User, label: "Perfil" },
   ];
 
