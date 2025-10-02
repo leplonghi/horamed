@@ -2,9 +2,9 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Clock, Pill, TrendingUp, Package } from "lucide-react";
+import { Clock, Pill, TrendingUp, Package, User, Activity, Ruler } from "lucide-react";
 import { toast } from "sonner";
-import { format, parseISO } from "date-fns";
+import { format, parseISO, differenceInYears } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import Navigation from "@/components/Navigation";
 
@@ -28,12 +28,20 @@ interface LowStock {
   projected_days_left: number;
 }
 
+interface UserProfile {
+  full_name: string | null;
+  nickname: string | null;
+  birth_date: string | null;
+  weight_kg: number | null;
+  height_cm: number | null;
+}
+
 export default function Today() {
   const [upcomingDoses, setUpcomingDoses] = useState<DoseInstance[]>([]);
   const [lowStockItems, setLowStockItems] = useState<LowStock[]>([]);
   const [loading, setLoading] = useState(true);
   const [greeting, setGreeting] = useState("");
-  const [nickname, setNickname] = useState("");
+  const [profile, setProfile] = useState<UserProfile | null>(null);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [stats, setStats] = useState({
     totalToday: 0,
@@ -63,14 +71,14 @@ export default function Today() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { data: profile } = await supabase
+      const { data: profileData } = await supabase
         .from("profiles")
-        .select("nickname")
+        .select("full_name, nickname, birth_date, weight_kg, height_cm")
         .eq("user_id", user.id)
         .single();
 
-      if (profile?.nickname) {
-        setNickname(profile.nickname);
+      if (profileData) {
+        setProfile(profileData);
       }
     } catch (error) {
       console.error("Error fetching profile:", error);
@@ -286,23 +294,52 @@ export default function Today() {
             <div className="h-10 w-10 rounded-full bg-primary flex items-center justify-center">
               <Pill className="h-6 w-6 text-white" />
             </div>
-            <h1 className="text-2xl font-bold text-foreground">MedTracker</h1>
+            <h1 className="text-2xl font-bold text-foreground">HoraMed</h1>
           </div>
 
-          <div className="space-y-1 mb-6">
+          <div className="space-y-1">
             <h2 className="text-3xl font-bold text-foreground">
-              {greeting}{nickname ? `, ${nickname}` : ""}! 👋
+              {greeting}{profile?.nickname ? `, ${profile.nickname}` : ""}! 👋
             </h2>
-            <div className="flex items-center gap-3 text-muted-foreground">
-              <p className="text-base">
-                {format(currentTime, "EEEE, d 'de' MMMM", { locale: ptBR })}
-              </p>
-              <span className="text-sm">•</span>
-              <p className="text-base font-mono">
-                {format(currentTime, "HH:mm:ss")}
-              </p>
-            </div>
+            <p className="text-muted-foreground">
+              {format(currentTime, "EEEE, d 'de' MMMM", { locale: ptBR })}
+            </p>
           </div>
+
+          {/* User Health Stats */}
+          {profile && (profile.birth_date || profile.weight_kg || profile.height_cm) && (
+            <div className="grid grid-cols-3 gap-3">
+              {profile.birth_date && (
+                <Card className="p-4 bg-blue-50 border-blue-200">
+                  <div className="flex flex-col gap-1">
+                    <User className="h-5 w-5 text-blue-600 mb-1" />
+                    <p className="text-xs text-muted-foreground">Idade</p>
+                    <p className="text-xl font-bold text-blue-600">
+                      {differenceInYears(new Date(), new Date(profile.birth_date))} anos
+                    </p>
+                  </div>
+                </Card>
+              )}
+              {profile.weight_kg && (
+                <Card className="p-4 bg-green-50 border-green-200">
+                  <div className="flex flex-col gap-1">
+                    <Activity className="h-5 w-5 text-green-600 mb-1" />
+                    <p className="text-xs text-muted-foreground">Peso</p>
+                    <p className="text-xl font-bold text-green-600">{profile.weight_kg} kg</p>
+                  </div>
+                </Card>
+              )}
+              {profile.height_cm && (
+                <Card className="p-4 bg-purple-50 border-purple-200">
+                  <div className="flex flex-col gap-1">
+                    <Ruler className="h-5 w-5 text-purple-600 mb-1" />
+                    <p className="text-xs text-muted-foreground">Altura</p>
+                    <p className="text-xl font-bold text-purple-600">{(profile.height_cm / 100).toFixed(2)} m</p>
+                  </div>
+                </Card>
+              )}
+            </div>
+          )}
 
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

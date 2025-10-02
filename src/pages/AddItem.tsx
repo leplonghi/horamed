@@ -344,7 +344,7 @@ export default function AddItem() {
             <div className="h-10 w-10 rounded-full bg-primary flex items-center justify-center">
               <Pill className="h-6 w-6 text-white" />
             </div>
-            <h1 className="text-2xl font-bold text-foreground">MedTracker</h1>
+            <h1 className="text-2xl font-bold text-foreground">HoraMed</h1>
           </div>
 
           <div className="flex items-center gap-4">

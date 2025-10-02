@@ -93,7 +93,7 @@ export default function Auth() {
           <div className="inline-block p-4 rounded-full bg-primary/10">
             <span className="text-5xl">💊</span>
           </div>
-          <h1 className="text-4xl font-bold text-primary">MedTracker</h1>
+          <h1 className="text-4xl font-bold text-primary">HoraMed</h1>
           <p className="text-muted-foreground text-lg">
             Gerencie sua rotina de medicamentos com facilidade
           </p>

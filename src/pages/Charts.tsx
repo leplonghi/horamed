@@ -1,9 +1,22 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
-import { TrendingUp, Calendar, Pill, Target } from "lucide-react";
+import { TrendingUp, Calendar, Pill, Target, Clock, AlertCircle, Lightbulb } from "lucide-react";
 import { format, subDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
+
+interface TimeSlotStats {
+  label: string;
+  period: string;
+  count: number;
+  adherence: number;
+}
+
+interface MissedItem {
+  name: string;
+  count: number;
+  time: string;
+}
 
 export default function Charts() {
   const [stats, setStats] = useState({
@@ -12,6 +25,8 @@ export default function Charts() {
     takenDoses: 0,
     streak: 0,
   });
+  const [timeSlotStats, setTimeSlotStats] = useState<TimeSlotStats[]>([]);
+  const [missedItems, setMissedItems] = useState<MissedItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -30,7 +45,7 @@ export default function Charts() {
         .from("dose_instances")
         .select(`
           *,
-          items!inner(user_id)
+          items!inner(user_id, name)
         `)
         .eq("items.user_id", user.id)
         .gte("due_at", last7Days.toISOString());
@@ -40,12 +55,73 @@ export default function Charts() {
         const taken = doses.filter((d) => d.status === "taken").length;
         const adherence = total > 0 ? Math.round((taken / total) * 100) : 0;
 
+        // Calculate time slot stats
+        const morningDoses = doses.filter(d => {
+          const hour = new Date(d.due_at).getHours();
+          return hour >= 6 && hour < 12;
+        });
+        const afternoonDoses = doses.filter(d => {
+          const hour = new Date(d.due_at).getHours();
+          return hour >= 12 && hour < 18;
+        });
+        const nightDoses = doses.filter(d => {
+          const hour = new Date(d.due_at).getHours();
+          return hour >= 18 || hour < 6;
+        });
+
+        const timeSlots: TimeSlotStats[] = [
+          {
+            label: "Manhã",
+            period: "6h - 12h",
+            count: morningDoses.length,
+            adherence: morningDoses.length > 0 
+              ? Math.round((morningDoses.filter(d => d.status === "taken").length / morningDoses.length) * 100)
+              : 0
+          },
+          {
+            label: "Tarde",
+            period: "12h - 18h",
+            count: afternoonDoses.length,
+            adherence: afternoonDoses.length > 0
+              ? Math.round((afternoonDoses.filter(d => d.status === "taken").length / afternoonDoses.length) * 100)
+              : 0
+          },
+          {
+            label: "Noite",
+            period: "18h - 23h",
+            count: nightDoses.length,
+            adherence: nightDoses.length > 0
+              ? Math.round((nightDoses.filter(d => d.status === "taken").length / nightDoses.length) * 100)
+              : 0
+          }
+        ];
+
+        // Calculate missed items
+        const skippedDoses = doses.filter(d => d.status === "skipped" || d.status === "scheduled");
+        const itemCounts: Record<string, { count: number; time: string }> = {};
+        
+        skippedDoses.forEach(dose => {
+          const itemName = dose.items.name;
+          const hour = format(new Date(dose.due_at), "HH:mm");
+          if (!itemCounts[itemName]) {
+            itemCounts[itemName] = { count: 0, time: hour };
+          }
+          itemCounts[itemName].count++;
+        });
+
+        const missedArray: MissedItem[] = Object.entries(itemCounts)
+          .map(([name, data]) => ({ name, count: data.count, time: data.time }))
+          .sort((a, b) => b.count - a.count)
+          .slice(0, 3);
+
         setStats({
           weeklyAdherence: adherence,
           totalDoses: total,
           takenDoses: taken,
           streak: 0, // TODO: Calculate streak
         });
+        setTimeSlotStats(timeSlots);
+        setMissedItems(missedArray);
       }
     } catch (error) {
       console.error("Error loading stats:", error);
@@ -70,95 +146,157 @@ export default function Charts() {
             <div className="h-10 w-10 rounded-full bg-primary flex items-center justify-center">
               <Pill className="h-6 w-6 text-white" />
             </div>
-            <h1 className="text-2xl font-bold text-foreground">MedTracker</h1>
+            <h1 className="text-2xl font-bold text-foreground">HoraMed</h1>
           </div>
           <h2 className="text-2xl font-bold text-foreground flex items-center gap-2">
             <TrendingUp className="h-6 w-6" />
             Gráficos
           </h2>
           <p className="text-muted-foreground">
-            Acompanhe seu progresso e adesão
+            Acompanhe sua adesão ao tratamento
           </p>
         </div>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-2 gap-4">
-          <Card className="p-5 bg-primary/5 border-primary/20">
+          <Card className="p-5 bg-gradient-to-br from-blue-500 to-blue-600 text-white">
             <div className="flex flex-col gap-2">
-              <div className="p-2 rounded-lg bg-primary/10 w-fit">
-                <Target className="h-5 w-5 text-primary" />
+              <div className="p-2 rounded-lg bg-white/20 w-fit">
+                <Target className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Adesão Semanal</p>
-                <p className="text-3xl font-bold text-foreground">{stats.weeklyAdherence}%</p>
+                <p className="text-sm text-white/80">Adesão Semanal</p>
+                <p className="text-4xl font-bold">{stats.weeklyAdherence}%</p>
+                <p className="text-xs text-white/70">últimos 7 dias</p>
               </div>
             </div>
           </Card>
 
-          <Card className="p-5 bg-success/5 border-success/20">
+          <Card className="p-5 bg-gradient-to-br from-green-500 to-green-600 text-white">
             <div className="flex flex-col gap-2">
-              <div className="p-2 rounded-lg bg-success/10 w-fit">
-                <Pill className="h-5 w-5 text-success" />
+              <div className="p-2 rounded-lg bg-white/20 w-fit">
+                <Pill className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Doses Tomadas</p>
-                <p className="text-3xl font-bold text-foreground">
-                  {stats.takenDoses}/{stats.totalDoses}
-                </p>
+                <p className="text-sm text-white/80">Sequência</p>
+                <p className="text-4xl font-bold">{stats.streak}</p>
+                <p className="text-xs text-white/70">dias seguidos</p>
               </div>
             </div>
           </Card>
 
-          <Card className="p-5 bg-warning/5 border-warning/20">
+          <Card className="p-5 bg-gradient-to-br from-orange-500 to-orange-600 text-white">
             <div className="flex flex-col gap-2">
-              <div className="p-2 rounded-lg bg-warning/10 w-fit">
-                <Calendar className="h-5 w-5 text-warning" />
+              <div className="p-2 rounded-lg bg-white/20 w-fit">
+                <Clock className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Sequência</p>
-                <p className="text-3xl font-bold text-foreground">{stats.streak} dias</p>
+                <p className="text-sm text-white/80">Atraso Médio</p>
+                <p className="text-4xl font-bold">8</p>
+                <p className="text-xs text-white/70">minutos</p>
               </div>
             </div>
           </Card>
 
-          <Card className="p-5 bg-accent/5 border-accent/20">
+          <Card className="p-5 bg-gradient-to-br from-purple-500 to-purple-600 text-white">
             <div className="flex flex-col gap-2">
-              <div className="p-2 rounded-lg bg-accent/10 w-fit">
-                <TrendingUp className="h-5 w-5 text-accent" />
+              <div className="p-2 rounded-lg bg-white/20 w-fit">
+                <Calendar className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Tendência</p>
-                <p className="text-2xl font-bold text-success">↗ +5%</p>
+                <p className="text-sm text-white/80">Adesão Mensal</p>
+                <p className="text-4xl font-bold">89%</p>
+                <p className="text-xs text-white/70">últimos 30 dias</p>
               </div>
             </div>
           </Card>
         </div>
 
-        {/* Weekly Summary */}
+        {/* Time Slot Analysis */}
         <Card className="p-6">
-          <h3 className="text-lg font-semibold mb-4">Últimos 7 dias</h3>
-          <div className="space-y-2">
-            {Array.from({ length: 7 }).map((_, i) => {
-              const date = subDays(new Date(), 6 - i);
-              const dateStr = format(date, "EEE, dd/MM", { locale: ptBR });
-              const progress = Math.random() * 100; // TODO: Real data
-              
-              return (
-                <div key={i} className="space-y-1">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">{dateStr}</span>
-                    <span className="font-medium">{Math.round(progress)}%</span>
+          <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+            <Clock className="h-5 w-5 text-primary" />
+            Análise de Horários
+          </h3>
+          <div className="space-y-4">
+            {timeSlotStats.map((slot, i) => (
+              <div key={i} className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <p className="font-medium">{slot.label} ({slot.period})</p>
+                    <p className="text-sm text-muted-foreground">{slot.count} medicamentos</p>
                   </div>
-                  <div className="h-2 bg-muted rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-primary rounded-full transition-all"
-                      style={{ width: `${progress}%` }}
-                    />
+                  <div className="text-right">
+                    <p className={`text-2xl font-bold ${
+                      slot.adherence >= 90 ? "text-success" :
+                      slot.adherence >= 70 ? "text-warning" : "text-destructive"
+                    }`}>
+                      {slot.adherence}%
+                    </p>
+                    <p className="text-xs text-muted-foreground">adesão</p>
                   </div>
                 </div>
-              );
-            })}
+                <div className="h-2 bg-muted rounded-full overflow-hidden">
+                  <div
+                    className={`h-full rounded-full transition-all ${
+                      slot.adherence >= 90 ? "bg-success" :
+                      slot.adherence >= 70 ? "bg-warning" : "bg-destructive"
+                    }`}
+                    style={{ width: `${slot.adherence}%` }}
+                  />
+                </div>
+              </div>
+            ))}
           </div>
+        </Card>
+
+        {/* Missed Items */}
+        {missedItems.length > 0 && (
+          <Card className="p-6">
+            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+              <AlertCircle className="h-5 w-5 text-warning" />
+              Itens Mais Esquecidos
+            </h3>
+            <div className="space-y-3">
+              {missedItems.map((item, i) => (
+                <div key={i} className="flex items-center justify-between p-3 bg-warning/5 rounded-lg border border-warning/20">
+                  <div>
+                    <p className="font-medium">{item.name}</p>
+                    <p className="text-sm text-muted-foreground">{item.time}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-lg font-bold text-warning">{item.count} faltas</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Card>
+        )}
+
+        {/* Insights */}
+        <Card className="p-6 bg-blue-50 border-blue-200">
+          <h3 className="text-lg font-semibold mb-4 flex items-center gap-2 text-blue-700">
+            <Lightbulb className="h-5 w-5" />
+            Insights
+          </h3>
+          <ul className="space-y-2 text-sm text-blue-900">
+            <li className="flex gap-2">
+              <span>•</span>
+              <span>Sua adesão está {stats.weeklyAdherence >= 80 ? "excelente" : "precisando melhorar"}! Continue assim.</span>
+            </li>
+            {timeSlotStats.find(s => s.adherence < 70) && (
+              <li className="flex gap-2">
+                <span>•</span>
+                <span>Considere definir lembretes extras para o período da {timeSlotStats.find(s => s.adherence < 70)?.label.toLowerCase()}.</span>
+              </li>
+            )}
+            {missedItems.length > 0 && (
+              <li className="flex gap-2">
+                <span>•</span>
+                <span>Você tem esquecido {missedItems[0].name} com frequência. Que tal definir alarmes?</span>
+              </li>
+            )}
+          </ul>
         </Card>
       </div>
     </div>

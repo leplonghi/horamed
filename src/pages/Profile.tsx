@@ -1,20 +1,20 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Upload, FileText, Trash2 } from "lucide-react";
+import { toast } from "sonner";
+import { User, LogOut, Upload, FileText, Trash2, Pill } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import Navigation from "@/components/Navigation";
 
 export default function Profile() {
   const navigate = useNavigate();
-  const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [userEmail, setUserEmail] = useState("");
   const [profile, setProfile] = useState<any>({
     full_name: "",
     nickname: "",
@@ -34,6 +34,7 @@ export default function Profile() {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
+      setUserEmail(user.email || "");
 
       const { data, error } = await supabase
         .from("profiles")
@@ -83,6 +84,7 @@ export default function Profile() {
         .upsert({
           user_id: user.id,
           full_name: profile.full_name,
+          nickname: profile.nickname,
           weight_kg: profile.weight_kg ? parseFloat(profile.weight_kg) : null,
           height_cm: profile.height_cm ? parseFloat(profile.height_cm) : null,
           birth_date: profile.birth_date || null,
@@ -90,198 +92,81 @@ export default function Profile() {
         });
 
       if (error) throw error;
-
-      toast({
-        title: "Perfil atualizado",
-        description: "Suas informações foram salvas com sucesso.",
-      });
+      toast.success("Perfil atualizado com sucesso!");
     } catch (error: any) {
-      toast({
-        title: "Erro ao salvar",
-        description: error.message,
-        variant: "destructive",
-      });
+      toast.error("Erro ao salvar perfil");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files || e.target.files.length === 0) return;
-
-    setUploading(true);
-    try {
-      const file = e.target.files[0];
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
-
-      const fileExt = file.name.split(".").pop();
-      const filePath = `${user.id}/avatar.${fileExt}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from("avatars")
-        .upload(filePath, file, { upsert: true });
-
-      if (uploadError) throw uploadError;
-
-      const { data } = supabase.storage.from("avatars").getPublicUrl(filePath);
-
-      setProfile({ ...profile, avatar_url: data.publicUrl });
-
-      toast({
-        title: "Avatar enviado",
-        description: "Agora salve o perfil para confirmar.",
-      });
-    } catch (error: any) {
-      toast({
-        title: "Erro no upload",
-        description: error.message,
-        variant: "destructive",
-      });
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  const handleExamUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files || e.target.files.length === 0) return;
-
-    setUploading(true);
-    try {
-      const file = e.target.files[0];
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
-
-      const fileExt = file.name.split(".").pop();
-      const filePath = `${user.id}/${Date.now()}.${fileExt}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from("medical-exams")
-        .upload(filePath, file);
-
-      if (uploadError) throw uploadError;
-
-      const { data: urlData } = supabase.storage
-        .from("medical-exams")
-        .getPublicUrl(filePath);
-
-      // Convert file to base64 for AI processing
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onloadend = async () => {
-        const base64 = reader.result as string;
-
-        // Call edge function to extract data
-        const { data: extractData, error: extractError } = await supabase.functions.invoke(
-          "extract-exam",
-          { body: { image: base64 } }
-        );
-
-        if (extractError) {
-          console.error("Error extracting exam data:", extractError);
-        }
-
-        // Save to database
-        const { error: insertError } = await supabase
-          .from("medical_exams")
-          .insert({
-            user_id: user.id,
-            file_url: urlData.publicUrl,
-            file_name: file.name,
-            extracted_data: extractData || null,
-          });
-
-        if (insertError) throw insertError;
-
-        toast({
-          title: "Exame enviado",
-          description: "Os dados foram extraídos com sucesso.",
-        });
-
-        loadExams();
-      };
-    } catch (error: any) {
-      toast({
-        title: "Erro no upload",
-        description: error.message,
-        variant: "destructive",
-      });
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  const handleDeleteExam = async (id: string, fileUrl: string) => {
-    try {
-      const filePath = fileUrl.split("/medical-exams/")[1];
-      
-      await supabase.storage.from("medical-exams").remove([filePath]);
-      
-      const { error } = await supabase
-        .from("medical_exams")
-        .delete()
-        .eq("id", id);
-
-      if (error) throw error;
-
-      toast({
-        title: "Exame excluído",
-        description: "O exame foi removido com sucesso.",
-      });
-
-      loadExams();
-    } catch (error: any) {
-      toast({
-        title: "Erro ao excluir",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate("/auth");
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 p-4 pb-20">
-      <div className="max-w-2xl mx-auto space-y-6">
-        <div className="flex items-center gap-4 mb-6">
-          <Button variant="ghost" size="icon" onClick={() => navigate("/")}>
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <h1 className="text-2xl font-bold">Meu Perfil</h1>
-        </div>
+    <>
+      <div className="min-h-screen bg-background p-6 pb-24">
+        <div className="max-w-4xl mx-auto space-y-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-full bg-primary flex items-center justify-center">
+                <Pill className="h-6 w-6 text-white" />
+              </div>
+              <h1 className="text-2xl font-bold text-foreground">HoraMed</h1>
+            </div>
+            <Button variant="outline" onClick={handleLogout}>
+              <LogOut className="h-4 w-4 mr-2" />
+              Sair
+            </Button>
+          </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Informações Pessoais</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="flex flex-col items-center gap-4">
+          <h2 className="text-2xl font-bold text-foreground">Meu Perfil</h2>
+
+          <Card className="p-6">
+            <div className="flex items-center gap-6 mb-6">
               <Avatar className="h-24 w-24">
                 <AvatarImage src={profile.avatar_url} />
-                <AvatarFallback>{profile.full_name?.[0] || "U"}</AvatarFallback>
+                <AvatarFallback>
+                  <User className="h-12 w-12" />
+                </AvatarFallback>
               </Avatar>
-              <Label htmlFor="avatar" className="cursor-pointer">
-                <div className="flex items-center gap-2 text-sm text-primary hover:underline">
-                  <Upload className="h-4 w-4" />
-                  {uploading ? "Enviando..." : "Alterar foto"}
-                </div>
-                <Input
-                  id="avatar"
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={handleAvatarUpload}
-                  disabled={uploading}
-                />
-              </Label>
+              <div>
+                <h3 className="text-2xl font-semibold">
+                  {profile.full_name || "Usuário"}
+                </h3>
+                <p className="text-muted-foreground">{userEmail}</p>
+              </div>
             </div>
 
             <div className="space-y-4">
               <div>
-                <Label htmlFor="full_name">Nome Completo</Label>
+                <Label htmlFor="full_name">Nome completo</Label>
                 <Input
                   id="full_name"
                   value={profile.full_name}
                   onChange={(e) => setProfile({ ...profile, full_name: e.target.value })}
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="nickname">Apelido</Label>
+                <Input
+                  id="nickname"
+                  value={profile.nickname}
+                  onChange={(e) => setProfile({ ...profile, nickname: e.target.value })}
+                  placeholder="Como gostaria de ser chamado?"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="birth_date">Data de Nascimento</Label>
+                <Input
+                  id="birth_date"
+                  type="date"
+                  value={profile.birth_date}
+                  onChange={(e) => setProfile({ ...profile, birth_date: e.target.value })}
                 />
               </div>
 
@@ -307,73 +192,14 @@ export default function Profile() {
                 </div>
               </div>
 
-              <div>
-                <Label htmlFor="birth_date">Data de Nascimento</Label>
-                <Input
-                  id="birth_date"
-                  type="date"
-                  value={profile.birth_date}
-                  onChange={(e) => setProfile({ ...profile, birth_date: e.target.value })}
-                />
-              </div>
-
               <Button onClick={handleSaveProfile} disabled={loading} className="w-full">
                 {loading ? "Salvando..." : "Salvar Perfil"}
               </Button>
             </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Exames Médicos</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <Label htmlFor="exam" className="cursor-pointer">
-              <div className="border-2 border-dashed rounded-lg p-8 text-center hover:border-primary transition-colors">
-                <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-                <p className="text-sm text-muted-foreground">
-                  {uploading ? "Enviando e extraindo dados..." : "Clique para fazer upload de um exame"}
-                </p>
-              </div>
-              <Input
-                id="exam"
-                type="file"
-                accept="image/*,.pdf"
-                className="hidden"
-                onChange={handleExamUpload}
-                disabled={uploading}
-              />
-            </Label>
-
-            <div className="space-y-3">
-              {exams.map((exam) => (
-                <div key={exam.id} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <FileText className="h-5 w-5 text-muted-foreground" />
-                    <div>
-                      <p className="font-medium">{exam.file_name}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {new Date(exam.created_at).toLocaleDateString("pt-BR")}
-                      </p>
-                      {exam.extracted_data && (
-                        <p className="text-xs text-primary mt-1">Dados extraídos por IA</p>
-                      )}
-                    </div>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleDeleteExam(exam.id, exam.file_url)}
-                  >
-                    <Trash2 className="h-4 w-4 text-destructive" />
-                  </Button>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+          </Card>
+        </div>
       </div>
-    </div>
+      <Navigation />
+    </>
   );
 }
