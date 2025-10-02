@@ -28,8 +28,8 @@ serve(async (req) => {
       apiVersion: "2025-08-27.basil",
     });
 
-    // Find customer by email
-    const customers = await stripe.customers.list({ email: user.email, limit: 1 });
+    // Find ALL customers by email (there might be multiple)
+    const customers = await stripe.customers.list({ email: user.email, limit: 10 });
     
     if (customers.data.length === 0) {
       console.log("No Stripe customer found");
@@ -39,51 +39,68 @@ serve(async (req) => {
       });
     }
 
-    const customerId = customers.data[0].id;
-    console.log("Found customer:", customerId);
+    console.log(`Found ${customers.data.length} customer(s) for email ${user.email}`);
+    
+    // Check for active subscriptions across ALL customers with this email
+    let activeSubscription = null;
+    let customerId = null;
 
-    // Check active subscriptions
-    const subscriptions = await stripe.subscriptions.list({
-      customer: customerId,
-      status: "active",
-      limit: 1,
-    });
+    for (const customer of customers.data) {
+      console.log(`Checking customer: ${customer.id}`);
+      const subscriptions = await stripe.subscriptions.list({
+        customer: customer.id,
+        status: "active",
+        limit: 1,
+      });
+      
+      if (subscriptions.data.length > 0) {
+        activeSubscription = subscriptions.data[0];
+        customerId = customer.id;
+        console.log(`Found active subscription: ${activeSubscription.id} for customer: ${customerId}`);
+        break;
+      }
+    }
 
     const supabaseAdmin = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
-    if (subscriptions.data.length > 0) {
-      const subscription = subscriptions.data[0];
-      console.log("Found active subscription:", subscription.id);
+    if (activeSubscription && customerId) {
+      console.log("Updating database with subscription:", activeSubscription.id);
 
       // Update subscription in database
-      await supabaseAdmin
+      const { error: updateError } = await supabaseAdmin
         .from("subscriptions")
         .update({
           plan_type: "premium",
           status: "active",
           stripe_customer_id: customerId,
-          stripe_subscription_id: subscription.id,
+          stripe_subscription_id: activeSubscription.id,
           expires_at: null,
           updated_at: new Date().toISOString(),
         })
         .eq("user_id", user.id);
 
-      console.log("Updated subscription to premium for user:", user.id);
+      if (updateError) {
+        console.error("Error updating subscription:", updateError);
+        throw updateError;
+      }
+
+      console.log("Successfully updated subscription to premium for user:", user.id);
 
       return new Response(JSON.stringify({ 
         subscribed: true, 
         plan_type: "premium",
         synced: true,
-        subscription_id: subscription.id
+        subscription_id: activeSubscription.id,
+        customer_id: customerId
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
       });
     } else {
-      console.log("No active subscription found");
+      console.log("No active subscription found for any customer with this email");
       return new Response(JSON.stringify({ subscribed: false, synced: true }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
