@@ -69,18 +69,21 @@ serve(async (req) => {
     if (activeSubscription && customerId) {
       console.log("Updating database with subscription:", activeSubscription.id);
 
-      // Update subscription in database
+      // Upsert subscription in database (insert or update)
       const { error: updateError } = await supabaseAdmin
         .from("subscriptions")
-        .update({
+        .upsert({
+          user_id: user.id,
           plan_type: "premium",
           status: "active",
           stripe_customer_id: customerId,
           stripe_subscription_id: activeSubscription.id,
+          started_at: new Date().toISOString(),
           expires_at: null,
           updated_at: new Date().toISOString(),
-        })
-        .eq("user_id", user.id);
+        }, {
+          onConflict: "user_id"
+        });
 
       if (updateError) {
         console.error("Error updating subscription:", updateError);
