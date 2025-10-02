@@ -112,7 +112,7 @@ export default function Auth() {
             <img src={logo} alt="HoraMed" className="h-32 w-auto" />
           </div>
           <p className="text-muted-foreground text-lg">
-            Gerencie sua rotina de medicamentos com facilidade
+            Sua saúde no horário certo.
           </p>
         </div>
 
