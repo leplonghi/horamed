@@ -15,7 +15,7 @@ export default function HelpSupport() {
   const navigate = useNavigate();
 
   const handleContactSupport = () => {
-    window.location.href = "mailto:suporte@horamed.com.br";
+    window.location.href = "mailto:appmedhora@gmail.com";
   };
 
 
@@ -47,7 +47,7 @@ export default function HelpSupport() {
                   </div>
                   <div>
                     <p className="font-medium text-foreground">E-mail</p>
-                    <p className="text-sm text-muted-foreground">suporte@horamed.com.br</p>
+                    <p className="text-sm text-muted-foreground">appmedhora@gmail.com</p>
                   </div>
                 </div>
                 <ExternalLink className="h-5 w-5 text-muted-foreground" />
@@ -108,8 +108,36 @@ export default function HelpSupport() {
             <p className="text-sm text-foreground">
               <span className="font-semibold">Tempo de resposta:</span>
               <br />
-              E-mail: até 24 horas úteis
+              E-mail: até 72 horas
             </p>
+          </Card>
+
+          <Card className="p-6 bg-warning/10 border-warning/20 space-y-3">
+            <h3 className="font-semibold text-foreground flex items-center gap-2">
+              <FileText className="h-5 w-5 text-warning" />
+              Aviso Legal e Responsabilidade
+            </h3>
+            <div className="space-y-2 text-sm text-foreground">
+              <p>
+                <span className="font-semibold">Responsabilidade do Usuário:</span> O MedHora é uma ferramenta de organização e lembrete de medicamentos. Cada usuário é totalmente responsável por suas próprias decisões de saúde e tratamento médico.
+              </p>
+              <p>
+                <span className="font-semibold">Não Substitui Orientação Médica:</span> Este aplicativo não substitui consultas médicas, diagnósticos ou orientações de profissionais de saúde habilitados. Sempre consulte seu médico antes de iniciar, alterar ou interromper qualquer tratamento.
+              </p>
+              <p>
+                <span className="font-semibold">Limitação de Responsabilidade:</span> O MedHora não se responsabiliza por:
+              </p>
+              <ul className="list-disc list-inside ml-4 space-y-1">
+                <li>Decisões de saúde tomadas com base nas informações do app</li>
+                <li>Erros de digitação ou interpretação de receitas médicas</li>
+                <li>Falhas técnicas, notificações não recebidas ou perda de dados</li>
+                <li>Interações medicamentosas ou efeitos adversos</li>
+                <li>Consequências do uso inadequado da ferramenta</li>
+              </ul>
+              <p className="font-semibold mt-3">
+                Ao usar o MedHora, você concorda com estes termos e assume total responsabilidade pela sua saúde e tratamento.
+              </p>
+            </div>
           </Card>
         </div>
       </div>
