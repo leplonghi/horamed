@@ -51,10 +51,39 @@ export function useSubscription() {
           variant: 'destructive',
         });
       } else if (data) {
+        console.log('Subscription loaded:', data);
         setSubscription(data as Subscription);
       }
     } catch (error) {
       console.error('Error:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const syncWithStripe = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase.functions.invoke('sync-subscription');
+      
+      if (error) throw error;
+      
+      console.log('Sync result:', data);
+      
+      if (data?.synced) {
+        await loadSubscription();
+        toast({
+          title: 'Assinatura sincronizada',
+          description: data.subscribed ? 'Sua assinatura Premium está ativa!' : 'Nenhuma assinatura ativa encontrada',
+        });
+      }
+    } catch (error) {
+      console.error('Sync error:', error);
+      toast({
+        title: 'Erro ao sincronizar',
+        description: 'Não foi possível sincronizar com o Stripe',
+        variant: 'destructive',
+      });
     } finally {
       setLoading(false);
     }
@@ -93,5 +122,6 @@ export function useSubscription() {
     canAddMedication,
     hasFeature,
     refresh: loadSubscription,
+    syncWithStripe,
   };
 }

@@ -20,7 +20,7 @@ export default function Profile() {
     weight_kg: null,
     height_cm: null,
   });
-  const { subscription, isPremium, daysLeft, refresh } = useSubscription();
+  const { subscription, isPremium, daysLeft, refresh, syncWithStripe } = useSubscription();
 
   useEffect(() => {
     loadProfile();
@@ -217,6 +217,14 @@ export default function Profile() {
                 onClick={() => navigate(isPremium ? '/assinatura' : '/planos')}
               >
                 {isPremium ? 'Gerenciar Assinatura' : 'Fazer Upgrade'}
+              </Button>
+              
+              <Button 
+                variant="outline"
+                className="w-full"
+                onClick={syncWithStripe}
+              >
+                🔄 Sincronizar com Stripe
               </Button>
             </div>
           </Card>
