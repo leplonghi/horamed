@@ -22,25 +22,28 @@ export function useSubscription() {
 
   useEffect(() => {
     const initializeSubscription = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        setLoading(false);
+        return;
+      }
+
+      // First load the subscription
       await loadSubscription();
       
-      // Check if we need to sync with Stripe
-      const lastSync = localStorage.getItem('last_stripe_sync');
-      const now = Date.now();
-      const fiveMinutes = 5 * 60 * 1000;
+      // Then immediately sync with Stripe on every login
+      console.log('Auto-syncing with Stripe after authentication...');
+      await syncWithStripeInternal();
       
-      // Sync if never synced or last sync was more than 5 minutes ago
-      if (!lastSync || now - parseInt(lastSync) > fiveMinutes) {
-        console.log('Auto-syncing with Stripe...');
-        await syncWithStripeInternal();
-        localStorage.setItem('last_stripe_sync', now.toString());
-      }
+      // Reload subscription after sync
+      await loadSubscription();
     };
     
     initializeSubscription();
     
-    // Auto-refresh subscription every 10 seconds
-    const interval = setInterval(loadSubscription, 10000);
+    // Auto-refresh subscription every 30 seconds
+    const interval = setInterval(loadSubscription, 30000);
     return () => clearInterval(interval);
   }, []);
 
@@ -110,7 +113,8 @@ export function useSubscription() {
     try {
       setLoading(true);
       await syncWithStripeInternal(true);
-      localStorage.setItem('last_stripe_sync', Date.now().toString());
+      // Reload subscription after manual sync
+      await loadSubscription();
     } finally {
       setLoading(false);
     }
