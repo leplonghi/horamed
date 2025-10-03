@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, CheckCircle2, Circle, Pill, XCircle, SkipForward } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { ChevronLeft, ChevronRight, CheckCircle2, Circle, Pill, XCircle, SkipForward, TrendingUp, Calendar, Target } from "lucide-react";
 import { format, startOfWeek, endOfWeek, eachDayOfInterval, addWeeks, subWeeks, isSameDay, parseISO, isBefore } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
@@ -155,6 +156,13 @@ export default function WeeklyCalendar() {
     );
   }
 
+  // Calculate weekly stats
+  const totalWeekDoses = doses.length;
+  const takenDoses = doses.filter(d => d.status === 'taken').length;
+  const missedDoses = doses.filter(d => d.status === 'missed').length;
+  const skippedDoses = doses.filter(d => d.status === 'skipped').length;
+  const weeklyAdherence = totalWeekDoses > 0 ? Math.round((takenDoses / totalWeekDoses) * 100) : 0;
+
   return (
     <>
       <div className="min-h-screen bg-background p-6 pb-24">
@@ -164,7 +172,12 @@ export default function WeeklyCalendar() {
           </div>
 
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-2xl font-bold text-foreground">Calendário</h2>
+            <div>
+              <h2 className="text-2xl font-bold text-foreground">Calendário</h2>
+              <p className="text-sm text-muted-foreground">
+                {format(currentWeekStart, "d MMM", { locale: ptBR })} - {format(endOfWeek(currentWeekStart, { weekStartsOn: 0 }), "d MMM", { locale: ptBR })}
+              </p>
+            </div>
             <div className="flex gap-2">
               <Button
                 variant="outline"
@@ -183,20 +196,72 @@ export default function WeeklyCalendar() {
             </div>
           </div>
 
-          <Card className="p-4 mb-4">
-            <h3 className="text-sm font-semibold mb-3 text-foreground">Legenda</h3>
-            <div className="flex flex-wrap gap-4">
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded bg-primary"></div>
-                <span className="text-sm text-muted-foreground">Tomado</span>
+          {/* Weekly Stats */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <Card className="p-4 bg-primary/10 border-primary/20">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <TrendingUp className="h-4 w-4 text-primary" />
+                  <p className="text-xs text-muted-foreground">Adesao</p>
+                </div>
+                <p className="text-2xl font-bold text-foreground">{weeklyAdherence}%</p>
               </div>
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded bg-destructive"></div>
-                <span className="text-sm text-muted-foreground">Esquecido</span>
+            </Card>
+
+            <Card className="p-4 bg-primary/10 border-primary/20">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4 text-primary" />
+                  <p className="text-xs text-muted-foreground">Tomadas</p>
+                </div>
+                <p className="text-2xl font-bold text-foreground">{takenDoses}</p>
               </div>
+            </Card>
+
+            <Card className="p-4 bg-destructive/10 border-destructive/20">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <XCircle className="h-4 w-4 text-destructive" />
+                  <p className="text-xs text-muted-foreground">Esquecidas</p>
+                </div>
+                <p className="text-2xl font-bold text-foreground">{missedDoses}</p>
+              </div>
+            </Card>
+
+            <Card className="p-4 bg-muted border-muted">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <SkipForward className="h-4 w-4 text-muted-foreground" />
+                  <p className="text-xs text-muted-foreground">Puladas</p>
+                </div>
+                <p className="text-2xl font-bold text-foreground">{skippedDoses}</p>
+              </div>
+            </Card>
+          </div>
+
+          <Card className="p-4">
+            <div className="flex items-center justify-between flex-wrap gap-4">
               <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded bg-muted"></div>
-                <span className="text-sm text-muted-foreground">Pulado</span>
+                <Calendar className="h-4 w-4 text-primary" />
+                <h3 className="text-sm font-semibold text-foreground">Resumo da Semana</h3>
+              </div>
+              <div className="flex flex-wrap gap-3">
+                <Badge variant="outline" className="bg-primary/10 border-primary/20">
+                  <CheckCircle2 className="h-3 w-3 mr-1 text-primary" />
+                  Tomado
+                </Badge>
+                <Badge variant="outline" className="bg-destructive/10 border-destructive/20">
+                  <XCircle className="h-3 w-3 mr-1 text-destructive" />
+                  Esquecido
+                </Badge>
+                <Badge variant="outline" className="bg-muted">
+                  <SkipForward className="h-3 w-3 mr-1 text-muted-foreground" />
+                  Pulado
+                </Badge>
+                <Badge variant="outline">
+                  <Circle className="h-3 w-3 mr-1 text-primary" />
+                  Agendado
+                </Badge>
               </div>
             </div>
           </Card>
@@ -216,13 +281,21 @@ export default function WeeklyCalendar() {
                   }`}
                 >
                   <div className="space-y-2">
-                    <div className="text-center">
+                    <div className="text-center space-y-1">
                       <p className="text-xs text-muted-foreground uppercase">
                         {format(day, "EEE", { locale: ptBR })}
                       </p>
                       <p className={`text-xl font-bold ${isToday ? "text-primary" : "text-foreground"}`}>
                         {format(day, "d")}
                       </p>
+                      {dayDoses.length > 0 && (
+                        <div className="flex items-center justify-center gap-1 text-xs">
+                          <Target className="h-3 w-3 text-primary" />
+                          <span className="text-muted-foreground">
+                            {dayDoses.filter(d => d.status === 'taken').length}/{dayDoses.length}
+                          </span>
+                        </div>
+                      )}
                     </div>
 
                     <div className="space-y-1.5">
@@ -235,7 +308,7 @@ export default function WeeklyCalendar() {
                           <button
                             key={dose.id}
                             onClick={() => handleDoseClick(dose.id, dose.items.name)}
-                            className={`w-full p-2 rounded-lg border text-left transition-all hover:scale-105 ${
+                            className={`w-full p-2 rounded-lg border text-left transition-all hover:scale-105 group ${
                               dose.status === "taken"
                                 ? "bg-primary/10 border-primary/20"
                                 : dose.status === "missed"
@@ -250,9 +323,14 @@ export default function WeeklyCalendar() {
                                 <p className="text-xs font-medium truncate">
                                   {dose.items.name}
                                 </p>
-                                <p className="text-xs text-muted-foreground">
-                                  {format(parseISO(dose.due_at), "HH:mm")}
-                                </p>
+                                <div className="flex items-center gap-1">
+                                  <p className="text-xs text-muted-foreground">
+                                    {format(parseISO(dose.due_at), "HH:mm")}
+                                  </p>
+                                  {dose.status === "taken" && (
+                                    <span className="text-[10px] text-primary">✓</span>
+                                  )}
+                                </div>
                               </div>
                               {dose.status === "taken" && (
                                 <CheckCircle2 className="h-3 w-3 text-primary flex-shrink-0" />
