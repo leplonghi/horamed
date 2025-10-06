@@ -12,6 +12,7 @@ import AdherenceChart from "@/components/AdherenceChart";
 import GoogleAd from "@/components/GoogleAd";
 import Header from "@/components/Header";
 import logo from "@/assets/horamend-logo.png";
+import { useMedicationAlarm } from "@/hooks/useMedicationAlarm";
 
 interface DoseInstance {
   id: string;
@@ -56,6 +57,9 @@ export default function Today() {
     lowStock: 0,
     weeklyAdherence: 0,
   });
+
+  // Initialize medication alarm system
+  useMedicationAlarm();
 
   useEffect(() => {
     const hour = new Date().getHours();
