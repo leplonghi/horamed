@@ -4,11 +4,13 @@ import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Bell, Volume2, Clock, AlertCircle } from "lucide-react";
+import { Bell, Volume2, Clock, AlertCircle, Smartphone } from "lucide-react";
 import { toast } from "sonner";
 import Header from "@/components/Header";
 import Navigation from "@/components/Navigation";
 import { Switch } from "@/components/ui/switch";
+import { Capacitor } from "@capacitor/core";
+import { LocalNotifications } from "@capacitor/local-notifications";
 
 const ALARM_SOUNDS = [
   { id: "beep", name: "Beep Simples", url: "data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLTgjMGHm7A7+OZUQ0PVqzn7qxaFg1Lp+LyvmohBSx+zPLTgjIFHm3A7+GZUQ0PVqzn7qxaFg1" },
@@ -65,11 +67,32 @@ export default function AlarmSettings() {
     }
   };
 
-  const testAlarm = () => {
+  const testAlarm = async () => {
     // Stop any playing test audio
     if (testAudio) {
       testAudio.pause();
       testAudio.currentTime = 0;
+    }
+
+    // Test native notification if on mobile
+    if (Capacitor.isNativePlatform()) {
+      try {
+        await LocalNotifications.schedule({
+          notifications: [
+            {
+              title: "🔔 Teste de Notificação",
+              body: "Assim você será notificado sobre seus remédios!",
+              id: Math.floor(Math.random() * 100000),
+              schedule: { at: new Date(Date.now() + 100) },
+              sound: undefined,
+            },
+          ],
+        });
+        toast.success("Notificação de teste enviada!");
+      } catch (error) {
+        console.error("Error testing notification:", error);
+        toast.error("Erro ao testar notificação");
+      }
     }
 
     const sound = ALARM_SOUNDS.find(s => s.id === selectedSound);
@@ -238,6 +261,22 @@ export default function AlarmSettings() {
         <Button onClick={saveSettings} className="w-full" size="lg" variant="default">
           Salvar Configurações
         </Button>
+
+        {Capacitor.isNativePlatform() && (
+          <Card className="p-4 bg-primary/5 border-primary/20">
+            <div className="flex items-start gap-3">
+              <Smartphone className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-foreground">
+                  ✅ Notificações Nativas Ativas
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Você receberá notificações push mesmo com o app fechado ou em segundo plano.
+                </p>
+              </div>
+            </div>
+          </Card>
+        )}
 
         <p className="text-center text-sm text-muted-foreground">
           As configurações são salvas localmente no seu dispositivo

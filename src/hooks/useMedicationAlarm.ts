@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { LocalNotifications } from "@capacitor/local-notifications";
+import { Capacitor } from "@capacitor/core";
 
 interface DoseInstance {
   id: string;
@@ -56,13 +58,30 @@ export const useMedicationAlarm = () => {
 
   // Request notification permission
   useEffect(() => {
-    if ("Notification" in window && Notification.permission === "default") {
-      Notification.requestPermission().then((permission) => {
-        if (permission === "granted") {
-          toast.success("Notificações ativadas! Você será alertado sobre seus remédios.");
+    const requestPermissions = async () => {
+      // Check if running on native platform
+      if (Capacitor.isNativePlatform()) {
+        try {
+          const permResult = await LocalNotifications.requestPermissions();
+          if (permResult.display === "granted") {
+            toast.success("Notificações nativas ativadas! Você será alertado sobre seus remédios.");
+          }
+        } catch (error) {
+          console.error("Error requesting native notifications:", error);
         }
-      });
-    }
+      } else {
+        // Fallback to web notifications
+        if ("Notification" in window && Notification.permission === "default") {
+          Notification.requestPermission().then((permission) => {
+            if (permission === "granted") {
+              toast.success("Notificações ativadas! Você será alertado sobre seus remédios.");
+            }
+          });
+        }
+      }
+    };
+
+    requestPermissions();
   }, []);
 
   // Check for upcoming doses every minute
@@ -144,27 +163,51 @@ export const useMedicationAlarm = () => {
     }
   };
 
-  const showNotification = (dose: DoseInstance, minutesUntil: number) => {
+  const showNotification = async (dose: DoseInstance, minutesUntil: number) => {
     const title = minutesUntil === 0 
       ? "⏰ Hora do remédio!" 
       : `⏰ Remédio em ${minutesUntil} minutos`;
     
     const body = `${dose.items.name}${dose.items.dose_text ? ` - ${dose.items.dose_text}` : ""}`;
 
-    // Show browser notification
-    if ("Notification" in window && Notification.permission === "granted") {
-      const notification = new Notification(title, {
-        body,
-        icon: "/favicon.ico",
-        tag: dose.id,
-        requireInteraction: true,
-      });
+    // Use native notifications if available
+    if (Capacitor.isNativePlatform()) {
+      try {
+        await LocalNotifications.schedule({
+          notifications: [
+            {
+              title,
+              body,
+              id: parseInt(dose.id.replace(/\D/g, "").slice(0, 8)) || Math.floor(Math.random() * 100000),
+              schedule: { at: new Date(Date.now() + 100) }, // Schedule immediately
+              sound: undefined, // Use default sound
+              actionTypeId: "MEDICATION_REMINDER",
+              extra: {
+                doseId: dose.id,
+                itemId: dose.item_id,
+              },
+            },
+          ],
+        });
+      } catch (error) {
+        console.error("Error scheduling native notification:", error);
+      }
+    } else {
+      // Fallback to browser notification
+      if ("Notification" in window && Notification.permission === "granted") {
+        const notification = new Notification(title, {
+          body,
+          icon: "/favicon.ico",
+          tag: dose.id,
+          requireInteraction: true,
+        });
 
-      notification.onclick = () => {
-        window.focus();
-        notification.close();
-        stopAlarm();
-      };
+        notification.onclick = () => {
+          window.focus();
+          notification.close();
+          stopAlarm();
+        };
+      }
     }
 
     // Also show toast notification

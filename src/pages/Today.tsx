@@ -13,6 +13,7 @@ import GoogleAd from "@/components/GoogleAd";
 import Header from "@/components/Header";
 import logo from "@/assets/horamend-logo.png";
 import { useMedicationAlarm } from "@/hooks/useMedicationAlarm";
+import { usePushNotifications } from "@/hooks/usePushNotifications";
 
 interface DoseInstance {
   id: string;
@@ -43,6 +44,8 @@ interface UserProfile {
 }
 
 export default function Today() {
+  const { stopAlarm } = useMedicationAlarm();
+  usePushNotifications(); // Initialize push notifications
   const [upcomingDoses, setUpcomingDoses] = useState<DoseInstance[]>([]);
   const [lowStockItems, setLowStockItems] = useState<LowStock[]>([]);
   const [loading, setLoading] = useState(true);
