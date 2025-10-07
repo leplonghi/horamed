@@ -1,17 +1,18 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
-import { TrendingUp, Calendar, Pill, Target, Clock, AlertCircle, Lightbulb, Activity, Award } from "lucide-react";
-import { format, subDays, startOfWeek, eachDayOfInterval } from "date-fns";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { TrendingUp, Calendar, Pill, Target, Clock, AlertCircle, Lightbulb, Activity, Award, Package, AlertTriangle } from "lucide-react";
+import { format, subDays, startOfWeek, startOfMonth, eachDayOfInterval, endOfMonth } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useSubscription } from "@/hooks/useSubscription";
 import UpgradeModal from "@/components/UpgradeModal";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
-import logo from "@/assets/horamend-logo.png";
 import HealthDataChart from "@/components/HealthDataChart";
 import AdherenceChart from "@/components/AdherenceChart";
+import StockChart from "@/components/StockChart";
 
 interface TimeSlotStats {
   label: string;
@@ -33,6 +34,7 @@ interface HealthDataPoint {
 }
 
 export default function Charts() {
+  const [period, setPeriod] = useState<"week" | "month">("week");
   const [stats, setStats] = useState({
     weeklyAdherence: 0,
     totalDoses: 0,
@@ -55,7 +57,7 @@ export default function Charts() {
       loadStats();
       loadHealthHistory();
     }
-  }, [hasFeature]);
+  }, [hasFeature, period]);
 
   const loadHealthHistory = async () => {
     try {
@@ -90,9 +92,10 @@ export default function Charts() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const last7Days = subDays(new Date(), 7);
+      const daysBack = period === "week" ? 7 : 30;
+      const startDate = subDays(new Date(), daysBack);
 
-      // Get all doses from last 7 days
+      // Get all doses from the selected period
       const { data: doses } = await supabase
         .from("dose_instances")
         .select(`
@@ -100,24 +103,34 @@ export default function Charts() {
           items!inner(user_id, name)
         `)
         .eq("items.user_id", user.id)
-        .gte("due_at", last7Days.toISOString());
+        .gte("due_at", startDate.toISOString());
 
       if (doses) {
         const total = doses.length;
         const taken = doses.filter((d) => d.status === "taken").length;
         const adherence = total > 0 ? Math.round((taken / total) * 100) : 0;
 
-        // Calculate daily stats for the week
-        const weekStart = startOfWeek(new Date(), { weekStartsOn: 0 });
-        const daysOfWeek = eachDayOfInterval({ start: weekStart, end: new Date() });
+        // Calculate daily stats based on period
+        let periodStart, periodEnd, dateFormat;
+        if (period === "week") {
+          periodStart = startOfWeek(new Date(), { weekStartsOn: 0 });
+          periodEnd = new Date();
+          dateFormat = "EEE";
+        } else {
+          periodStart = startOfMonth(new Date());
+          periodEnd = endOfMonth(new Date());
+          dateFormat = "dd/MM";
+        }
         
-        const dailyStats = daysOfWeek.map(day => {
+        const daysInPeriod = eachDayOfInterval({ start: periodStart, end: periodEnd });
+        
+        const dailyStats = daysInPeriod.map(day => {
           const dayDoses = doses.filter(d => {
             const doseDate = new Date(d.due_at);
             return doseDate.toDateString() === day.toDateString();
           });
           return {
-            day: format(day, "EEE", { locale: ptBR }),
+            day: format(day, dateFormat, { locale: ptBR }),
             taken: dayDoses.filter(d => d.status === "taken").length,
             total: dayDoses.length
           };
@@ -238,69 +251,106 @@ export default function Charts() {
       <Header />
       <div className="min-h-screen bg-background pt-20 p-6 pb-24">
         <div className="max-w-4xl mx-auto space-y-6">
-          <div className="space-y-2">
-            <h2 className="text-2xl font-bold text-foreground flex items-center gap-2">
-              <TrendingUp className="h-6 w-6" />
-              Gráficos
-            </h2>
-          <p className="text-muted-foreground">
-            Acompanhe sua adesão ao tratamento
-          </p>
-        </div>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <h2 className="text-3xl font-bold text-foreground flex items-center gap-2">
+                <TrendingUp className="h-7 w-7 text-primary" />
+                Análise e Estatísticas
+              </h2>
+              <p className="text-muted-foreground">
+                Acompanhe sua adesão ao tratamento e gerencie seu estoque
+              </p>
+            </div>
+            
+            <Tabs value={period} onValueChange={(v) => setPeriod(v as "week" | "month")} className="w-full">
+              <TabsList className="grid w-full max-w-md grid-cols-2">
+                <TabsTrigger value="week">Semanal</TabsTrigger>
+                <TabsTrigger value="month">Mensal</TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-2 gap-4">
-          <Card className="p-4 bg-primary/10 border-primary/20">
+          <Card className="p-5 bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20 hover:shadow-lg transition-all">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Total de Doses</p>
-                <p className="text-3xl font-bold text-foreground">{stats.totalDoses}</p>
-                <p className="text-xs text-muted-foreground mt-1">ultimos 7 dias</p>
-              </div>
-              <Pill className="h-10 w-10 text-primary" />
-            </div>
-          </Card>
-
-          <Card className="p-4 bg-primary/10 border-primary/20">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Doses Tomadas</p>
-                <p className="text-3xl font-bold text-foreground">{stats.takenDoses}</p>
-                <p className="text-xs text-muted-foreground mt-1">{stats.totalDoses - stats.takenDoses} nao tomadas</p>
-              </div>
-              <Target className="h-10 w-10 text-primary" />
-            </div>
-          </Card>
-
-          <Card className="p-4 bg-primary/10 border-primary/20">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Taxa de Adesao</p>
-                <p className="text-3xl font-bold text-foreground">{stats.weeklyAdherence}%</p>
-                <p className={`text-xs mt-1 ${stats.weeklyAdherence >= 80 ? 'text-primary' : 'text-destructive'}`}>
-                  {stats.weeklyAdherence >= 90 ? 'Excelente!' : stats.weeklyAdherence >= 80 ? 'Muito bom!' : stats.weeklyAdherence >= 70 ? 'Bom' : 'Precisa melhorar'}
+                <p className="text-sm text-muted-foreground font-medium">Total de Doses</p>
+                <p className="text-4xl font-bold text-foreground mt-1">{stats.totalDoses}</p>
+                <p className="text-xs text-muted-foreground mt-2">
+                  {period === "week" ? "últimos 7 dias" : "último mês"}
                 </p>
               </div>
-              <TrendingUp className="h-10 w-10 text-primary" />
+              <div className="h-14 w-14 rounded-full bg-primary/20 flex items-center justify-center">
+                <Pill className="h-7 w-7 text-primary" />
+              </div>
             </div>
           </Card>
 
-          <Card className="p-4 bg-primary/10 border-primary/20">
+          <Card className="p-5 bg-gradient-to-br from-success/10 to-success/5 border-success/20 hover:shadow-lg transition-all">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Melhor Periodo</p>
-                <p className="text-xl font-bold text-foreground">
+                <p className="text-sm text-muted-foreground font-medium">Doses Tomadas</p>
+                <p className="text-4xl font-bold text-foreground mt-1">{stats.takenDoses}</p>
+                <p className="text-xs text-muted-foreground mt-2">
+                  {stats.totalDoses - stats.takenDoses} não tomadas
+                </p>
+              </div>
+              <div className="h-14 w-14 rounded-full bg-success/20 flex items-center justify-center">
+                <Target className="h-7 w-7 text-success" />
+              </div>
+            </div>
+          </Card>
+
+          <Card className="p-5 bg-gradient-to-br from-accent/30 to-accent/10 border-accent-foreground/20 hover:shadow-lg transition-all">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground font-medium">Taxa de Adesão</p>
+                <p className="text-4xl font-bold text-foreground mt-1">{stats.weeklyAdherence}%</p>
+                <p className={`text-xs mt-2 font-semibold ${
+                  stats.weeklyAdherence >= 90 ? 'text-success' : 
+                  stats.weeklyAdherence >= 80 ? 'text-primary' : 
+                  stats.weeklyAdherence >= 70 ? 'text-warning' : 
+                  'text-destructive'
+                }`}>
+                  {stats.weeklyAdherence >= 90 ? '🎯 Excelente!' : 
+                   stats.weeklyAdherence >= 80 ? '👍 Muito bom!' : 
+                   stats.weeklyAdherence >= 70 ? '💪 Bom' : 
+                   '⚠️ Precisa melhorar'}
+                </p>
+              </div>
+              <div className="h-14 w-14 rounded-full bg-primary/20 flex items-center justify-center">
+                <TrendingUp className="h-7 w-7 text-primary" />
+              </div>
+            </div>
+          </Card>
+
+          <Card className="p-5 bg-gradient-to-br from-warning/10 to-warning/5 border-warning/20 hover:shadow-lg transition-all">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground font-medium">Melhor Período</p>
+                <p className="text-2xl font-bold text-foreground mt-1">
                   {timeSlotStats.length > 0 ? timeSlotStats.reduce((prev, curr) => prev.adherence > curr.adherence ? prev : curr).label : '-'}
                 </p>
-                <p className="text-xs text-muted-foreground mt-1">maior adesao</p>
+                <p className="text-xs text-muted-foreground mt-2">maior adesão</p>
               </div>
-              <Award className="h-10 w-10 text-primary" />
+              <div className="h-14 w-14 rounded-full bg-warning/20 flex items-center justify-center">
+                <Award className="h-7 w-7 text-warning" />
+              </div>
             </div>
           </Card>
         </div>
 
-        {/* Weekly Adherence Chart */}
-        {weeklyData.length > 0 && <AdherenceChart weeklyData={weeklyData} />}
+        {/* Adherence Chart */}
+        {weeklyData.length > 0 && (
+          <AdherenceChart 
+            weeklyData={weeklyData} 
+            period={period}
+          />
+        )}
+
+        {/* Stock Management */}
+        <StockChart />
 
         {/* Time Slot Analysis */}
         <Card className="p-6">
