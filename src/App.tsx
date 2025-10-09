@@ -38,10 +38,10 @@ const App = () => {
             <Sonner />
             <Routes>
               <Route path="/auth" element={<Auth />} />
-              <Route path="/" element={<ProtectedRoute><Today /><Navigation /></ProtectedRoute>} />
+              <Route path="/" element={<ProtectedRoute><Today /></ProtectedRoute>} />
               <Route path="/index" element={<Index />} />
-              <Route path="/rotina" element={<ProtectedRoute><Rotina /><Navigation /></ProtectedRoute>} />
-              <Route path="/calendario" element={<ProtectedRoute><WeeklyCalendar /><Navigation /></ProtectedRoute>} />
+              <Route path="/rotina" element={<ProtectedRoute><Rotina /></ProtectedRoute>} />
+              <Route path="/calendario" element={<ProtectedRoute><WeeklyCalendar /></ProtectedRoute>} />
               <Route path="/adicionar" element={<ProtectedRoute><AddItem /></ProtectedRoute>} />
               <Route path="/estoque" element={<ProtectedRoute><StockManagement /></ProtectedRoute>} />
               <Route path="/perfil" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
@@ -51,7 +51,7 @@ const App = () => {
               <Route path="/alarme" element={<ProtectedRoute><AlarmSettings /></ProtectedRoute>} />
               <Route path="/privacy" element={<ProtectedRoute><Privacy /></ProtectedRoute>} />
               <Route path="/help-support" element={<ProtectedRoute><HelpSupport /></ProtectedRoute>} />
-              <Route path="/graficos" element={<ProtectedRoute><Charts /><Navigation /></ProtectedRoute>} />
+              <Route path="/graficos" element={<ProtectedRoute><Charts /></ProtectedRoute>} />
               <Route path="/planos" element={<ProtectedRoute><Plans /></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
