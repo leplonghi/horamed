@@ -10,6 +10,7 @@ import Today from "./pages/Today";
 import Rotina from "./pages/Rotina";
 import AddItem from "./pages/AddItem";
 import StockManagement from "./pages/StockManagement";
+import MedicalReports from "./pages/MedicalReports";
 import Charts from "./pages/Charts";
 import WeeklyCalendar from "./pages/WeeklyCalendar";
 import Profile from "./pages/Profile";
@@ -45,6 +46,7 @@ const App = () => {
               <Route path="/adicionar" element={<ProtectedRoute><AddItem /></ProtectedRoute>} />
               <Route path="/estoque" element={<ProtectedRoute><StockManagement /></ProtectedRoute>} />
               <Route path="/perfil" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+              <Route path="/relatorios" element={<ProtectedRoute><MedicalReports /></ProtectedRoute>} />
               <Route path="/profile/edit" element={<ProtectedRoute><ProfileEdit /></ProtectedRoute>} />
               <Route path="/assinatura" element={<ProtectedRoute><SubscriptionManagement /></ProtectedRoute>} />
               <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />

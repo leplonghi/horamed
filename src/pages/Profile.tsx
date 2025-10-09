@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import { 
   CheckCircle2, User, Bell, Shield, CreditCard, 
-  HelpCircle, LogOut, FileDown, ChevronRight, Crown, Activity, Package
+  HelpCircle, LogOut, FileDown, ChevronRight, Crown, Activity, Package, FileText
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Navigation from "@/components/Navigation";
@@ -117,8 +117,15 @@ export default function Profile() {
         dose_text: item.dose_text,
         category: item.category,
         with_food: item.with_food,
-        schedules: item.schedules || [],
-        stock: item.stock ? [item.stock] : undefined,
+        schedules: (item.schedules || []).map(s => ({
+          times: s.times,
+          freq_type: s.freq_type,
+        })),
+        stock: item.stock ? [{
+          units_left: item.stock.units_left,
+          units_total: item.stock.units_left,
+          unit_label: item.stock.unit_label,
+        }] : undefined,
       }));
 
       // Fetch health history
@@ -269,6 +276,15 @@ export default function Profile() {
               </button>
 
               <button 
+                onClick={() => navigate('/relatorios')}
+                className="flex items-center gap-3 p-4 w-full hover:bg-accent/50 transition-colors"
+              >
+                <FileText className="h-5 w-5 text-primary" />
+                <span className="flex-1 text-left text-foreground">Relatórios Médicos</span>
+                <ChevronRight className="h-5 w-5 text-muted-foreground" />
+              </button>
+
+              <button
                 onClick={() => navigate('/privacy')}
                 className="flex items-center gap-3 p-4 w-full hover:bg-accent/50 transition-colors"
               >
