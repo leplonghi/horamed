@@ -10,7 +10,7 @@ import Today from "./pages/Today";
 import Rotina from "./pages/Rotina";
 import AddItem from "./pages/AddItem";
 import StockManagement from "./pages/StockManagement";
-import MedicalReports from "./pages/MedicalReports";
+import MedicalReports from "./pages/MedicalReports"; // Medical reports page
 import Charts from "./pages/Charts";
 import WeeklyCalendar from "./pages/WeeklyCalendar";
 import Profile from "./pages/Profile";

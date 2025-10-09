@@ -15,11 +15,9 @@ import {
   Pill,
   ChevronLeft,
   Clock,
-  FileCheck,
-  Package
+  FileCheck
 } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
+import {
   Select,
   SelectContent,
   SelectItem,
