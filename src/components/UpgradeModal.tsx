@@ -20,19 +20,21 @@ export default function UpgradeModal({ open, onOpenChange, feature }: UpgradeMod
   const features = {
     free: [
       { text: 'Apenas 1 medicamento', included: true },
+      { text: 'Apenas 1 perfil', included: true },
       { text: '3 dias de teste grátis', included: true },
-      { text: 'Lembretes básicos', included: true },
-      { text: 'Anúncios', included: true, negative: true },
-      { text: 'Gráficos avançados', included: false },
-      { text: 'OCR de receitas', included: false },
+      { text: 'Anúncios atrapalhando alertas urgentes', included: true, negative: true },
+      { text: 'Proteção Inteligente (alerta de interações)', included: false },
+      { text: 'Análise preditiva de adesão', included: false },
+      { text: 'Múltiplos perfis (família)', included: false },
     ],
     premium: [
-      { text: 'Medicamentos ilimitados', included: true },
-      { text: 'Uso ilimitado', included: true },
-      { text: 'Sem anúncios', included: true },
-      { text: 'Gráficos avançados', included: true },
-      { text: 'OCR de receitas', included: true },
-      { text: 'Suporte prioritário', included: true },
+      { text: '✨ Proteção Inteligente salva vidas', included: true, highlight: true },
+      { text: '🎯 Descubra POR QUE você esquece às terças', included: true, highlight: true },
+      { text: '👨‍👩‍👧‍👦 Cuide de toda família em 1 conta', included: true, highlight: true },
+      { text: '📊 Seu médico vai ADORAR seu histórico', included: true },
+      { text: '🚫 Nada de propagandas atrapalhando', included: true },
+      { text: '🤖 OCR de receitas médicas', included: true },
+      { text: '⚡ Suporte prioritário', included: true },
     ],
   };
 
@@ -88,7 +90,9 @@ export default function UpgradeModal({ open, onOpenChange, feature }: UpgradeMod
               {features.premium.map((feature, i) => (
                 <li key={i} className="flex items-start gap-2 text-sm">
                   <Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                  <span className="font-medium">{feature.text}</span>
+                  <span className={feature.highlight ? 'font-semibold text-foreground' : 'font-medium'}>
+                    {feature.text}
+                  </span>
                 </li>
               ))}
             </ul>

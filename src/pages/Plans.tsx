@@ -47,13 +47,13 @@ export default function Plans() {
   ];
 
   const premiumPlanFeatures = [
-    "Medicamentos ilimitados",
-    "Sem anúncios",
-    "OCR de receitas médicas",
-    "Histórico completo",
-    "Arquivo de ocorrências por IA",
-    "Integração de calendário",
-    "Suporte prioritário"
+    "✨ Proteção Inteligente - Detecta interações PERIGOSAS",
+    "🎯 Análise Preditiva - Descubra POR QUE você esquece",
+    "👨‍👩‍👧‍👦 Múltiplos perfis - Toda família em 1 conta",
+    "📊 Relatórios que impressionam médicos",
+    "🚫 Zero propagandas atrapalhando alertas",
+    "🤖 OCR de receitas médicas",
+    "⚡ Suporte prioritário"
   ];
 
   return (

@@ -1,4 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
+import HealthInsights from "@/components/HealthInsights";
+import ProfileSelector from "@/components/ProfileSelector";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -361,14 +363,20 @@ export default function Today() {
         <div className="max-w-4xl mx-auto space-y-6">
           <AdBanner />
 
-          <div className="space-y-1">
-            <h2 className="text-3xl font-bold text-foreground flex items-center gap-2">
-              {greeting}{profile?.nickname ? `, ${profile.nickname}` : ""}! <span className="text-primary">👋</span>
-            </h2>
-            <p className="text-muted-foreground">
-              {format(currentTime, "EEEE, d 'de' MMMM", { locale: ptBR })}
-            </p>
+          <div className="flex items-center justify-between gap-4">
+            <div className="space-y-1 flex-1">
+              <h2 className="text-3xl font-bold text-foreground flex items-center gap-2">
+                {greeting}{profile?.nickname ? `, ${profile.nickname}` : ""}! <span className="text-primary">👋</span>
+              </h2>
+              <p className="text-muted-foreground">
+                {format(currentTime, "EEEE, d 'de' MMMM", { locale: ptBR })}
+              </p>
+            </div>
+            <ProfileSelector />
           </div>
+
+          {/* Health Insights - Proteção Inteligente */}
+          <HealthInsights />
 
           {/* User Health Stats */}
           {profile && (profile.birth_date || profile.weight_kg || profile.height_cm) && (

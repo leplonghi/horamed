@@ -9,5 +9,14 @@ verify_jwt = true
 [functions.create-checkout]
 verify_jwt = true
 
+[functions.sync-subscription]
+verify_jwt = true
+
 [functions.stripe-webhook]
 verify_jwt = false
+
+[functions.analyze-drug-interactions]
+verify_jwt = true
+
+[functions.predictive-health-analysis]
+verify_jwt = true
