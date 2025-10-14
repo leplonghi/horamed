@@ -128,24 +128,27 @@ export default function MedicalReports() {
 
       const pdfModule = await import('@/lib/pdfExport');
       
-      const formattedItems = (items || []).map(item => ({
-        name: item.name,
-        dose_text: item.dose_text,
-        category: item.category,
-        with_food: item.with_food,
-        notes: item.notes,
-        schedules: (item.schedules || []).map(s => ({
-          times: s.times,
-          freq_type: s.freq_type,
-          days_of_week: s.days_of_week,
-        })),
-        stock: item.stock ? [{
-          units_left: item.stock.units_left,
-          units_total: item.stock.units_total,
-          unit_label: item.stock.unit_label,
-          projected_end_at: item.stock.projected_end_at,
-        }] : undefined,
-      }));
+      const formattedItems = (items || []).map(item => {
+        const stockData = item.stock as any;
+        return {
+          name: item.name,
+          dose_text: item.dose_text,
+          category: item.category,
+          with_food: item.with_food,
+          notes: item.notes,
+          schedules: (item.schedules || []).map(s => ({
+            times: s.times,
+            freq_type: s.freq_type,
+            days_of_week: s.days_of_week,
+          })),
+          stock: stockData ? [{
+            units_left: stockData.units_left || 0,
+            units_total: stockData.units_total || 0,
+            unit_label: stockData.unit_label || '',
+            projected_end_at: stockData.projected_end_at,
+          }] : undefined,
+        };
+      });
 
       const bmi = profile?.weight_kg && profile?.height_cm 
         ? (profile.weight_kg / Math.pow(profile.height_cm / 100, 2)).toFixed(1)
