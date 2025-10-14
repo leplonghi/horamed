@@ -62,6 +62,36 @@ export type Database = {
           },
         ]
       }
+      drug_interactions: {
+        Row: {
+          created_at: string | null
+          description: string
+          drug_a: string
+          drug_b: string
+          id: string
+          interaction_type: string
+          recommendation: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description: string
+          drug_a: string
+          drug_b: string
+          id?: string
+          interaction_type: string
+          recommendation?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string
+          drug_a?: string
+          drug_b?: string
+          id?: string
+          interaction_type?: string
+          recommendation?: string | null
+        }
+        Relationships: []
+      }
       health_history: {
         Row: {
           created_at: string
@@ -89,6 +119,53 @@ export type Database = {
         }
         Relationships: []
       }
+      health_insights: {
+        Row: {
+          created_at: string | null
+          description: string
+          id: string
+          insight_type: string
+          is_read: boolean | null
+          metadata: Json | null
+          profile_id: string | null
+          severity: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          description: string
+          id?: string
+          insight_type: string
+          is_read?: boolean | null
+          metadata?: Json | null
+          profile_id?: string | null
+          severity?: string
+          title: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string
+          id?: string
+          insight_type?: string
+          is_read?: boolean | null
+          metadata?: Json | null
+          profile_id?: string | null
+          severity?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "health_insights_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       items: {
         Row: {
           category: string | null
@@ -98,6 +175,7 @@ export type Database = {
           is_active: boolean | null
           name: string
           notes: string | null
+          profile_id: string | null
           updated_at: string | null
           user_id: string
           with_food: boolean | null
@@ -110,6 +188,7 @@ export type Database = {
           is_active?: boolean | null
           name: string
           notes?: string | null
+          profile_id?: string | null
           updated_at?: string | null
           user_id: string
           with_food?: boolean | null
@@ -122,11 +201,20 @@ export type Database = {
           is_active?: boolean | null
           name?: string
           notes?: string | null
+          profile_id?: string | null
           updated_at?: string | null
           user_id?: string
           with_food?: boolean | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "items_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       medical_exams: {
         Row: {
@@ -353,6 +441,42 @@ export type Database = {
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_profiles: {
+        Row: {
+          avatar_url: string | null
+          birth_date: string | null
+          created_at: string | null
+          id: string
+          is_primary: boolean | null
+          name: string
+          relationship: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          birth_date?: string | null
+          created_at?: string | null
+          id?: string
+          is_primary?: boolean | null
+          name: string
+          relationship?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          birth_date?: string | null
+          created_at?: string | null
+          id?: string
+          is_primary?: boolean | null
+          name?: string
+          relationship?: string | null
+          updated_at?: string | null
           user_id?: string
         }
         Relationships: []
