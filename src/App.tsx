@@ -15,6 +15,7 @@ import Charts from "./pages/Charts";
 import WeeklyCalendar from "./pages/WeeklyCalendar";
 import Profile from "./pages/Profile";
 import ProfileEdit from "./pages/ProfileEdit";
+import ProfileCreate from "./pages/ProfileCreate";
 import Notifications from "./pages/Notifications";
 import Privacy from "./pages/Privacy";
 import SubscriptionManagement from "./pages/SubscriptionManagement";
@@ -48,6 +49,7 @@ const App = () => {
               <Route path="/perfil" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
               <Route path="/relatorios" element={<ProtectedRoute><MedicalReports /></ProtectedRoute>} />
               <Route path="/profile/edit" element={<ProtectedRoute><ProfileEdit /></ProtectedRoute>} />
+              <Route path="/perfis/novo" element={<ProtectedRoute><ProfileCreate /></ProtectedRoute>} />
               <Route path="/assinatura" element={<ProtectedRoute><SubscriptionManagement /></ProtectedRoute>} />
               <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
               <Route path="/alarme" element={<ProtectedRoute><AlarmSettings /></ProtectedRoute>} />

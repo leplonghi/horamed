@@ -5,6 +5,7 @@ import { User } from "lucide-react";
 import { Link } from "react-router-dom";
 import SubscriptionBadge from "./SubscriptionBadge";
 import { ThemeToggle } from "./ThemeToggle";
+import ProfileSelector from "./ProfileSelector";
 import logo from "@/assets/horamend-logo.png";
 
 export default function Header() {
@@ -59,6 +60,7 @@ export default function Header() {
           </div>
 
           <div className="flex items-center gap-2">
+            <ProfileSelector />
             <ThemeToggle />
             
             <Link to="/perfil" className="flex items-center gap-3">

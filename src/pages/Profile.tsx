@@ -2,15 +2,18 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
 import { 
   CheckCircle2, User, Bell, Shield, CreditCard, 
-  HelpCircle, LogOut, FileDown, ChevronRight, Crown, Activity, Package, FileText
+  HelpCircle, LogOut, FileDown, ChevronRight, Crown, Activity, Package, FileText, Users, Plus, Trash2
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Navigation from "@/components/Navigation";
 import Header from "@/components/Header";
 import { useSubscription } from "@/hooks/useSubscription";
+import { useUserProfiles } from "@/hooks/useUserProfiles";
 import logo from "@/assets/horamend-logo.png";
 
 export default function Profile() {
@@ -22,6 +25,7 @@ export default function Profile() {
     height_cm: null,
   });
   const { subscription, isPremium, daysLeft, refresh, syncWithStripe } = useSubscription();
+  const { profiles, activeProfile, deleteProfile } = useUserProfiles();
 
   useEffect(() => {
     loadProfile();
@@ -175,6 +179,92 @@ export default function Profile() {
       <Header />
       <div className="min-h-screen bg-background pt-20 p-4 pb-24 max-w-md mx-auto">
         <div className="space-y-4">
+
+          {/* User Profiles Section */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between px-2">
+              <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                <Users className="h-5 w-5" />
+                Perfis de Usuários
+              </h2>
+              {isPremium && (
+                <Button
+                  size="sm"
+                  onClick={() => navigate('/perfis/novo')}
+                  className="gap-1"
+                >
+                  <Plus className="h-4 w-4" />
+                  Novo
+                </Button>
+              )}
+            </div>
+
+            <Card className="divide-y divide-border">
+              {profiles.map(profile => {
+                const getInitials = (name: string) => {
+                  return name
+                    .split(' ')
+                    .map(n => n[0])
+                    .join('')
+                    .toUpperCase()
+                    .slice(0, 2);
+                };
+
+                const getRelationshipLabel = (rel: string) => {
+                  const labels: { [key: string]: string } = {
+                    self: 'Você',
+                    child: 'Filho(a)',
+                    parent: 'Pai/Mãe',
+                    spouse: 'Cônjuge',
+                    other: 'Outro'
+                  };
+                  return labels[rel] || rel;
+                };
+
+                return (
+                  <div key={profile.id} className="p-4 flex items-center gap-3">
+                    <Avatar>
+                      <AvatarImage src={profile.avatar_url || undefined} />
+                      <AvatarFallback>{getInitials(profile.name)}</AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <p className="font-medium">{profile.name}</p>
+                        {profile.is_primary && (
+                          <Badge variant="secondary" className="text-xs">Principal</Badge>
+                        )}
+                        {activeProfile?.id === profile.id && (
+                          <Badge className="text-xs">Ativo</Badge>
+                        )}
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        {getRelationshipLabel(profile.relationship)}
+                      </p>
+                    </div>
+                    {!profile.is_primary && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => {
+                          if (confirm(`Deseja remover o perfil de ${profile.name}?`)) {
+                            deleteProfile(profile.id);
+                          }
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    )}
+                  </div>
+                );
+              })}
+            </Card>
+
+            {!isPremium && (
+              <p className="text-xs text-center text-muted-foreground px-2">
+                Múltiplos perfis disponível apenas no Premium. Gerencie medicamentos de toda família!
+              </p>
+            )}
+          </div>
 
           {/* Plan Card */}
           <Card className="p-4 border-2 border-primary/20">
