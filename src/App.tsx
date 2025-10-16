@@ -26,6 +26,8 @@ import Plans from "./pages/Plans";
 import AlarmSettings from "./pages/AlarmSettings";
 import Navigation from "./components/Navigation";
 import ProtectedRoute from "./components/ProtectedRoute";
+import Pharmacy from "./pages/Pharmacy";
+import Emergency from "./pages/Emergency";
 
 function AppContent() {
   const location = useLocation();
@@ -54,6 +56,8 @@ function AppContent() {
         <Route path="/help-support" element={<ProtectedRoute><HelpSupport /></ProtectedRoute>} />
         <Route path="/graficos" element={<ProtectedRoute><Charts /></ProtectedRoute>} />
         <Route path="/planos" element={<ProtectedRoute><Plans /></ProtectedRoute>} />
+        <Route path="/farmacia" element={<ProtectedRoute><Pharmacy /></ProtectedRoute>} />
+        <Route path="/emergencia" element={<ProtectedRoute><Emergency /></ProtectedRoute>} />
         <Route path="*" element={<NotFound />} />
       </Routes>
       {showNavigation && <Navigation />}

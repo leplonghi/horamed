@@ -20,3 +20,9 @@ verify_jwt = true
 
 [functions.predictive-health-analysis]
 verify_jwt = true
+
+[functions.pharmacy-prices]
+verify_jwt = true
+
+[functions.emergency-guidance]
+verify_jwt = true

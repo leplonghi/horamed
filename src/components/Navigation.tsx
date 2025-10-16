@@ -1,4 +1,4 @@
-import { Home, CalendarDays, Calendar, User, TrendingUp } from "lucide-react";
+import { Home, CalendarDays, Calendar, User, TrendingUp, ShoppingBag, AlertTriangle } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
@@ -7,9 +7,9 @@ export default function Navigation() {
 
   const navItems = [
     { path: "/", icon: Home, label: "Hoje" },
-    { path: "/rotina", icon: CalendarDays, label: "Rotina" },
     { path: "/calendario", icon: Calendar, label: "Calendário" },
-    { path: "/graficos", icon: TrendingUp, label: "Gráficos" },
+    { path: "/farmacia", icon: ShoppingBag, label: "Farmácia" },
+    { path: "/emergencia", icon: AlertTriangle, label: "SOS" },
     { path: "/perfil", icon: User, label: "Perfil" },
   ];
 
