@@ -22,6 +22,7 @@ export type Database = {
           id: string
           item_id: string
           schedule_id: string
+          skip_reason: string | null
           status: string
           taken_at: string | null
         }
@@ -32,6 +33,7 @@ export type Database = {
           id?: string
           item_id: string
           schedule_id: string
+          skip_reason?: string | null
           status?: string
           taken_at?: string | null
         }
@@ -42,6 +44,7 @@ export type Database = {
           id?: string
           item_id?: string
           schedule_id?: string
+          skip_reason?: string | null
           status?: string
           taken_at?: string | null
         }
@@ -483,7 +486,14 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      user_adherence_streaks: {
+        Row: {
+          current_streak: number | null
+          longest_streak: number | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       [_ in never]: never
