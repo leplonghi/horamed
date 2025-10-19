@@ -29,6 +29,10 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import Pharmacy from "./pages/Pharmacy";
 import Emergency from "./pages/Emergency";
 import MyDoses from "./pages/MyDoses";
+import Cofre from "./pages/Cofre";
+import CofreUpload from "./pages/CofreUpload";
+import CofreDocumento from "./pages/CofreDocumento";
+import CompartilharDocumento from "./pages/CompartilharDocumento";
 
 function AppContent() {
   const location = useLocation();
@@ -60,6 +64,10 @@ function AppContent() {
         <Route path="/farmacia" element={<ProtectedRoute><Pharmacy /></ProtectedRoute>} />
         <Route path="/emergencia" element={<ProtectedRoute><Emergency /></ProtectedRoute>} />
         <Route path="/doses" element={<ProtectedRoute><MyDoses /></ProtectedRoute>} />
+        <Route path="/cofre" element={<ProtectedRoute><Cofre /></ProtectedRoute>} />
+        <Route path="/cofre/upload" element={<ProtectedRoute><CofreUpload /></ProtectedRoute>} />
+        <Route path="/cofre/:id" element={<ProtectedRoute><CofreDocumento /></ProtectedRoute>} />
+        <Route path="/compartilhar/:token" element={<CompartilharDocumento />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
       {showNavigation && <Navigation />}

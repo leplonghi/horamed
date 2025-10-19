@@ -26,3 +26,15 @@ verify_jwt = true
 
 [functions.emergency-guidance]
 verify_jwt = true
+
+[functions.extrair-metadados-documento]
+verify_jwt = true
+
+[functions.gerar-link-compartilhamento]
+verify_jwt = true
+
+[functions.revogar-link-compartilhamento]
+verify_jwt = true
+
+[functions.agendar-lembretes-saude]
+verify_jwt = false
