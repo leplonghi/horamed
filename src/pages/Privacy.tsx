@@ -34,6 +34,16 @@ export default function Privacy() {
       await supabase.from("schedules").delete().match({ item_id: user.id });
       await supabase.from("stock").delete().match({ item_id: user.id });
       
+      // Delete health vault data
+      await supabase.from("compartilhamentos_doc").delete().eq("user_id", user.id);
+      await supabase.from("eventos_saude").delete().eq("user_id", user.id);
+      await supabase.from("documentos_saude").delete().eq("user_id", user.id);
+      
+      // Delete profiles and health data
+      await supabase.from("user_profiles").delete().eq("user_id", user.id);
+      await supabase.from("health_history").delete().eq("user_id", user.id);
+      await supabase.from("health_insights").delete().eq("user_id", user.id);
+      
       // Then delete main records
       await supabase.from("items").delete().eq("user_id", user.id);
       await supabase.from("medical_exams").delete().eq("user_id", user.id);
