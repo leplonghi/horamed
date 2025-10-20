@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useCofre } from "@/hooks/useCofre";
+import { useUploadDocumento } from "@/hooks/useCofre";
 import { useUserProfiles } from "@/hooks/useUserProfiles";
 import { toast } from "sonner";
 import Header from "@/components/Header";
@@ -22,7 +22,7 @@ export default function CofreUpload() {
   const [showUpgrade, setShowUpgrade] = useState(false);
 
   const { profiles, activeProfile } = useUserProfiles();
-  const { uploadDocumento } = useCofre();
+  const uploadDocumento = useUploadDocumento();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {

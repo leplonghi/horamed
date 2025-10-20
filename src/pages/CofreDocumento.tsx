@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useCofre } from "@/hooks/useCofre";
+import { useDocumento, useCompartilhamentos, useDeletarDocumento } from "@/hooks/useCofre";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -31,9 +31,9 @@ export default function CofreDocumento() {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showUpgrade, setShowUpgrade] = useState(false);
 
-  const { useDocumento, deletarDocumento, useCompartilhamentos } = useCofre();
   const { data: documento, isLoading } = useDocumento(id);
   const { data: compartilhamentos } = useCompartilhamentos(id);
+  const { mutate: deletar } = useDeletarDocumento();
 
   useEffect(() => {
     const loadUrl = async () => {
@@ -71,7 +71,7 @@ export default function CofreDocumento() {
 
   const handleDeletar = async () => {
     try {
-      await deletarDocumento.mutateAsync(id!);
+      deletar(id!);
       navigate("/cofre");
     } catch (error) {
       toast.error("Erro ao deletar documento");

@@ -59,89 +59,89 @@ interface ListaDocumentosFilters {
   exp?: "30" | "all";
 }
 
-export function useCofre() {
+// Listar documentos
+export function useDocumentos(filters: ListaDocumentosFilters = {}) {
+  return useQuery({
+    queryKey: ["cofre", "lista", filters],
+    queryFn: async () => {
+      let query = supabase
+        .from("documentos_saude")
+        .select(`
+          *,
+          categorias_saude(id, slug, label),
+          user_profiles(name)
+        `)
+        .order("created_at", { ascending: false });
+
+      if (filters.profileId) {
+        query = query.eq("profile_id", filters.profileId);
+      }
+
+      if (filters.categoria) {
+        const { data: cat } = await supabase
+          .from("categorias_saude")
+          .select("id")
+          .eq("slug", filters.categoria)
+          .maybeSingle();
+        if (cat) query = query.eq("categoria_id", cat.id);
+      }
+
+      if (filters.exp === "30") {
+        const hoje = new Date();
+        const em30Dias = new Date(hoje);
+        em30Dias.setDate(hoje.getDate() + 30);
+        query = query.gte("expires_at", hoje.toISOString().split("T")[0])
+                    .lte("expires_at", em30Dias.toISOString().split("T")[0]);
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+
+      // Filtro de busca full-text (client-side por simplicidade)
+      let result = data || [];
+      if (filters.q) {
+        const q = filters.q.toLowerCase();
+        result = result.filter(
+          (d) =>
+            d.title?.toLowerCase().includes(q) ||
+            d.ocr_text?.toLowerCase().includes(q) ||
+            d.provider?.toLowerCase().includes(q)
+        );
+      }
+
+      return result as DocumentoSaude[];
+    },
+  });
+}
+
+// Obter documento por ID
+export function useDocumento(id?: string) {
+  return useQuery({
+    queryKey: ["cofre", "doc", id],
+    queryFn: async () => {
+      if (!id) return null;
+      const { data, error } = await supabase
+        .from("documentos_saude")
+        .select(`
+          *,
+          categorias_saude(id, slug, label),
+          user_profiles(name)
+        `)
+        .eq("id", id)
+        .single();
+
+      if (error) throw error;
+      return data as DocumentoSaude;
+    },
+    enabled: !!id,
+  });
+}
+
+// Upload de documento
+export function useUploadDocumento() {
   const queryClient = useQueryClient();
 
-  // Listar documentos
-  const useDocumentos = (filters: ListaDocumentosFilters = {}) => {
-    return useQuery({
-      queryKey: ["cofre", "lista", filters],
-      queryFn: async () => {
-        let query = supabase
-          .from("documentos_saude")
-          .select(`
-            *,
-            categorias_saude(id, slug, label),
-            user_profiles(name)
-          `)
-          .order("created_at", { ascending: false });
-
-        if (filters.profileId) {
-          query = query.eq("profile_id", filters.profileId);
-        }
-
-        if (filters.categoria) {
-          const { data: cat } = await supabase
-            .from("categorias_saude")
-            .select("id")
-            .eq("slug", filters.categoria)
-            .single();
-          if (cat) query = query.eq("categoria_id", cat.id);
-        }
-
-        if (filters.exp === "30") {
-          const hoje = new Date();
-          const em30Dias = new Date(hoje);
-          em30Dias.setDate(hoje.getDate() + 30);
-          query = query.gte("expires_at", hoje.toISOString().split("T")[0])
-                      .lte("expires_at", em30Dias.toISOString().split("T")[0]);
-        }
-
-        const { data, error } = await query;
-        if (error) throw error;
-
-        // Filtro de busca full-text (client-side por simplicidade)
-        let result = data || [];
-        if (filters.q) {
-          const q = filters.q.toLowerCase();
-          result = result.filter(
-            (d) =>
-              d.title?.toLowerCase().includes(q) ||
-              d.ocr_text?.toLowerCase().includes(q) ||
-              d.provider?.toLowerCase().includes(q)
-          );
-        }
-
-        return result as DocumentoSaude[];
-      },
-    });
-  };
-
-  // Obter documento por ID
-  const useDocumento = (id?: string) => {
-    return useQuery({
-      queryKey: ["cofre", "doc", id],
-      queryFn: async () => {
-        if (!id) return null;
-        const { data, error } = await supabase
-          .from("documentos_saude")
-          .select(`
-            *,
-            categorias_saude(id, slug, label),
-            user_profiles(name)
-          `)
-          .eq("id", id)
-          .single();
-
-        if (error) throw error;
-        return data as DocumentoSaude;
-      },
-      enabled: !!id,
-    });
-  };
-
-  // Upload de documento
-  const uploadDocumento = useMutation({
+  return useMutation({
     mutationFn: async (params: {
       file: File;
       profileId?: string;
@@ -158,7 +158,7 @@ export function useCofre() {
         .from("subscriptions")
         .select("plan_type, status")
         .eq("user_id", user.id)
-        .single();
+        .maybeSingle();
 
       const isPremium = subscription?.plan_type === "premium" && subscription?.status === "active";
 
@@ -230,15 +230,19 @@ export function useCofre() {
       }
     },
   });
+}
 
-  // Deletar documento
-  const deletarDocumento = useMutation({
+// Deletar documento
+export function useDeletarDocumento() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
     mutationFn: async (id: string) => {
       const { data: doc } = await supabase
         .from("documentos_saude")
         .select("file_path")
         .eq("id", id)
-        .single();
+        .maybeSingle();
 
       if (doc?.file_path) {
         await supabase.storage.from("cofre-saude").remove([doc.file_path]);
@@ -252,51 +256,55 @@ export function useCofre() {
       toast.success("Documento removido");
     },
   });
+}
 
-  // Compartilhamentos
-  const useCompartilhamentos = (documentId?: string) => {
-    return useQuery({
-      queryKey: ["cofre", "shares", documentId],
-      queryFn: async () => {
-        if (!documentId) return [];
-        const { data, error } = await supabase
-          .from("compartilhamentos_doc")
-          .select("*")
-          .eq("document_id", documentId)
-          .order("created_at", { ascending: false });
+// Compartilhamentos
+export function useCompartilhamentos(documentId?: string) {
+  return useQuery({
+    queryKey: ["cofre", "shares", documentId],
+    queryFn: async () => {
+      if (!documentId) return [];
+      const { data, error } = await supabase
+        .from("compartilhamentos_doc")
+        .select("*")
+        .eq("document_id", documentId)
+        .order("created_at", { ascending: false });
 
-        if (error) throw error;
-        return data as Compartilhamento[];
-      },
-      enabled: !!documentId,
-    });
-  };
+      if (error) throw error;
+      return data as Compartilhamento[];
+    },
+    enabled: !!documentId,
+  });
+}
 
-  // Eventos próximos
-  const useEventosProximos = () => {
-    return useQuery({
-      queryKey: ["eventos", "upcoming"],
-      queryFn: async () => {
-        const hoje = new Date().toISOString().split("T")[0];
-        const { data, error } = await supabase
-          .from("eventos_saude")
-          .select(`
-            *,
-            user_profiles(name)
-          `)
-          .is("completed_at", null)
-          .gte("due_date", hoje)
-          .order("due_date", { ascending: true })
-          .limit(10);
+// Eventos próximos
+export function useEventosProximos() {
+  return useQuery({
+    queryKey: ["eventos", "upcoming"],
+    queryFn: async () => {
+      const hoje = new Date().toISOString().split("T")[0];
+      const { data, error } = await supabase
+        .from("eventos_saude")
+        .select(`
+          *,
+          user_profiles(name)
+        `)
+        .is("completed_at", null)
+        .gte("due_date", hoje)
+        .order("due_date", { ascending: true })
+        .limit(10);
 
-        if (error) throw error;
-        return data as EventoSaude[];
-      },
-    });
-  };
+      if (error) throw error;
+      return data as EventoSaude[];
+    },
+  });
+}
 
-  // Completar evento
-  const completarEvento = useMutation({
+// Completar evento
+export function useCompletarEvento() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
         .from("eventos_saude")
@@ -309,14 +317,4 @@ export function useCofre() {
       toast.success("Evento marcado como concluído");
     },
   });
-
-  return {
-    useDocumentos,
-    useDocumento,
-    uploadDocumento,
-    deletarDocumento,
-    useCompartilhamentos,
-    useEventosProximos,
-    completarEvento,
-  };
 }

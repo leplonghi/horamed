@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useCofre, DocumentoSaude } from "@/hooks/useCofre";
+import { useDocumentos, DocumentoSaude } from "@/hooks/useCofre";
 import { useUserProfiles } from "@/hooks/useUserProfiles";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
@@ -21,7 +21,6 @@ export default function Cofre() {
   const [filtroExp, setFiltroExp] = useState<"30" | "all">("all");
   const { activeProfile } = useUserProfiles();
   
-  const { useDocumentos } = useCofre();
   const { data: documentos, isLoading } = useDocumentos({
     profileId: activeProfile?.id,
     categoria: categoriaAtiva === "todos" ? undefined : categoriaAtiva,
