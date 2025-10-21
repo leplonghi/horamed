@@ -16,14 +16,8 @@ export default defineConfig(({ mode }) => ({
     },
   },
   build: {
-    rollupOptions: {
-      external: [
-        '@capacitor/core',
-        '@capacitor/app',
-        '@capacitor/android',
-        '@capacitor/ios'
-      ]
-    }
+    // Capacitor packages não devem ser externalizados para build web
+    // Apenas para builds mobile nativos
   },
   optimizeDeps: {
     exclude: ['@capacitor/core', '@capacitor/app']

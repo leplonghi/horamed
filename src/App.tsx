@@ -44,8 +44,8 @@ function AppContent() {
       <Sonner />
       <Routes>
         <Route path="/auth" element={<Auth />} />
-        <Route path="/" element={<ProtectedRoute><Today /></ProtectedRoute>} />
-        <Route path="/index" element={<Index />} />
+        <Route path="/" element={<Index />} />
+        <Route path="/hoje" element={<ProtectedRoute><Today /></ProtectedRoute>} />
         <Route path="/rotina" element={<ProtectedRoute><Rotina /></ProtectedRoute>} />
         <Route path="/calendario" element={<ProtectedRoute><WeeklyCalendar /></ProtectedRoute>} />
         <Route path="/adicionar" element={<ProtectedRoute><AddItem /></ProtectedRoute>} />
