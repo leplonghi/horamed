@@ -16,6 +16,10 @@ import Header from "@/components/Header";
 import logo from "@/assets/horamend-logo.png";
 import { useMedicationAlarm } from "@/hooks/useMedicationAlarm";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
+import StreakBadge from "@/components/StreakBadge";
+import AchievementsSection from "@/components/AchievementsSection";
+import ProgressDashboard from "@/components/ProgressDashboard";
+import { useStreakCalculator } from "@/hooks/useStreakCalculator";
 
 interface DoseInstance {
   id: string;
@@ -48,6 +52,7 @@ interface UserProfile {
 export default function Today() {
   const { stopAlarm } = useMedicationAlarm();
   usePushNotifications(); // Initialize push notifications
+  const streakData = useStreakCalculator();
   const [upcomingDoses, setUpcomingDoses] = useState<DoseInstance[]>([]);
   const [lowStockItems, setLowStockItems] = useState<LowStock[]>([]);
   const [loading, setLoading] = useState(true);
@@ -296,12 +301,30 @@ export default function Today() {
           .eq("item_id", itemId);
       }
 
-      toast.success("Dose confirmada! 💚");
+      // Show motivational message
+      showMotivationalMessage();
+      
       fetchTodayData();
+      streakData.refresh();
     } catch (error) {
       console.error("Error marking dose as taken:", error);
       toast.error("Erro ao confirmar dose");
     }
+  };
+
+  const showMotivationalMessage = () => {
+    const messages = [
+      "Dose confirmada! Você está arrasando! 💪",
+      "Ótimo trabalho! Continue assim! 🌟",
+      "Parabéns! Sua saúde agradece! 💚",
+      "Excelente! Mais um passo rumo à sua meta! 🎯",
+      "Mandou bem! Sua dedicação faz a diferença! ✨",
+    ];
+    
+    const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+    toast.success(randomMessage, {
+      duration: 3000,
+    });
   };
 
   const snoozeDose = async (doseId: string, minutes: number) => {
@@ -364,13 +387,24 @@ export default function Today() {
           <AdBanner />
 
           <div className="flex items-center justify-between gap-4">
-            <div className="space-y-1 flex-1">
+            <div className="space-y-2 flex-1">
               <h2 className="text-3xl font-bold text-foreground flex items-center gap-2">
                 {greeting}{profile?.nickname ? `, ${profile.nickname}` : ""}! <span className="text-primary">👋</span>
               </h2>
               <p className="text-muted-foreground">
                 {format(currentTime, "EEEE, d 'de' MMMM", { locale: ptBR })}
               </p>
+              <div className="flex flex-wrap gap-2">
+                {!streakData.loading && streakData.currentStreak > 0 && (
+                  <StreakBadge streak={streakData.currentStreak} type="current" />
+                )}
+                {!streakData.loading && streakData.longestStreak > 3 && (
+                  <StreakBadge streak={streakData.longestStreak} type="longest" />
+                )}
+                {!streakData.loading && streakData.isImproving && (
+                  <StreakBadge streak={7} type="improving" />
+                )}
+              </div>
             </div>
             <ProfileSelector />
           </div>
@@ -520,6 +554,21 @@ export default function Today() {
               ))}
             </div>
           )}
+
+          {/* Progress Dashboard */}
+          {!streakData.loading && (
+            <ProgressDashboard
+              currentStreak={streakData.currentStreak}
+              longestStreak={streakData.longestStreak}
+              thisWeekAverage={streakData.thisWeekAverage}
+              lastWeekAverage={streakData.lastWeekAverage}
+              monthlyGoal={90}
+              monthlyProgress={stats.weeklyAdherence}
+            />
+          )}
+
+          {/* Achievements Section */}
+          <AchievementsSection />
 
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
