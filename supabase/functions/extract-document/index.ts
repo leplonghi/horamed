@@ -25,14 +25,31 @@ serve(async (req) => {
     const prompt = `Você é um assistente médico especializado em extrair informações de documentos de saúde.
 
 Analise este documento médico e extraia as seguintes informações em formato JSON:
-- title: título ou nome do documento/exame/procedimento (string)
+- title: título ou nome do documento/exame/procedimento (string, obrigatório)
 - issued_at: data de emissão em formato YYYY-MM-DD (string ou null)
 - expires_at: data de validade/vencimento se houver em formato YYYY-MM-DD (string ou null)
-- provider: nome do prestador de serviço/laboratório/clínica (string)
+- provider: nome do prestador de serviço/laboratório/clínica (string ou null)
 - category: classifique como "exame", "receita", "vacinacao", "consulta" ou "outro" (string)
+- extracted_values: array de objetos com valores numéricos encontrados no formato:
+  [{"parameter": "Hemoglobina", "value": 14.5, "unit": "g/dL", "reference_range": "12-16"}]
+  (array vazio se não houver valores numéricos)
+
+IMPORTANTE para exames laboratoriais:
+- Extraia TODOS os valores numéricos com seus parâmetros, valores, unidades e faixas de referência
+- Se for um exame de sangue, glicemia, colesterol, etc., sempre preencha extracted_values
 
 Retorne APENAS um objeto JSON válido, sem markdown ou texto adicional.
-Exemplo: {"title": "Hemograma Completo", "issued_at": "2024-01-15", "expires_at": null, "provider": "Laboratório Central", "category": "exame"}`;
+Exemplo: {
+  "title": "Hemograma Completo", 
+  "issued_at": "2024-01-15", 
+  "expires_at": null, 
+  "provider": "Laboratório Central", 
+  "category": "exame",
+  "extracted_values": [
+    {"parameter": "Hemoglobina", "value": 14.5, "unit": "g/dL", "reference_range": "12-16"},
+    {"parameter": "Leucócitos", "value": 7500, "unit": "/mm³", "reference_range": "4000-11000"}
+  ]
+}`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -41,7 +58,7 @@ Exemplo: {"title": "Hemograma Completo", "issued_at": "2024-01-15", "expires_at"
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "google/gemini-2.5-pro",
         messages: [
           { role: "system", content: prompt },
           {

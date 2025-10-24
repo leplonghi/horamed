@@ -1,19 +1,19 @@
 import { useState, useEffect, useMemo } from "react";
 import HealthInsights from "@/components/HealthInsights";
 import ProfileSelector from "@/components/ProfileSelector";
+import CriticalAlertBanner from "@/components/CriticalAlertBanner";
+import { useCriticalAlerts } from "@/hooks/useCriticalAlerts";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Clock, Pill, TrendingUp, Package, User, Activity, Ruler } from "lucide-react";
+import { Clock, Pill, TrendingUp, Package, ChevronDown, ChevronUp } from "lucide-react";
 import { toast } from "sonner";
 import { format, parseISO, differenceInYears, subDays, startOfDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import Navigation from "@/components/Navigation";
 import AdBanner from "@/components/AdBanner";
 import AdherenceChart from "@/components/AdherenceChart";
-import GoogleAd from "@/components/GoogleAd";
 import Header from "@/components/Header";
-import logo from "@/assets/horamend-logo.png";
 import { useMedicationAlarm } from "@/hooks/useMedicationAlarm";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import StreakBadge from "@/components/StreakBadge";
@@ -23,6 +23,7 @@ import { useStreakCalculator } from "@/hooks/useStreakCalculator";
 import HealthAssistantChat from "@/components/HealthAssistantChat";
 import MonthlyReportCard from "@/components/MonthlyReportCard";
 import SmartInsightsCard from "@/components/SmartInsightsCard";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 interface DoseInstance {
   id: string;
@@ -54,8 +55,10 @@ interface UserProfile {
 
 export default function Today() {
   const { stopAlarm } = useMedicationAlarm();
-  usePushNotifications(); // Initialize push notifications
+  usePushNotifications();
   const streakData = useStreakCalculator();
+  const criticalAlerts = useCriticalAlerts();
+  
   const [upcomingDoses, setUpcomingDoses] = useState<DoseInstance[]>([]);
   const [lowStockItems, setLowStockItems] = useState<LowStock[]>([]);
   const [loading, setLoading] = useState(true);
@@ -70,8 +73,9 @@ export default function Today() {
     lowStock: 0,
     weeklyAdherence: 0,
   });
+  const [showWeeklySummary, setShowWeeklySummary] = useState(false);
+  const [showHealthStats, setShowHealthStats] = useState(false);
 
-  // Initialize medication alarm system
   useMedicationAlarm();
 
   useEffect(() => {
@@ -279,6 +283,36 @@ export default function Today() {
 
   const markAsTaken = async (doseId: string, itemId: string) => {
     try {
+      // Check if item has stock
+      const { data: stockData } = await supabase
+        .from("stock")
+        .select("units_left")
+        .eq("item_id", itemId)
+        .single();
+
+      if (stockData && stockData.units_left === 0) {
+        toast.error("❌ Estoque zerado! Reabasteça antes de registrar dose.");
+        return;
+      }
+
+      // Check for recent duplicate (within 4 hours)
+      const fourHoursAgo = new Date();
+      fourHoursAgo.setHours(fourHoursAgo.getHours() - 4);
+
+      const { data: recentDoses } = await supabase
+        .from("dose_instances")
+        .select("taken_at")
+        .eq("item_id", itemId)
+        .eq("status", "taken")
+        .gte("taken_at", fourHoursAgo.toISOString());
+
+      if (recentDoses && recentDoses.length > 0) {
+        const confirmed = window.confirm(
+          "Você já registrou essa medicação nas últimas 4 horas. Tem certeza que deseja registrar novamente?"
+        );
+        if (!confirmed) return;
+      }
+
       const takenAt = new Date();
       const { error } = await supabase
         .from("dose_instances")
@@ -291,12 +325,6 @@ export default function Today() {
       if (error) throw error;
 
       // Decrement stock
-      const { data: stockData } = await supabase
-        .from("stock")
-        .select("units_left, units_total")
-        .eq("item_id", itemId)
-        .single();
-
       if (stockData && stockData.units_left > 0) {
         await supabase
           .from("stock")
@@ -304,11 +332,10 @@ export default function Today() {
           .eq("item_id", itemId);
       }
 
-      // Show motivational message
       showMotivationalMessage();
-      
       fetchTodayData();
       streakData.refresh();
+      criticalAlerts.refresh();
     } catch (error) {
       console.error("Error marking dose as taken:", error);
       toast.error("Erro ao confirmar dose");
@@ -317,16 +344,16 @@ export default function Today() {
 
   const showMotivationalMessage = () => {
     const messages = [
-      "Dose confirmada! Você está arrasando! 💪",
-      "Ótimo trabalho! Continue assim! 🌟",
-      "Parabéns! Sua saúde agradece! 💚",
-      "Excelente! Mais um passo rumo à sua meta! 🎯",
-      "Mandou bem! Sua dedicação faz a diferença! ✨",
+      "✓ Dose confirmada! Você está no controle!",
+      "✓ Ótimo trabalho! Continue assim!",
+      "✓ Parabéns! Sua saúde agradece!",
+      "✓ Excelente! Mais um passo rumo à sua meta!",
+      "✓ Mandou bem! Sua dedicação faz a diferença!",
     ];
     
     const randomMessage = messages[Math.floor(Math.random() * messages.length)];
     toast.success(randomMessage, {
-      duration: 3000,
+      duration: 2500,
     });
   };
 
@@ -389,10 +416,11 @@ export default function Today() {
         <div className="max-w-4xl mx-auto space-y-6">
           <AdBanner />
 
+          {/* Header with greeting */}
           <div className="flex items-center justify-between gap-4">
             <div className="space-y-2 flex-1">
-              <h2 className="text-3xl font-bold text-foreground flex items-center gap-2">
-                {greeting}{profile?.nickname ? `, ${profile.nickname}` : ""}! <span className="text-primary">👋</span>
+              <h2 className="text-3xl font-bold text-foreground">
+                {greeting}{profile?.nickname ? `, ${profile.nickname}` : ""}!
               </h2>
               <p className="text-muted-foreground">
                 {format(currentTime, "EEEE, d 'de' MMMM", { locale: ptBR })}
@@ -401,144 +429,107 @@ export default function Today() {
                 {!streakData.loading && streakData.currentStreak > 0 && (
                   <StreakBadge streak={streakData.currentStreak} type="current" />
                 )}
-                {!streakData.loading && streakData.longestStreak > 3 && (
-                  <StreakBadge streak={streakData.longestStreak} type="longest" />
-                )}
-                {!streakData.loading && streakData.isImproving && (
-                  <StreakBadge streak={7} type="improving" />
-                )}
               </div>
             </div>
             <ProfileSelector />
           </div>
 
-          {/* Health Insights - Proteção Inteligente */}
-          <HealthInsights />
+          {/* Critical Alerts Section */}
+          <CriticalAlertBanner 
+            alerts={criticalAlerts.alerts} 
+            onDismiss={criticalAlerts.dismissAlert}
+          />
 
-          {/* User Health Stats */}
-          {profile && (profile.birth_date || profile.weight_kg || profile.height_cm) && (
-            <div className="grid grid-cols-3 gap-3">
-              {profile.birth_date && (
-                <Card className="p-4 bg-primary/10 border-primary/20">
-                  <div className="flex flex-col gap-1">
-                    <div className="text-2xl text-primary">🎂</div>
-                    <p className="text-xs text-muted-foreground">Idade</p>
-                    <p className="text-xl font-bold text-foreground">
-                      {differenceInYears(new Date(), new Date(profile.birth_date))} anos
-                    </p>
-                  </div>
-                </Card>
-              )}
-              {profile.weight_kg && (
-                <Card className="p-4 bg-primary/10 border-primary/20">
-                  <div className="flex flex-col gap-1">
-                    <div className="text-2xl text-primary">⚖️</div>
-                    <p className="text-xs text-muted-foreground">Peso</p>
-                    <p className="text-xl font-bold text-foreground">{profile.weight_kg} kg</p>
-                  </div>
-                </Card>
-              )}
-              {profile.height_cm && (
-                <Card className="p-4 bg-primary/10 border-primary/20">
-                  <div className="flex flex-col gap-1">
-                    <div className="text-2xl text-primary">📏</div>
-                    <p className="text-xs text-muted-foreground">Altura</p>
-                    <p className="text-xl font-bold text-foreground">{(profile.height_cm / 100).toFixed(2)} m</p>
-                  </div>
-                </Card>
-              )}
-            </div>
-          )}
-
-          {/* Upcoming Doses */}
+          {/* Next 3 Doses - Compact View */}
           <div className="space-y-3">
             <h2 className="text-xl font-semibold flex items-center gap-2">
               <Clock className="h-5 w-5 text-primary" />
-              Próximas doses
+              Próximas 3 doses
             </h2>
 
             {upcomingDoses.length === 0 ? (
-              <Card className="p-8 text-center">
+              <Card className="p-6 text-center">
                 <p className="text-muted-foreground">
-                  Nenhuma dose programada para hoje! 🎉
+                  ✓ Nenhuma dose programada para agora
                 </p>
               </Card>
             ) : (
-              upcomingDoses.map((dose) => (
-                <Card
-                  key={dose.id}
-                  className="p-5 hover:shadow-md transition-shadow"
-                >
-                <div className="space-y-4">
-                  <div className="flex items-start justify-between">
-                    <div className="space-y-1">
-                      <h3 className="text-lg font-semibold text-foreground">
-                        {dose.items.name}
-                      </h3>
-                      {dose.items.dose_text && (
-                        <p className="text-sm text-muted-foreground">
-                          {dose.items.dose_text}
-                        </p>
-                      )}
-                      {dose.items.with_food && (
-                        <p className="text-xs text-primary font-medium">
-                          <span className="text-primary">🍽️</span> Tomar com alimento
-                        </p>
-                      )}
-                    </div>
-                    <div className="text-right">
-                      <p className="text-2xl font-bold text-primary">
-                        {format(parseISO(dose.due_at), "HH:mm")}
-                      </p>
-                    </div>
-                  </div>
+              upcomingDoses.slice(0, 3).map((dose) => {
+                // Check if item has zero stock
+                const hasZeroStock = criticalAlerts.alerts.some(
+                  alert => alert.type === "zero_stock" && alert.itemId === dose.item_id
+                );
 
-                  <div className="flex flex-wrap gap-2">
-                    <Button
-                      onClick={() => markAsTaken(dose.id, dose.item_id)}
-                      className="flex-1 bg-success hover:bg-success/90"
-                    >
-                      ✓ Tomei
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={() => snoozeDose(dose.id, 15)}
-                      className="border-primary/30 hover:bg-primary/5"
-                    >
-                      +15 min
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={() => snoozeDose(dose.id, 30)}
-                      className="border-primary/30 hover:bg-primary/5"
-                    >
-                      +30 min
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      onClick={() => skipDose(dose.id)}
-                      className="text-muted-foreground"
-                    >
-                      Pular
-                    </Button>
-                  </div>
-                </div>
-              </Card>
-            ))
-          )}
-        </div>
+                return (
+                  <Card
+                    key={dose.id}
+                    className="p-4 hover:shadow-md transition-shadow"
+                  >
+                    <div className="space-y-3">
+                      <div className="flex items-start justify-between">
+                        <div className="space-y-1 flex-1">
+                          <h3 className="text-lg font-semibold text-foreground">
+                            {dose.items.name}
+                          </h3>
+                          {dose.items.dose_text && (
+                            <p className="text-sm text-muted-foreground">
+                              {dose.items.dose_text}
+                            </p>
+                          )}
+                          {dose.items.with_food && (
+                            <p className="text-xs text-primary font-medium">
+                              🍽️ Tomar com alimento
+                            </p>
+                          )}
+                        </div>
+                        <div className="text-right">
+                          <p className="text-2xl font-bold text-primary">
+                            {format(parseISO(dose.due_at), "HH:mm")}
+                          </p>
+                        </div>
+                      </div>
 
-          {/* Low Stock Alerts */}
+                      <div className="flex flex-wrap gap-2">
+                        <Button
+                          onClick={() => markAsTaken(dose.id, dose.item_id)}
+                          disabled={hasZeroStock}
+                          className="flex-1 bg-primary hover:bg-primary/90 min-w-[120px]"
+                        >
+                          ✓ Tomei
+                        </Button>
+                        <Button
+                          variant="outline"
+                          onClick={() => snoozeDose(dose.id, 15)}
+                          className="border-primary/30 hover:bg-primary/5"
+                        >
+                          +15 min
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          onClick={() => skipDose(dose.id)}
+                          className="text-muted-foreground"
+                        >
+                          Pular
+                        </Button>
+                      </div>
+                    </div>
+                  </Card>
+                );
+              })
+            )}
+          </div>
+
+          {/* Low Stock Alerts - Only if exists */}
           {lowStockItems.length > 0 && (
             <div className="space-y-3">
-              <h2 className="text-xl font-semibold flex items-center gap-2 text-destructive">
+              <h2 className="text-xl font-semibold flex items-center gap-2 text-orange-600 dark:text-orange-500">
                 <Package className="h-5 w-5" />
-                Estoque baixo
+                ⚠️ Estoque baixo ({lowStockItems.length})
               </h2>
-              {lowStockItems.map((item) => (
+              {lowStockItems.slice(0, 3).map((item) => (
                 <Card
                   key={item.id}
-                  className="p-5 border-destructive/30 bg-destructive/5"
+                  className="p-4 border-orange-500/30 bg-orange-500/5"
                 >
                   <div className="flex items-center justify-between">
                     <div>
@@ -548,7 +539,7 @@ export default function Today() {
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="text-sm font-medium text-destructive">
+                      <p className="text-sm font-bold text-orange-600 dark:text-orange-500">
                         ~{item.projected_days_left} dias
                       </p>
                     </div>
@@ -558,11 +549,92 @@ export default function Today() {
             </div>
           )}
 
+          {/* Collapsible Weekly Summary */}
+          <Collapsible open={showWeeklySummary} onOpenChange={setShowWeeklySummary}>
+            <Card className="p-4">
+              <CollapsibleTrigger className="w-full flex items-center justify-between">
+                <h3 className="text-lg font-semibold flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5 text-primary" />
+                  Resumo Semanal
+                </h3>
+                {showWeeklySummary ? (
+                  <ChevronUp className="h-5 w-5 text-muted-foreground" />
+                ) : (
+                  <ChevronDown className="h-5 w-5 text-muted-foreground" />
+                )}
+              </CollapsibleTrigger>
+              <CollapsibleContent className="pt-4 space-y-4">
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="text-center">
+                    <p className="text-2xl font-bold text-primary">{stats.weeklyAdherence}%</p>
+                    <p className="text-xs text-muted-foreground">Adesão</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-2xl font-bold text-foreground">{upcomingDoses.length}</p>
+                    <p className="text-xs text-muted-foreground">Hoje</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-2xl font-bold text-orange-600 dark:text-orange-500">{lowStockItems.length}</p>
+                    <p className="text-xs text-muted-foreground">Acabando</p>
+                  </div>
+                </div>
+                {weeklyAdherence.length > 0 && (
+                  <AdherenceChart weeklyData={weeklyAdherence} />
+                )}
+              </CollapsibleContent>
+            </Card>
+          </Collapsible>
+
           {/* Smart Insights */}
           <SmartInsightsCard />
 
-          {/* Progress Dashboard */}
-          {!streakData.loading && (
+          {/* Collapsible Health Stats */}
+          {profile && (profile.birth_date || profile.weight_kg || profile.height_cm) && (
+            <Collapsible open={showHealthStats} onOpenChange={setShowHealthStats}>
+              <Card className="p-4">
+                <CollapsibleTrigger className="w-full flex items-center justify-between">
+                  <h3 className="text-lg font-semibold">📊 Dados de Saúde</h3>
+                  {showHealthStats ? (
+                    <ChevronUp className="h-5 w-5 text-muted-foreground" />
+                  ) : (
+                    <ChevronDown className="h-5 w-5 text-muted-foreground" />
+                  )}
+                </CollapsibleTrigger>
+                <CollapsibleContent className="pt-4">
+                  <div className="grid grid-cols-3 gap-3">
+                    {profile.birth_date && (
+                      <div className="text-center p-3 bg-primary/5 rounded-lg">
+                        <p className="text-2xl">🎂</p>
+                        <p className="text-sm font-bold text-foreground">
+                          {differenceInYears(new Date(), new Date(profile.birth_date))}
+                        </p>
+                        <p className="text-xs text-muted-foreground">anos</p>
+                      </div>
+                    )}
+                    {profile.weight_kg && (
+                      <div className="text-center p-3 bg-primary/5 rounded-lg">
+                        <p className="text-2xl">⚖️</p>
+                        <p className="text-sm font-bold text-foreground">{profile.weight_kg}</p>
+                        <p className="text-xs text-muted-foreground">kg</p>
+                      </div>
+                    )}
+                    {profile.height_cm && (
+                      <div className="text-center p-3 bg-primary/5 rounded-lg">
+                        <p className="text-2xl">📏</p>
+                        <p className="text-sm font-bold text-foreground">
+                          {(profile.height_cm / 100).toFixed(2)}
+                        </p>
+                        <p className="text-xs text-muted-foreground">m</p>
+                      </div>
+                    )}
+                  </div>
+                </CollapsibleContent>
+              </Card>
+            </Collapsible>
+          )}
+
+          {/* Progress Dashboard - Compact */}
+          {!streakData.loading && streakData.currentStreak >= 3 && (
             <ProgressDashboard
               currentStreak={streakData.currentStreak}
               longestStreak={streakData.longestStreak}
@@ -573,55 +645,9 @@ export default function Today() {
             />
           )}
 
-          {/* Monthly Report */}
           <MonthlyReportCard />
-
-          {/* Achievements Section */}
           <AchievementsSection />
-
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Card className="p-4 bg-primary/10 border-primary/20">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-primary/20">
-                  <TrendingUp className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Adesão semanal</p>
-                  <p className="text-2xl font-bold text-foreground">{stats.weeklyAdherence}%</p>
-                </div>
-              </div>
-            </Card>
-
-            <Card className="p-4 bg-primary/10 border-primary/20">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-primary/20">
-                  <Pill className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Hoje</p>
-                  <p className="text-2xl font-bold text-foreground">{upcomingDoses.length}</p>
-                </div>
-              </div>
-            </Card>
-
-            <Card className="p-4 bg-primary/10 border-primary/20">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-primary/20">
-                  <Package className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Acabando</p>
-                  <p className="text-2xl font-bold text-foreground">{lowStockItems.length}</p>
-                </div>
-              </div>
-            </Card>
-          </div>
-
-          {/* Weekly Adherence Chart */}
-          {weeklyAdherence.length > 0 && (
-            <AdherenceChart weeklyData={weeklyAdherence} />
-          )}
+          <HealthInsights />
         </div>
       </div>
       <Navigation />
