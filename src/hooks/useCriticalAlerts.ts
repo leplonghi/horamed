@@ -31,6 +31,27 @@ export function useCriticalAlerts() {
 
       const newAlerts: CriticalAlert[] = [];
 
+      // Get user health profile for age/BMI-based alerts
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("birth_date, weight_kg, height_cm")
+        .eq("user_id", user.id)
+        .single();
+
+      let age = null;
+      let bmi = null;
+      if (profile?.birth_date) {
+        const birthDate = new Date(profile.birth_date);
+        const today = new Date();
+        age = today.getFullYear() - birthDate.getFullYear() - 
+          (today.getMonth() < birthDate.getMonth() || 
+           (today.getMonth() === birthDate.getMonth() && today.getDate() < birthDate.getDate()) ? 1 : 0);
+      }
+      if (profile?.weight_kg && profile?.height_cm) {
+        const heightM = profile.height_cm / 100;
+        bmi = profile.weight_kg / (heightM * heightM);
+      }
+
       // Check for zero stock on active medications
       const { data: items } = await supabase
         .from("items")
@@ -83,12 +104,21 @@ export function useCriticalAlerts() {
             (new Date().getTime() - new Date(dose.due_at).getTime()) / (1000 * 60 * 60)
           );
 
+          // Enhanced severity for elderly patients
+          let severity: AlertSeverity = hoursMissed >= 2 ? "critical" : "urgent";
+          let message = `${dose.items.name} está ${hoursMissed}h atrasado. Tome assim que possível.`;
+          
+          if (age && age >= 65 && hoursMissed >= 2) {
+            severity = "critical";
+            message = `⚠️ ATENÇÃO IDOSO: ${dose.items.name} está ${hoursMissed}h atrasado. Doses perdidas são mais perigosas em idosos. Tome imediatamente.`;
+          }
+
           newAlerts.push({
             id: `missed_${dose.id}`,
             type: "missed_essential",
-            severity: hoursMissed >= 2 ? "critical" : "urgent",
-            title: "Dose atrasada",
-            message: `${dose.items.name} está ${hoursMissed}h atrasado. Tome assim que possível.`,
+            severity,
+            title: age && age >= 65 ? "Dose crítica atrasada (Idoso)" : "Dose atrasada",
+            message,
             itemId: dose.item_id,
             itemName: dose.items.name,
           });
@@ -140,6 +170,38 @@ export function useCriticalAlerts() {
           }
         }
       });
+
+      // Age-based general alerts
+      if (age && age >= 65 && items && items.length >= 3) {
+        newAlerts.push({
+          id: "elderly_polypharmacy",
+          type: "drug_interaction",
+          severity: "warning",
+          title: "Alerta: Múltiplos medicamentos (Idoso)",
+          message: `Você tem ${items.length} medicamentos ativos. Idosos têm maior risco de interações. Revise com seu médico regularmente.`,
+        });
+      }
+
+      // BMI-based alerts
+      if (bmi && items && items.length > 0) {
+        if (bmi < 18.5) {
+          newAlerts.push({
+            id: "underweight_dosage",
+            type: "drug_interaction",
+            severity: "warning",
+            title: "Alerta: Baixo peso",
+            message: "Seu IMC indica baixo peso. Algumas dosagens podem precisar de ajuste. Consulte seu médico.",
+          });
+        } else if (bmi > 30) {
+          newAlerts.push({
+            id: "obesity_dosage",
+            type: "drug_interaction",
+            severity: "warning",
+            title: "Alerta: Dosagem e Peso",
+            message: "Alguns medicamentos têm dosagem ajustada pelo peso. Verifique com seu médico se suas doses estão adequadas.",
+          });
+        }
+      }
 
       setAlerts(newAlerts);
     } catch (error) {

@@ -19,6 +19,7 @@ import { toast } from "sonner";
 import { ArrowLeft, Plus, Trash2, Pill, Package } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import MedicationOCRWrapper from "@/components/MedicationOCRWrapper";
+import HealthProfileSetup from "@/components/HealthProfileSetup";
 import logo from "@/assets/horamend-logo.png";
 
 export default function AddItem() {
@@ -28,6 +29,8 @@ export default function AddItem() {
   const [loading, setLoading] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const [addMethod, setAddMethod] = useState<"manual" | "ocr">("manual");
+  const [showHealthSetup, setShowHealthSetup] = useState(false);
+  const [hasHealthProfile, setHasHealthProfile] = useState(false);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -54,9 +57,29 @@ export default function AddItem() {
   });
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
+    const initUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
       setUserId(user?.id || null);
-    });
+
+      // Check if user has health profile (birth_date and weight_kg are required)
+      if (user && !isEditing) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("birth_date, weight_kg")
+          .eq("user_id", user.id)
+          .single();
+
+        const hasProfile = !!(profile?.birth_date && profile?.weight_kg);
+        setHasHealthProfile(hasProfile);
+        
+        // Show health setup modal if profile is incomplete
+        if (!hasProfile) {
+          setShowHealthSetup(true);
+        }
+      }
+    };
+
+    initUser();
 
     if (isEditing) {
       loadItemData(isEditing);
@@ -358,6 +381,14 @@ export default function AddItem() {
 
   return (
     <>
+      <HealthProfileSetup 
+        open={showHealthSetup} 
+        onComplete={() => {
+          setShowHealthSetup(false);
+          setHasHealthProfile(true);
+        }} 
+      />
+      
       <div className="min-h-screen bg-background p-6 pb-24">
         <div className="max-w-4xl mx-auto space-y-6">
           <div className="flex items-center gap-3">

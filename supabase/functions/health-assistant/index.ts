@@ -35,6 +35,40 @@ serve(async (req) => {
     
     let contextInfo = "";
     if (user) {
+      // Get health profile
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("birth_date, weight_kg, height_cm")
+        .eq("user_id", user.id)
+        .single();
+
+      if (profile?.birth_date && profile?.weight_kg) {
+        const birthDate = new Date(profile.birth_date);
+        const today = new Date();
+        const age = today.getFullYear() - birthDate.getFullYear() - 
+          (today.getMonth() < birthDate.getMonth() || 
+           (today.getMonth() === birthDate.getMonth() && today.getDate() < birthDate.getDate()) ? 1 : 0);
+        
+        let bmi = null;
+        let bmiCategory = "";
+        if (profile.height_cm) {
+          const heightM = profile.height_cm / 100;
+          bmi = (profile.weight_kg / (heightM * heightM)).toFixed(1);
+          
+          if (bmi < 18.5) bmiCategory = "Baixo peso";
+          else if (bmi < 25) bmiCategory = "Peso normal";
+          else if (bmi < 30) bmiCategory = "Sobrepeso";
+          else bmiCategory = "Obesidade";
+        }
+
+        contextInfo += "\n\nPerfil do paciente:\n";
+        contextInfo += `- Idade: ${age} anos\n`;
+        contextInfo += `- Peso: ${profile.weight_kg} kg\n`;
+        if (bmi) {
+          contextInfo += `- IMC: ${bmi} (${bmiCategory})\n`;
+        }
+      }
+
       const { data: medications } = await supabase
         .from("items")
         .select("name, dose_text, with_food, notes")
