@@ -22,7 +22,7 @@ serve(async (req) => {
     // Get user context from request
     const authHeader = req.headers.get("Authorization");
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+    const supabaseKey = Deno.env.get("SUPABASE_PUBLISHABLE_KEY")!;
     
     const supabase = createClient(supabaseUrl, supabaseKey, {
       global: {
@@ -53,11 +53,12 @@ serve(async (req) => {
         let bmiCategory = "";
         if (profile.height_cm) {
           const heightM = profile.height_cm / 100;
-          bmi = (profile.weight_kg / (heightM * heightM)).toFixed(1);
+          const bmiValue = profile.weight_kg / (heightM * heightM);
+          bmi = bmiValue.toFixed(1);
           
-          if (bmi < 18.5) bmiCategory = "Baixo peso";
-          else if (bmi < 25) bmiCategory = "Peso normal";
-          else if (bmi < 30) bmiCategory = "Sobrepeso";
+          if (bmiValue < 18.5) bmiCategory = "Baixo peso";
+          else if (bmiValue < 25) bmiCategory = "Peso normal";
+          else if (bmiValue < 30) bmiCategory = "Sobrepeso";
           else bmiCategory = "Obesidade";
         }
 
