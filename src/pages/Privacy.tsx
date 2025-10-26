@@ -17,6 +17,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import Navigation from "@/components/Navigation";
+import ConsentManager from "@/components/ConsentManager";
 
 export default function Privacy() {
   const navigate = useNavigate();
@@ -49,6 +50,7 @@ export default function Privacy() {
       await supabase.from("medical_exams").delete().eq("user_id", user.id);
       await supabase.from("notification_preferences").delete().eq("user_id", user.id);
       await supabase.from("subscriptions").delete().eq("user_id", user.id);
+      await supabase.from("consents").delete().eq("user_id", user.id);
       await supabase.from("profiles").delete().eq("user_id", user.id);
       
       // Sign out
@@ -98,6 +100,8 @@ export default function Privacy() {
               </ul>
             </div>
           </Card>
+
+          <ConsentManager />
 
           <Card className="p-6 space-y-4">
             <div>
