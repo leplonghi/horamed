@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { LocalNotifications } from "@capacitor/local-notifications";
 import { Capacitor } from "@capacitor/core";
+import { useResilientReminders } from "./useResilientReminders";
 
 interface DoseInstance {
   id: string;
@@ -32,6 +33,7 @@ const ALARM_SOUNDS = [
 export const useMedicationAlarm = () => {
   const notifiedDoses = useRef<Set<string>>(new Set());
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const { scheduleReminder, getNotificationStats } = useResilientReminders();
   const [settings, setSettings] = useState<AlarmSettings>({
     enabled: true,
     sound: "beep",
@@ -170,44 +172,17 @@ export const useMedicationAlarm = () => {
     
     const body = `${dose.items.name}${dose.items.dose_text ? ` - ${dose.items.dose_text}` : ""}`;
 
-    // Use native notifications if available
-    if (Capacitor.isNativePlatform()) {
-      try {
-        await LocalNotifications.schedule({
-          notifications: [
-            {
-              title,
-              body,
-              id: parseInt(dose.id.replace(/\D/g, "").slice(0, 8)) || Math.floor(Math.random() * 100000),
-              schedule: { at: new Date(Date.now() + 100) }, // Schedule immediately
-              sound: undefined, // Use default sound
-              actionTypeId: "MEDICATION_REMINDER",
-              extra: {
-                doseId: dose.id,
-                itemId: dose.item_id,
-              },
-            },
-          ],
-        });
-      } catch (error) {
-        console.error("Error scheduling native notification:", error);
-      }
-    } else {
-      // Fallback to browser notification
-      if ("Notification" in window && Notification.permission === "granted") {
-        const notification = new Notification(title, {
-          body,
-          icon: "/favicon.ico",
-          tag: dose.id,
-          requireInteraction: true,
-        });
+    // Use resilient reminder system with automatic fallback
+    const success = await scheduleReminder({
+      doseId: dose.id,
+      itemId: dose.item_id,
+      title,
+      body,
+      scheduledAt: new Date(Date.now() + 100), // Schedule immediately
+    });
 
-        notification.onclick = () => {
-          window.focus();
-          notification.close();
-          stopAlarm();
-        };
-      }
+    if (!success) {
+      console.error("Failed to schedule notification with fallback");
     }
 
     // Also show toast notification
@@ -221,5 +196,5 @@ export const useMedicationAlarm = () => {
     });
   };
 
-  return { stopAlarm };
+  return { stopAlarm, getNotificationStats };
 };

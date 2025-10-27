@@ -520,6 +520,45 @@ export type Database = {
           },
         ]
       }
+      local_reminders: {
+        Row: {
+          created_at: string
+          dose_id: string
+          id: string
+          last_retry_at: string | null
+          notification_data: Json
+          retry_count: number | null
+          scheduled_at: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          dose_id: string
+          id?: string
+          last_retry_at?: string | null
+          notification_data: Json
+          retry_count?: number | null
+          scheduled_at: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          dose_id?: string
+          id?: string
+          last_retry_at?: string | null
+          notification_data?: Json
+          retry_count?: number | null
+          scheduled_at?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       medical_exams: {
         Row: {
           created_at: string | null
@@ -552,6 +591,39 @@ export type Database = {
           id?: string
           notes?: string | null
           updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      notification_metrics: {
+        Row: {
+          created_at: string
+          delivery_status: string
+          dose_id: string | null
+          error_message: string | null
+          id: string
+          metadata: Json | null
+          notification_type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          delivery_status: string
+          dose_id?: string | null
+          error_message?: string | null
+          id?: string
+          metadata?: Json | null
+          notification_type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          delivery_status?: string
+          dose_id?: string | null
+          error_message?: string | null
+          id?: string
+          metadata?: Json | null
+          notification_type?: string
           user_id?: string
         }
         Relationships: []

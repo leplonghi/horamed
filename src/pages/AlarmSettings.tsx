@@ -11,6 +11,7 @@ import Navigation from "@/components/Navigation";
 import { Switch } from "@/components/ui/switch";
 import { Capacitor } from "@capacitor/core";
 import { LocalNotifications } from "@capacitor/local-notifications";
+import NotificationMetrics from "@/components/NotificationMetrics";
 
 const ALARM_SOUNDS = [
   { id: "beep", name: "Beep Simples", url: "data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLTgjMGHm7A7+OZUQ0PVqzn7qxaFg1Lp+LyvmohBSx+zPLTgjIFHm3A7+GZUQ0PVqzn7qxaFg1" },
@@ -256,6 +257,9 @@ export default function AlarmSettings() {
             Parar Teste
           </Button>
         </div>
+
+        {/* Notification Metrics */}
+        <NotificationMetrics />
 
         {/* Save Button */}
         <Button onClick={saveSettings} className="w-full" size="lg" variant="default">
