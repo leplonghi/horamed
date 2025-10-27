@@ -2,6 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { useConsents, ConsentPurpose } from "@/hooks/useConsents";
+import { useAuditLog } from "@/hooks/useAuditLog";
 import { Shield, Bell, Share2, TrendingUp, Mail } from "lucide-react";
 
 const consentLabels: Record<ConsentPurpose, { label: string; description: string; icon: any }> = {
@@ -34,12 +35,23 @@ const consentLabels: Record<ConsentPurpose, { label: string; description: string
 
 export default function ConsentManager() {
   const { consents, loading, grantConsent, revokeConsent, hasConsent } = useConsents();
+  const { logAction } = useAuditLog();
 
   const handleToggle = async (purpose: ConsentPurpose, granted: boolean) => {
     if (granted) {
       await grantConsent(purpose);
+      await logAction({
+        action: "grant_consent",
+        resource: "consent",
+        metadata: { purpose, granted: true }
+      });
     } else {
       await revokeConsent(purpose);
+      await logAction({
+        action: "revoke_consent",
+        resource: "consent",
+        metadata: { purpose, granted: false }
+      });
     }
   };
 

@@ -18,16 +18,26 @@ import {
 } from "@/components/ui/alert-dialog";
 import Navigation from "@/components/Navigation";
 import ConsentManager from "@/components/ConsentManager";
+import { useAuditLog } from "@/hooks/useAuditLog";
 
 export default function Privacy() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const { logAction } = useAuditLog();
 
   const handleDeleteAccount = async () => {
     try {
       setLoading(true);
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
+
+      // Log account deletion attempt
+      await logAction({
+        action: "delete_account",
+        resource: "user",
+        resource_id: user.id,
+        metadata: { email: user.email }
+      });
 
       // Delete all user data in correct order (respecting foreign keys)
       // First delete dependent records
