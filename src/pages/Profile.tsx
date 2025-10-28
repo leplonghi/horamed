@@ -449,12 +449,37 @@ export default function Profile() {
 
           {/* Export Data Section */}
           <div className="space-y-2">
-            <h2 className="text-lg font-semibold text-foreground px-2">Exportar Dados</h2>
+            <h2 className="text-lg font-semibold text-foreground px-2">Dados & Insights</h2>
             
-            <Card className="p-4">
-              <p className="text-sm text-muted-foreground mb-4">
-                Baixe uma cópia dos seus dados em conformidade com a LGPD
+            <Card className="p-4 space-y-3">
+              <p className="text-sm text-muted-foreground">
+                Acesse análises preditivas e exporte seus dados
               </p>
+              
+              <Button 
+                variant="outline" 
+                className="w-full justify-between"
+                onClick={() => navigate('/analise-saude')}
+              >
+                <div className="flex items-center gap-2">
+                  <Activity className="h-4 w-4" />
+                  Análise Preditiva com IA
+                </div>
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+
+              <Button 
+                variant="outline" 
+                className="w-full justify-between"
+                onClick={() => navigate('/digitalizar')}
+              >
+                <div className="flex items-center gap-2">
+                  <FileText className="h-4 w-4" />
+                  Digitalizar Documentos (OCR)
+                </div>
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+
               <Button 
                 variant="outline" 
                 className="w-full justify-start gap-2"
@@ -464,9 +489,22 @@ export default function Profile() {
                 <FileDown className="h-4 w-4" />
                 Exportar relatório (PDF) {!isPremium && "- Premium"}
               </Button>
+
+              <Button 
+                variant="outline" 
+                className="w-full justify-between"
+                onClick={() => navigate('/exportar-dados')}
+              >
+                <div className="flex items-center gap-2">
+                  <FileText className="h-4 w-4" />
+                  Exportar todos os dados (LGPD)
+                </div>
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+
               {!isPremium && (
-                <p className="text-xs text-muted-foreground mt-2">
-                  A exportação de relatórios está disponível apenas para usuários Premium
+                <p className="text-xs text-muted-foreground">
+                  A exportação de relatórios PDF está disponível apenas para usuários Premium
                 </p>
               )}
             </Card>
