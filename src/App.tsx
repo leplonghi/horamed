@@ -33,9 +33,11 @@ import Cofre from "./pages/Cofre";
 import CofreUpload from "./pages/CofreUpload";
 import CofreDocumento from "./pages/CofreDocumento";
 import CompartilharDocumento from "./pages/CompartilharDocumento";
-import HealthAnalysis from "./pages/HealthAnalysis";
-import DataExport from "./pages/DataExport";
-import DocumentScan from "./pages/DocumentScan";
+import HealthAnalysis from './pages/HealthAnalysis';
+import DataExport from './pages/DataExport';
+import DocumentScan from './pages/DocumentScan';
+import CaregiverAccept from './pages/CaregiverAccept';
+import ConsultationCardView from './pages/ConsultationCardView';
 
 function AppContent() {
   const location = useLocation();
@@ -71,11 +73,13 @@ function AppContent() {
         <Route path="/cofre/upload" element={<ProtectedRoute><CofreUpload /></ProtectedRoute>} />
         <Route path="/cofre/:id" element={<ProtectedRoute><CofreDocumento /></ProtectedRoute>} />
         <Route path="/compartilhar/:token" element={<CompartilharDocumento />} />
-        <Route path="/analise-saude" element={<ProtectedRoute><HealthAnalysis /></ProtectedRoute>} />
-        <Route path="/exportar-dados" element={<ProtectedRoute><DataExport /></ProtectedRoute>} />
-        <Route path="/digitalizar" element={<ProtectedRoute><DocumentScan /></ProtectedRoute>} />
-        <Route path="*" element={<NotFound />} />
-      </Routes>
+            <Route path="/analise-saude" element={<ProtectedRoute><HealthAnalysis /></ProtectedRoute>} />
+            <Route path="/exportar-dados" element={<ProtectedRoute><DataExport /></ProtectedRoute>} />
+            <Route path="/digitalizar" element={<ProtectedRoute><DocumentScan /></ProtectedRoute>} />
+            <Route path="/cuidador/aceitar/:token" element={<CaregiverAccept />} />
+            <Route path="/consulta/:token" element={<ConsultationCardView />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
       {showNavigation && <Navigation />}
     </>
   );

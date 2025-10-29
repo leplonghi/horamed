@@ -7,8 +7,11 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
 import { 
   CheckCircle2, User, Bell, Shield, CreditCard, 
-  HelpCircle, LogOut, FileDown, ChevronRight, Crown, Activity, Package, FileText, Users, Plus, Trash2
+  HelpCircle, LogOut, FileDown, ChevronRight, Crown, Activity, Package, FileText, Users, Plus, Trash2, UserPlus, QrCode, ScanLine
 } from "lucide-react";
+import CaregiverManager from "@/components/CaregiverManager";
+import ConsultationCardGenerator from "@/components/ConsultationCardGenerator";
+import { useFeatureFlags } from "@/hooks/useFeatureFlags";
 import { useNavigate } from "react-router-dom";
 import Navigation from "@/components/Navigation";
 import Header from "@/components/Header";
@@ -26,6 +29,7 @@ export default function Profile() {
   });
   const { subscription, isPremium, daysLeft, refresh, syncWithStripe } = useSubscription();
   const { profiles, activeProfile, deleteProfile } = useUserProfiles();
+  const { isEnabled } = useFeatureFlags();
 
   useEffect(() => {
     loadProfile();
@@ -519,6 +523,21 @@ export default function Profile() {
             <LogOut className="h-4 w-4 mr-2" />
             Sair da conta
           </Button>
+
+          {/* Features Diferenciais */}
+          {isEnabled('caregiverHandshake') && (
+            <Card className="p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <UserPlus className="h-6 w-6 text-primary" />
+                <h2 className="text-xl font-semibold">Cuidadores</h2>
+              </div>
+              <CaregiverManager />
+            </Card>
+          )}
+
+          {isEnabled('consultationQR') && (
+            <ConsultationCardGenerator />
+          )}
 
           {/* Warning Message */}
           <Card className="p-4 bg-warning/10 border-warning/20">

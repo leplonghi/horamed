@@ -14,6 +14,105 @@ export type Database = {
   }
   public: {
     Tables: {
+      affiliate_events: {
+        Row: {
+          affiliate_id: string | null
+          created_at: string
+          event_type: string
+          id: string
+          medication_id: string | null
+          user_id: string | null
+          utm_params: Json | null
+        }
+        Insert: {
+          affiliate_id?: string | null
+          created_at?: string
+          event_type?: string
+          id?: string
+          medication_id?: string | null
+          user_id?: string | null
+          utm_params?: Json | null
+        }
+        Update: {
+          affiliate_id?: string | null
+          created_at?: string
+          event_type?: string
+          id?: string
+          medication_id?: string | null
+          user_id?: string | null
+          utm_params?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "affiliate_events_affiliate_id_fkey"
+            columns: ["affiliate_id"]
+            isOneToOne: false
+            referencedRelation: "affiliates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "affiliate_events_medication_id_fkey"
+            columns: ["medication_id"]
+            isOneToOne: false
+            referencedRelation: "items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      affiliates: {
+        Row: {
+          base_url: string
+          created_at: string
+          enabled: boolean
+          id: string
+          metadata: Json | null
+          name: string
+          utm_source: string
+        }
+        Insert: {
+          base_url: string
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          metadata?: Json | null
+          name: string
+          utm_source: string
+        }
+        Update: {
+          base_url?: string
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          metadata?: Json | null
+          name?: string
+          utm_source?: string
+        }
+        Relationships: []
+      }
+      app_metrics: {
+        Row: {
+          created_at: string
+          event_data: Json | null
+          event_name: string
+          id: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          event_data?: Json | null
+          event_name: string
+          id?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          event_data?: Json | null
+          event_name?: string
+          id?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       audit_logs: {
         Row: {
           action: string
@@ -47,6 +146,69 @@ export type Database = {
           resource_id?: string | null
           user_agent?: string | null
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      caregiver_links: {
+        Row: {
+          created_at: string
+          expires_at: string
+          id: string
+          metadata: Json | null
+          revoked_at: string | null
+          token: string
+          user_id_owner: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at: string
+          id?: string
+          metadata?: Json | null
+          revoked_at?: string | null
+          token: string
+          user_id_owner: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          metadata?: Json | null
+          revoked_at?: string | null
+          token?: string
+          user_id_owner?: string
+        }
+        Relationships: []
+      }
+      caregivers: {
+        Row: {
+          accepted_at: string | null
+          caregiver_user_id: string | null
+          created_at: string
+          email_or_phone: string
+          id: string
+          invited_at: string
+          role: Database["public"]["Enums"]["caregiver_role"]
+          user_id_owner: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          caregiver_user_id?: string | null
+          created_at?: string
+          email_or_phone: string
+          id?: string
+          invited_at?: string
+          role?: Database["public"]["Enums"]["caregiver_role"]
+          user_id_owner: string
+        }
+        Update: {
+          accepted_at?: string | null
+          caregiver_user_id?: string | null
+          created_at?: string
+          email_or_phone?: string
+          id?: string
+          invited_at?: string
+          role?: Database["public"]["Enums"]["caregiver_role"]
+          user_id_owner?: string
         }
         Relationships: []
       }
@@ -158,6 +320,98 @@ export type Database = {
         }
         Relationships: []
       }
+      consultation_cards: {
+        Row: {
+          created_at: string
+          expires_at: string
+          id: string
+          profile_id: string | null
+          revoked_at: string | null
+          token: string
+          user_id: string
+          views_count: number
+        }
+        Insert: {
+          created_at?: string
+          expires_at: string
+          id?: string
+          profile_id?: string | null
+          revoked_at?: string | null
+          token: string
+          user_id: string
+          views_count?: number
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          profile_id?: string | null
+          revoked_at?: string | null
+          token?: string
+          user_id?: string
+          views_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "consultation_cards_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      document_shares: {
+        Row: {
+          allow_download: boolean
+          created_at: string
+          document_id: string
+          expires_at: string
+          id: string
+          revoked_at: string | null
+          token: string
+          user_id: string
+          views_count: number
+        }
+        Insert: {
+          allow_download?: boolean
+          created_at?: string
+          document_id: string
+          expires_at: string
+          id?: string
+          revoked_at?: string | null
+          token: string
+          user_id: string
+          views_count?: number
+        }
+        Update: {
+          allow_download?: boolean
+          created_at?: string
+          document_id?: string
+          expires_at?: string
+          id?: string
+          revoked_at?: string | null
+          token?: string
+          user_id?: string
+          views_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_shares_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documentos_saude"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_shares_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "medical_exams_v"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       documentos_saude: {
         Row: {
           categoria_id: string | null
@@ -229,6 +483,8 @@ export type Database = {
       }
       dose_instances: {
         Row: {
+          actor_id: string | null
+          actor_type: string | null
           created_at: string | null
           delay_minutes: number | null
           due_at: string
@@ -240,6 +496,8 @@ export type Database = {
           taken_at: string | null
         }
         Insert: {
+          actor_id?: string | null
+          actor_type?: string | null
           created_at?: string | null
           delay_minutes?: number | null
           due_at: string
@@ -251,6 +509,8 @@ export type Database = {
           taken_at?: string | null
         }
         Update: {
+          actor_id?: string | null
+          actor_type?: string | null
           created_at?: string | null
           delay_minutes?: number | null
           due_at?: string
@@ -790,6 +1050,7 @@ export type Database = {
           id: string
           plan_type: string
           price_variant: string | null
+          pricing_variant: string | null
           started_at: string
           status: string
           stripe_customer_id: string | null
@@ -806,6 +1067,7 @@ export type Database = {
           id?: string
           plan_type: string
           price_variant?: string | null
+          pricing_variant?: string | null
           started_at?: string
           status: string
           stripe_customer_id?: string | null
@@ -822,6 +1084,7 @@ export type Database = {
           id?: string
           plan_type?: string
           price_variant?: string | null
+          pricing_variant?: string | null
           started_at?: string
           status?: string
           stripe_customer_id?: string | null
@@ -905,6 +1168,7 @@ export type Database = {
       is_on_trial: { Args: { p_user_id: string }; Returns: boolean }
     }
     Enums: {
+      caregiver_role: "viewer" | "helper"
       consent_purpose:
         | "health_data"
         | "notifications"
@@ -1043,6 +1307,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      caregiver_role: ["viewer", "helper"],
       consent_purpose: [
         "health_data",
         "notifications",

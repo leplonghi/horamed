@@ -14,6 +14,10 @@ interface FeatureFlags {
   advancedDash: boolean;
   interactions: boolean;
   aiStreaming: boolean;
+  caregiverHandshake: boolean;
+  consultationQR: boolean;
+  affiliate: boolean;
+  interactionsLite: boolean;
 }
 
 export function useFeatureFlags() {
@@ -24,6 +28,10 @@ export function useFeatureFlags() {
     advancedDash: false,
     interactions: false,
     aiStreaming: false,
+    caregiverHandshake: false,
+    consultationQR: false,
+    affiliate: false,
+    interactionsLite: false,
   });
   const [loading, setLoading] = useState(true);
 
