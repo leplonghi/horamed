@@ -1,165 +1,108 @@
 import { useEffect, useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { Activity, CheckCircle2, XCircle, AlertTriangle, Bell } from "lucide-react";
-import { useResilientReminders } from "@/hooks/useResilientReminders";
+import { Card } from "@/components/ui/card";
+import { supabase } from "@/integrations/supabase/client";
+import { AlertCircle, CheckCircle2, Clock, XCircle } from "lucide-react";
 
-interface NotificationStats {
-  total: number;
-  sent: number;
-  delivered: number;
-  failed: number;
-  fallback: number;
-  byType: {
-    push: number;
-    local: number;
-    web: number;
-    sound: number;
-  };
-  successRate: string;
+interface NotificationMetric {
+  notification_type: string;
+  delivery_status: string;
+  count: number;
 }
 
 export default function NotificationMetrics() {
-  const { getNotificationStats } = useResilientReminders();
-  const [stats, setStats] = useState<NotificationStats | null>(null);
+  const [metrics, setMetrics] = useState<NotificationMetric[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadStats();
+    loadMetrics();
   }, []);
 
-  const loadStats = async () => {
-    setLoading(true);
-    const data = await getNotificationStats(7);
-    setStats(data);
-    setLoading(false);
+  const loadMetrics = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('notification_metrics')
+        .select('notification_type, delivery_status, metadata')
+        .order('created_at', { ascending: false })
+        .limit(100);
+
+      if (error) throw error;
+
+      // Aggregate metrics
+      const aggregated = data?.reduce((acc, item) => {
+        const key = `${item.notification_type}-${item.delivery_status}`;
+        if (!acc[key]) {
+          acc[key] = {
+            notification_type: item.notification_type,
+            delivery_status: item.delivery_status,
+            count: 0
+          };
+        }
+        acc[key].count++;
+        return acc;
+      }, {} as Record<string, NotificationMetric>);
+
+      setMetrics(Object.values(aggregated || {}));
+    } catch (error) {
+      console.error('Error loading metrics:', error);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'delivered':
+        return <CheckCircle2 className="h-5 w-5 text-green-500" />;
+      case 'failed':
+        return <XCircle className="h-5 w-5 text-destructive" />;
+      case 'pending':
+        return <Clock className="h-5 w-5 text-yellow-500" />;
+      default:
+        return <AlertCircle className="h-5 w-5 text-muted-foreground" />;
+    }
+  };
+
+  const totalDelivered = metrics.filter(m => m.delivery_status === 'delivered').reduce((sum, m) => sum + m.count, 0);
+  const totalFailed = metrics.filter(m => m.delivery_status === 'failed').reduce((sum, m) => sum + m.count, 0);
+  const total = totalDelivered + totalFailed;
+  const deliveryRate = total > 0 ? ((totalDelivered / total) * 100).toFixed(1) : '0.0';
 
   if (loading) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Activity className="h-5 w-5" />
-            Métricas de Lembretes
-          </CardTitle>
-          <CardDescription>Carregando estatísticas...</CardDescription>
-        </CardHeader>
-      </Card>
-    );
-  }
-
-  if (!stats) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Activity className="h-5 w-5" />
-            Métricas de Lembretes
-          </CardTitle>
-          <CardDescription>Nenhum dado disponível ainda</CardDescription>
-        </CardHeader>
+      <Card className="p-6">
+        <p className="text-sm text-muted-foreground">Carregando métricas...</p>
       </Card>
     );
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Activity className="h-5 w-5" />
-          Métricas de Lembretes
-        </CardTitle>
-        <CardDescription>Últimos 7 dias</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        {/* Taxa de Sucesso */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-medium">Taxa de Sucesso</span>
-            <Badge variant={parseFloat(stats.successRate) >= 90 ? "default" : "secondary"}>
-              {stats.successRate}%
-            </Badge>
-          </div>
-          <Progress value={parseFloat(stats.successRate)} className="h-2" />
-        </div>
+    <Card className="p-6 space-y-4">
+      <div>
+        <h3 className="text-lg font-semibold mb-1">Métricas de Notificações</h3>
+        <p className="text-sm text-muted-foreground">
+          Taxa de entrega: <span className="font-semibold text-foreground">{deliveryRate}%</span>
+          {total > 0 && ` (${totalDelivered}/${total})`}
+        </p>
+      </div>
 
-        {/* Total de Notificações */}
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2 text-muted-foreground text-sm">
-              <Bell className="h-4 w-4" />
-              Total
-            </div>
-            <div className="text-2xl font-bold">{stats.total}</div>
-          </div>
-
-          <div className="space-y-1">
-            <div className="flex items-center gap-2 text-green-600 text-sm">
-              <CheckCircle2 className="h-4 w-4" />
-              Enviadas
-            </div>
-            <div className="text-2xl font-bold text-green-600">{stats.sent}</div>
-          </div>
-
-          <div className="space-y-1">
-            <div className="flex items-center gap-2 text-red-600 text-sm">
-              <XCircle className="h-4 w-4" />
-              Falharam
-            </div>
-            <div className="text-2xl font-bold text-red-600">{stats.failed}</div>
-          </div>
-
-          <div className="space-y-1">
-            <div className="flex items-center gap-2 text-amber-600 text-sm">
-              <AlertTriangle className="h-4 w-4" />
-              Fallback
-            </div>
-            <div className="text-2xl font-bold text-amber-600">{stats.fallback}</div>
-          </div>
-        </div>
-
-        {/* Por Tipo */}
-        <div className="space-y-2">
-          <h4 className="text-sm font-medium">Por Tipo de Notificação</h4>
-          <div className="grid grid-cols-2 gap-2">
-            {Object.entries(stats.byType).map(([type, count]) => (
-              <div
-                key={type}
-                className="flex items-center justify-between p-2 rounded-md bg-muted/50"
-              >
-                <span className="text-sm capitalize">
-                  {type === "push" && "Push"}
-                  {type === "local" && "Local"}
-                  {type === "web" && "Web"}
-                  {type === "sound" && "Som"}
-                </span>
-                <Badge variant="outline">{count}</Badge>
+      <div className="space-y-2">
+        {metrics.length === 0 ? (
+          <p className="text-sm text-muted-foreground">Nenhuma métrica ainda</p>
+        ) : (
+          metrics.map((metric, idx) => (
+            <div key={idx} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+              <div className="flex items-center gap-3">
+                {getStatusIcon(metric.delivery_status)}
+                <div>
+                  <p className="text-sm font-medium capitalize">{metric.notification_type}</p>
+                  <p className="text-xs text-muted-foreground capitalize">{metric.delivery_status}</p>
+                </div>
               </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Informação sobre Fallback */}
-        {stats.fallback > 0 && (
-          <div className="p-3 rounded-md bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900">
-            <p className="text-xs text-amber-900 dark:text-amber-100">
-              <strong>Sistema de Fallback:</strong> {stats.fallback} notificações foram
-              salvas localmente e serão reenviadas automaticamente quando possível.
-            </p>
-          </div>
+              <span className="text-sm font-semibold">{metric.count}</span>
+            </div>
+          ))
         )}
-
-        {stats.failed > 0 && (
-          <div className="p-3 rounded-md bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900">
-            <p className="text-xs text-red-900 dark:text-red-100">
-              <strong>Atenção:</strong> {stats.failed} notificações falharam. O sistema
-              tentará reenviar automaticamente até 3 vezes.
-            </p>
-          </div>
-        )}
-      </CardContent>
+      </div>
     </Card>
   );
 }

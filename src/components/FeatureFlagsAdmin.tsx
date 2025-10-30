@@ -1,108 +1,113 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { useFeatureFlags } from "@/hooks/useFeatureFlags";
-import { Info, Flag, RefreshCw } from "lucide-react";
-import { Button } from "./ui/button";
-import { Skeleton } from "./ui/skeleton";
+import { useState, useEffect } from "react";
+import { Card } from "@/components/ui/card";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { Shield } from "lucide-react";
+
+const flagLabels = {
+  badges: "Badges e Conquistas",
+  emergency: "Orientações de Emergência",
+  prices: "Comparação de Preços",
+  advancedDash: "Dashboard Avançado",
+  interactions: "Análise de Interações",
+  aiStreaming: "IA com Streaming",
+  caregiverHandshake: "Handshake Cuidador",
+  consultationQR: "Cartão de Consulta QR",
+  affiliate: "Links Afiliados",
+  interactionsLite: "IA Educativa Lite"
+};
 
 export default function FeatureFlagsAdmin() {
-  const { flags, loading, refresh } = useFeatureFlags();
+  const [flags, setFlags] = useState<Record<string, boolean>>({});
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
-  const flagDescriptions: Record<string, string> = {
-    badges: "Gamificação com badges Bronze/Prata/Ouro/Diamante",
-    emergency: "Modo emergência guiada e ajuste de dose",
-    prices: "Pesquisa de preços em farmácias",
-    advancedDash: "Dashboards e gráficos avançados",
-    interactions: "Análise de interações medicamentosas",
-    aiStreaming: "Streaming token-by-token de IA",
+  useEffect(() => {
+    loadFlags();
+  }, []);
+
+  const loadFlags = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('feature_flags')
+        .select('key, enabled');
+
+      if (error) throw error;
+
+      const flagsMap = data?.reduce((acc, flag) => {
+        acc[flag.key] = flag.enabled;
+        return acc;
+      }, {} as Record<string, boolean>);
+
+      setFlags(flagsMap || {});
+    } catch (error) {
+      console.error('Error loading flags:', error);
+      toast({
+        title: 'Erro ao carregar flags',
+        description: 'Não foi possível carregar as configurações',
+        variant: 'destructive'
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const toggleFlag = async (key: string, enabled: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('feature_flags')
+        .update({ enabled, updated_at: new Date().toISOString() })
+        .eq('key', key);
+
+      if (error) throw error;
+
+      setFlags(prev => ({ ...prev, [key]: enabled }));
+      
+      toast({
+        title: enabled ? 'Feature ativada' : 'Feature desativada',
+        description: `${flagLabels[key as keyof typeof flagLabels]} foi ${enabled ? 'ativada' : 'desativada'}`
+      });
+    } catch (error) {
+      console.error('Error toggling flag:', error);
+      toast({
+        title: 'Erro ao atualizar flag',
+        description: 'Não foi possível atualizar a configuração',
+        variant: 'destructive'
+      });
+    }
   };
 
   if (loading) {
     return (
-      <Card>
-        <CardHeader>
-          <Skeleton className="h-6 w-48" />
-          <Skeleton className="h-4 w-full mt-2" />
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            {[1, 2, 3].map((i) => (
-              <Skeleton key={i} className="h-16 w-full" />
-            ))}
-          </div>
-        </CardContent>
+      <Card className="p-6">
+        <p className="text-sm text-muted-foreground">Carregando configurações...</p>
       </Card>
     );
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-start justify-between">
-          <div>
-            <CardTitle className="flex items-center gap-2">
-              <Flag className="h-5 w-5" />
-              Feature Flags
-            </CardTitle>
-            <CardDescription>
-              Status das funcionalidades do sistema
-            </CardDescription>
+    <Card className="p-6 space-y-4">
+      <div className="flex items-center gap-2 mb-4">
+        <Shield className="h-5 w-5 text-primary" />
+        <h3 className="text-lg font-semibold">Feature Flags</h3>
+      </div>
+
+      <div className="space-y-4">
+        {Object.entries(flagLabels).map(([key, label]) => (
+          <div key={key} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+            <Label htmlFor={key} className="cursor-pointer">
+              {label}
+            </Label>
+            <Switch
+              id={key}
+              checked={flags[key] || false}
+              onCheckedChange={(checked) => toggleFlag(key, checked)}
+            />
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={refresh}
-            className="gap-2"
-          >
-            <RefreshCw className="h-4 w-4" />
-            Atualizar
-          </Button>
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <Alert>
-          <Info className="h-4 w-4" />
-          <AlertDescription className="text-xs">
-            Funcionalidades com 🔴 OFF estão desabilitadas por padrão no app.
-            Para habilitá-las, acesse o Lovable Cloud (Backend).
-          </AlertDescription>
-        </Alert>
-
-        <div className="space-y-3">
-          {Object.entries(flags).map(([key, enabled]) => (
-            <div
-              key={key}
-              className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors"
-            >
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <code className="text-sm font-mono bg-muted px-2 py-0.5 rounded">
-                    {key}
-                  </code>
-                  <Badge variant={enabled ? "default" : "secondary"}>
-                    {enabled ? "🟢 ON" : "🔴 OFF"}
-                  </Badge>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  {flagDescriptions[key] || "Sem descrição"}
-                </p>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <div className="text-xs text-muted-foreground space-y-1 pt-2 border-t">
-          <p>💡 <strong>Como habilitar:</strong></p>
-          <ol className="list-decimal list-inside space-y-1 pl-2">
-            <li>Acesse Lovable Cloud → Table Editor → feature_flags</li>
-            <li>Encontre a flag desejada e edite a coluna "enabled"</li>
-            <li>Altere para true e salve</li>
-            <li>As mudanças são aplicadas instantaneamente</li>
-          </ol>
-          <p className="pt-2">📖 Veja <code>FEATURE_FLAGS.md</code> para mais detalhes</p>
-        </div>
-      </CardContent>
+        ))}
+      </div>
     </Card>
   );
 }

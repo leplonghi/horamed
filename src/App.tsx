@@ -38,6 +38,7 @@ import DataExport from './pages/DataExport';
 import DocumentScan from './pages/DocumentScan';
 import CaregiverAccept from './pages/CaregiverAccept';
 import ConsultationCardView from './pages/ConsultationCardView';
+import Admin from './pages/Admin';
 
 function AppContent() {
   const location = useLocation();
@@ -78,6 +79,7 @@ function AppContent() {
             <Route path="/digitalizar" element={<ProtectedRoute><DocumentScan /></ProtectedRoute>} />
             <Route path="/cuidador/aceitar/:token" element={<CaregiverAccept />} />
             <Route path="/consulta/:token" element={<ConsultationCardView />} />
+            <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
       {showNavigation && <Navigation />}

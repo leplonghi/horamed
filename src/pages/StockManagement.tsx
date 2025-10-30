@@ -4,13 +4,14 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Package, AlertTriangle, TrendingDown, Plus, Minus, Edit, Info, ShoppingCart } from "lucide-react";
+import { Package, AlertTriangle, TrendingDown, Plus, Minus, Edit, Info, ShoppingCart, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import { differenceInDays, format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import Header from "@/components/Header";
 import Navigation from "@/components/Navigation";
 import { Progress } from "@/components/ui/progress";
+import { useFeatureFlags } from "@/hooks/useFeatureFlags";
 import {
   Dialog,
   DialogContent,
@@ -31,6 +32,7 @@ interface StockItem {
 }
 
 export default function StockManagement() {
+  const { isEnabled } = useFeatureFlags();
   const [stockItems, setStockItems] = useState<StockItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingItem, setEditingItem] = useState<StockItem | null>(null);
@@ -123,6 +125,24 @@ export default function StockManagement() {
     if (percentage <= 20) return { color: "text-warning", bg: "bg-warning/10", label: "Baixo" };
     if (percentage <= 50) return { color: "text-primary", bg: "bg-primary/10", label: "Médio" };
     return { color: "text-success", bg: "bg-success/10", label: "Bom" };
+  };
+
+  const handleRestock = async (itemId: string, itemName: string) => {
+    try {
+      const { data, error } = await supabase.functions.invoke('affiliate-click', {
+        body: { medication_id: itemId, medication_name: itemName }
+      });
+
+      if (error) throw error;
+
+      if (data?.url) {
+        window.open(data.url, '_blank');
+        toast.success('Link aberto em nova aba');
+      }
+    } catch (error) {
+      console.error('Error handling restock:', error);
+      toast.error('Erro ao abrir link de reposição');
+    }
   };
 
   if (loading) {
@@ -301,18 +321,40 @@ export default function StockManagement() {
                       {percentage <= 10 ? (
                         <>
                           <AlertTriangle className="h-4 w-4 flex-shrink-0 mt-0.5" />
-                          <div className="text-sm">
+                          <div className="text-sm flex-1">
                             <strong>Estoque Crítico!</strong>
                             <p>Compre mais {item.item_name} urgentemente para não interromper o tratamento.</p>
                           </div>
+                          {isEnabled('affiliate') && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleRestock(item.item_id, item.item_name)}
+                              className="shrink-0"
+                            >
+                              <ExternalLink className="h-3 w-3 mr-1" />
+                              Repor
+                            </Button>
+                          )}
                         </>
                       ) : (
                         <>
                           <TrendingDown className="h-4 w-4 flex-shrink-0 mt-0.5" />
-                          <div className="text-sm">
+                          <div className="text-sm flex-1">
                             <strong>Estoque Baixo</strong>
                             <p>Considere repor em breve para evitar faltas.</p>
                           </div>
+                          {isEnabled('affiliate') && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleRestock(item.item_id, item.item_name)}
+                              className="shrink-0"
+                            >
+                              <ExternalLink className="h-3 w-3 mr-1" />
+                              Repor
+                            </Button>
+                          )}
                         </>
                       )}
                     </div>
