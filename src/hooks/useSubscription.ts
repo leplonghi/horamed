@@ -86,9 +86,24 @@ export function useSubscription() {
 
   const syncWithStripeInternal = async (showToast = false) => {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      // Don't try to sync if user is not authenticated
+      if (!user) {
+        console.log('Skipping sync - user not authenticated');
+        return;
+      }
+
       const { data, error } = await supabase.functions.invoke('sync-subscription');
       
-      if (error) throw error;
+      if (error) {
+        // Silently ignore authentication errors
+        if (error.message?.includes('not authenticated')) {
+          console.log('Skipping sync - authentication error');
+          return;
+        }
+        throw error;
+      }
       
       console.log('Sync result:', data);
       
