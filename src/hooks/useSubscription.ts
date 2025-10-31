@@ -36,18 +36,25 @@ export function useSubscription() {
       // First load the subscription
       await loadSubscription();
       
-      // Then immediately sync with Stripe on every login
-      console.log('Auto-syncing with Stripe after authentication...');
-      await syncWithStripeInternal();
-      
-      // Reload subscription after sync
-      await loadSubscription();
+      // Only sync if user is authenticated
+      if (user?.email) {
+        console.log('Auto-syncing with Stripe after authentication...');
+        await syncWithStripeInternal();
+        
+        // Reload subscription after sync
+        await loadSubscription();
+      }
     };
     
     initializeSubscription();
     
-    // Auto-refresh subscription every 30 seconds
-    const interval = setInterval(loadSubscription, 30000);
+    // Auto-refresh subscription every 30 seconds (only if user is logged in)
+    const interval = setInterval(async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        await loadSubscription();
+      }
+    }, 30000);
     return () => clearInterval(interval);
   }, []);
 
