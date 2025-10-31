@@ -897,7 +897,9 @@ export type Database = {
           push_token: string | null
           updated_at: string | null
           user_id: string
+          whatsapp_api_token: string | null
           whatsapp_enabled: boolean | null
+          whatsapp_instance_id: string | null
           whatsapp_number: string | null
         }
         Insert: {
@@ -908,7 +910,9 @@ export type Database = {
           push_token?: string | null
           updated_at?: string | null
           user_id: string
+          whatsapp_api_token?: string | null
           whatsapp_enabled?: boolean | null
+          whatsapp_instance_id?: string | null
           whatsapp_number?: string | null
         }
         Update: {
@@ -919,7 +923,9 @@ export type Database = {
           push_token?: string | null
           updated_at?: string | null
           user_id?: string
+          whatsapp_api_token?: string | null
           whatsapp_enabled?: boolean | null
+          whatsapp_instance_id?: string | null
           whatsapp_number?: string | null
         }
         Relationships: []

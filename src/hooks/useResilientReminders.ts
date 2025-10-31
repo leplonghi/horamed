@@ -16,7 +16,7 @@ interface ReminderData {
 interface NotificationMetric {
   user_id: string;
   dose_id: string;
-  notification_type: "push" | "local" | "web" | "sound";
+  notification_type: "push" | "local" | "web" | "sound" | "whatsapp";
   delivery_status: "sent" | "delivered" | "failed" | "fallback";
   error_message?: string;
   metadata?: Record<string, any>;
@@ -136,7 +136,55 @@ export const useResilientReminders = () => {
       }
     }
 
-    // Fallback: Save to local storage and database
+    // Try WhatsApp as secondary fallback if primary methods failed
+    if (!primarySuccess) {
+      try {
+        const { data: preferences } = await supabase
+          .from("notification_preferences")
+          .select("whatsapp_enabled, whatsapp_number, whatsapp_instance_id, whatsapp_api_token")
+          .eq("user_id", user.id)
+          .single();
+
+        if (
+          preferences?.whatsapp_enabled &&
+          preferences.whatsapp_number &&
+          preferences.whatsapp_instance_id &&
+          preferences.whatsapp_api_token
+        ) {
+          const { error: whatsappError } = await supabase.functions.invoke("send-whatsapp-reminder", {
+            body: {
+              phoneNumber: preferences.whatsapp_number,
+              message: `🔔 ${data.title}\n\n${data.body}`,
+              instanceId: preferences.whatsapp_instance_id,
+              apiToken: preferences.whatsapp_api_token,
+            },
+          });
+
+          if (!whatsappError) {
+            primarySuccess = true;
+            fallbackUsed = true;
+            await logMetric({
+              user_id: user.id,
+              dose_id: data.doseId,
+              notification_type: "whatsapp",
+              delivery_status: "sent",
+              metadata: { fallback_from: "push" },
+            });
+
+            await logAction({
+              action: "whatsapp_fallback",
+              resource: "reminder",
+              resource_id: data.doseId,
+              metadata: { title: data.title },
+            });
+          }
+        }
+      } catch (error) {
+        errors.push(`WhatsApp: ${error instanceof Error ? error.message : "Unknown error"}`);
+      }
+    }
+
+    // Final Fallback: Save to local storage and database
     if (!primarySuccess) {
       fallbackUsed = true;
       await saveFallbackReminder(user.id, data);
@@ -147,7 +195,7 @@ export const useResilientReminders = () => {
         notification_type: "local",
         delivery_status: "fallback",
         error_message: errors.join("; "),
-        metadata: { fallback_reason: "primary_methods_failed" },
+        metadata: { fallback_reason: "all_methods_failed" },
       });
 
       await logAction({
@@ -157,7 +205,7 @@ export const useResilientReminders = () => {
         metadata: { errors, fallback: true },
       });
 
-      console.warn("Using fallback reminder storage:", errors);
+      console.warn("Using final fallback reminder storage:", errors);
     }
 
     return primarySuccess || fallbackUsed;
