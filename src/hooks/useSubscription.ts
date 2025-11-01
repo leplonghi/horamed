@@ -5,7 +5,7 @@ import { useToast } from '@/hooks/use-toast';
 export interface Subscription {
   id: string;
   user_id: string;
-  plan_type: 'free' | 'premium_individual' | 'premium_family';
+  plan_type: 'free' | 'premium' | 'premium_individual' | 'premium_family';
   status: 'active' | 'cancelled' | 'expired' | 'trial';
   stripe_customer_id: string | null;
   stripe_subscription_id: string | null;
@@ -146,7 +146,7 @@ export function useSubscription() {
     }
   };
 
-  const isPremium = (subscription?.plan_type === 'premium_individual' || subscription?.plan_type === 'premium_family') 
+  const isPremium = (subscription?.plan_type === 'premium' || subscription?.plan_type === 'premium_individual' || subscription?.plan_type === 'premium_family') 
     && (subscription?.status === 'active' || subscription?.status === 'trial');
   const isFree = subscription?.plan_type === 'free';
   
