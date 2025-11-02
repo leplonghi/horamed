@@ -131,39 +131,56 @@ export default function NotificationSettings() {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-20">
+    <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 pb-24">
       <Header />
-      <div className="container max-w-4xl mx-auto px-4 pt-20 pb-6">
-        <div className="flex items-center gap-3 mb-6">
+      <div className="container max-w-2xl mx-auto px-4 pt-24 pb-6">
+        <div className="flex items-start gap-4 mb-8">
           <Button
             variant="ghost"
             size="icon"
             onClick={() => navigate("/perfil")}
+            className="mt-1"
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
-          <div>
-            <h1 className="text-3xl font-bold">Notificações</h1>
-            <p className="text-muted-foreground">
-              Configure alertas para seus remédios
+          <div className="flex-1">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-2 bg-primary/10 rounded-lg">
+                <Bell className="h-6 w-6 text-primary" />
+              </div>
+              <h1 className="text-3xl font-bold tracking-tight">Notificações</h1>
+            </div>
+            <p className="text-muted-foreground text-sm">
+              Configure quando e como ser alertado sobre suas doses
             </p>
           </div>
         </div>
 
-        <div className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Smartphone className="h-5 w-5" />
-                Notificações Push
-              </CardTitle>
-              <CardDescription>
-                Receba alertas mesmo com o app fechado
-              </CardDescription>
+        <div className="space-y-5">
+          <Card className="border-2 hover:shadow-lg transition-all duration-200">
+            <CardHeader className="pb-3">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-primary/10 rounded-lg">
+                  <Smartphone className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <CardTitle className="text-lg">Notificações Push</CardTitle>
+                  <CardDescription className="text-xs">
+                    Receba alertas mesmo com o app fechado
+                  </CardDescription>
+                </div>
+              </div>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="push-enabled">Ativar notificações push</Label>
+              <div className="flex items-center justify-between p-4 bg-accent/30 rounded-lg border border-primary/20">
+                <div className="flex-1">
+                  <Label htmlFor="push-enabled" className="text-sm font-semibold cursor-pointer">
+                    Ativar notificações push
+                  </Label>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Essencial para lembretes pontuais
+                  </p>
+                </div>
                 <Switch
                   id="push-enabled"
                   checked={settings.pushEnabled}
@@ -178,29 +195,39 @@ export default function NotificationSettings() {
               </div>
 
               {!settings.pushEnabled && (
-                <div className="p-4 bg-muted rounded-lg">
-                  <p className="text-sm text-muted-foreground">
-                    💡 <strong>Dica:</strong> Ative as notificações push para
-                    receber lembretes mesmo quando o app estiver fechado.
+                <div className="p-4 bg-warning/10 border border-warning/30 rounded-lg">
+                  <p className="text-sm text-warning-foreground">
+                    <strong>⚠️ Atenção:</strong> Sem notificações push você pode perder seus horários de medicação.
                   </p>
                 </div>
               )}
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Watch className="h-5 w-5" />
-                Sincronização com Wearables
-              </CardTitle>
-              <CardDescription>
-                Notificações aparecem no Apple Watch, Galaxy Watch, etc.
-              </CardDescription>
+          <Card className="border-2 hover:shadow-lg transition-all duration-200">
+            <CardHeader className="pb-3">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-success/10 rounded-lg">
+                  <Watch className="h-5 w-5 text-success" />
+                </div>
+                <div>
+                  <CardTitle className="text-lg">Sincronização com Wearables</CardTitle>
+                  <CardDescription className="text-xs">
+                    Apple Watch, Galaxy Watch, etc.
+                  </CardDescription>
+                </div>
+              </div>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="wearable-sync">Sincronizar com wearable</Label>
+              <div className="flex items-center justify-between p-4 bg-accent/30 rounded-lg border border-success/20">
+                <div className="flex-1">
+                  <Label htmlFor="wearable-sync" className="text-sm font-semibold cursor-pointer">
+                    Sincronizar com smartwatch
+                  </Label>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Alertas no pulso
+                  </p>
+                </div>
                 <Switch
                   id="wearable-sync"
                   checked={settings.wearableSync}
@@ -211,47 +238,67 @@ export default function NotificationSettings() {
               </div>
 
               {settings.wearableSync && (
-                <div className="p-4 bg-blue-50 dark:bg-blue-950 rounded-lg border border-blue-200 dark:border-blue-800">
-                  <p className="text-sm text-blue-900 dark:text-blue-100">
-                    ⌚ Suas notificações aparecerão automaticamente no seu
-                    smartwatch quando conectado ao smartphone.
+                <div className="p-4 bg-success/10 border border-success/30 rounded-lg">
+                  <p className="text-sm flex items-start gap-2">
+                    <span className="text-2xl">⌚</span>
+                    <span>Suas notificações aparecerão automaticamente no seu smartwatch quando conectado.</span>
                   </p>
                 </div>
               )}
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Bell className="h-5 w-5" />
-                Horários de Alerta
-              </CardTitle>
-              <CardDescription>
-                Escolha quando ser alertado antes da dose
-              </CardDescription>
+          <Card className="border-2 hover:shadow-lg transition-all duration-200">
+            <CardHeader className="pb-3">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-accent rounded-lg">
+                  <Bell className="h-5 w-5 text-accent-foreground" />
+                </div>
+                <div>
+                  <CardTitle className="text-lg">Horários de Alerta</CardTitle>
+                  <CardDescription className="text-xs">
+                    Configure os momentos de notificação
+                  </CardDescription>
+                </div>
+              </div>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label>Alertar com antecedência de:</Label>
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
+            <CardContent className="space-y-5">
+              <div className="space-y-3">
+                <Label className="text-sm font-semibold">Você será alertado nos seguintes momentos:</Label>
+                <div className="space-y-3 p-4 bg-accent/30 rounded-lg border border-border">
+                  <div className="flex items-center justify-between p-3 bg-card rounded-lg shadow-sm">
+                    <div className="flex items-center gap-3">
+                      <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
+                      <span className="text-sm font-medium">15 minutos antes</span>
+                    </div>
                     <Switch defaultChecked disabled />
-                    <span className="text-sm">15 minutos antes</span>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center justify-between p-3 bg-card rounded-lg shadow-sm">
+                    <div className="flex items-center gap-3">
+                      <div className="w-2 h-2 bg-warning rounded-full animate-pulse" />
+                      <span className="text-sm font-medium">5 minutos antes</span>
+                    </div>
                     <Switch defaultChecked disabled />
-                    <span className="text-sm">5 minutos antes</span>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center justify-between p-3 bg-card rounded-lg shadow-sm">
+                    <div className="flex items-center gap-3">
+                      <div className="w-2 h-2 bg-destructive rounded-full animate-pulse" />
+                      <span className="text-sm font-medium">Na hora exata</span>
+                    </div>
                     <Switch defaultChecked disabled />
-                    <span className="text-sm">Na hora exata</span>
                   </div>
                 </div>
               </div>
 
-              <div className="flex items-center justify-between">
-                <Label htmlFor="vibration">Vibração</Label>
+              <div className="flex items-center justify-between p-4 bg-accent/30 rounded-lg border border-border">
+                <div className="flex-1">
+                  <Label htmlFor="vibration" className="text-sm font-semibold cursor-pointer">
+                    Vibração
+                  </Label>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Feedback tátil nos alertas
+                  </p>
+                </div>
                 <Switch
                   id="vibration"
                   checked={settings.vibration}
@@ -263,28 +310,54 @@ export default function NotificationSettings() {
             </CardContent>
           </Card>
 
-          <Button 
-            onClick={handleSaveSettings} 
-            className="w-full" 
-            size="lg"
-            disabled={loading}
-          >
-            {loading ? "Salvando..." : "Salvar Configurações"}
-          </Button>
+          <div className="sticky bottom-20 z-10 mt-6">
+            <Button 
+              onClick={handleSaveSettings} 
+              className="w-full shadow-lg" 
+              size="lg"
+              disabled={loading}
+              variant={loading ? "secondary" : "default"}
+            >
+              {loading ? (
+                <>
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-background border-t-transparent mr-2" />
+                  Salvando configurações...
+                </>
+              ) : (
+                <>
+                  <Bell className="mr-2 h-5 w-5" />
+                  Salvar e Agendar Notificações
+                </>
+              )}
+            </Button>
+          </div>
 
-          <Card className="bg-muted">
-            <CardContent className="p-4">
-              <p className="text-sm text-muted-foreground">
-                <strong>💡 Sobre as notificações:</strong>
-                <br />
-                • As notificações são programadas automaticamente para as
-                próximas 24 horas
-                <br />
-                • Funcionam mesmo com o app fechado
-                <br />
-                • Aparecem automaticamente no seu smartwatch
-                <br />• Reprogramadas diariamente de forma automática
-              </p>
+          <Card className="bg-gradient-to-br from-primary/5 to-accent/5 border-primary/20">
+            <CardContent className="p-5">
+              <div className="flex items-start gap-3">
+                <div className="text-2xl">💡</div>
+                <div className="flex-1 space-y-2">
+                  <p className="font-semibold text-sm">Como funcionam as notificações:</p>
+                  <ul className="text-xs text-muted-foreground space-y-1.5 ml-1">
+                    <li className="flex items-start gap-2">
+                      <span className="text-primary mt-0.5">✓</span>
+                      <span>Programadas automaticamente para as próximas 24 horas</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-primary mt-0.5">✓</span>
+                      <span>Funcionam mesmo com o app fechado</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-primary mt-0.5">✓</span>
+                      <span>Sincronizam automaticamente com seu smartwatch</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-primary mt-0.5">✓</span>
+                      <span>Reprogramadas diariamente de forma automática</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </div>
