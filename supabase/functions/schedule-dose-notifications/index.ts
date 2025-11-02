@@ -53,9 +53,9 @@ serve(async (req) => {
         id,
         due_at,
         status,
-        user_id,
         item_id,
         items!inner (
+          user_id,
           name,
           dose_text,
           with_food
@@ -85,7 +85,10 @@ serve(async (req) => {
     }
 
     // Get users with push notifications enabled
-    const userIds = [...new Set(doses.map(d => d.user_id))];
+    const userIds = [...new Set(doses.map(d => {
+      const itemData = Array.isArray(d.items) ? d.items[0] : d.items;
+      return itemData.user_id;
+    }))];
     const { data: preferences } = await supabaseAdmin
       .from('notification_preferences')
       .select('user_id, push_enabled, push_token')
@@ -100,7 +103,8 @@ serve(async (req) => {
     const notifications = [];
 
     for (const dose of doses) {
-      if (!enabledUsers.has(dose.user_id)) {
+      const itemData = Array.isArray(dose.items) ? dose.items[0] : dose.items;
+      if (!enabledUsers.has(itemData.user_id)) {
         continue;
       }
 
@@ -119,13 +123,12 @@ serve(async (req) => {
         
         // Only schedule future notifications
         if (notificationTime > now) {
-          const itemData = Array.isArray(dose.items) ? dose.items[0] : dose.items;
           const body = `${itemData.name}${
             itemData.dose_text ? ` - ${itemData.dose_text}` : ''
           }${itemData.with_food ? ' 🍽️ Com alimentos' : ''}`;
 
           notifications.push({
-            user_id: dose.user_id,
+            user_id: itemData.user_id,
             dose_id: dose.id,
             notification_type: 'dose_reminder',
             title,
