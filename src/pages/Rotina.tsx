@@ -15,6 +15,7 @@ import MedicationOCRWrapper from "@/components/MedicationOCRWrapper";
 import AdBanner from "@/components/AdBanner";
 import { useSubscription } from "@/hooks/useSubscription";
 import UpgradeModal from "@/components/UpgradeModal";
+import { ListSkeleton } from "@/components/LoadingSkeleton";
 import logo from "@/assets/horamend-logo.png";
 
 interface Item {
@@ -187,24 +188,33 @@ export default function Rotina() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background p-6 flex items-center justify-center">
-        <div className="animate-pulse text-muted-foreground">Carregando...</div>
-      </div>
+      <>
+        <Header />
+        <div className="min-h-screen bg-background pt-20 p-6 pb-24">
+          <div className="max-w-4xl mx-auto space-y-6">
+            <div className="h-8 w-48 skeleton rounded-lg" />
+            <ListSkeleton count={5} />
+          </div>
+        </div>
+        <Navigation />
+      </>
     );
   }
 
   return (
     <>
       <Header />
-      <div className="min-h-screen bg-background pt-20 p-6 pb-24">
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 pt-20 p-6 pb-24 animate-fade-in">
         <div className="max-w-4xl mx-auto space-y-6">
           {/* Action Buttons */}
-          <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold text-foreground">Minha Rotina</h2>
+          <div className="flex items-center justify-between animate-slide-up">
+            <h2 className="text-2xl font-bold text-foreground bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">
+              Minha Rotina
+            </h2>
             <div className="flex gap-2">
               <Button
                 size="icon"
-                className="rounded-full bg-success hover:bg-success/90"
+                className="rounded-full bg-success hover:bg-success/90 hover-lift shadow-lg hover:shadow-success/30 transition-all"
                 onClick={() => {
                   if (!hasFeature('ocr')) {
                     setShowUpgradeModal(true);
@@ -217,7 +227,7 @@ export default function Rotina() {
               </Button>
               <Button
                 size="icon"
-                className="rounded-full"
+                className="rounded-full hover-lift shadow-lg hover:shadow-primary/30 transition-all"
                 onClick={() => {
                   if (isExpired) {
                     toast.error("Seu período de teste expirou. Faça upgrade para continuar!", {
@@ -239,42 +249,42 @@ export default function Rotina() {
           <AdBanner />
 
           {/* Search */}
-          <div className="relative">
+          <div className="relative animate-fade-in" style={{ animationDelay: '100ms' }}>
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Buscar medicamentos..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 rounded-full"
+              className="pl-10 rounded-full border-2 focus:border-primary transition-all focus:shadow-lg focus:shadow-primary/10"
             />
           </div>
 
           {/* Tabs */}
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full animate-fade-in" style={{ animationDelay: '200ms' }}>
             <TabsList className="w-full justify-start h-auto p-1 bg-muted/50 gap-2 flex flex-wrap">
               <TabsTrigger 
                 value="todos" 
-                className="rounded-full data-[state=active]:bg-primary data-[state=active]:text-white px-4 py-2"
+                className="rounded-full data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-primary/90 data-[state=active]:text-white px-4 py-2 transition-all hover:scale-105"
               >
                 <Pill className="h-4 w-4 mr-2" />
                 Todos {items.length}
               </TabsTrigger>
               <TabsTrigger 
                 value="medicamento" 
-                className="rounded-full data-[state=active]:bg-secondary data-[state=active]:text-secondary-foreground px-4 py-2"
+                className="rounded-full data-[state=active]:bg-secondary data-[state=active]:text-secondary-foreground px-4 py-2 transition-all hover:scale-105"
               >
                 <Pill className="h-4 w-4 mr-2" />
                 Medicamentos {getCategoryCount("medicamento")}
               </TabsTrigger>
               <TabsTrigger 
                 value="vitamina" 
-                className="rounded-full data-[state=active]:bg-secondary data-[state=active]:text-secondary-foreground px-4 py-2"
+                className="rounded-full data-[state=active]:bg-secondary data-[state=active]:text-secondary-foreground px-4 py-2 transition-all hover:scale-105"
               >
                 ❤️ Vitaminas {getCategoryCount("vitamina")}
               </TabsTrigger>
               <TabsTrigger 
                 value="suplemento" 
-                className="rounded-full data-[state=active]:bg-secondary data-[state=active]:text-secondary-foreground px-4 py-2"
+                className="rounded-full data-[state=active]:bg-secondary data-[state=active]:text-secondary-foreground px-4 py-2 transition-all hover:scale-105"
               >
                 ⚡ Suplementos {getCategoryCount("suplemento")}
               </TabsTrigger>
@@ -282,14 +292,21 @@ export default function Rotina() {
 
             <TabsContent value={activeTab} className="space-y-3 mt-6">
               {filteredItems.length === 0 ? (
-                <Card className="p-8 text-center">
-                  <p className="text-muted-foreground">
+                <Card className="p-8 text-center bg-gradient-to-br from-muted/30 to-background border-2 border-dashed animate-fade-in-scale">
+                  <div className="inline-flex p-4 rounded-full bg-muted/50 mb-3">
+                    <Pill className="h-10 w-10 text-muted-foreground" />
+                  </div>
+                  <p className="text-muted-foreground font-medium">
                     {searchTerm ? "Nenhum item encontrado" : "Nenhum item cadastrado nesta categoria ainda"}
                   </p>
                 </Card>
               ) : (
-                filteredItems.map((item) => (
-                  <Card key={item.id} className="p-5 hover:shadow-md transition-shadow">
+                filteredItems.map((item, index) => (
+                  <Card 
+                    key={item.id} 
+                    style={{ animationDelay: `${index * 50}ms` }}
+                    className="p-5 hover:shadow-xl transition-all duration-300 hover:scale-[1.02] border-l-4 border-l-primary animate-fade-in-scale card-interactive"
+                  >
                     <div className="space-y-3">
                       <div className="flex items-start justify-between">
                         <div className="flex-1 space-y-2">

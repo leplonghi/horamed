@@ -61,40 +61,40 @@ export default function Header() {
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 bg-card/95 backdrop-blur-sm border-b border-border z-40">
+    <header className="fixed top-0 left-0 right-0 bg-card/95 backdrop-blur-lg border-b border-border z-40 shadow-sm animate-slide-up">
       <div className="max-w-4xl mx-auto px-4 py-3">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <img src={logo} alt="HoraMed" className="h-8 w-auto" />
+          <div className="flex items-center gap-3 animate-fade-in">
+            <img src={logo} alt="HoraMed" className="h-8 w-auto hover:scale-105 transition-transform duration-300" />
             <SubscriptionBadge />
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 animate-fade-in" style={{ animationDelay: '100ms' }}>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="gap-2">
+                <Button variant="ghost" size="sm" className="gap-2 hover:scale-105 transition-transform">
                   <History className="h-4 w-4" />
                   <span className="hidden sm:inline">Histórico</span>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuContent align="end" className="w-56 animate-fade-in-scale bg-background/95 backdrop-blur-lg border-2">
                 <DropdownMenuLabel>Histórico Médico</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => navigate("/timeline")} className="gap-2 cursor-pointer">
+                <DropdownMenuItem onClick={() => navigate("/timeline")} className="gap-2 cursor-pointer hover:bg-accent transition-colors">
                   <Calendar className="h-4 w-4 text-blue-500" />
                   <div>
                     <div className="font-medium">Linha do Tempo</div>
                     <div className="text-xs text-muted-foreground">Histórico cronológico</div>
                   </div>
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate("/evolucao")} className="gap-2 cursor-pointer">
+                <DropdownMenuItem onClick={() => navigate("/evolucao")} className="gap-2 cursor-pointer hover:bg-accent transition-colors">
                   <TrendingUp className="h-4 w-4 text-green-500" />
                   <div>
                     <div className="font-medium">Evolução</div>
                     <div className="text-xs text-muted-foreground">Gráficos e análises</div>
                   </div>
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate("/agenda")} className="gap-2 cursor-pointer">
+                <DropdownMenuItem onClick={() => navigate("/agenda")} className="gap-2 cursor-pointer hover:bg-accent transition-colors">
                   <Stethoscope className="h-4 w-4 text-purple-500" />
                   <div>
                     <div className="font-medium">Agenda Médica</div>
@@ -107,9 +107,9 @@ export default function Header() {
             <ProfileSelector />
             <ThemeToggle />
             
-            <Link to="/perfil" className="flex items-center gap-3">
+            <Link to="/perfil" className="flex items-center gap-3 hover:opacity-80 transition-opacity group">
               <div className="hidden md:flex flex-col items-end">
-                <span className="text-sm font-semibold text-foreground">
+                <span className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors">
                   {userName || "Usuário"}
                 </span>
                 <span className="text-xs text-muted-foreground">
@@ -117,7 +117,7 @@ export default function Header() {
                 </span>
               </div>
               
-              <Avatar className="h-10 w-10">
+              <Avatar className="h-10 w-10 ring-2 ring-transparent group-hover:ring-primary transition-all duration-300">
                 <AvatarImage src={avatarUrl || undefined} alt="Avatar" />
                 <AvatarFallback className="bg-primary text-primary-foreground">
                   {userEmail ? getInitials(userEmail) : <User className="h-5 w-5" />}

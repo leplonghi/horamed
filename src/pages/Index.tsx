@@ -43,13 +43,13 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-accent/5 flex items-center justify-center p-6">
-      <Card className="w-full max-w-lg p-8 space-y-8 shadow-2xl">
+    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-accent/5 flex items-center justify-center p-6 animate-fade-in">
+      <Card className="w-full max-w-lg p-8 space-y-8 shadow-2xl animate-fade-in-scale">
         <div className="text-center space-y-6">
-          <div className="flex justify-center">
+          <div className="flex justify-center animate-bounce-subtle">
             <img src={logo} alt="HoraMed" className="h-40 w-auto" />
           </div>
-          <div>
+          <div className="animate-slide-up">
             <h1 className="text-4xl font-bold text-foreground mb-3">
               HoraMed
             </h1>
@@ -59,11 +59,11 @@ const Index = () => {
           </div>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-4 animate-slide-up" style={{ animationDelay: '0.2s' }}>
           <Button
             onClick={handleGoogleLogin}
             size="lg"
-            className="w-full h-14 text-lg font-semibold bg-white hover:bg-gray-50 text-gray-800 border-2 border-gray-200 shadow-md hover:shadow-lg transition-all"
+            className="w-full h-14 text-lg font-semibold bg-white hover:bg-gray-50 text-gray-800 border-2 border-gray-200 shadow-md hover:shadow-lg transition-all hover-lift"
           >
             <svg className="w-6 h-6 mr-3" viewBox="0 0 24 24">
               <path

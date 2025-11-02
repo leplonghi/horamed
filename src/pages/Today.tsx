@@ -26,6 +26,7 @@ import MonthlyReportCard from "@/components/MonthlyReportCard";
 import SmartInsightsCard from "@/components/SmartInsightsCard";
 import HealthHistoryLinks from "@/components/HealthHistoryLinks";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { PageSkeleton } from "@/components/LoadingSkeleton";
 
 interface DoseInstance {
   id: string;
@@ -418,11 +419,7 @@ export default function Today() {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-background p-6 flex items-center justify-center">
-        <div className="animate-pulse text-muted-foreground">Carregando...</div>
-      </div>
-    );
+    return <PageSkeleton />;
   }
 
   return (
