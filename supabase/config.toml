@@ -1,5 +1,8 @@
 project_id = "zmsuqdwleyqpdthaqvbi"
 
+[functions.audit-log]
+verify_jwt = true
+
 [functions.extract-medication]
 verify_jwt = true
 

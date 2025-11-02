@@ -3,6 +3,92 @@ import { BiometricAuth } from "@aparajita/capacitor-biometric-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
+// Simple encryption utilities using Web Crypto API
+const encryptToken = async (token: string): Promise<string> => {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(token);
+  
+  // Generate a device-specific key from browser fingerprint
+  const fingerprint = await getDeviceFingerprint();
+  const keyMaterial = encoder.encode(fingerprint);
+  
+  const key = await crypto.subtle.importKey(
+    'raw',
+    await crypto.subtle.digest('SHA-256', keyMaterial),
+    { name: 'AES-GCM', length: 256 },
+    false,
+    ['encrypt']
+  );
+  
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const encrypted = await crypto.subtle.encrypt(
+    { name: 'AES-GCM', iv },
+    key,
+    data
+  );
+  
+  // Combine IV and encrypted data
+  const combined = new Uint8Array(iv.length + encrypted.byteLength);
+  combined.set(iv, 0);
+  combined.set(new Uint8Array(encrypted), iv.length);
+  
+  return btoa(String.fromCharCode(...combined));
+};
+
+const decryptToken = async (encryptedData: string): Promise<string | null> => {
+  try {
+    const encoder = new TextEncoder();
+    const decoder = new TextDecoder();
+    
+    const combined = Uint8Array.from(atob(encryptedData), c => c.charCodeAt(0));
+    const iv = combined.slice(0, 12);
+    const data = combined.slice(12);
+    
+    const fingerprint = await getDeviceFingerprint();
+    const keyMaterial = encoder.encode(fingerprint);
+    
+    const key = await crypto.subtle.importKey(
+      'raw',
+      await crypto.subtle.digest('SHA-256', keyMaterial),
+      { name: 'AES-GCM', length: 256 },
+      false,
+      ['decrypt']
+    );
+    
+    const decrypted = await crypto.subtle.decrypt(
+      { name: 'AES-GCM', iv },
+      key,
+      data
+    );
+    
+    return decoder.decode(decrypted);
+  } catch (error) {
+    console.error('Decryption failed:', error);
+    return null;
+  }
+};
+
+const getDeviceFingerprint = async (): Promise<string> => {
+  // Generate device fingerprint from various browser properties
+  const components = [
+    navigator.userAgent,
+    navigator.language,
+    screen.colorDepth.toString(),
+    screen.width.toString(),
+    screen.height.toString(),
+    new Date().getTimezoneOffset().toString(),
+  ];
+  
+  const fingerprint = components.join('|');
+  const encoder = new TextEncoder();
+  const data = encoder.encode(fingerprint);
+  const hash = await crypto.subtle.digest('SHA-256', data);
+  
+  return Array.from(new Uint8Array(hash))
+    .map(b => b.toString(16).padStart(2, '0'))
+    .join('');
+};
+
 export const useBiometricAuth = () => {
   const [isAvailable, setIsAvailable] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -51,19 +137,20 @@ export const useBiometricAuth = () => {
       // Get current session to store refresh token
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.refresh_token) {
-        localStorage.setItem("biometric_refresh_token", session.refresh_token);
+        const encrypted = await encryptToken(session.refresh_token);
+        localStorage.setItem("biometric_refresh_token", encrypted);
         localStorage.setItem("biometric_enabled", "true");
         toast({
           title: "Biometria ativada",
-          description: "Login por biometria configurado com sucesso",
+          description: "Login por biometria configurado com sucesso. Nota: Esta é uma funcionalidade de conveniência com trade-offs de segurança.",
         });
       }
     }
   };
 
   const loginWithBiometric = async () => {
-    const refreshToken = localStorage.getItem("biometric_refresh_token");
-    if (!refreshToken) {
+    const encryptedToken = localStorage.getItem("biometric_refresh_token");
+    if (!encryptedToken) {
       toast({
         title: "Erro",
         description: "Biometria não configurada",
@@ -74,6 +161,18 @@ export const useBiometricAuth = () => {
 
     const success = await authenticate();
     if (success) {
+      const refreshToken = await decryptToken(encryptedToken);
+      if (!refreshToken) {
+        localStorage.removeItem("biometric_refresh_token");
+        localStorage.removeItem("biometric_enabled");
+        toast({
+          title: "Erro de segurança",
+          description: "Falha ao descriptografar credenciais. Faça login novamente.",
+          variant: "destructive",
+        });
+        return false;
+      }
+
       // Use refresh token to restore session
       const { error } = await supabase.auth.setSession({
         access_token: refreshToken,

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,40 @@ interface AvatarUploadProps {
 
 export default function AvatarUpload({ avatarUrl, userEmail, onUploadComplete }: AvatarUploadProps) {
   const [uploading, setUploading] = useState(false);
+  const [displayUrl, setDisplayUrl] = useState<string | null>(null);
+
+  // Fetch signed URL for display
+  const fetchSignedUrl = async (path: string) => {
+    try {
+      const { data, error } = await supabase.storage
+        .from('avatars')
+        .createSignedUrl(path, 3600); // 1 hour expiry
+
+      if (error) throw error;
+      return data?.signedUrl || null;
+    } catch (error) {
+      console.error('Error fetching signed URL:', error);
+      return null;
+    }
+  };
+
+  // Update display URL when avatarUrl changes
+  useEffect(() => {
+    if (avatarUrl) {
+      // Extract path from URL if it's a full URL, or use as-is if it's a path
+      const path = avatarUrl.includes('/storage/v1/') 
+        ? avatarUrl.split('/avatars/')[1] 
+        : avatarUrl;
+      
+      if (path) {
+        fetchSignedUrl(path).then(url => {
+          if (url) setDisplayUrl(url);
+        });
+      }
+    } else {
+      setDisplayUrl(null);
+    }
+  }, [avatarUrl]);
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     try {
@@ -32,9 +66,11 @@ export default function AvatarUpload({ avatarUrl, userEmail, onUploadComplete }:
 
       // Delete old avatar if exists
       if (avatarUrl) {
-        const oldPath = avatarUrl.split('/').pop();
+        const oldPath = avatarUrl.includes('/storage/v1/') 
+          ? avatarUrl.split('/avatars/')[1] 
+          : avatarUrl;
         if (oldPath) {
-          await supabase.storage.from('avatars').remove([`${user.id}/${oldPath}`]);
+          await supabase.storage.from('avatars').remove([oldPath]);
         }
       }
 
@@ -45,20 +81,21 @@ export default function AvatarUpload({ avatarUrl, userEmail, onUploadComplete }:
 
       if (uploadError) throw uploadError;
 
-      // Get public URL
-      const { data } = supabase.storage
-        .from('avatars')
-        .getPublicUrl(fileName);
-
-      // Update profile with new avatar URL
+      // Update profile with file path (not public URL)
       const { error: updateError } = await supabase
         .from('profiles')
-        .update({ avatar_url: data.publicUrl })
+        .update({ avatar_url: fileName })
         .eq('user_id', user.id);
 
       if (updateError) throw updateError;
 
-      onUploadComplete(data.publicUrl);
+      // Fetch signed URL for immediate display
+      const signedUrl = await fetchSignedUrl(fileName);
+      if (signedUrl) {
+        setDisplayUrl(signedUrl);
+      }
+
+      onUploadComplete(fileName);
       toast.success("Foto atualizada com sucesso!");
     } catch (error: any) {
       console.error("Error uploading avatar:", error);
@@ -76,7 +113,7 @@ export default function AvatarUpload({ avatarUrl, userEmail, onUploadComplete }:
     <div className="flex flex-col items-center gap-4">
       <div className="relative">
         <Avatar className="h-24 w-24">
-          <AvatarImage src={avatarUrl || undefined} alt="Avatar" />
+          <AvatarImage src={displayUrl || undefined} alt="Avatar" />
           <AvatarFallback className="bg-primary text-primary-foreground text-2xl">
             {userEmail ? getInitials(userEmail) : <User className="h-8 w-8" />}
           </AvatarFallback>

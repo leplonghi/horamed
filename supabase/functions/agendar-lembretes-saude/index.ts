@@ -12,7 +12,33 @@ serve(async (req) => {
   }
 
   try {
-    // Esta função pode ser chamada via cron (sem auth) ou manualmente (com auth)
+    // Verify authentication: either user auth or cron secret
+    const authHeader = req.headers.get('Authorization');
+    const cronSecret = req.headers.get('X-Cron-Secret');
+    
+    if (authHeader) {
+      // Manual call - verify user authentication
+      const supabaseClient = createClient(
+        Deno.env.get('SUPABASE_URL') ?? '',
+        Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+        { global: { headers: { Authorization: authHeader } } }
+      );
+      const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
+      if (authError || !user) {
+        return new Response(
+          JSON.stringify({ error: 'Unauthorized' }),
+          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+    } else if (cronSecret !== Deno.env.get('CRON_SECRET')) {
+      // Automated call - require valid cron secret
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
+    // Use service role for database operations
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
