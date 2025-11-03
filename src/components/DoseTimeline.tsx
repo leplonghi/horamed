@@ -7,15 +7,19 @@ import { ptBR } from "date-fns/locale";
 interface DoseTimelineProps {
   doses: Array<{
     id: string;
-    item_name: string;
-    dose_text: string | null;
+    item_id: string;
     due_at: string;
     status: 'scheduled' | 'taken' | 'missed' | 'skipped';
-    taken_at?: string | null;
+    taken_at: string | null;
+    items: {
+      name: string;
+      dose_text: string | null;
+    };
   }>;
+  period?: "today" | "week" | "month";
 }
 
-export default function DoseTimeline({ doses }: DoseTimelineProps) {
+export default function DoseTimeline({ doses, period = "week" }: DoseTimelineProps) {
   const getStatusConfig = (status: string, isPast: boolean) => {
     switch (status) {
       case 'taken':
@@ -86,11 +90,11 @@ export default function DoseTimeline({ doses }: DoseTimelineProps) {
                 <div className="flex items-start justify-between gap-2">
                   <div>
                     <h4 className="font-semibold text-foreground">
-                      {dose.item_name}
+                      {dose.items.name}
                     </h4>
-                    {dose.dose_text && (
+                    {dose.items.dose_text && (
                       <p className="text-sm text-muted-foreground">
-                        {dose.dose_text}
+                        {dose.items.dose_text}
                       </p>
                     )}
                   </div>

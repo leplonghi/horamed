@@ -295,14 +295,8 @@ export default function MyDoses() {
               <Card><CardContent className="py-8 text-center text-muted-foreground">Nenhuma dose programada para hoje</CardContent></Card>
             ) : (
               <DoseTimeline
-                doses={doses.map(d => ({
-                  id: d.id,
-                  item_name: d.items.name,
-                  dose_text: d.items.dose_text,
-                  due_at: d.due_at,
-                  status: d.status,
-                  taken_at: d.taken_at,
-                }))}
+                doses={doses}
+                period="today"
               />
             )}
           </TabsContent>
@@ -314,14 +308,8 @@ export default function MyDoses() {
               <Card><CardContent className="py-8 text-center text-muted-foreground">Nenhuma dose nesta semana</CardContent></Card>
             ) : (
               <DoseTimeline
-                doses={doses.map(d => ({
-                  id: d.id,
-                  item_name: d.items.name,
-                  dose_text: d.items.dose_text,
-                  due_at: d.due_at,
-                  status: d.status,
-                  taken_at: d.taken_at,
-                }))}
+                doses={doses}
+                period="week"
               />
             )}
           </TabsContent>
@@ -333,14 +321,8 @@ export default function MyDoses() {
               <Card><CardContent className="py-8 text-center text-muted-foreground">Sem histórico nos últimos 30 dias</CardContent></Card>
             ) : (
               <DoseTimeline
-                doses={doses.map(d => ({
-                  id: d.id,
-                  item_name: d.items.name,
-                  dose_text: d.items.dose_text,
-                  due_at: d.due_at,
-                  status: d.status,
-                  taken_at: d.taken_at,
-                }))}
+                doses={doses}
+                period="month"
               />
             )}
           </TabsContent>

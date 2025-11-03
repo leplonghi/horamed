@@ -1,14 +1,26 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import Navigation from "@/components/Navigation";
 import Header from "@/components/Header";
 import StreakBadge from "@/components/StreakBadge";
-import { format, startOfWeek, endOfWeek, startOfDay, endOfDay, startOfMonth, endOfMonth } from "date-fns";
+import AdherenceChart from "@/components/AdherenceChart";
+import DoseTimeline from "@/components/DoseTimeline";
+import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, subWeeks, subMonths, subDays, eachDayOfInterval } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Calendar as CalendarIcon, TrendingUp, History as HistoryIcon } from "lucide-react";
+import { 
+  Calendar as CalendarIcon, 
+  TrendingUp, 
+  TrendingDown,
+  Activity, 
+  Clock,
+  Target,
+  BarChart3,
+  Minus
+} from "lucide-react";
+import { PageSkeleton } from "@/components/LoadingSkeleton";
 
 interface DoseInstance {
   id: string;
@@ -22,34 +34,80 @@ interface DoseInstance {
   };
 }
 
+interface Stats {
+  total: number;
+  taken: number;
+  missed: number;
+  skipped: number;
+  adherenceRate: number;
+}
+
+interface MedicationStats {
+  name: string;
+  total: number;
+  taken: number;
+  adherenceRate: number;
+}
+
 export default function History() {
-  const [activeTab, setActiveTab] = useState<'week' | 'month'>('week');
+  const [activeTab, setActiveTab] = useState<'today' | 'week' | 'month'>('today');
   const [doses, setDoses] = useState<DoseInstance[]>([]);
+  const [previousDoses, setPreviousDoses] = useState<DoseInstance[]>([]);
   const [loading, setLoading] = useState(true);
   const [streak, setStreak] = useState<number>(0);
+  const [longestStreak, setLongestStreak] = useState<number>(0);
+  const [medicationStats, setMedicationStats] = useState<MedicationStats[]>([]);
 
   useEffect(() => {
-    loadDoses();
-    loadStreak();
+    loadAllData();
   }, [activeTab]);
 
-  const loadDoses = async () => {
+  const loadAllData = async () => {
     setLoading(true);
+    try {
+      await Promise.all([
+        loadDoses(),
+        loadStreak(),
+        loadMedicationStats()
+      ]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadDoses = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
       let startDate: Date;
       let endDate: Date;
+      let previousStartDate: Date;
+      let previousEndDate: Date;
 
-      if (activeTab === 'week') {
-        startDate = startOfWeek(new Date(), { locale: ptBR });
-        endDate = endOfWeek(new Date(), { locale: ptBR });
+      const now = new Date();
+
+      if (activeTab === 'today') {
+        startDate = new Date(now);
+        startDate.setHours(0, 0, 0, 0);
+        endDate = new Date(now);
+        endDate.setHours(23, 59, 59, 999);
+        
+        previousStartDate = subDays(startDate, 1);
+        previousEndDate = subDays(endDate, 1);
+      } else if (activeTab === 'week') {
+        startDate = startOfWeek(now, { locale: ptBR });
+        endDate = endOfWeek(now, { locale: ptBR });
+        previousStartDate = subWeeks(startDate, 1);
+        previousEndDate = subWeeks(endDate, 1);
       } else {
-        startDate = startOfMonth(new Date());
-        endDate = endOfMonth(new Date());
+        startDate = startOfMonth(now);
+        endDate = endOfMonth(now);
+        previousStartDate = subMonths(startDate, 1);
+        previousEndDate = subMonths(endDate, 1);
       }
 
+      // Load current period doses
       const { data, error } = await supabase
         .from('dose_instances')
         .select(`
@@ -71,10 +129,30 @@ export default function History() {
 
       if (error) throw error;
       setDoses((data || []) as DoseInstance[]);
+
+      // Load previous period doses for comparison
+      const { data: prevData, error: prevError } = await supabase
+        .from('dose_instances')
+        .select(`
+          id,
+          item_id,
+          due_at,
+          status,
+          taken_at,
+          items!inner(
+            name,
+            dose_text,
+            user_id
+          )
+        `)
+        .eq('items.user_id', user.id)
+        .gte('due_at', previousStartDate.toISOString())
+        .lte('due_at', previousEndDate.toISOString());
+
+      if (prevError) throw prevError;
+      setPreviousDoses((prevData || []) as DoseInstance[]);
     } catch (error) {
       console.error('Erro ao carregar histórico:', error);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -85,177 +163,300 @@ export default function History() {
 
       const { data, error } = await supabase
         .from('user_adherence_streaks')
-        .select('current_streak')
+        .select('current_streak, longest_streak')
         .eq('user_id', user.id)
         .single();
 
       if (error && error.code !== 'PGRST116') throw error;
       setStreak(data?.current_streak || 0);
+      setLongestStreak(data?.longest_streak || 0);
     } catch (error) {
       console.error('Erro ao carregar sequência:', error);
     }
   };
 
-  const calculateAdherence = () => {
-    if (doses.length === 0) return 0;
-    const takenCount = doses.filter(d => d.status === 'taken').length;
-    return Math.round((takenCount / doses.length) * 100);
-  };
+  const loadMedicationStats = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'taken': return '✅';
-      case 'missed': return '⏭️';
-      case 'skipped': return '🚫';
-      default: return '⏰';
+      const now = new Date();
+      const thirtyDaysAgo = subDays(now, 30);
+
+      const { data, error } = await supabase
+        .from('dose_instances')
+        .select(`
+          item_id,
+          status,
+          items!inner(
+            name,
+            user_id
+          )
+        `)
+        .eq('items.user_id', user.id)
+        .gte('due_at', thirtyDaysAgo.toISOString())
+        .lte('due_at', now.toISOString());
+
+      if (error) throw error;
+
+      // Group by medication
+      const statsByMed = (data || []).reduce((acc, dose: any) => {
+        const medName = dose.items.name;
+        if (!acc[medName]) {
+          acc[medName] = { name: medName, total: 0, taken: 0 };
+        }
+        acc[medName].total++;
+        if (dose.status === 'taken') {
+          acc[medName].taken++;
+        }
+        return acc;
+      }, {} as Record<string, { name: string; total: number; taken: number }>);
+
+      const stats = Object.values(statsByMed).map(stat => ({
+        ...stat,
+        adherenceRate: stat.total > 0 ? Math.round((stat.taken / stat.total) * 100) : 0
+      })).sort((a, b) => b.adherenceRate - a.adherenceRate);
+
+      setMedicationStats(stats);
+    } catch (error) {
+      console.error('Erro ao carregar estatísticas:', error);
     }
   };
 
-  const getStatusLabel = (status: string) => {
-    switch (status) {
-      case 'taken': return 'Tomado';
-      case 'missed': return 'Perdido';
-      case 'skipped': return 'Pulado';
-      default: return 'Agendado';
+  const calculateStats = (dosesData: DoseInstance[]): Stats => {
+    const total = dosesData.length;
+    const taken = dosesData.filter(d => d.status === 'taken').length;
+    const missed = dosesData.filter(d => d.status === 'missed').length;
+    const skipped = dosesData.filter(d => d.status === 'skipped').length;
+    const adherenceRate = total > 0 ? Math.round((taken / total) * 100) : 0;
+    
+    return { total, taken, missed, skipped, adherenceRate };
+  };
+
+  const currentStats = calculateStats(doses);
+  const previousStats = calculateStats(previousDoses);
+  const difference = currentStats.adherenceRate - previousStats.adherenceRate;
+
+  const getPeriodLabel = () => {
+    switch (activeTab) {
+      case 'today': return 'Hoje';
+      case 'week': return 'Esta Semana';
+      case 'month': return 'Este Mês';
     }
   };
 
-  const adherence = calculateAdherence();
+  const getPreviousPeriodLabel = () => {
+    switch (activeTab) {
+      case 'today': return 'Ontem';
+      case 'week': return 'Semana Passada';
+      case 'month': return 'Mês Passado';
+    }
+  };
 
-  // Group doses by date
-  const dosesByDate = doses.reduce((acc, dose) => {
-    const dateKey = format(new Date(dose.due_at), 'yyyy-MM-dd');
-    if (!acc[dateKey]) acc[dateKey] = [];
-    acc[dateKey].push(dose);
-    return acc;
-  }, {} as Record<string, DoseInstance[]>);
+  if (loading) {
+    return (
+      <>
+        <Header />
+        <PageSkeleton />
+        <Navigation />
+      </>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background pb-20">
       <Header />
-      <Navigation />
 
-      <main className="container max-w-4xl mx-auto px-4 pt-20 pb-8">
+      <main className="container max-w-4xl mx-auto px-4 pt-20 pb-8 space-y-6">
         {/* Header */}
-        <div className="mb-6 space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold">Histórico</h1>
-              <p className="text-muted-foreground">
-                Acompanhe seu compromisso com a saúde
-              </p>
-            </div>
-            {streak > 0 && <StreakBadge streak={streak} type="current" />}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold">Histórico Completo</h1>
+            <p className="text-muted-foreground">
+              Análises detalhadas da sua adesão ao tratamento
+            </p>
           </div>
+          {streak > 0 && <StreakBadge streak={streak} type="current" />}
+        </div>
 
-          {/* Adherence Card */}
+        {/* Stats Cards */}
+        <div className="grid gap-4 md:grid-cols-4">
           <Card>
             <CardContent className="pt-6">
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">
-                    Adesão {activeTab === 'week' ? 'Semanal' : 'Mensal'}
-                  </span>
-                  <span className="text-2xl font-bold text-primary">{adherence}%</span>
-                </div>
-                <Progress value={adherence} className="h-3" />
-                <p className="text-sm text-muted-foreground">
-                  {adherence >= 90 && "🎉 Excelente! Continue assim!"}
-                  {adherence >= 70 && adherence < 90 && "💪 Bom trabalho! Continue!"}
-                  {adherence >= 50 && adherence < 70 && "⚡ Você pode melhorar!"}
-                  {adherence < 50 && "Vamos retomar a rotina!"}
-                </p>
+              <div className="flex items-center gap-2 text-muted-foreground mb-2">
+                <Target className="h-4 w-4" />
+                <span className="text-sm">Adesão</span>
               </div>
+              <div className="text-3xl font-bold text-primary">
+                {currentStats.adherenceRate}%
+              </div>
+              <div className="flex items-center gap-1 mt-2 text-xs">
+                {difference > 0 && (
+                  <>
+                    <TrendingUp className="h-3 w-3 text-success" />
+                    <span className="text-success">+{difference}%</span>
+                  </>
+                )}
+                {difference < 0 && (
+                  <>
+                    <TrendingDown className="h-3 w-3 text-destructive" />
+                    <span className="text-destructive">{difference}%</span>
+                  </>
+                )}
+                {difference === 0 && (
+                  <>
+                    <Minus className="h-3 w-3 text-muted-foreground" />
+                    <span className="text-muted-foreground">sem mudança</span>
+                  </>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-2 text-muted-foreground mb-2">
+                <Activity className="h-4 w-4" />
+                <span className="text-sm">Sequência</span>
+              </div>
+              <div className="text-3xl font-bold text-orange-600">
+                {streak}
+              </div>
+              <p className="text-xs text-muted-foreground mt-2">
+                Recorde: {longestStreak} dias
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-2 text-muted-foreground mb-2">
+                <Clock className="h-4 w-4" />
+                <span className="text-sm">Tomadas</span>
+              </div>
+              <div className="text-3xl font-bold text-success">
+                {currentStats.taken}
+              </div>
+              <p className="text-xs text-muted-foreground mt-2">
+                de {currentStats.total} doses
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-2 text-muted-foreground mb-2">
+                <BarChart3 className="h-4 w-4" />
+                <span className="text-sm">Perdidas</span>
+              </div>
+              <div className="text-3xl font-bold text-destructive">
+                {currentStats.missed + currentStats.skipped}
+              </div>
+              <p className="text-xs text-muted-foreground mt-2">
+                {currentStats.missed} perdidas, {currentStats.skipped} puladas
+              </p>
             </CardContent>
           </Card>
         </div>
 
         {/* Tabs */}
-        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="space-y-4">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="week" className="gap-2">
-              <CalendarIcon className="h-4 w-4" />
-              Semana
-            </TabsTrigger>
-            <TabsTrigger value="month" className="gap-2">
-              <HistoryIcon className="h-4 w-4" />
-              Mês
-            </TabsTrigger>
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="space-y-6">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="today">Hoje</TabsTrigger>
+            <TabsTrigger value="week">Semana</TabsTrigger>
+            <TabsTrigger value="month">Mês</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="week" className="space-y-4">
-            {loading ? (
-              <Card><CardContent className="py-8 text-center">Carregando...</CardContent></Card>
-            ) : Object.keys(dosesByDate).length === 0 ? (
-              <Card><CardContent className="py-8 text-center text-muted-foreground">
-                Nenhum registro nesta semana
-              </CardContent></Card>
-            ) : (
-              Object.entries(dosesByDate).map(([date, dateDoses]) => (
-                <Card key={date}>
-                  <CardContent className="pt-6">
-                    <h3 className="font-semibold mb-4">
-                      {format(new Date(date), "EEEE, dd 'de' MMMM", { locale: ptBR })}
-                    </h3>
-                    <div className="space-y-2">
-                      {dateDoses.map(dose => (
-                        <div key={dose.id} className="flex items-center justify-between py-2 border-b last:border-0">
-                          <div className="flex-1">
-                            <p className="font-medium">{dose.items.name}</p>
-                            <p className="text-sm text-muted-foreground">
-                              {format(new Date(dose.due_at), 'HH:mm')}
-                            </p>
-                          </div>
-                          <div className="text-right">
-                            <span className="text-lg">{getStatusIcon(dose.status)}</span>
-                            <p className="text-xs text-muted-foreground">{getStatusLabel(dose.status)}</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))
-            )}
-          </TabsContent>
+          <TabsContent value={activeTab} className="space-y-6">
+            {/* Comparison Card */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Comparação de Períodos</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium">{getPeriodLabel()}</span>
+                    <span className="text-lg font-bold text-primary">
+                      {currentStats.adherenceRate}%
+                    </span>
+                  </div>
+                  <Progress value={currentStats.adherenceRate} className="h-2" />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {currentStats.taken} de {currentStats.total} doses tomadas
+                  </p>
+                </div>
 
-          <TabsContent value="month" className="space-y-4">
-            {loading ? (
-              <Card><CardContent className="py-8 text-center">Carregando...</CardContent></Card>
-            ) : Object.keys(dosesByDate).length === 0 ? (
-              <Card><CardContent className="py-8 text-center text-muted-foreground">
-                Nenhum registro neste mês
-              </CardContent></Card>
-            ) : (
-              Object.entries(dosesByDate).map(([date, dateDoses]) => (
-                <Card key={date}>
-                  <CardContent className="pt-6">
-                    <h3 className="font-semibold mb-4">
-                      {format(new Date(date), "dd 'de' MMMM", { locale: ptBR })}
-                    </h3>
-                    <div className="space-y-2">
-                      {dateDoses.map(dose => (
-                        <div key={dose.id} className="flex items-center justify-between py-2 border-b last:border-0">
-                          <div className="flex-1">
-                            <p className="font-medium">{dose.items.name}</p>
-                            <p className="text-sm text-muted-foreground">
-                              {format(new Date(dose.due_at), 'HH:mm')}
-                            </p>
-                          </div>
-                          <div className="text-right">
-                            <span className="text-lg">{getStatusIcon(dose.status)}</span>
-                            <p className="text-xs text-muted-foreground">{getStatusLabel(dose.status)}</p>
-                          </div>
-                        </div>
-                      ))}
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium text-muted-foreground">
+                      {getPreviousPeriodLabel()}
+                    </span>
+                    <span className="text-lg font-bold text-muted-foreground">
+                      {previousStats.adherenceRate}%
+                    </span>
+                  </div>
+                  <Progress value={previousStats.adherenceRate} className="h-2 opacity-50" />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {previousStats.taken} de {previousStats.total} doses tomadas
+                  </p>
+                </div>
+
+                {difference !== 0 && (
+                  <div className={`p-3 rounded-lg ${difference > 0 ? 'bg-success/10' : 'bg-destructive/10'}`}>
+                    <p className={`text-sm font-medium ${difference > 0 ? 'text-success' : 'text-destructive'}`}>
+                      {difference > 0 ? (
+                        <>🎉 Parabéns! Você melhorou {Math.abs(difference)}% comparado com {getPreviousPeriodLabel().toLowerCase()}!</>
+                      ) : (
+                        <>⚠️ Sua adesão caiu {Math.abs(difference)}% comparado com {getPreviousPeriodLabel().toLowerCase()}. Vamos retomar!</>
+                      )}
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Adherence Chart */}
+            <AdherenceChart 
+              doses={doses}
+              period={activeTab}
+            />
+
+            {/* Dose Timeline */}
+            <DoseTimeline 
+              doses={doses}
+              period={activeTab}
+            />
+
+            {/* Medication Stats */}
+            {medicationStats.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Adesão por Medicamento (últimos 30 dias)</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {medicationStats.map((med) => (
+                    <div key={med.name}>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm font-medium">{med.name}</span>
+                        <span className="text-sm font-bold text-primary">
+                          {med.adherenceRate}%
+                        </span>
+                      </div>
+                      <Progress value={med.adherenceRate} className="h-2" />
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {med.taken} de {med.total} doses tomadas
+                      </p>
                     </div>
-                  </CardContent>
-                </Card>
-              ))
+                  ))}
+                </CardContent>
+              </Card>
             )}
           </TabsContent>
         </Tabs>
       </main>
+
+      <Navigation />
     </div>
   );
 }
