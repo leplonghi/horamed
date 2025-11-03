@@ -42,33 +42,33 @@ export default function Cofre() {
     return (
       <Link key={doc.id} to={`/cofre/${doc.id}`}>
         <Card className="hover:shadow-lg transition-all cursor-pointer">
-          <CardContent className="p-4">
-            <div className="flex gap-3">
-              <div className="w-16 h-16 rounded bg-muted flex items-center justify-center flex-shrink-0">
-                <FileText className="w-8 h-8 text-muted-foreground" />
+          <CardContent className="p-3">
+            <div className="flex gap-2.5">
+              <div className="w-12 h-12 rounded bg-muted flex items-center justify-center flex-shrink-0">
+                <FileText className="w-6 h-6 text-muted-foreground" />
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="font-semibold truncate">{doc.title || "Sem título"}</h3>
-                <div className="flex flex-wrap gap-2 mt-1">
+                <h3 className="font-semibold text-sm truncate">{doc.title || "Sem título"}</h3>
+                <div className="flex flex-wrap gap-1.5 mt-1">
                   {doc.categorias_saude && (
-                    <Badge variant="outline" className="text-xs">
+                    <Badge variant="outline" className="text-[10px] h-5">
                       {doc.categorias_saude.label}
                     </Badge>
                   )}
                   {isExpiringSoon && (
-                    <Badge variant="destructive" className="text-xs">
+                    <Badge variant="destructive" className="text-[10px] h-5">
                       Vence em breve
                     </Badge>
                   )}
                 </div>
-                <div className="text-xs text-muted-foreground mt-2 space-y-1">
+                <div className="text-[10px] text-muted-foreground mt-1.5 space-y-0.5">
                   {doc.issued_at && (
                     <div>Emissão: {format(new Date(doc.issued_at), "dd/MM/yyyy", { locale: ptBR })}</div>
                   )}
                   {doc.expires_at && (
                     <div>Validade: {format(new Date(doc.expires_at), "dd/MM/yyyy", { locale: ptBR })}</div>
                   )}
-                  {doc.provider && <div>Prestador: {doc.provider}</div>}
+                  {doc.provider && <div className="truncate">Prestador: {doc.provider}</div>}
                 </div>
               </div>
             </div>
@@ -130,12 +130,12 @@ export default function Cofre() {
             <TabsTrigger value="consulta">Consultas</TabsTrigger>
           </TabsList>
 
-          <TabsContent value={categoriaAtiva} className="space-y-4 mt-6">
+          <TabsContent value={categoriaAtiva} className="space-y-3 mt-6">
             {isLoading ? (
               <>
-                <Skeleton className="h-24" />
-                <Skeleton className="h-24" />
-                <Skeleton className="h-24" />
+                <Skeleton className="h-20" />
+                <Skeleton className="h-20" />
+                <Skeleton className="h-20" />
               </>
             ) : documentos && documentos.length > 0 ? (
               documentos.map(renderDocumentoCard)
