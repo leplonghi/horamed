@@ -19,17 +19,17 @@ export default function DoseActionButton({
     taken: {
       icon: CheckCircle2,
       label: "✓ Tomei",
-      className: "bg-primary hover:bg-primary/90 text-primary-foreground",
+      className: "bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-sm",
     },
     snooze: {
       icon: Clock,
-      label: "⏰ Adiar",
+      label: "Mais tarde",
       className: "bg-secondary hover:bg-secondary/80 text-secondary-foreground",
     },
     more: {
       icon: MoreHorizontal,
-      label: "Mais opções",
-      className: "bg-muted hover:bg-muted/80 text-foreground",
+      label: "⋯",
+      className: "bg-muted hover:bg-muted/80 text-foreground w-12 px-2",
     },
   };
 

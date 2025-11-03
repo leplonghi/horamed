@@ -1191,6 +1191,8 @@ export type Database = {
           height_cm: number | null
           id: string
           nickname: string | null
+          onboarding_completed: boolean | null
+          tutorial_flags: Json | null
           updated_at: string | null
           user_id: string
           weight_kg: number | null
@@ -1203,6 +1205,8 @@ export type Database = {
           height_cm?: number | null
           id?: string
           nickname?: string | null
+          onboarding_completed?: boolean | null
+          tutorial_flags?: Json | null
           updated_at?: string | null
           user_id: string
           weight_kg?: number | null
@@ -1215,6 +1219,8 @@ export type Database = {
           height_cm?: number | null
           id?: string
           nickname?: string | null
+          onboarding_completed?: boolean | null
+          tutorial_flags?: Json | null
           updated_at?: string | null
           user_id?: string
           weight_kg?: number | null

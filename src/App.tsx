@@ -39,7 +39,8 @@ import ConsultationCardView from './pages/ConsultationCardView';
 import Admin from './pages/Admin';
 import NotificationSettings from "./pages/NotificationSettings";
 import Tutorial from "./pages/Tutorial";
-import OnboardingTour from "./components/OnboardingTour";
+import OnboardingScreens from "./components/OnboardingScreens";
+import { SubscriptionProvider } from "./contexts/SubscriptionContext";
 
 function AppContent() {
   const location = useLocation();
@@ -47,7 +48,7 @@ function AppContent() {
 
   return (
     <>
-      <OnboardingTour />
+      <OnboardingScreens />
       <Toaster />
       <Sonner />
       <Routes>
@@ -113,9 +114,11 @@ const App = () => {
       <QueryClientProvider client={queryClient}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
           <TooltipProvider>
-            <BrowserRouter>
-              <AppContent />
-            </BrowserRouter>
+            <SubscriptionProvider>
+              <BrowserRouter>
+                <AppContent />
+              </BrowserRouter>
+            </SubscriptionProvider>
           </TooltipProvider>
         </ThemeProvider>
       </QueryClientProvider>

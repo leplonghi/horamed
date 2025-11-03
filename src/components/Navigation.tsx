@@ -1,4 +1,4 @@
-import { Home, Calendar, User, Pill, FolderHeart, History } from "lucide-react";
+import { Home, User, Pill, FolderHeart, MoreHorizontal } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
@@ -7,10 +7,9 @@ export default function Navigation() {
 
   const navItems = [
     { path: "/hoje", icon: Home, label: "Hoje" },
-    { path: "/historico", icon: History, label: "Histórico" },
     { path: "/medicamentos", icon: Pill, label: "Medicamentos" },
     { path: "/cofre", icon: FolderHeart, label: "Cofre" },
-    { path: "/mais", icon: User, label: "Mais" },
+    { path: "/perfil", icon: User, label: "Perfil" },
   ];
 
   return (
