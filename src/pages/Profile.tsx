@@ -182,23 +182,23 @@ export default function Profile() {
   return (
     <>
       <Header />
-      <div className="min-h-screen bg-background pt-20 p-4 pb-24 max-w-md mx-auto">
-        <div className="space-y-4">
+      <div className="min-h-screen bg-background pt-20 px-3 py-4 pb-24 max-w-md mx-auto">
+        <div className="space-y-3">
 
           {/* User Profiles Section */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between px-2">
-              <h2 className="text-base font-semibold text-foreground flex items-center gap-2">
-                <Users className="h-4 w-4" />
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between px-1">
+              <h2 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
+                <Users className="h-3.5 w-3.5" />
                 Perfis de Usuários
               </h2>
               {isPremium && (
                 <Button
                   size="sm"
                   onClick={() => navigate('/perfis/novo')}
-                  className="gap-1 h-8"
+                  className="gap-1 h-7 text-xs"
                 >
-                  <Plus className="h-3.5 w-3.5" />
+                  <Plus className="h-3 w-3" />
                   Novo
                 </Button>
               )}
@@ -241,20 +241,20 @@ export default function Profile() {
                           switchProfile(profile);
                         }
                       }}
-                      className="w-full p-3 flex items-center gap-3 transition-colors text-left hover:bg-accent/50"
+                      className="w-full p-2.5 flex items-center gap-2.5 transition-colors text-left hover:bg-accent/50"
                     >
-                      <Avatar className="h-10 w-10 shrink-0">
+                      <Avatar className="h-9 w-9 shrink-0">
                         <AvatarImage src={profile.avatar_url || undefined} />
-                        <AvatarFallback className="text-sm">{getInitials(profile.name)}</AvatarFallback>
+                        <AvatarFallback className="text-xs">{getInitials(profile.name)}</AvatarFallback>
                       </Avatar>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-1.5">
-                          <p className="font-medium text-sm truncate">{profile.name}</p>
+                          <p className="font-medium text-xs truncate">{profile.name}</p>
                           {isActive && (
-                            <Badge className="text-[10px] h-5 shrink-0">Ativo</Badge>
+                            <Badge className="text-[9px] h-4 shrink-0">Ativo</Badge>
                           )}
                         </div>
-                        <p className="text-xs text-muted-foreground truncate">
+                        <p className="text-[10px] text-muted-foreground truncate">
                           {getRelationshipLabel(profile.relationship)}
                         </p>
                       </div>
@@ -262,7 +262,7 @@ export default function Profile() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 shrink-0"
+                          className="h-7 w-7 shrink-0"
                           onClick={(e) => {
                             e.stopPropagation();
                             if (confirm(`Deseja remover o perfil de ${profile.name}?`)) {
@@ -270,7 +270,7 @@ export default function Profile() {
                             }
                           }}
                         >
-                          <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                          <Trash2 className="h-3 w-3 text-destructive" />
                         </Button>
                       )}
                     </button>

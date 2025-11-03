@@ -176,18 +176,18 @@ export default function Medications() {
   return (
     <>
       <Header />
-      <div className="min-h-screen bg-background pt-20 p-6 pb-24 overflow-x-hidden">
-        <div className="max-w-4xl mx-auto space-y-6 overflow-x-hidden">
+      <div className="min-h-screen bg-background pt-20 px-3 py-4 pb-24 overflow-x-hidden">
+        <div className="max-w-4xl mx-auto space-y-4 overflow-x-hidden">
           {/* Header */}
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0 flex-1">
-              <h1 className="text-3xl font-bold truncate">Meus Medicamentos</h1>
-              <p className="text-muted-foreground truncate">
+              <h1 className="text-2xl font-bold truncate">Meus Medicamentos</h1>
+              <p className="text-sm text-muted-foreground truncate">
                 {items.length > 0 && `${items.length} medicamento${items.length > 1 ? 's' : ''} ativo${items.length > 1 ? 's' : ''}`}
               </p>
             </div>
-            <Button onClick={handleAddClick} size="lg" className="shrink-0">
-              <Plus className="h-5 w-5 mr-2" />
+            <Button onClick={handleAddClick} size="sm" className="shrink-0 h-9">
+              <Plus className="h-4 w-4 mr-1.5" />
               Adicionar
             </Button>
           </div>
@@ -244,51 +244,53 @@ export default function Medications() {
                 
                 return (
                   <Card key={item.id} className={cn("hover:shadow-md transition-shadow overflow-hidden border-l-4", colorClass)}>
-                    <CardContent className="p-4 overflow-x-hidden">
+                    <CardContent className="p-3 overflow-x-hidden">
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-2">
-                            <span className="text-2xl shrink-0">{CATEGORY_ICONS[item.category] || "📦"}</span>
-                            <h3 className="font-semibold text-lg truncate">{item.name}</h3>
+                          <div className="flex items-center gap-2 mb-1.5">
+                            <span className="text-xl shrink-0">{CATEGORY_ICONS[item.category] || "📦"}</span>
+                            <h3 className="font-semibold text-base truncate">{item.name}</h3>
                           </div>
                           
                           {item.dose_text && (
-                            <p className="text-sm text-muted-foreground mb-2 truncate">
+                            <p className="text-xs text-muted-foreground mb-1.5 truncate">
                               {item.dose_text}
                             </p>
                           )}
                           
-                          <div className="flex flex-wrap gap-2">
-                            <Badge variant="outline" className="shrink-0">
+                          <div className="flex flex-wrap gap-1.5">
+                            <Badge variant="outline" className="shrink-0 text-[10px] h-5">
                               {getScheduleSummary(item.schedules)}
                             </Badge>
                             
                             {stockStatus && (
                               <Badge 
                                 variant={stockStatus.color === "destructive" ? "destructive" : "secondary"}
-                                className={`shrink-0 ${stockStatus.color === "warning" ? "bg-amber-100 text-amber-700" : ""}`}
+                                className={`shrink-0 text-[10px] h-5 ${stockStatus.color === "warning" ? "bg-amber-100 text-amber-700" : ""}`}
                               >
-                                <Package className="h-3 w-3 mr-1" />
+                                <Package className="h-2.5 w-2.5 mr-0.5" />
                                 {stockStatus.label}
                               </Badge>
                             )}
                           </div>
                         </div>
 
-                        <div className="flex gap-2 shrink-0">
+                        <div className="flex gap-1.5 shrink-0">
                           <Button
                             variant="ghost"
                             size="icon"
+                            className="h-8 w-8"
                             onClick={() => navigate(`/adicionar?edit=${item.id}`)}
                           >
-                            <Pencil className="h-4 w-4" />
+                            <Pencil className="h-3.5 w-3.5" />
                           </Button>
                           <Button
                             variant="ghost"
                             size="icon"
+                            className="h-8 w-8"
                             onClick={() => deleteItem(item.id)}
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <Trash2 className="h-3.5 w-3.5" />
                           </Button>
                         </div>
                       </div>

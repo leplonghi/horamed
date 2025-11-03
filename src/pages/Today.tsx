@@ -350,15 +350,15 @@ export default function Today() {
   return (
     <>
       <Header />
-      <div className="min-h-screen bg-background pt-20 p-6 pb-24 overflow-x-hidden">
-        <div className="max-w-6xl mx-auto space-y-6 overflow-x-hidden">
+      <div className="min-h-screen bg-background pt-20 px-3 py-4 pb-24 overflow-x-hidden">
+        <div className="max-w-6xl mx-auto space-y-4 overflow-x-hidden">
           {/* Greeting & Streak */}
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-4xl font-bold">
+              <h1 className="text-2xl font-bold">
                 {greeting}{userName && `, ${userName}`}!
               </h1>
-              <p className="text-lg text-muted-foreground mt-2">
+              <p className="text-sm text-muted-foreground mt-1">
                 {timelineItems.length > 0 
                   ? `${timelineItems.length} evento${timelineItems.length > 1 ? 's' : ''} hoje`
                   : "Nenhum evento programado"}
@@ -387,20 +387,20 @@ export default function Today() {
           {/* Today Summary */}
           {format(selectedDate, "yyyy-MM-dd") === format(new Date(), "yyyy-MM-dd") && (
             <Card className="bg-gradient-to-br from-primary/10 to-primary/5">
-              <CardContent className="py-6">
+              <CardContent className="py-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <p className="text-lg text-muted-foreground">Adesão de Hoje</p>
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <p className="text-sm text-muted-foreground">Adesão de Hoje</p>
                       <InfoDialog
                         title="O que é adesão?"
                         description="Adesão é a proporção de doses tomadas. Acima de 80% é excelente!"
                       />
                     </div>
-                    <p className="text-4xl font-bold">
+                    <p className="text-2xl font-bold">
                       {todayStats.taken}/{todayStats.total}
                     </p>
-                    <p className="text-base mt-1">
+                    <p className="text-sm mt-0.5">
                       {adherencePercentage >= 80 && "🎉 Excelente!"}
                       {adherencePercentage >= 50 && adherencePercentage < 80 && "💪 Bom trabalho!"}
                       {adherencePercentage < 50 && todayStats.total > 0 && "Vamos lá!"}
@@ -408,8 +408,8 @@ export default function Today() {
                     </p>
                   </div>
                   <div className="text-right">
-                    <div className="text-5xl font-bold text-primary">{adherencePercentage}%</div>
-                    <p className="text-sm text-muted-foreground">de adesão</p>
+                    <div className="text-3xl font-bold text-primary">{adherencePercentage}%</div>
+                    <p className="text-xs text-muted-foreground">de adesão</p>
                   </div>
                 </div>
               </CardContent>
