@@ -77,58 +77,16 @@ export default function DayTimeline({ date, items, onDateChange }: DayTimelinePr
   };
 
   return (
-    <div className="space-y-6">
-      {/* Navegação de Data */}
-      <Card>
-        <CardContent className="py-4">
-          <div className="flex items-center justify-between">
-            <Button
-              variant="outline"
-              size="lg"
-              onClick={() => {
-                const newDate = new Date(date);
-                newDate.setDate(newDate.getDate() - 1);
-                onDateChange(newDate);
-              }}
-            >
-              ← Dia Anterior
-            </Button>
-            
-            <div className="text-center">
-              <p className="text-sm text-muted-foreground">
-                {format(date, "EEEE", { locale: ptBR })}
-              </p>
-              <p className="text-2xl font-bold">
-                {format(date, "dd 'de' MMMM", { locale: ptBR })}
-              </p>
-            </div>
-            
-            <Button
-              variant="outline"
-              size="lg"
-              onClick={() => {
-                const newDate = new Date(date);
-                newDate.setDate(newDate.getDate() + 1);
-                onDateChange(newDate);
-              }}
-            >
-              Próximo Dia →
-            </Button>
-          </div>
-          
-          {!isCurrentDay && (
-            <div className="mt-4 text-center">
-              <Button
-                variant="secondary"
-                onClick={() => onDateChange(new Date())}
-              >
-                <Calendar className="h-4 w-4 mr-2" />
-                Voltar para Hoje
-              </Button>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+    <div className="space-y-4">
+      {/* Header do Dia */}
+      <div className="text-center py-3">
+        <p className="text-sm text-muted-foreground">
+          {format(date, "EEEE", { locale: ptBR })}
+        </p>
+        <p className="text-xl font-bold">
+          {format(date, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+        </p>
+      </div>
 
       {/* Timeline do Dia */}
       <div className="space-y-4">

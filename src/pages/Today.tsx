@@ -11,6 +11,7 @@ import { useCriticalAlerts } from "@/hooks/useCriticalAlerts";
 import { PageSkeleton } from "@/components/LoadingSkeleton";
 import { useFeedbackToast } from "@/hooks/useFeedbackToast";
 import DayTimeline from "@/components/DayTimeline";
+import WeekCalendarView from "@/components/WeekCalendarView";
 import { Card, CardContent } from "@/components/ui/card";
 import StreakBadge from "@/components/StreakBadge";
 import CriticalAlertBanner from "@/components/CriticalAlertBanner";
@@ -41,6 +42,60 @@ export default function Today() {
   const [greeting, setGreeting] = useState("");
   const [userName, setUserName] = useState("");
   const [todayStats, setTodayStats] = useState({ total: 0, taken: 0 });
+  const [eventCounts, setEventCounts] = useState<Record<string, number>>({});
+
+  const loadEventCounts = useCallback(async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Get counts for the current month
+      const monthStart = startOfDay(new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1));
+      const monthEnd = endOfDay(new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1, 0));
+
+      const [dosesData, appointmentsData, eventsData] = await Promise.all([
+        supabase
+          .from("dose_instances")
+          .select("due_at")
+          .gte("due_at", monthStart.toISOString())
+          .lte("due_at", monthEnd.toISOString()),
+        supabase
+          .from("consultas_medicas")
+          .select("data_consulta")
+          .eq("user_id", user.id)
+          .gte("data_consulta", monthStart.toISOString())
+          .lte("data_consulta", monthEnd.toISOString()),
+        supabase
+          .from("eventos_saude")
+          .select("due_date")
+          .eq("user_id", user.id)
+          .eq("type", "renovacao_exame")
+          .gte("due_date", format(monthStart, "yyyy-MM-dd"))
+          .lte("due_date", format(monthEnd, "yyyy-MM-dd"))
+      ]);
+
+      const counts: Record<string, number> = {};
+      
+      dosesData.data?.forEach((dose: any) => {
+        const key = format(new Date(dose.due_at), "yyyy-MM-dd");
+        counts[key] = (counts[key] || 0) + 1;
+      });
+
+      appointmentsData.data?.forEach((apt: any) => {
+        const key = format(new Date(apt.data_consulta), "yyyy-MM-dd");
+        counts[key] = (counts[key] || 0) + 1;
+      });
+
+      eventsData.data?.forEach((event: any) => {
+        const key = event.due_date;
+        counts[key] = (counts[key] || 0) + 1;
+      });
+
+      setEventCounts(counts);
+    } catch (error) {
+      console.error("Error loading event counts:", error);
+    }
+  }, [selectedDate]);
 
   const loadData = useCallback(async (date: Date) => {
     try {
@@ -164,6 +219,7 @@ export default function Today() {
     else setGreeting("Boa noite");
 
     loadData(selectedDate);
+    loadEventCounts();
     scheduleNotificationsForNextDay();
 
     // Set up realtime subscription
@@ -201,7 +257,7 @@ export default function Today() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [loadData, scheduleNotificationsForNextDay, selectedDate]);
+  }, [loadData, loadEventCounts, scheduleNotificationsForNextDay, selectedDate]);
 
   const markAsTaken = async (doseId: string, itemId: string, itemName: string) => {
     try {
@@ -354,6 +410,17 @@ export default function Today() {
               </CardContent>
             </Card>
           )}
+
+          {/* Calendário Semanal */}
+          <WeekCalendarView
+            selectedDate={selectedDate}
+            onDateSelect={(newDate) => {
+              setSelectedDate(newDate);
+              setLoading(true);
+              loadData(newDate);
+            }}
+            eventCounts={eventCounts}
+          />
 
           {/* Timeline do Dia */}
           <DayTimeline
