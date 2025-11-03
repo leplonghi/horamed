@@ -79,11 +79,11 @@ export default function DayTimeline({ date, items, onDateChange }: DayTimelinePr
   return (
     <div className="space-y-4">
       {/* Header do Dia */}
-      <div className="text-center py-3">
-        <p className="text-sm text-muted-foreground">
+      <div className="text-center py-2 mb-2">
+        <p className="text-xs text-muted-foreground">
           {format(date, "EEEE", { locale: ptBR })}
         </p>
-        <p className="text-xl font-bold">
+        <p className="text-lg font-bold">
           {format(date, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
         </p>
       </div>
@@ -106,10 +106,10 @@ export default function DayTimeline({ date, items, onDateChange }: DayTimelinePr
             if (!hourItems || hourItems.length === 0) return null;
 
             return (
-              <div key={hour} className="relative pl-10">
+              <div key={hour} className="relative pl-8">
                 {/* Hora */}
-                <div className="absolute left-0 top-0 text-right w-8">
-                  <span className="text-lg font-bold text-muted-foreground">
+                <div className="absolute left-0 top-0 text-right w-7">
+                  <span className="text-sm font-semibold text-muted-foreground">
                     {hour}:00
                   </span>
                 </div>
@@ -128,21 +128,21 @@ export default function DayTimeline({ date, items, onDateChange }: DayTimelinePr
                       <Card
                         key={item.id}
                         className={cn(
-                          "border-l-4 transition-all hover:shadow-md",
-                          isDone && "bg-green-50 border-green-500 dark:bg-green-950/20",
-                          isMissed && "bg-red-50 border-red-500 dark:bg-red-950/20",
+                          "border-l-4 transition-all hover:shadow-md overflow-hidden",
+                          isDone && "bg-success/5 border-success dark:bg-success/10",
+                          isMissed && "bg-destructive/5 border-destructive dark:bg-destructive/10",
                           !isDone && !isMissed && "border-primary"
                         )}
                       >
-                        <CardContent className="p-4">
-                          <div className="flex items-start gap-3">
+                        <CardContent className="p-3">
+                          <div className="flex items-center gap-3">
                             {/* Ícone */}
                             <div
                               className={cn(
-                                "p-2 rounded-full text-white shrink-0",
-                                isDone && "bg-green-500",
-                                isMissed && "bg-red-500",
-                                !isDone && !isMissed && getTypeColor(item.type)
+                                "p-2 rounded-lg shrink-0",
+                                isDone && "bg-success text-success-foreground",
+                                isMissed && "bg-destructive text-destructive-foreground",
+                                !isDone && !isMissed && "bg-primary/10 text-primary"
                               )}
                             >
                               {isDone ? (
@@ -154,60 +154,64 @@ export default function DayTimeline({ date, items, onDateChange }: DayTimelinePr
 
                             {/* Conteúdo */}
                             <div className="flex-1 min-w-0">
-                              <div className="flex items-start justify-between gap-3 mb-2">
-                                <div className="flex-1">
-                                  <Badge variant="outline" className="mb-1 text-xs">
-                                    {getTypeLabel(item.type)}
-                                  </Badge>
-                                  <h3 className="text-base font-bold mb-0.5">
+                              <div className="flex items-center justify-between gap-2 mb-1">
+                                <div className="flex-1 min-w-0">
+                                  <h3 className="text-sm font-semibold truncate">
                                     {item.title}
                                   </h3>
                                   {item.subtitle && (
-                                    <p className="text-sm text-muted-foreground">
+                                    <p className="text-xs text-muted-foreground truncate">
                                       {item.subtitle}
                                     </p>
                                   )}
                                 </div>
-                                <div className="text-right">
-                                  <p className="text-xl font-bold text-primary">
+                                <div className="text-right shrink-0">
+                                  <p className="text-lg font-bold text-primary">
                                     {item.time}
                                   </p>
-                                  {isPast && !isDone && !isMissed && (
-                                    <Badge variant="destructive" className="mt-0.5 text-xs">
-                                      Atrasado
-                                    </Badge>
-                                  )}
-                                  {isDone && (
-                                    <Badge variant="default" className="mt-0.5 bg-green-500 text-xs">
-                                      ✓ Feito
-                                    </Badge>
-                                  )}
-                                  {isMissed && (
-                                    <Badge variant="destructive" className="mt-0.5 text-xs">
-                                      Perdido
-                                    </Badge>
-                                  )}
                                 </div>
+                              </div>
+
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <Badge variant="outline" className="text-xs">
+                                  {getTypeLabel(item.type)}
+                                </Badge>
+                                {isPast && !isDone && !isMissed && (
+                                  <Badge variant="destructive" className="text-xs">
+                                    Atrasado
+                                  </Badge>
+                                )}
+                                {isDone && (
+                                  <Badge className="bg-success text-xs">
+                                    ✓ Feito
+                                  </Badge>
+                                )}
+                                {isMissed && (
+                                  <Badge variant="destructive" className="text-xs">
+                                    Perdido
+                                  </Badge>
+                                )}
                               </div>
 
                               {/* Ações - apenas para medicamentos pendentes */}
                               {item.type === "medication" && !isDone && !isMissed && (
                                 <div className="flex gap-2 mt-3">
                                   <Button
-                                    size="default"
+                                    size="sm"
                                     onClick={item.onMarkDone}
-                                    className="flex-1"
+                                    className="flex-1 h-9"
                                   >
-                                    <CheckCircle2 className="h-4 w-4 mr-2" />
+                                    <CheckCircle2 className="h-3.5 w-3.5 mr-1.5" />
                                     Tomei
                                   </Button>
                                   {item.onSnooze && (
                                     <Button
-                                      size="default"
+                                      size="sm"
                                       variant="outline"
                                       onClick={item.onSnooze}
+                                      className="h-9"
                                     >
-                                      <Clock className="h-4 w-4 mr-2" />
+                                      <Clock className="h-3.5 w-3.5 mr-1.5" />
                                       Adiar
                                     </Button>
                                   )}

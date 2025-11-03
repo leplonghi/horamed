@@ -143,54 +143,56 @@ export default function WeekCalendarView({
   }
 
   return (
-    <Card>
-      <CardContent className="p-4">
+      <Card>
+        <CardContent className="p-3">
         {/* Week Navigation */}
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-1">
             <Button
               variant="ghost"
               size="icon"
               onClick={goToPreviousWeek}
-              className="h-8 w-8"
+              className="h-7 w-7"
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
-            <h3 className="text-base font-semibold min-w-[200px] text-center">
+            <h3 className="text-sm font-semibold min-w-[140px] text-center">
               {format(weekStart, "MMMM yyyy", { locale: ptBR })}
             </h3>
             <Button
               variant="ghost"
               size="icon"
               onClick={goToNextWeek}
-              className="h-8 w-8"
+              className="h-7 w-7"
             >
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
           
-          <div className="flex gap-2">
+          <div className="flex gap-1">
             {!isToday(selectedDate) && (
               <Button
-                variant="outline"
+                variant="ghost"
                 size="sm"
                 onClick={goToToday}
+                className="h-7 text-xs px-2"
               >
                 Hoje
               </Button>
             )}
             <Button
-              variant="outline"
+              variant="ghost"
               size="sm"
               onClick={() => setView("month")}
+              className="h-7 text-xs px-2"
             >
-              Ver Mês
+              Mês
             </Button>
           </div>
         </div>
 
-        {/* Week Days */}
-        <div className="grid grid-cols-7 gap-2">
+          {/* Week Days */}
+        <div className="grid grid-cols-7 gap-1.5">
           {weekDays.map((day) => {
             const count = getEventCount(day);
             const isDayToday = isToday(day);
@@ -201,28 +203,26 @@ export default function WeekCalendarView({
                 key={day.toISOString()}
                 onClick={() => onDateSelect(day)}
                 className={cn(
-                  "flex flex-col items-center gap-1 p-3 rounded-lg transition-all",
-                  "hover:bg-accent hover:scale-105",
-                  isSelected && "bg-primary text-primary-foreground hover:bg-primary/90",
-                  isDayToday && !isSelected && "bg-accent ring-2 ring-primary/20"
+                  "flex flex-col items-center gap-0.5 p-2 rounded-xl transition-all",
+                  "hover:bg-accent",
+                  isSelected && "bg-primary text-primary-foreground hover:bg-primary/90 shadow-md",
+                  isDayToday && !isSelected && "bg-accent ring-2 ring-primary/30"
                 )}
               >
-                <span className="text-xs font-medium">
+                <span className="text-[10px] font-medium uppercase opacity-70">
                   {format(day, "EEE", { locale: ptBR })}
                 </span>
                 <span className={cn(
-                  "text-2xl font-bold",
+                  "text-xl font-bold",
                   isDayToday && !isSelected && "text-primary"
                 )}>
                   {format(day, "d")}
                 </span>
                 {count > 0 && (
-                  <Badge 
-                    variant={isSelected ? "secondary" : "default"} 
-                    className="h-5 w-5 p-0 flex items-center justify-center text-xs"
-                  >
-                    {count}
-                  </Badge>
+                  <div className={cn(
+                    "h-1 w-1 rounded-full mt-0.5",
+                    isSelected ? "bg-primary-foreground" : "bg-primary"
+                  )} />
                 )}
               </button>
             );
