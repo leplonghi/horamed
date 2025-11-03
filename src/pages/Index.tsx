@@ -50,9 +50,6 @@ const Index = () => {
             <img src={logo} alt="HoraMed" className="h-40 w-auto" />
           </div>
           <div className="animate-slide-up">
-            <h1 className="text-4xl font-bold text-foreground mb-3">
-              HoraMed
-            </h1>
             <p className="text-lg text-muted-foreground">
               Gestão completa da sua saúde em um só lugar
             </p>
