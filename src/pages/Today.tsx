@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -20,6 +21,8 @@ import { PageSkeleton } from "@/components/LoadingSkeleton";
 import DoseActionButton from "@/components/DoseActionButton";
 import FloatingActionButton from "@/components/FloatingActionButton";
 import HelpTooltip from "@/components/HelpTooltip";
+import ProgressDashboard from "@/components/ProgressDashboard";
+import { TrendingUp, Activity, Calendar } from "lucide-react";
 
 interface DoseInstance {
   id: string;
@@ -43,6 +46,7 @@ interface LowStock {
 
 export default function Today() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { scheduleNotificationsForNextDay } = useMedicationAlarm();
   usePushNotifications();
   const streakData = useStreakCalculator();
@@ -54,18 +58,11 @@ export default function Today() {
   const [greeting, setGreeting] = useState("");
   const [userName, setUserName] = useState("");
   const [todayStats, setTodayStats] = useState({ total: 0, completed: 0 });
+  const [weekStats, setWeekStats] = useState({ thisWeek: 0, lastWeek: 0 });
+  const [monthStats, setMonthStats] = useState({ current: 0, goal: 90 });
 
-  useEffect(() => {
-    const hour = new Date().getHours();
-    if (hour < 12) setGreeting("Bom dia");
-    else if (hour < 18) setGreeting("Boa tarde");
-    else setGreeting("Boa noite");
+  const loadData = useCallback(async () => {
 
-    loadData();
-    scheduleNotificationsForNextDay();
-  }, []);
-
-  const loadData = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
@@ -117,6 +114,54 @@ export default function Today() {
       const completed = todayDoses?.filter(d => d.status === "taken").length || 0;
       setTodayStats({ total, completed });
 
+      // Calculate weekly stats
+      const startOfThisWeek = new Date(now);
+      startOfThisWeek.setDate(now.getDate() - now.getDay());
+      startOfThisWeek.setHours(0, 0, 0, 0);
+      
+      const startOfLastWeek = new Date(startOfThisWeek);
+      startOfLastWeek.setDate(startOfLastWeek.getDate() - 7);
+
+      const { data: thisWeekDoses } = await supabase
+        .from("dose_instances")
+        .select(`*, items!inner(user_id)`)
+        .eq("items.user_id", user.id)
+        .gte("due_at", startOfThisWeek.toISOString())
+        .lte("due_at", now.toISOString());
+
+      const { data: lastWeekDoses } = await supabase
+        .from("dose_instances")
+        .select(`*, items!inner(user_id)`)
+        .eq("items.user_id", user.id)
+        .gte("due_at", startOfLastWeek.toISOString())
+        .lt("due_at", startOfThisWeek.toISOString());
+
+      const thisWeekTotal = thisWeekDoses?.length || 0;
+      const thisWeekCompleted = thisWeekDoses?.filter(d => d.status === "taken").length || 0;
+      const thisWeekAverage = thisWeekTotal > 0 ? Math.round((thisWeekCompleted / thisWeekTotal) * 100) : 0;
+
+      const lastWeekTotal = lastWeekDoses?.length || 0;
+      const lastWeekCompleted = lastWeekDoses?.filter(d => d.status === "taken").length || 0;
+      const lastWeekAverage = lastWeekTotal > 0 ? Math.round((lastWeekCompleted / lastWeekTotal) * 100) : 0;
+
+      setWeekStats({ thisWeek: thisWeekAverage, lastWeek: lastWeekAverage });
+
+      // Calculate monthly stats
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      
+      const { data: monthDoses } = await supabase
+        .from("dose_instances")
+        .select(`*, items!inner(user_id)`)
+        .eq("items.user_id", user.id)
+        .gte("due_at", startOfMonth.toISOString())
+        .lte("due_at", now.toISOString());
+
+      const monthTotal = monthDoses?.length || 0;
+      const monthCompleted = monthDoses?.filter(d => d.status === "taken").length || 0;
+      const monthAverage = monthTotal > 0 ? Math.round((monthCompleted / monthTotal) * 100) : 0;
+
+      setMonthStats({ current: monthAverage, goal: 90 });
+
       // Load low stock items
       const { data: items } = await supabase
         .from("items")
@@ -157,7 +202,54 @@ export default function Today() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    const hour = new Date().getHours();
+    if (hour < 12) setGreeting("Bom dia");
+    else if (hour < 18) setGreeting("Boa tarde");
+    else setGreeting("Boa noite");
+
+    loadData();
+    scheduleNotificationsForNextDay();
+
+    // Set up realtime subscription for dose updates
+    const channel = supabase
+      .channel('dose-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'dose_instances'
+        },
+        () => {
+          console.log('Dose instance changed, reloading data');
+          loadData();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'items'
+        },
+        () => {
+          console.log('Item changed, reloading data');
+          loadData();
+        }
+      )
+      .subscribe();
+
+    // Auto-refresh every 60 seconds
+    const interval = setInterval(loadData, 60000);
+
+    return () => {
+      supabase.removeChannel(channel);
+      clearInterval(interval);
+    };
+  }, [loadData, scheduleNotificationsForNextDay]);
 
   const markAsTaken = async (doseId: string, itemId: string, itemName: string) => {
     try {
@@ -287,20 +379,21 @@ export default function Today() {
             />
           )}
 
-          {/* Today Summary */}
-          {todayStats.total > 0 && (
+          {/* Today Summary with more info */}
+          <div className="grid gap-4 md:grid-cols-3">
             <Card className="bg-gradient-to-br from-primary/10 to-primary/5">
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-muted-foreground mb-1">Progresso de Hoje</p>
+                    <p className="text-sm text-muted-foreground mb-1">Hoje</p>
                     <p className="text-3xl font-bold">
                       {todayStats.completed}/{todayStats.total}
                     </p>
                     <p className="text-sm mt-1">
                       {adherencePercentage >= 80 && "🎉 Excelente!"}
                       {adherencePercentage >= 50 && adherencePercentage < 80 && "💪 Bom trabalho!"}
-                      {adherencePercentage < 50 && "Vamos lá!"}
+                      {adherencePercentage < 50 && todayStats.total > 0 && "Vamos lá!"}
+                      {todayStats.total === 0 && "Nenhuma dose hoje"}
                     </p>
                   </div>
                   <div className="text-right">
@@ -310,6 +403,53 @@ export default function Today() {
                 </div>
               </CardContent>
             </Card>
+
+            <Card className="bg-gradient-to-br from-blue-500/10 to-blue-500/5">
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <TrendingUp className="h-4 w-4 text-blue-600" />
+                      <p className="text-sm text-muted-foreground">Esta Semana</p>
+                    </div>
+                    <p className="text-3xl font-bold text-blue-600">{weekStats.thisWeek}%</p>
+                    <p className="text-sm mt-1 text-muted-foreground">
+                      {weekStats.thisWeek > weekStats.lastWeek ? "↑" : "↓"} 
+                      {" "}vs semana passada
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-gradient-to-br from-green-500/10 to-green-500/5">
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <Calendar className="h-4 w-4 text-green-600" />
+                      <p className="text-sm text-muted-foreground">Este Mês</p>
+                    </div>
+                    <p className="text-3xl font-bold text-green-600">{monthStats.current}%</p>
+                    <p className="text-sm mt-1 text-muted-foreground">
+                      Meta: {monthStats.goal}%
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Progress Dashboard */}
+          {todayStats.total > 0 && (
+            <ProgressDashboard
+              currentStreak={streakData.currentStreak}
+              longestStreak={streakData.longestStreak}
+              thisWeekAverage={weekStats.thisWeek}
+              lastWeekAverage={weekStats.lastWeek}
+              monthlyGoal={monthStats.goal}
+              monthlyProgress={monthStats.current}
+            />
           )}
 
           {/* Low Stock Alerts */}
