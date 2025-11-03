@@ -196,6 +196,8 @@ export default function AddItem() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log("🚀 handleSubmit iniciado", { formData, schedules, stockData, isEditing });
+    
     if (!formData.name.trim()) {
       toast.error("Digite o nome do item");
       return;
@@ -215,6 +217,7 @@ export default function AddItem() {
 
     try {
       if (isEditing) {
+        console.log("✏️ Modo de edição - ID:", isEditing);
         // Update existing item
         const treatmentEndDate = formData.treatment_start_date && formData.treatment_duration_days
           ? new Date(new Date(formData.treatment_start_date).getTime() + formData.treatment_duration_days * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
@@ -235,12 +238,15 @@ export default function AddItem() {
           })
           .eq("id", isEditing);
 
+        console.log("📝 Item atualizado", { itemError });
         if (itemError) throw itemError;
 
         // Delete old schedules and doses
+        console.log("🗑️ Deletando schedules antigos");
         await supabase.from("schedules").delete().eq("item_id", isEditing);
 
         // Create new schedules and doses
+        console.log("📅 Criando novos schedules", { count: schedules.length });
         for (const schedule of schedules) {
           const { data: newSchedule, error: scheduleError } = await supabase
             .from("schedules")
@@ -304,6 +310,7 @@ export default function AddItem() {
           ? new Date(new Date(formData.treatment_start_date).getTime() + formData.treatment_duration_days * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
           : null;
 
+        console.log("➕ Criando novo item");
         const { data: item, error: itemError } = await supabase
           .from("items")
           .insert({
@@ -321,6 +328,7 @@ export default function AddItem() {
           .select()
           .single();
 
+        console.log("📝 Item criado", { item, itemError });
         if (itemError) {
           // Check if error is subscription limit
           if (itemError.message?.includes('Limite de medicamentos atingido')) {
@@ -393,11 +401,13 @@ export default function AddItem() {
         toast.success("Item adicionado com sucesso! 🎉");
       }
 
+      console.log("✅ Operação concluída, navegando para /rotina");
       navigate("/rotina");
     } catch (error) {
-      console.error("Error saving item:", error);
+      console.error("❌ Error saving item:", error);
       toast.error("Erro ao salvar item");
     } finally {
+      console.log("🔄 Finalizando operação");
       setLoading(false);
     }
   };
