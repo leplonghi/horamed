@@ -38,6 +38,8 @@ import CaregiverAccept from './pages/CaregiverAccept';
 import ConsultationCardView from './pages/ConsultationCardView';
 import Admin from './pages/Admin';
 import NotificationSettings from "./pages/NotificationSettings";
+import Tutorial from "./pages/Tutorial";
+import OnboardingTour from "./components/OnboardingTour";
 
 function AppContent() {
   const location = useLocation();
@@ -45,6 +47,7 @@ function AppContent() {
 
   return (
     <>
+      <OnboardingTour />
       <Toaster />
       <Sonner />
       <Routes>
@@ -72,6 +75,8 @@ function AppContent() {
         <Route path="/calendario" element={<ProtectedRoute><WeeklyCalendar /></ProtectedRoute>} />
         
         {/* Settings & Account */}
+        <Route path="/tutorial" element={<ProtectedRoute><Tutorial /></ProtectedRoute>} />
+        <Route path="/ajuda" element={<ProtectedRoute><HelpSupport /></ProtectedRoute>} />
         <Route path="/notificacoes" element={<ProtectedRoute><NotificationSettings /></ProtectedRoute>} />
         <Route path="/alarme" element={<ProtectedRoute><AlarmSettings /></ProtectedRoute>} />
         <Route path="/privacy" element={<ProtectedRoute><Privacy /></ProtectedRoute>} />

@@ -19,6 +19,7 @@ import { useCriticalAlerts } from "@/hooks/useCriticalAlerts";
 import { PageSkeleton } from "@/components/LoadingSkeleton";
 import DoseActionButton from "@/components/DoseActionButton";
 import FloatingActionButton from "@/components/FloatingActionButton";
+import HelpTooltip from "@/components/HelpTooltip";
 
 interface DoseInstance {
   id: string;
@@ -344,7 +345,13 @@ export default function Today() {
 
           {/* Upcoming Doses */}
           <div className="space-y-3">
-            <h2 className="text-xl font-semibold">Próximas Doses</h2>
+            <div className="flex items-center gap-2">
+              <h2 className="text-xl font-semibold">Próximas Doses</h2>
+              <HelpTooltip 
+                content="Aqui aparecem os medicamentos que você deve tomar hoje. Confirme quando tomar, adie por 15 minutos ou pule a dose."
+                side="right"
+              />
+            </div>
 
             {upcomingDoses.length === 0 ? (
               <Card className="border-dashed border-2">

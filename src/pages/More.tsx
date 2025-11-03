@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { 
   FileText, Users, Settings, Crown, LogOut, 
-  ChevronRight, HelpCircle, Shield, Bell, QrCode, Package, FolderHeart, History
+  ChevronRight, HelpCircle, Shield, Bell, QrCode, Package, FolderHeart, History, BookOpen
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Navigation from "@/components/Navigation";
@@ -96,6 +96,12 @@ export default function More() {
   ];
 
   const settingsItems = [
+    {
+      title: "Tutorial Interativo",
+      description: "Aprenda a usar o app",
+      icon: BookOpen,
+      path: "/tutorial",
+    },
     {
       title: "Notificações",
       description: "Configurar lembretes",

@@ -20,6 +20,7 @@ import { ArrowLeft, Plus, Trash2, Pill, Package } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import MedicationOCRWrapper from "@/components/MedicationOCRWrapper";
 import HealthProfileSetup from "@/components/HealthProfileSetup";
+import HelpTooltip from "@/components/HelpTooltip";
 import logo from "@/assets/horamend-logo.png";
 
 export default function AddItem() {
@@ -562,7 +563,12 @@ export default function AddItem() {
               </div>
 
               <div className="space-y-4 pt-4 border-t">
-                <Label className="text-base font-semibold">Duração do Tratamento (Opcional)</Label>
+                <div className="flex items-center gap-2">
+                  <Label className="text-base font-semibold">Duração do Tratamento (Opcional)</Label>
+                  <HelpTooltip 
+                    content="Configure o período do tratamento se for temporário (ex: antibióticos por 7 dias)"
+                  />
+                </div>
                 <p className="text-sm text-muted-foreground -mt-2">
                   Configure o período de tratamento se for temporário
                 </p>
@@ -635,7 +641,12 @@ export default function AddItem() {
               </div>
 
               <div className="space-y-4 pt-4 border-t">
-                <Label>Horários</Label>
+                <div className="flex items-center gap-2">
+                  <Label>Horários</Label>
+                  <HelpTooltip 
+                    content="Configure os horários que você deve tomar o medicamento. Você pode adicionar vários horários por dia clicando em 'Adicionar horário'."
+                  />
+                </div>
 
                 {schedules.map((schedule, scheduleIndex) => (
                   <Card key={scheduleIndex} className="p-4 space-y-4">
@@ -711,6 +722,9 @@ export default function AddItem() {
                     <Label htmlFor="stock-enabled" className="flex items-center gap-2 text-base font-semibold">
                       <Package className="h-5 w-5 text-primary" />
                       Controlar Estoque
+                      <HelpTooltip 
+                        content="Ative para receber alertas quando seus medicamentos estiverem acabando. O sistema desconta automaticamente quando você marca doses como tomadas."
+                      />
                     </Label>
                     <p className="text-sm text-muted-foreground">
                       Receba alertas automáticos quando o medicamento estiver acabando
