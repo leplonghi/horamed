@@ -29,7 +29,7 @@ export default function Profile() {
     height_cm: null,
   });
   const { subscription, isPremium, daysLeft, refresh } = useSubscription();
-  const { profiles, activeProfile, deleteProfile } = useUserProfiles();
+  const { profiles, activeProfile, deleteProfile, switchProfile } = useUserProfiles();
   const { isEnabled } = useFeatureFlags();
 
   useEffect(() => {
@@ -188,23 +188,23 @@ export default function Profile() {
           {/* User Profiles Section */}
           <div className="space-y-2">
             <div className="flex items-center justify-between px-2">
-              <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
-                <Users className="h-5 w-5" />
+              <h2 className="text-base font-semibold text-foreground flex items-center gap-2">
+                <Users className="h-4 w-4" />
                 Perfis de Usuários
               </h2>
               {isPremium && (
                 <Button
                   size="sm"
                   onClick={() => navigate('/perfis/novo')}
-                  className="gap-1"
+                  className="gap-1 h-8"
                 >
-                  <Plus className="h-4 w-4" />
+                  <Plus className="h-3.5 w-3.5" />
                   Novo
                 </Button>
               )}
             </div>
 
-            <Card className="divide-y divide-border">
+            <Card className="divide-y divide-border overflow-hidden">
               {profiles.map(profile => {
                 const getInitials = (name: string) => {
                   return name
@@ -226,23 +226,34 @@ export default function Profile() {
                   return labels[rel] || rel;
                 };
 
+                const isActive = activeProfile?.id === profile.id;
+
                 return (
-                  <div key={profile.id} className="p-4 flex items-center gap-3">
-                    <Avatar>
+                  <button
+                    key={profile.id}
+                    onClick={() => {
+                      if (!isActive) {
+                        switchProfile(profile);
+                      }
+                    }}
+                    className={`w-full p-3 flex items-center gap-2.5 transition-colors text-left ${
+                      isActive 
+                        ? 'bg-primary/5 hover:bg-primary/10 border-l-2 border-primary' 
+                        : 'hover:bg-accent'
+                    }`}
+                  >
+                    <Avatar className="h-10 w-10 shrink-0">
                       <AvatarImage src={profile.avatar_url || undefined} />
-                      <AvatarFallback>{getInitials(profile.name)}</AvatarFallback>
+                      <AvatarFallback className="text-sm">{getInitials(profile.name)}</AvatarFallback>
                     </Avatar>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <p className="font-medium">{profile.name}</p>
-                        {profile.is_primary && (
-                          <Badge variant="secondary" className="text-xs">Principal</Badge>
-                        )}
-                        {activeProfile?.id === profile.id && (
-                          <Badge className="text-xs">Ativo</Badge>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <p className="font-medium text-sm truncate">{profile.name}</p>
+                        {isActive && (
+                          <Badge className="text-[10px] h-5">Ativo</Badge>
                         )}
                       </div>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-xs text-muted-foreground">
                         {getRelationshipLabel(profile.relationship)}
                       </p>
                     </div>
@@ -250,16 +261,18 @@ export default function Profile() {
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => {
+                        className="h-8 w-8 shrink-0"
+                        onClick={(e) => {
+                          e.stopPropagation();
                           if (confirm(`Deseja remover o perfil de ${profile.name}?`)) {
                             deleteProfile(profile.id);
                           }
                         }}
                       >
-                        <Trash2 className="h-4 w-4 text-destructive" />
+                        <Trash2 className="h-3.5 w-3.5 text-destructive" />
                       </Button>
                     )}
-                  </div>
+                  </button>
                 );
               })}
             </Card>
