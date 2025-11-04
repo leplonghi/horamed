@@ -39,8 +39,18 @@ export function useUserProfiles() {
 
       setProfiles(data || []);
       
-      // Se não houver perfil ativo, definir o primário ou o primeiro
-      if (!activeProfile && data && data.length > 0) {
+      // Try to restore active profile from localStorage
+      const savedProfileId = localStorage.getItem('activeProfileId');
+      if (savedProfileId && data) {
+        const savedProfile = data.find(p => p.id === savedProfileId);
+        if (savedProfile) {
+          setActiveProfile(savedProfile);
+          return;
+        }
+      }
+      
+      // Se não houver perfil ativo salvo, definir o primário ou o primeiro
+      if (data && data.length > 0) {
         const primary = data.find(p => p.is_primary) || data[0];
         setActiveProfile(primary);
         localStorage.setItem('activeProfileId', primary.id);

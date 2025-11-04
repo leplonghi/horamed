@@ -23,6 +23,7 @@ import MedicationOCRWrapper from "@/components/MedicationOCRWrapper";
 import HealthProfileSetup from "@/components/HealthProfileSetup";
 import HelpTooltip from "@/components/HelpTooltip";
 import logo from "@/assets/horamend-logo.png";
+import { useUserProfiles } from "@/hooks/useUserProfiles";
 
 export default function AddItem() {
   const navigate = useNavigate();
@@ -34,6 +35,7 @@ export default function AddItem() {
   const [showHealthSetup, setShowHealthSetup] = useState(false);
   const [hasHealthProfile, setHasHealthProfile] = useState(false);
   const { showFeedback } = useFeedbackToast();
+  const { activeProfile } = useUserProfiles();
 
   const [formData, setFormData] = useState({
     name: "",
@@ -235,6 +237,7 @@ export default function AddItem() {
             total_doses: formData.total_doses || null,
             treatment_start_date: formData.treatment_start_date || null,
             treatment_end_date: treatmentEndDate,
+            profile_id: activeProfile?.id || null,
           })
           .eq("id", isEditing);
 
@@ -320,6 +323,7 @@ export default function AddItem() {
             total_doses: formData.total_doses || null,
             treatment_start_date: formData.treatment_start_date || null,
             treatment_end_date: treatmentEndDate,
+            profile_id: activeProfile?.id || null,
           })
           .select()
           .single();
