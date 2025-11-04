@@ -55,14 +55,26 @@ export default function Today() {
       const monthStart = startOfDay(new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1));
       const monthEnd = endOfDay(new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1, 0));
 
+      // First get items for the active profile
+      let itemsQuery = supabase
+        .from("items")
+        .select("id");
+
+      if (activeProfile) {
+        itemsQuery = itemsQuery.eq("profile_id", activeProfile.id);
+      }
+
+      const { data: profileItems } = await itemsQuery;
+      const itemIds = profileItems?.map(item => item.id) || [];
+
       let dosesQuery = supabase
         .from("dose_instances")
-        .select("due_at, items!inner(profile_id)")
+        .select("due_at")
         .gte("due_at", monthStart.toISOString())
         .lte("due_at", monthEnd.toISOString());
 
-      if (activeProfile) {
-        dosesQuery = dosesQuery.eq("items.profile_id", activeProfile.id);
+      if (itemIds.length > 0) {
+        dosesQuery = dosesQuery.in("item_id", itemIds);
       }
 
       let appointmentsQuery = supabase
@@ -115,7 +127,7 @@ export default function Today() {
     } catch (error) {
       console.error("Error loading event counts:", error);
     }
-  }, [selectedDate]);
+  }, [selectedDate, activeProfile]);
 
   const loadData = useCallback(async (date: Date) => {
     try {
@@ -127,7 +139,7 @@ export default function Today() {
         .from("profiles")
         .select("nickname, full_name")
         .eq("user_id", user.id)
-        .single();
+        .maybeSingle();
 
       if (profileData) {
         setUserName(profileData.nickname || profileData.full_name || "");
@@ -135,6 +147,18 @@ export default function Today() {
 
       const dayStart = startOfDay(date);
       const dayEnd = endOfDay(date);
+
+      // First get items for the active profile
+      let itemsQuery = supabase
+        .from("items")
+        .select("id");
+
+      if (activeProfile) {
+        itemsQuery = itemsQuery.eq("profile_id", activeProfile.id);
+      }
+
+      const { data: profileItems } = await itemsQuery;
+      const itemIds = profileItems?.map(item => item.id) || [];
 
       // Load medications for the day
       let dosesQuery = supabase
@@ -144,14 +168,13 @@ export default function Today() {
           due_at,
           status,
           item_id,
-          items (name, dose_text, with_food, profile_id)
+          items (name, dose_text, with_food)
         `)
         .gte("due_at", dayStart.toISOString())
         .lte("due_at", dayEnd.toISOString());
 
-      // Filter by profile_id if activeProfile is selected
-      if (activeProfile) {
-        dosesQuery = dosesQuery.eq("items.profile_id", activeProfile.id);
+      if (itemIds.length > 0) {
+        dosesQuery = dosesQuery.in("item_id", itemIds);
       }
 
       const { data: doses } = await dosesQuery.order("due_at", { ascending: true });
@@ -246,7 +269,7 @@ export default function Today() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [activeProfile]);
 
   useEffect(() => {
     const hour = new Date().getHours();
