@@ -57,7 +57,7 @@ export default function Header() {
       <div className="max-w-4xl mx-auto px-4 py-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3 animate-fade-in">
-            <img src={logo} alt="HoraMed" className="h-8 w-auto hover:scale-105 transition-transform duration-300" />
+            <img src={logo} alt="HoraMed" className="h-10 w-auto hover:scale-105 transition-transform duration-300" />
             <SubscriptionBadge />
           </div>
 
