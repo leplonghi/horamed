@@ -16,7 +16,7 @@ import AdBanner from "@/components/AdBanner";
 import { useSubscription } from "@/hooks/useSubscription";
 import UpgradeModal from "@/components/UpgradeModal";
 import { ListSkeleton } from "@/components/LoadingSkeleton";
-import logo from "@/assets/horamend-logo.png";
+import logo from "@/assets/horamed-logo.png";
 
 interface Item {
   id: string;

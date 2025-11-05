@@ -18,7 +18,7 @@ import Navigation from "@/components/Navigation";
 import Header from "@/components/Header";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useUserProfiles } from "@/hooks/useUserProfiles";
-import logo from "@/assets/horamend-logo.png";
+import logo from "@/assets/horamed-logo.png";
 
 export default function Profile() {
   const navigate = useNavigate();
@@ -149,7 +149,7 @@ export default function Profile() {
       toast.loading("Gerando PDF...");
 
       // Load logo as base64
-      const logoImage = await fetch('/src/assets/horamend-logo.png')
+      const logoImage = await fetch('/src/assets/horamed-logo.png')
         .then(res => res.blob())
         .then(blob => new Promise<string>((resolve) => {
           const reader = new FileReader();

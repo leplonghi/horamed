@@ -6,7 +6,7 @@ import { Link } from "react-router-dom";
 import SubscriptionBadge from "./SubscriptionBadge";
 import { ThemeToggle } from "./ThemeToggle";
 import ProfileSelector from "./ProfileSelector";
-import logo from "@/assets/horamend-logo.png";
+import logo from "@/assets/horamed-logo.png";
 import { useUserProfiles } from "@/hooks/useUserProfiles";
 
 export default function Header() {

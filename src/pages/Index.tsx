@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import logo from "@/assets/horamend-logo.png";
+import logo from "@/assets/horamed-logo.png";
 
 const Index = () => {
   const navigate = useNavigate();

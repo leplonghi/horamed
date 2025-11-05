@@ -117,7 +117,7 @@ export default function MedicalReports() {
       toast.loading("Gerando PDF...");
 
       // Load logo
-      const logoImage = await fetch('/src/assets/horamend-logo.png')
+      const logoImage = await fetch('/src/assets/horamed-logo.png')
         .then(res => res.blob())
         .then(blob => new Promise<string>((resolve) => {
           const reader = new FileReader();

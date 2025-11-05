@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { Mail, Chrome, Fingerprint } from "lucide-react";
-import logo from "@/assets/horamend-logo.png";
+import logo from "@/assets/horamed-logo.png";
 import { z } from "zod";
 import { useBiometricAuth } from "@/hooks/useBiometricAuth";
 

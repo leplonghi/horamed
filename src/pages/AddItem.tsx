@@ -22,7 +22,7 @@ import Navigation from "@/components/Navigation";
 import MedicationOCRWrapper from "@/components/MedicationOCRWrapper";
 import HealthProfileSetup from "@/components/HealthProfileSetup";
 import HelpTooltip from "@/components/HelpTooltip";
-import logo from "@/assets/horamend-logo.png";
+import logo from "@/assets/horamed-logo.png";
 import { useUserProfiles } from "@/hooks/useUserProfiles";
 
 export default function AddItem() {
