@@ -45,22 +45,19 @@ export default function CriticalAlertBanner({ alerts, onDismiss }: CriticalAlert
   };
 
   return (
-    <div className="space-y-4 animate-fade-in">
-      <div className="flex items-center gap-3">
-        <div className="p-2 rounded-xl bg-gradient-to-br from-destructive/20 to-destructive/10 animate-pulse">
-          <ShieldAlert className="h-6 w-6 text-destructive" />
+    <div className="space-y-2 animate-fade-in">
+      <div className="flex items-center gap-2">
+        <div className="p-1.5 rounded-lg bg-gradient-to-br from-destructive/20 to-destructive/10 animate-pulse">
+          <ShieldAlert className="h-4 w-4 text-destructive" />
         </div>
         <div>
-          <h2 className="text-xl font-bold text-destructive">
+          <h2 className="text-sm font-bold text-destructive">
             Ações Urgentes
           </h2>
-          <p className="text-sm text-muted-foreground">
-            {alerts.length} {alerts.length === 1 ? 'alerta requer' : 'alertas requerem'} sua atenção
-          </p>
         </div>
       </div>
 
-      <div className="space-y-3">
+      <div className="space-y-2">
         {alerts.map((alert, index) => {
           const config = getSeverityConfig(alert.severity);
           const Icon = config.icon;
@@ -68,36 +65,35 @@ export default function CriticalAlertBanner({ alerts, onDismiss }: CriticalAlert
           return (
             <Card
               key={alert.id}
-              style={{ animationDelay: `${index * 100}ms` }}
+              style={{ animationDelay: `${index * 50}ms` }}
               className={cn(
-                "p-5 border-2 backdrop-blur-sm bg-gradient-to-br transition-all duration-300 hover:scale-[1.02] animate-scale-in",
+                "p-3 border backdrop-blur-sm bg-gradient-to-br transition-all duration-300 hover:scale-[1.01] hover:shadow-md animate-fade-in cursor-pointer",
                 config.gradient,
-                config.border,
-                config.glow
+                config.border
               )}
             >
-              <div className="flex gap-4">
+              <div className="flex gap-2.5">
                 <div className={cn(
-                  "p-3 rounded-xl shrink-0 transition-transform duration-300 hover:scale-110",
+                  "p-1.5 rounded-lg shrink-0 transition-transform duration-300 hover:scale-110",
                   config.iconBg
                 )}>
-                  <Icon className={cn("h-6 w-6", config.text)} />
+                  <Icon className={cn("h-4 w-4", config.text)} />
                 </div>
-                <div className="flex-1 space-y-2 min-w-0">
-                  <div className="flex items-start justify-between gap-3">
-                    <h3 className={cn("font-bold text-base leading-tight", config.text)}>
+                <div className="flex-1 space-y-1 min-w-0">
+                  <div className="flex items-start justify-between gap-2">
+                    <h3 className={cn("font-semibold text-sm leading-tight", config.text)}>
                       {alert.title}
                     </h3>
                     <Button
                       variant="ghost"
                       size="icon"
                       onClick={() => onDismiss(alert.id)}
-                      className="shrink-0 h-8 w-8 hover:bg-background/50 transition-all"
+                      className="shrink-0 h-6 w-6 hover:bg-background/50 transition-all"
                     >
-                      <X className="h-4 w-4" />
+                      <X className="h-3 w-3" />
                     </Button>
                   </div>
-                  <p className="text-sm text-foreground/80 leading-relaxed">
+                  <p className="text-xs text-foreground/70 leading-snug">
                     {alert.message}
                   </p>
                 </div>
