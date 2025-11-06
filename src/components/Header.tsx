@@ -1,19 +1,20 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { User } from "lucide-react";
+import { User, UserCircle2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import SubscriptionBadge from "./SubscriptionBadge";
 import { ThemeToggle } from "./ThemeToggle";
 import ProfileSelector from "./ProfileSelector";
 import logo from "@/assets/horamed-logo.png";
 import { useUserProfiles } from "@/hooks/useUserProfiles";
+import { Badge } from "@/components/ui/badge";
 
 export default function Header() {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [userEmail, setUserEmail] = useState<string>("");
   const [userName, setUserName] = useState<string | null>(null);
-  const { profiles } = useUserProfiles();
+  const { profiles, activeProfile } = useUserProfiles();
 
   useEffect(() => {
     loadUserData();
@@ -63,6 +64,18 @@ export default function Header() {
 
           <div className="flex items-center gap-2 animate-fade-in" style={{ animationDelay: '100ms' }}>
             <ProfileSelector />
+            
+            {/* Active Profile Indicator */}
+            {activeProfile && profiles.length > 1 && (
+              <Badge 
+                variant="outline" 
+                className="hidden sm:flex items-center gap-1.5 bg-primary/10 border-primary/30 text-primary px-3 py-1 animate-fade-in"
+              >
+                <UserCircle2 className="h-3.5 w-3.5" />
+                <span className="text-xs font-semibold">{activeProfile.name}</span>
+              </Badge>
+            )}
+            
             <ThemeToggle />
             
             <Link to="/perfil" className="flex items-center gap-2 hover:opacity-80 transition-opacity group">
