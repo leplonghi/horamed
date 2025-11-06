@@ -14,6 +14,7 @@ import HealthDataChart from "@/components/HealthDataChart";
 import AdherenceChart from "@/components/AdherenceChart";
 import StockChart from "@/components/StockChart";
 import InfoDialog from "@/components/InfoDialog";
+import { useUserProfiles } from "@/hooks/useUserProfiles";
 
 interface TimeSlotStats {
   label: string;
@@ -49,6 +50,7 @@ export default function Charts() {
   const [loading, setLoading] = useState(true);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const { hasFeature } = useSubscription();
+  const { activeProfile } = useUserProfiles();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -60,6 +62,15 @@ export default function Charts() {
       loadHealthHistory();
     }
   }, [hasFeature, period]);
+
+  // Reload data when active profile changes
+  useEffect(() => {
+    if (activeProfile && hasFeature('charts')) {
+      setLoading(true);
+      loadStats();
+      loadHealthHistory();
+    }
+  }, [activeProfile?.id]);
 
   const loadHealthHistory = async () => {
     try {
@@ -98,14 +109,20 @@ export default function Charts() {
       const startDate = subDays(new Date(), daysBack);
 
       // Get all doses from the selected period
-      const { data: doses } = await supabase
+      let dosesQuery = supabase
         .from("dose_instances")
         .select(`
           *,
-          items!inner(user_id, name)
+          items!inner(user_id, name, profile_id)
         `)
         .eq("items.user_id", user.id)
         .gte("due_at", startDate.toISOString());
+
+      if (activeProfile) {
+        dosesQuery = dosesQuery.eq("items.profile_id", activeProfile.id);
+      }
+
+      const { data: doses } = await dosesQuery;
 
       if (doses) {
         const total = doses.length;

@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import Navigation from "@/components/Navigation";
 import DoseStatusDialog from "@/components/DoseStatusDialog";
 import logo from "@/assets/horamed-logo.png";
+import { useUserProfiles } from "@/hooks/useUserProfiles";
 
 interface DoseInstance {
   id: string;
@@ -29,10 +30,19 @@ export default function WeeklyCalendar() {
   const [loading, setLoading] = useState(true);
   const [selectedDose, setSelectedDose] = useState<{ id: string; name: string } | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const { activeProfile } = useUserProfiles();
 
   useEffect(() => {
     fetchWeekDoses();
   }, [currentWeekStart]);
+
+  // Reload data when active profile changes
+  useEffect(() => {
+    if (activeProfile) {
+      setLoading(true);
+      fetchWeekDoses();
+    }
+  }, [activeProfile?.id]);
 
   useEffect(() => {
     // Mark past scheduled doses as missed automatically
@@ -63,20 +73,29 @@ export default function WeeklyCalendar() {
 
   const fetchWeekDoses = async () => {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
       const weekEnd = endOfWeek(currentWeekStart, { weekStartsOn: 0 });
 
-      const { data, error } = await supabase
+      let dosesQuery = supabase
         .from("dose_instances")
         .select(`
           id,
           due_at,
           status,
           item_id,
-          items (name)
+          items!inner (name, user_id, profile_id)
         `)
+        .eq("items.user_id", user.id)
         .gte("due_at", currentWeekStart.toISOString())
-        .lte("due_at", weekEnd.toISOString())
-        .order("due_at", { ascending: true });
+        .lte("due_at", weekEnd.toISOString());
+
+      if (activeProfile) {
+        dosesQuery = dosesQuery.eq("items.profile_id", activeProfile.id);
+      }
+
+      const { data, error } = await dosesQuery.order("due_at", { ascending: true });
 
       if (error) throw error;
       setDoses(data || []);

@@ -22,6 +22,7 @@ import {
   Minus
 } from "lucide-react";
 import { PageSkeleton } from "@/components/LoadingSkeleton";
+import { useUserProfiles } from "@/hooks/useUserProfiles";
 
 interface DoseInstance {
   id: string;
@@ -58,10 +59,19 @@ export default function History() {
   const [streak, setStreak] = useState<number>(0);
   const [longestStreak, setLongestStreak] = useState<number>(0);
   const [medicationStats, setMedicationStats] = useState<MedicationStats[]>([]);
+  const { activeProfile } = useUserProfiles();
 
   useEffect(() => {
     loadAllData();
   }, [activeTab]);
+
+  // Reload data when active profile changes
+  useEffect(() => {
+    if (activeProfile) {
+      setLoading(true);
+      loadAllData();
+    }
+  }, [activeProfile?.id]);
 
   const loadAllData = async () => {
     setLoading(true);
@@ -109,7 +119,7 @@ export default function History() {
       }
 
       // Load current period doses
-      const { data, error } = await supabase
+      let dosesQuery = supabase
         .from('dose_instances')
         .select(`
           id,
@@ -120,19 +130,25 @@ export default function History() {
           items!inner(
             name,
             dose_text,
-            user_id
+            user_id,
+            profile_id
           )
         `)
         .eq('items.user_id', user.id)
         .gte('due_at', startDate.toISOString())
-        .lte('due_at', endDate.toISOString())
-        .order('due_at', { ascending: false });
+        .lte('due_at', endDate.toISOString());
+
+      if (activeProfile) {
+        dosesQuery = dosesQuery.eq('items.profile_id', activeProfile.id);
+      }
+
+      const { data, error } = await dosesQuery.order('due_at', { ascending: false });
 
       if (error) throw error;
       setDoses((data || []) as DoseInstance[]);
 
       // Load previous period doses for comparison
-      const { data: prevData, error: prevError } = await supabase
+      let prevDosesQuery = supabase
         .from('dose_instances')
         .select(`
           id,
@@ -143,12 +159,19 @@ export default function History() {
           items!inner(
             name,
             dose_text,
-            user_id
+            user_id,
+            profile_id
           )
         `)
         .eq('items.user_id', user.id)
         .gte('due_at', previousStartDate.toISOString())
         .lte('due_at', previousEndDate.toISOString());
+
+      if (activeProfile) {
+        prevDosesQuery = prevDosesQuery.eq('items.profile_id', activeProfile.id);
+      }
+
+      const { data: prevData, error: prevError } = await prevDosesQuery;
 
       if (prevError) throw prevError;
       setPreviousDoses((prevData || []) as DoseInstance[]);
@@ -184,19 +207,26 @@ export default function History() {
       const now = new Date();
       const thirtyDaysAgo = subDays(now, 30);
 
-      const { data, error } = await supabase
+      let statsQuery = supabase
         .from('dose_instances')
         .select(`
           item_id,
           status,
           items!inner(
             name,
-            user_id
+            user_id,
+            profile_id
           )
         `)
         .eq('items.user_id', user.id)
         .gte('due_at', thirtyDaysAgo.toISOString())
         .lte('due_at', now.toISOString());
+
+      if (activeProfile) {
+        statsQuery = statsQuery.eq('items.profile_id', activeProfile.id);
+      }
+
+      const { data, error } = await statsQuery;
 
       if (error) throw error;
 
