@@ -46,6 +46,9 @@ export default function AddItem() {
     treatment_duration_days: null as number | null,
     total_doses: null as number | null,
     treatment_start_date: "",
+    treatment_end_date: "",
+    dose_quantity: 1,
+    dose_unit: "comprimidos",
   });
 
   const [schedules, setSchedules] = useState([
@@ -135,6 +138,9 @@ export default function AddItem() {
         treatment_duration_days: item.treatment_duration_days || null,
         total_doses: item.total_doses || null,
         treatment_start_date: item.treatment_start_date || "",
+        treatment_end_date: item.treatment_end_date || "",
+        dose_quantity: 1,
+        dose_unit: "comprimidos",
       });
 
       if (item.schedules && item.schedules.length > 0) {
@@ -319,28 +325,55 @@ export default function AddItem() {
     return schedules.reduce((total, schedule) => total + schedule.times.length, 0);
   };
 
-  // Calculate total doses for treatment
+  // Calculate total doses for treatment (considering dose quantity)
   const calculateTotalTreatmentDoses = (): number | null => {
     if (!formData.treatment_duration_days) return null;
-    return calculateTotalDosesPerDay() * formData.treatment_duration_days;
+    const dosesPerDay = calculateTotalDosesPerDay();
+    return dosesPerDay * formData.treatment_duration_days;
   };
 
-  // Calculate stock consumption and alert
+  // Calculate total units needed for treatment
+  const calculateTotalUnitsNeeded = (): number | null => {
+    const totalDoses = calculateTotalTreatmentDoses();
+    if (!totalDoses) return null;
+    return totalDoses * formData.dose_quantity;
+  };
+
+  // Auto-calculate treatment end date
+  const calculateEndDate = (): string | null => {
+    if (!formData.treatment_start_date || !formData.treatment_duration_days) return null;
+    const startDate = new Date(formData.treatment_start_date);
+    const endDate = new Date(startDate.getTime() + formData.treatment_duration_days * 24 * 60 * 60 * 1000);
+    return endDate.toISOString().split('T')[0];
+  };
+
+  // Calculate stock consumption and alert (considering dose quantity)
   const calculateStockConsumption = () => {
     const dosesPerDay = calculateTotalDosesPerDay();
+    const unitsPerDay = dosesPerDay * formData.dose_quantity;
+    
     if (!stockData.enabled || stockData.units_total === 0) return null;
     
-    const daysUntilEmpty = Math.floor(stockData.units_total / dosesPerDay);
+    const daysUntilEmpty = Math.floor(stockData.units_total / unitsPerDay);
     const alertThresholdUnits = Math.ceil((stockData.units_total * stockData.alert_threshold) / 100);
-    const daysUntilAlert = Math.floor(alertThresholdUnits / dosesPerDay);
+    const daysUntilAlert = Math.floor(alertThresholdUnits / unitsPerDay);
     
     return {
       dosesPerDay,
+      unitsPerDay,
       daysUntilEmpty,
       daysUntilAlert,
       alertThresholdUnits,
     };
   };
+
+  // Auto-update treatment end date when start date or duration changes
+  useEffect(() => {
+    const endDate = calculateEndDate();
+    if (endDate && endDate !== formData.treatment_end_date) {
+      setFormData(prev => ({ ...prev, treatment_end_date: endDate }));
+    }
+  }, [formData.treatment_start_date, formData.treatment_duration_days]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -672,15 +705,63 @@ export default function AddItem() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="dose">Dosagem</Label>
+                  <Label htmlFor="dose">Concentração/Dosagem</Label>
                   <Input
                     id="dose"
-                    placeholder="Ex: 500mg, 2 comprimidos"
+                    placeholder="Ex: 500mg, 10mg/ml"
                     value={formData.dose_text}
                     onChange={(e) =>
                       setFormData({ ...formData, dose_text: e.target.value })
                     }
                   />
+                  <p className="text-xs text-muted-foreground">
+                    Concentração do medicamento (ex: 500mg por comprimido)
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="dose-quantity">Quantidade por Dose *</Label>
+                    <Input
+                      id="dose-quantity"
+                      type="number"
+                      min="0.5"
+                      step="0.5"
+                      placeholder="Ex: 1, 2, 0.5"
+                      value={formData.dose_quantity}
+                      onChange={(e) =>
+                        setFormData({ ...formData, dose_quantity: parseFloat(e.target.value) || 1 })
+                      }
+                      required
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Quantas unidades tomar por vez
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="dose-unit">Unidade *</Label>
+                    <Select
+                      value={formData.dose_unit}
+                      onValueChange={(value) =>
+                        setFormData({ ...formData, dose_unit: value })
+                      }
+                    >
+                      <SelectTrigger id="dose-unit">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="comprimidos">comprimidos</SelectItem>
+                        <SelectItem value="cápsulas">cápsulas</SelectItem>
+                        <SelectItem value="gotas">gotas</SelectItem>
+                        <SelectItem value="ml">ml (mililitros)</SelectItem>
+                        <SelectItem value="gr">gr (gramas)</SelectItem>
+                        <SelectItem value="sachês">sachês</SelectItem>
+                        <SelectItem value="inalações">inalações</SelectItem>
+                        <SelectItem value="aplicações">aplicações</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
 
                 <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
@@ -717,14 +798,14 @@ export default function AddItem() {
                 <div className="flex items-center gap-2">
                   <Label className="text-base font-semibold">Duração do Tratamento (Opcional)</Label>
                   <HelpTooltip 
-                    content="Configure o período do tratamento se for temporário (ex: antibióticos por 7 dias)"
+                    content="Configure o período do tratamento se for temporário (ex: antibióticos por 7 dias). O sistema calcula automaticamente o total de unidades necessárias."
                   />
                 </div>
                 <p className="text-sm text-muted-foreground -mt-2">
-                  Configure o período de tratamento se for temporário
+                  Configure o período de tratamento para calcular automaticamente as doses
                 </p>
                 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="start-date">Data de Início</Label>
                     <Input
@@ -756,37 +837,34 @@ export default function AddItem() {
                       Quantos dias deve durar o tratamento
                     </p>
                   </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="total-doses">Total de Doses</Label>
-                    <Input
-                      id="total-doses"
-                      type="number"
-                      min="1"
-                      placeholder="Ex: 21, 42"
-                      value={formData.total_doses || ""}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          total_doses: e.target.value ? parseInt(e.target.value) : null,
-                        })
-                      }
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      Número total de doses a tomar
-                    </p>
-                  </div>
                 </div>
 
-                {formData.treatment_start_date && formData.treatment_duration_days && (
-                  <div className="p-3 bg-primary/10 border border-primary/20 rounded-lg">
-                    <p className="text-sm">
-                      <strong>Data de término:</strong>{" "}
-                      {new Date(
-                        new Date(formData.treatment_start_date).getTime() +
-                          formData.treatment_duration_days * 24 * 60 * 60 * 1000
-                      ).toLocaleDateString("pt-BR")}
-                    </p>
+                {formData.treatment_start_date && formData.treatment_end_date && (
+                  <div className="p-4 bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20 rounded-lg space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium">Data de término:</span>
+                      <span className="text-sm font-bold">
+                        {new Date(formData.treatment_end_date).toLocaleDateString("pt-BR")}
+                      </span>
+                    </div>
+                    
+                    {calculateTotalTreatmentDoses() && (
+                      <>
+                        <div className="flex items-center justify-between pt-2 border-t border-primary/20">
+                          <span className="text-sm font-medium">Total de tomadas:</span>
+                          <span className="text-sm font-bold text-primary">
+                            {calculateTotalTreatmentDoses()} doses
+                          </span>
+                        </div>
+                        
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium">Total de {formData.dose_unit}:</span>
+                          <span className="text-lg font-bold text-primary">
+                            {calculateTotalUnitsNeeded()} {formData.dose_unit}
+                          </span>
+                        </div>
+                      </>
+                    )}
                   </div>
                 )}
               </div>
@@ -989,20 +1067,34 @@ export default function AddItem() {
                 ))}
 
                 {/* Total Doses Summary */}
-                <div className="p-4 bg-primary/10 border border-primary/30 rounded-lg space-y-2">
+                <div className="p-4 bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/30 rounded-lg space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-semibold">Total de doses por dia:</span>
+                    <span className="text-sm font-semibold">Tomadas por dia:</span>
                     <span className="text-lg font-bold text-primary">
-                      {calculateTotalDosesPerDay()}
+                      {calculateTotalDosesPerDay()} doses
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-semibold">Consumo diário:</span>
+                    <span className="text-lg font-bold text-primary">
+                      {calculateTotalDosesPerDay() * formData.dose_quantity} {formData.dose_unit}
                     </span>
                   </div>
                   {formData.treatment_duration_days && (
-                    <div className="flex items-center justify-between pt-2 border-t border-primary/20">
-                      <span className="text-sm font-semibold">Total de doses no tratamento:</span>
-                      <span className="text-lg font-bold text-primary">
-                        {calculateTotalTreatmentDoses()}
-                      </span>
-                    </div>
+                    <>
+                      <div className="flex items-center justify-between pt-2 border-t border-primary/20">
+                        <span className="text-sm font-semibold">Total de tomadas no tratamento:</span>
+                        <span className="text-lg font-bold text-primary">
+                          {calculateTotalTreatmentDoses()} doses
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-semibold">Total de {formData.dose_unit} necessários:</span>
+                        <span className="text-xl font-bold text-primary">
+                          {calculateTotalUnitsNeeded()} {formData.dose_unit}
+                        </span>
+                      </div>
+                    </>
                   )}
                 </div>
               </div>
@@ -1118,30 +1210,47 @@ export default function AddItem() {
 
                     {/* Stock Consumption Preview */}
                     {calculateStockConsumption() && (
-                      <div className="space-y-3 p-3 bg-warning/10 border border-warning/30 rounded-lg">
-                        <Label className="text-sm font-semibold text-warning">
+                      <div className="space-y-3 p-4 bg-gradient-to-r from-warning/10 to-warning/5 border border-warning/30 rounded-lg">
+                        <Label className="text-sm font-semibold text-warning flex items-center gap-2">
                           📊 Previsão de Consumo
                         </Label>
                         <div className="space-y-2 text-sm">
                           <div className="flex justify-between">
-                            <span className="text-muted-foreground">Consumo por dia:</span>
+                            <span className="text-muted-foreground">Tomadas por dia:</span>
                             <span className="font-medium">
-                              {calculateStockConsumption()!.dosesPerDay} {stockData.unit_label}
+                              {calculateStockConsumption()!.dosesPerDay} doses
                             </span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-muted-foreground">Estoque dura:</span>
+                            <span className="text-muted-foreground">Consumo diário:</span>
                             <span className="font-medium">
-                              {calculateStockConsumption()!.daysUntilEmpty} dias
+                              {calculateStockConsumption()!.unitsPerDay} {stockData.unit_label}
                             </span>
                           </div>
                           <div className="flex justify-between pt-2 border-t border-warning/20">
+                            <span className="text-muted-foreground">Estoque dura:</span>
+                            <span className="font-bold text-lg">
+                              {calculateStockConsumption()!.daysUntilEmpty} dias
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
                             <span className="text-muted-foreground">Alerta em:</span>
                             <span className="font-medium text-warning">
                               {calculateStockConsumption()!.daysUntilAlert} dias ({calculateStockConsumption()!.alertThresholdUnits} {stockData.unit_label})
                             </span>
                           </div>
                         </div>
+                        
+                        {calculateTotalUnitsNeeded() && stockData.units_total < calculateTotalUnitsNeeded()! && (
+                          <div className="pt-3 border-t border-destructive/30 bg-destructive/10 -mx-4 -mb-4 px-4 py-3 rounded-b-lg">
+                            <p className="text-xs font-semibold text-destructive flex items-center gap-2">
+                              ⚠️ Estoque insuficiente para completar o tratamento!
+                            </p>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Faltam <strong>{calculateTotalUnitsNeeded()! - stockData.units_total} {stockData.unit_label}</strong> para completar as {calculateTotalTreatmentDoses()} doses do tratamento.
+                            </p>
+                          </div>
+                        )}
                       </div>
                     )}
 
