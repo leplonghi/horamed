@@ -1,14 +1,13 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { User, UserCircle2 } from "lucide-react";
+import { User } from "lucide-react";
 import { Link } from "react-router-dom";
 import SubscriptionBadge from "./SubscriptionBadge";
 import { ThemeToggle } from "./ThemeToggle";
 import ProfileSelector from "./ProfileSelector";
 import logo from "@/assets/horamed-logo.png";
 import { useUserProfiles } from "@/hooks/useUserProfiles";
-import { Badge } from "@/components/ui/badge";
 
 export default function Header() {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
@@ -62,23 +61,12 @@ export default function Header() {
             <SubscriptionBadge />
           </div>
 
-          <div className="flex items-center gap-2 animate-fade-in" style={{ animationDelay: '100ms' }}>
+          <div className="flex items-center gap-1 md:gap-2 animate-fade-in" style={{ animationDelay: '100ms' }}>
             <ProfileSelector />
-            
-            {/* Active Profile Indicator */}
-            {activeProfile && profiles.length > 1 && (
-              <Badge 
-                variant="outline" 
-                className="hidden sm:flex items-center gap-1.5 bg-primary/10 border-primary/30 text-primary px-3 py-1 animate-fade-in"
-              >
-                <UserCircle2 className="h-3.5 w-3.5" />
-                <span className="text-xs font-semibold">{activeProfile.name}</span>
-              </Badge>
-            )}
             
             <ThemeToggle />
             
-            <Link to="/perfil" className="flex items-center gap-2 hover:opacity-80 transition-opacity group">
+            <Link to="/perfil" className="flex items-center gap-1.5 md:gap-2 hover:opacity-80 transition-opacity group">
               <div className="hidden md:flex flex-col items-end">
                 <span className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors">
                   {profiles.length > 1 ? getInitials(userName || userEmail) : (userName || "Usuário")}
@@ -90,7 +78,7 @@ export default function Header() {
                 )}
               </div>
               
-              <Avatar className="h-8 w-8 md:h-10 md:w-10 ring-2 ring-transparent group-hover:ring-primary transition-all duration-300">
+              <Avatar className="h-7 w-7 md:h-10 md:w-10 ring-2 ring-transparent group-hover:ring-primary transition-all duration-300">
                 <AvatarImage src={avatarUrl || undefined} alt="Avatar" />
                 <AvatarFallback className="bg-primary text-primary-foreground text-xs">
                   {userEmail ? getInitials(userEmail) : <User className="h-4 w-4" />}

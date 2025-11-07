@@ -56,7 +56,7 @@ export default function ProfileSelector() {
         <Button
           variant="ghost"
           size="sm"
-          className="gap-1.5 hover:bg-accent/50 transition-all duration-200 px-2"
+          className="gap-1 hover:bg-accent/50 transition-all duration-200 px-1.5 md:px-2"
         >
           <Avatar className="h-6 w-6 md:h-7 md:w-7 border-2 border-primary/20">
             <AvatarImage src={activeProfile.avatar_url || undefined} />
@@ -64,10 +64,22 @@ export default function ProfileSelector() {
               {getInitials(activeProfile.name)}
             </AvatarFallback>
           </Avatar>
-          <span className="text-[10px] md:text-xs font-medium max-w-[60px] md:max-w-[80px] truncate">
-            {activeProfile.name}
-          </span>
-          <ChevronDown className="h-3 w-3 md:h-4 md:w-4 opacity-50" />
+          {profiles.length > 1 && (
+            <>
+              <span className="hidden sm:inline text-[10px] md:text-xs font-medium max-w-[60px] md:max-w-[80px] truncate">
+                {activeProfile.name}
+              </span>
+              <ChevronDown className="h-3 w-3 md:h-4 md:w-4 opacity-50" />
+            </>
+          )}
+          {profiles.length === 1 && (
+            <>
+              <span className="text-[10px] md:text-xs font-medium max-w-[60px] md:max-w-[80px] truncate">
+                {activeProfile.name}
+              </span>
+              <ChevronDown className="h-3 w-3 md:h-4 md:w-4 opacity-50" />
+            </>
+          )}
         </Button>
       </DialogTrigger>
       <DialogContent className="z-50">
