@@ -68,14 +68,17 @@ export default function Today() {
       const { data: profileItems } = await itemsQuery;
       const itemIds = profileItems?.map(item => item.id) || [];
 
-      let dosesQuery = supabase
-        .from("dose_instances")
-        .select("due_at")
-        .gte("due_at", monthStart.toISOString())
-        .lte("due_at", monthEnd.toISOString());
-
+      // Prepare queries
+      let dosesPromise;
       if (itemIds.length > 0) {
-        dosesQuery = dosesQuery.in("item_id", itemIds);
+        dosesPromise = supabase
+          .from("dose_instances")
+          .select("due_at")
+          .in("item_id", itemIds)
+          .gte("due_at", monthStart.toISOString())
+          .lte("due_at", monthEnd.toISOString());
+      } else {
+        dosesPromise = Promise.resolve({ data: [] });
       }
 
       let appointmentsQuery = supabase
@@ -102,7 +105,7 @@ export default function Today() {
       }
 
       const [dosesData, appointmentsData, eventsData] = await Promise.all([
-        dosesQuery,
+        dosesPromise,
         appointmentsQuery,
         eventsQuery
       ]);
@@ -162,23 +165,27 @@ export default function Today() {
       const itemIds = profileItems?.map(item => item.id) || [];
 
       // Load medications for the day
-      let dosesQuery = supabase
-        .from("dose_instances")
-        .select(`
-          id,
-          due_at,
-          status,
-          item_id,
-          items (name, dose_text, with_food)
-        `)
-        .gte("due_at", dayStart.toISOString())
-        .lte("due_at", dayEnd.toISOString());
-
+      let doses = null;
       if (itemIds.length > 0) {
-        dosesQuery = dosesQuery.in("item_id", itemIds);
+        const { data: dosesData } = await supabase
+          .from("dose_instances")
+          .select(`
+            id,
+            due_at,
+            status,
+            item_id,
+            items (name, dose_text, with_food)
+          `)
+          .in("item_id", itemIds)
+          .gte("due_at", dayStart.toISOString())
+          .lte("due_at", dayEnd.toISOString())
+          .order("due_at", { ascending: true });
+        
+        doses = dosesData;
+      } else {
+        // No items for this profile, so no doses
+        doses = [];
       }
-
-      const { data: doses } = await dosesQuery.order("due_at", { ascending: true });
 
       // Load appointments for the day
       let appointmentsQuery = supabase
