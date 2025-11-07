@@ -42,6 +42,7 @@ export default function Today() {
   const [timelineItems, setTimelineItems] = useState<TimelineItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [greeting, setGreeting] = useState("");
+  const [motivationalQuote, setMotivationalQuote] = useState("");
   const [userName, setUserName] = useState("");
   const [todayStats, setTodayStats] = useState({ total: 0, taken: 0 });
   const [eventCounts, setEventCounts] = useState<Record<string, number>>({});
@@ -273,9 +274,38 @@ export default function Today() {
 
   useEffect(() => {
     const hour = new Date().getHours();
-    if (hour < 12) setGreeting("Bom dia");
-    else if (hour < 18) setGreeting("Boa tarde");
-    else setGreeting("Boa noite");
+    let quotes: string[] = [];
+    
+    if (hour < 12) {
+      setGreeting("Bom dia");
+      quotes = [
+        "Um novo dia é uma nova oportunidade para cuidar da sua saúde!",
+        "Cada dose tomada é um passo em direção ao seu bem-estar.",
+        "Hoje é dia de cuidar de você com carinho e atenção.",
+        "Comece o dia bem: sua saúde agradece!",
+        "Que tal começar esse dia com foco no autocuidado?"
+      ];
+    } else if (hour < 18) {
+      setGreeting("Boa tarde");
+      quotes = [
+        "Continue firme! Você está fazendo um ótimo trabalho.",
+        "Lembre-se: consistência é a chave para o sucesso.",
+        "Mantenha o ritmo! Sua saúde é prioridade.",
+        "Cada dia seguido é uma vitória. Continue assim!",
+        "Você está no caminho certo para uma vida mais saudável."
+      ];
+    } else {
+      setGreeting("Boa noite");
+      quotes = [
+        "Parabéns por mais um dia de cuidado com você!",
+        "Descanse bem, você merece. Amanhã tem mais!",
+        "Terminar o dia em dia com a saúde é motivo de orgulho.",
+        "Você está construindo hábitos saudáveis. Continue!",
+        "Mais um dia cuidando de você. Que orgulho!"
+      ];
+    }
+    
+    setMotivationalQuote(quotes[Math.floor(Math.random() * quotes.length)]);
 
     loadData(selectedDate);
     loadEventCounts();
@@ -426,6 +456,9 @@ export default function Today() {
               <h1 className="text-2xl font-bold">
                 {greeting}{userName && `, ${userName}`}!
               </h1>
+              <p className="text-sm text-primary/80 font-medium mt-1.5 italic">
+                {motivationalQuote}
+              </p>
               <p className="text-sm text-muted-foreground mt-1">
                 {timelineItems.length > 0 
                   ? `${timelineItems.length} evento${timelineItems.length > 1 ? 's' : ''} hoje`
