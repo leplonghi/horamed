@@ -16,6 +16,7 @@ import MedicalReports from "./pages/MedicalReports";
 import Charts from "./pages/Charts";
 import WeeklyCalendar from "./pages/WeeklyCalendar";
 import Profile from "./pages/Profile";
+import HealthDashboard from "./pages/HealthDashboard";
 import ProfileEdit from "./pages/ProfileEdit";
 import ProfileCreate from "./pages/ProfileCreate";
 import Privacy from "./pages/Privacy";
@@ -74,6 +75,7 @@ function AppContent() {
         <Route path="/perfis/novo" element={<ProtectedRoute><ProfileCreate /></ProtectedRoute>} />
         <Route path="/graficos" element={<ProtectedRoute><Charts /></ProtectedRoute>} />
         <Route path="/calendario" element={<ProtectedRoute><WeeklyCalendar /></ProtectedRoute>} />
+        <Route path="/evolucao" element={<ProtectedRoute><HealthDashboard /></ProtectedRoute>} />
         
         {/* Settings & Account */}
         <Route path="/tutorial" element={<ProtectedRoute><Tutorial /></ProtectedRoute>} />
