@@ -20,10 +20,21 @@ serve(async (req) => {
       );
     }
 
+    // Validate image format
+    if (!image.startsWith('data:image/')) {
+      console.error("Invalid image format - must be base64 with data URI");
+      return new Response(
+        JSON.stringify({ error: "Invalid image format. Must be a base64 data URI (data:image/...)" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY not configured");
     }
+
+    console.log("Calling Lovable AI for medication extraction...");
 
     // Call Lovable AI with vision to extract medication info
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -83,7 +94,6 @@ Exemplo:
             ]
           }
         ],
-        temperature: 0.3,
       }),
     });
 
@@ -95,6 +105,16 @@ Exemplo:
         return new Response(
           JSON.stringify({ error: "Muitas requisições. Tente novamente em alguns instantes." }),
           { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      
+      if (response.status === 400) {
+        return new Response(
+          JSON.stringify({ 
+            error: "Erro ao processar imagem. Verifique se a imagem está no formato correto.",
+            details: errorText 
+          }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
       
