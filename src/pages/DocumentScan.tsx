@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { fileToDataURL } from '@/lib/fileToDataURL';
+import { convertPDFToImage, validatePDFFile } from '@/lib/pdfToImage';
 
 export default function DocumentScan() {
   const navigate = useNavigate();
@@ -19,21 +20,59 @@ export default function DocumentScan() {
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      // Check file size (max 10MB)
-      if (file.size > 10 * 1024 * 1024) {
-        toast.error('Arquivo muito grande. Máximo 10MB');
-        return;
-      }
+    if (!file) return;
+
+    try {
+      const isPDF = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
       
-      try {
+      if (isPDF) {
+        // Validate PDF first
+        const validation = validatePDFFile(file);
+        if (!validation.valid) {
+          toast.error(validation.error);
+          return;
+        }
+
+        toast.loading('Carregando PDF...', { id: 'load-pdf' });
+        
+        // Convert PDF to data URL first
+        const pdfDataURL = await fileToDataURL(file);
+        
+        // Convert first page to image
+        toast.loading('Convertendo PDF para imagem (melhor qualidade)...', { id: 'load-pdf' });
+        const pdfInfo = await convertPDFToImage(pdfDataURL, {
+          maxPages: 1,
+          scale: 2.5, // High DPI for medical documents
+          format: 'jpeg',
+          quality: 0.95
+        });
+
+        toast.dismiss('load-pdf');
+        
+        if (pdfInfo.isMultiPage) {
+          toast.warning('PDF tem múltiplas páginas. Processando apenas a primeira.');
+        }
+
+        setPreview(pdfInfo.firstPageImage);
+        setSelectedFile(file);
+        setScanResult(null);
+        toast.success('PDF carregado e convertido com sucesso!');
+      } else {
+        // Handle images normally
+        if (file.size > 10 * 1024 * 1024) {
+          toast.error('Arquivo muito grande. Máximo 10MB');
+          return;
+        }
+        
         const dataURL = await fileToDataURL(file);
         setPreview(dataURL);
         setSelectedFile(file);
         setScanResult(null);
-      } catch (error: any) {
-        toast.error(error.message ?? 'Erro ao carregar arquivo');
       }
+    } catch (error: any) {
+      toast.dismiss('load-pdf');
+      console.error('File load error:', error);
+      toast.error(error.message ?? 'Erro ao carregar arquivo');
     }
   };
 
@@ -44,27 +83,58 @@ export default function DocumentScan() {
     }
 
     setScanning(true);
-    toast.loading('Analisando documento com IA...', { id: 'scan' });
+    const isPDF = selectedFile.type === 'application/pdf';
+    toast.loading(isPDF ? 'Analisando receita médica (PDF)...' : 'Analisando documento com IA...', { id: 'scan' });
     
     try {
-      // Usar extract-document que é o mais completo e detecta automaticamente o tipo
+      // Send the converted image (from PDF or original image) to extract-document
       const { data, error } = await supabase.functions.invoke('extract-document', {
-        body: { image: preview }
+        body: { 
+          image: preview,
+          documentType: 'receita' // Hint for better extraction
+        }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Edge function error:', error);
+        throw new Error(error.message || 'Erro ao processar documento');
+      }
 
       toast.dismiss('scan');
+      
+      // Check confidence and status
+      const confidence = data.confidence || 0;
+      const status = data.status || 'pending_review';
+      
+      console.log('Extraction result:', { confidence, status, category: data.category });
+      
+      if (status === 'failed' || confidence < 0.5) {
+        toast.error('Qualidade de extração baixa. Revise os dados cuidadosamente.', {
+          duration: 5000
+        });
+      }
+
       setScanResult(data);
       
-      // Auto-redirecionar baseado no tipo de documento detectado pela IA
-      if (data.category === 'receita' && data.medications && data.medications.length > 0) {
-        toast.success(`✨ Receita médica detectada! ${data.medications.length} medicamento(s) encontrado(s)`, {
-          duration: 3000
-        });
-        setTimeout(() => {
-          navigate('/adicionar', { state: { ocrData: data.medications } });
-        }, 2000);
+      // Auto-redirect based on document type detected by AI
+      if (data.category === 'receita') {
+        const medCount = data.prescriptions?.length || data.medications?.length || 0;
+        if (medCount > 0) {
+          toast.success(`✨ Receita detectada! ${medCount} medicamento(s) extraído(s)`, {
+            description: confidence < 0.7 ? 'Por favor, revise os dados' : undefined,
+            duration: 3000
+          });
+          setTimeout(() => {
+            // Use new prescriptions format if available, fallback to old medications
+            const meds = data.prescriptions || data.medications || [];
+            navigate('/adicionar', { state: { ocrData: meds } });
+          }, 2000);
+        } else {
+          toast.warning('Receita detectada, mas nenhum medicamento encontrado. Redirecionando...');
+          setTimeout(() => {
+            navigate('/cofre/upload', { state: { ocrData: data } });
+          }, 2000);
+        }
       } else if (data.category === 'exame' || data.title) {
         toast.success(`✨ ${data.category === 'exame' ? 'Exame' : 'Documento'} detectado! Redirecionando...`, {
           duration: 3000
@@ -79,7 +149,25 @@ export default function DocumentScan() {
     } catch (error: any) {
       console.error('Scan error:', error);
       toast.dismiss('scan');
-      toast.error(error.message ?? 'Erro ao processar documento');
+      
+      // Better error messages
+      const errorMsg = error.message || 'Erro ao processar documento';
+      if (errorMsg.includes('Failed to extract')) {
+        toast.error('Não foi possível extrair dados do documento', {
+          description: 'Tente: 1) Melhor iluminação, 2) Foco adequado, 3) Documento completo visível',
+          duration: 7000
+        });
+      } else if (errorMsg.includes('páginas')) {
+        toast.error(errorMsg, {
+          description: 'Envie apenas a primeira página da receita',
+          duration: 5000
+        });
+      } else {
+        toast.error(errorMsg, {
+          description: 'Verifique a qualidade do documento e tente novamente',
+          duration: 5000
+        });
+      }
     } finally {
       setScanning(false);
     }

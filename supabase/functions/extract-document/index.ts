@@ -44,10 +44,12 @@ serve(async (req) => {
     const normalized = maybeNormalizeBase64(image);
     if (!isValidDocumentFormat(normalized)) {
       console.error("Invalid format:", normalized.substring(0, 50));
+      
       return new Response(
         JSON.stringify({ 
           error: "Formato inválido. Envie uma imagem nítida (JPEG, PNG, WEBP) ou PDF de 1 página.",
-          details: "O arquivo deve ser legível e conter os dados da receita completos."
+          details: "O arquivo deve ser legível e conter os dados da receita completos.",
+          suggestion: "Verifique: 1) Formato do arquivo, 2) Qualidade da imagem, 3) Documento completo"
         }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
@@ -56,7 +58,9 @@ serve(async (req) => {
     // Check if PDF
     const isPDF = normalized.startsWith('data:application/pdf');
     if (isPDF) {
-      console.log("PDF detected - will process first page");
+      console.warn("⚠️ PDF detected - PDF should be converted to image on frontend first");
+      console.log("Note: PDFs may not be processed correctly by the AI model");
+      console.log("Recommendation: Convert PDF to high-resolution image before sending");
     }
 
     // Initialize Supabase client
@@ -207,7 +211,24 @@ Retorne APENAS JSON puro, sem markdown.`;
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("AI API Error:", errorText);
+      console.error("❌ AI API Error:", response.status, errorText);
+      
+      // Log API error
+      try {
+        await supabase.from('document_extraction_logs').insert({
+          user_id: user.id,
+          file_path: 'inline_extraction',
+          mime_type: isPDF ? 'application/pdf' : 'image/jpeg',
+          pages_count: 1,
+          confidence_score: 0,
+          extraction_type: 'api_error',
+          status: 'failed',
+          error_message: `AI API ${response.status}: ${errorText.substring(0, 200)}`,
+          processing_time_ms: Date.now() - startTime
+        });
+      } catch (logErr) {
+        console.error('Failed to log API error:', logErr);
+      }
       
       if (response.status === 429) {
         return new Response(
@@ -219,13 +240,33 @@ Retorne APENAS JSON puro, sem markdown.`;
         );
       }
 
+      if (response.status === 400 && errorText.includes('extract')) {
+        return new Response(
+          JSON.stringify({ 
+            error: "Falha ao extrair imagem do documento",
+            message: "O modelo de IA não conseguiu processar este arquivo.",
+            details: "Tente converter o PDF para imagem de alta qualidade antes de enviar.",
+            suggestion: "Use um scanner ou aplicativo de foto com boa iluminação"
+          }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
       throw new Error(`AI API error: ${response.status} - ${errorText}`);
     }
 
     const data = await response.json();
-    console.log("AI Response received");
+    console.log("✅ AI Response received successfully");
+    console.log("Response size:", JSON.stringify(data).length, "bytes");
 
     const content = data.choices?.[0]?.message?.content || "";
+    
+    if (!content) {
+      console.error("❌ Empty response from AI");
+      throw new Error("Resposta vazia da IA. Tente novamente.");
+    }
+    
+    console.log("Content length:", content.length, "characters");
     
     // Parse JSON from response
     let extractedInfo;
@@ -234,22 +275,35 @@ Retorne APENAS JSON puro, sem markdown.`;
       const jsonMatch = cleanContent.match(/\{[\s\S]*\}/);
       
       if (!jsonMatch) {
+        console.error("❌ No JSON found in AI response");
+        console.error("Response content:", content.substring(0, 500));
         throw new Error("No JSON found in AI response");
       }
       
       extractedInfo = JSON.parse(jsonMatch[0]);
+      console.log("✅ JSON parsed successfully");
       
       // Validate required fields
       if (!extractedInfo.title) {
+        console.warn("⚠️ Missing title, using default");
         extractedInfo.title = "Documento de Saúde";
       }
       if (!extractedInfo.category) {
+        console.warn("⚠️ Missing category, using default");
         extractedInfo.category = "outro";
       }
       
-      console.log("Extracted data:", JSON.stringify(extractedInfo, null, 2));
+      console.log("📊 Extracted data:", {
+        category: extractedInfo.category,
+        title: extractedInfo.title,
+        hasPrescriptions: !!extractedInfo.prescriptions,
+        prescriptionCount: extractedInfo.prescriptions?.length || 0,
+        hasPatientName: !!extractedInfo.patient_name,
+        hasPrescriberName: !!extractedInfo.prescriber_name
+      });
     } catch (e) {
-      console.error("Failed to parse AI response:", e);
+      console.error("❌ Failed to parse AI response:", e);
+      console.error("Raw content:", content.substring(0, 1000));
       throw new Error("Erro ao processar resposta da IA. Tente novamente com imagem mais nítida.");
     }
 
@@ -273,7 +327,13 @@ Retorne APENAS JSON puro, sem markdown.`;
     const status = confidence >= 0.7 ? 'pending_review' : 'failed';
     const processingTime = Date.now() - startTime;
 
-    console.log(`Confidence: ${confidence.toFixed(2)}, Status: ${status}, Time: ${processingTime}ms`);
+    console.log(`📈 Extraction metrics:`, {
+      confidence: confidence.toFixed(2),
+      status,
+      processingTime: `${processingTime}ms`,
+      category: extractedInfo.category,
+      isPDF: isPDF ? 'yes' : 'no'
+    });
 
     // Log extraction attempt
     const logData = {

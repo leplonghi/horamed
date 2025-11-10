@@ -80,6 +80,22 @@ export default function ExtractedDataPreviewModal({
     setEditedData(extractedData);
   }, [extractedData]);
 
+  // Helper to check if field has low confidence or is missing
+  const isFieldLowConfidence = (fieldValue: any) => {
+    return !fieldValue || (confidence < 0.7);
+  };
+
+  // Check if form is valid for submission
+  const isFormValid = () => {
+    if (editedData.category === 'receita') {
+      return editedData.prescriber_name && 
+             editedData.patient_name && 
+             editedData.issued_at &&
+             (editedData.prescriptions?.length ?? 0) > 0;
+    }
+    return editedData.title && editedData.category;
+  };
+
   const handleConfirm = () => {
     onConfirm(editedData);
     onOpenChange(false);
@@ -100,7 +116,7 @@ export default function ExtractedDataPreviewModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <Sparkles className="h-5 w-5 text-primary" />
             <DialogTitle>Dados Extraídos pela IA</DialogTitle>
             {isCached && (
@@ -109,10 +125,24 @@ export default function ExtractedDataPreviewModal({
                 Cache
               </Badge>
             )}
+            {confidence > 0 && (
+              <Badge 
+                variant={confidence >= 0.7 ? "default" : "destructive"}
+                className="gap-1"
+              >
+                Confiança: {(confidence * 100).toFixed(0)}%
+              </Badge>
+            )}
           </div>
           <DialogDescription>
-            Revise e ajuste as informações extraídas antes de salvar
-            {isCached && " • Resultado recuperado instantaneamente do cache"}
+            {confidence < 0.7 && (
+              <span className="text-yellow-600 dark:text-yellow-500 font-medium">
+                ⚠️ Baixa confiança na extração. Por favor, revise cuidadosamente todos os campos destacados.
+              </span>
+            )}
+            {confidence >= 0.7 && (
+              <>Revise e ajuste as informações extraídas antes de salvar{isCached && " • Resultado recuperado instantaneamente do cache"}</>
+            )}
           </DialogDescription>
         </DialogHeader>
 
@@ -243,8 +273,14 @@ export default function ExtractedDataPreviewModal({
                     value={editedData.prescriber_name || ""}
                     onChange={(e) => setEditedData({ ...editedData, prescriber_name: e.target.value })}
                     placeholder="Nome do médico"
-                    className={!extractedData.prescriber_name ? "border-yellow-500" : ""}
+                    required
+                    className={!extractedData.prescriber_name || confidence < 0.7 ? "border-yellow-500 border-2" : ""}
                   />
+                  {(!extractedData.prescriber_name || confidence < 0.7) && (
+                    <p className="text-xs text-yellow-600 dark:text-yellow-500">
+                      ⚠️ Campo obrigatório - confirme o nome do médico
+                    </p>
+                  )}
                 </div>
                 <div>
                   <Label htmlFor="preview-crm" className="flex items-center gap-2">
@@ -261,8 +297,13 @@ export default function ExtractedDataPreviewModal({
                     value={editedData.prescriber_registration || ""}
                     onChange={(e) => setEditedData({ ...editedData, prescriber_registration: e.target.value })}
                     placeholder="Ex: CRM 12345/SP"
-                    className={!extractedData.prescriber_registration ? "border-yellow-500" : ""}
+                    className={!extractedData.prescriber_registration || confidence < 0.7 ? "border-yellow-500 border-2" : ""}
                   />
+                  {!extractedData.prescriber_registration && (
+                    <p className="text-xs text-yellow-600 dark:text-yellow-500">
+                      ⚠️ CRM não encontrado - adicione manualmente
+                    </p>
+                  )}
                 </div>
                 <div>
                   <Label htmlFor="preview-patient" className="flex items-center gap-2">
@@ -279,8 +320,14 @@ export default function ExtractedDataPreviewModal({
                     value={editedData.patient_name || ""}
                     onChange={(e) => setEditedData({ ...editedData, patient_name: e.target.value })}
                     placeholder="Nome do paciente"
-                    className={!extractedData.patient_name ? "border-yellow-500" : ""}
+                    required
+                    className={!extractedData.patient_name || confidence < 0.7 ? "border-yellow-500 border-2" : ""}
                   />
+                  {(!extractedData.patient_name || confidence < 0.7) && (
+                    <p className="text-xs text-yellow-600 dark:text-yellow-500">
+                      ⚠️ Campo obrigatório - confirme o nome do paciente
+                    </p>
+                  )}
                 </div>
                 {extractedData.instructions && (
                   <div>
@@ -518,7 +565,11 @@ export default function ExtractedDataPreviewModal({
           <Button variant="ghost" onClick={onSkip}>
             Pular Extração
           </Button>
-          <Button onClick={handleConfirm} className="gap-2">
+          <Button 
+            onClick={handleConfirm} 
+            className="gap-2"
+            disabled={!isFormValid()}
+          >
             <Check className="h-4 w-4" />
             Confirmar e Continuar
           </Button>
