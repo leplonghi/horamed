@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Upload, FileText, ArrowLeft, Loader2 } from "lucide-react";
+import { Upload, FileText, ArrowLeft, Loader2, Camera, FileUp } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -15,10 +15,12 @@ import Header from "@/components/Header";
 import Navigation from "@/components/Navigation";
 import UpgradeModal from "@/components/UpgradeModal";
 import ExtractedDataPreviewModal from "@/components/ExtractedDataPreviewModal";
+import DocumentOCRWrapper from "@/components/DocumentOCRWrapper";
 import { fileToDataURL } from "@/lib/fileToDataURL";
 
 export default function CofreUpload() {
   const navigate = useNavigate();
+  const [addMethod, setAddMethod] = useState<"manual" | "ocr">("manual");
   const [files, setFiles] = useState<File[]>([]);
   const [categoria, setCategoria] = useState<string>("");
   const [titulo, setTitulo] = useState<string>("");
@@ -127,6 +129,17 @@ export default function CofreUpload() {
     toast.info("Preencha os campos manualmente");
   };
 
+  const handleOCRResult = (data: any) => {
+    setTitulo(data.title || '');
+    if (data.issued_at) setDataEmissao(data.issued_at);
+    if (data.expires_at) setDataValidade(data.expires_at);
+    if (data.provider) setPrestador(data.provider);
+    if (data.category) setCategoria(data.category);
+    
+    toast.success("✨ Informações extraídas do documento!");
+    setAddMethod("manual"); // Voltar para o formulário
+  };
+
   const removeFile = (index: number) => {
     const file = files[index];
     setFiles((prev) => prev.filter((_, i) => i !== index));
@@ -202,8 +215,31 @@ export default function CofreUpload() {
 
         <h1 className="text-3xl font-bold mb-2">Enviar Documentos</h1>
         <p className="text-muted-foreground mb-6">
-          Selecione a categoria primeiro para ver os campos específicos
+          Use OCR para extrair informações automaticamente ou preencha manualmente
         </p>
+
+        {/* Seletor de método */}
+        <div className="grid grid-cols-2 gap-3 mb-6">
+          <Button
+            variant={addMethod === "ocr" ? "default" : "outline"}
+            onClick={() => setAddMethod("ocr")}
+            className="h-auto py-4 flex-col gap-2"
+          >
+            <Camera className="h-6 w-6" />
+            <span className="font-semibold">📸 Escanear com IA</span>
+            <span className="text-xs opacity-80">Câmera ou Galeria</span>
+          </Button>
+          
+          <Button
+            variant={addMethod === "manual" ? "default" : "outline"}
+            onClick={() => setAddMethod("manual")}
+            className="h-auto py-4 flex-col gap-2"
+          >
+            <FileUp className="h-6 w-6" />
+            <span className="font-semibold">✍️ Upload Manual</span>
+            <span className="text-xs opacity-80">Preencher formulário</span>
+          </Button>
+        </div>
 
         {isExtracting && (
           <div className="mb-4 p-4 bg-primary/10 rounded-lg flex items-center gap-3">
@@ -212,7 +248,14 @@ export default function CofreUpload() {
           </div>
         )}
 
-        <div className="space-y-6">
+        {addMethod === "ocr" && (
+          <div className="mb-6">
+            <DocumentOCRWrapper onResult={handleOCRResult} />
+          </div>
+        )}
+
+        {addMethod === "manual" && (
+          <div className="space-y-6">
           <Card>
             <CardContent className="pt-6">
               <Label htmlFor="file-upload" className="cursor-pointer">
@@ -515,6 +558,7 @@ export default function CofreUpload() {
             )}
           </Button>
         </div>
+        )}
       </div>
 
       <ExtractedDataPreviewModal
