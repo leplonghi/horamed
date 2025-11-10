@@ -147,8 +147,15 @@ export function useUploadDocumento() {
       profileId?: string;
       categoriaSlug?: string;
       criarLembrete?: boolean;
+      extractedData?: {
+        title?: string;
+        issued_at?: string;
+        expires_at?: string;
+        provider?: string;
+        category?: string;
+      };
     }) => {
-      const { file, profileId, categoriaSlug, criarLembrete } = params;
+      const { file, profileId, categoriaSlug, criarLembrete, extractedData } = params;
 
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Não autenticado");
@@ -187,15 +194,32 @@ export function useUploadDocumento() {
 
       if (uploadError) throw uploadError;
 
-      // Criar registro do documento
+      // Buscar categoria_id se fornecida
+      let categoria_id = undefined;
+      if (categoriaSlug || extractedData?.category) {
+        const slug = categoriaSlug || extractedData?.category;
+        const { data: cat } = await supabase
+          .from("categorias_saude")
+          .select("id")
+          .eq("slug", slug)
+          .maybeSingle();
+        if (cat) categoria_id = cat.id;
+      }
+
+      // Criar registro do documento com dados extraídos
       const { data: documento, error: docError } = await supabase
         .from("documentos_saude")
         .insert({
           user_id: user.id,
           profile_id: profileId,
+          categoria_id,
           file_path: filePath,
           mime_type: file.type,
-          title: file.name,
+          title: extractedData?.title || file.name,
+          issued_at: extractedData?.issued_at,
+          expires_at: extractedData?.expires_at,
+          provider: extractedData?.provider,
+          meta: extractedData ? { extracted: extractedData } : undefined,
         })
         .select()
         .single();

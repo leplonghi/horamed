@@ -32,6 +32,7 @@ export default function CofreUpload() {
   const [uploading, setUploading] = useState(false);
   const [showUpgrade, setShowUpgrade] = useState(false);
   const [isExtracting, setIsExtracting] = useState(false);
+  const [extractedDataMap, setExtractedDataMap] = useState<Map<string, any>>(new Map());
 
   const { profiles, activeProfile } = useUserProfiles();
   const uploadDocumento = useUploadDocumento();
@@ -41,44 +42,55 @@ export default function CofreUpload() {
       const newFiles = Array.from(e.target.files);
       setFiles((prev) => [...prev, ...newFiles]);
 
-      // Extrai automaticamente do primeiro arquivo se for imagem
-      const firstFile = newFiles[0];
-      if (firstFile && firstFile.type.startsWith('image/')) {
-        setIsExtracting(true);
-        try {
-          const reader = new FileReader();
-          reader.onloadend = async () => {
-            const base64 = reader.result as string;
-            
-            const { data, error } = await supabase.functions.invoke('extract-document', {
-              body: { image: base64 }
-            });
-
-            if (error) throw error;
-
-            if (data) {
-              setTitulo(data.title || '');
-              if (data.issued_at) setDataEmissao(data.issued_at);
-              if (data.expires_at) setDataValidade(data.expires_at);
-              if (data.provider) setPrestador(data.provider);
-              if (data.category) setCategoria(data.category);
+      // Extrai automaticamente de cada arquivo
+      for (const file of newFiles) {
+        if (file.type.startsWith('image/') || file.type === 'application/pdf') {
+          setIsExtracting(true);
+          try {
+            const reader = new FileReader();
+            reader.onloadend = async () => {
+              const base64 = reader.result as string;
               
-              // Campos específicos por categoria
-              if (data.doctor) setMedico(data.doctor);
-              if (data.specialty) setEspecialidade(data.specialty);
-              if (data.exam_type) setTipoExame(data.exam_type);
-              if (data.dose) setDose(data.dose);
-              if (data.next_dose) setProximaDose(data.next_dose);
+              const { data, error } = await supabase.functions.invoke('extract-document', {
+                body: { image: base64 }
+              });
 
-              toast.success("Informações extraídas automaticamente! Você pode editá-las se necessário.");
-            }
-          };
-          reader.readAsDataURL(firstFile);
-        } catch (error) {
-          console.error('Erro ao extrair informações:', error);
-          toast.error("Não foi possível extrair informações automaticamente. Preencha os campos manualmente.");
-        } finally {
-          setIsExtracting(false);
+              if (error) throw error;
+
+              if (data) {
+                // Salvar dados extraídos para este arquivo
+                setExtractedDataMap((prev) => {
+                  const newMap = new Map(prev);
+                  newMap.set(file.name, data);
+                  return newMap;
+                });
+
+                // Se for o primeiro arquivo, preencher os campos do formulário
+                if (newFiles[0] === file) {
+                  setTitulo(data.title || '');
+                  if (data.issued_at) setDataEmissao(data.issued_at);
+                  if (data.expires_at) setDataValidade(data.expires_at);
+                  if (data.provider) setPrestador(data.provider);
+                  if (data.category) setCategoria(data.category);
+                  
+                  // Campos específicos por categoria
+                  if (data.doctor) setMedico(data.doctor);
+                  if (data.specialty) setEspecialidade(data.specialty);
+                  if (data.exam_type) setTipoExame(data.exam_type);
+                  if (data.dose) setDose(data.dose);
+                  if (data.next_dose) setProximaDose(data.next_dose);
+
+                  toast.success("✨ Informações extraídas automaticamente! Você pode editá-las se necessário.");
+                }
+              }
+            };
+            reader.readAsDataURL(file);
+          } catch (error) {
+            console.error('Erro ao extrair informações:', error);
+            // Não mostrar erro para não irritar o usuário, apenas log
+          } finally {
+            setIsExtracting(false);
+          }
         }
       }
     }
@@ -108,11 +120,21 @@ export default function CofreUpload() {
 
     try {
       for (const file of files) {
+        // Pegar dados extraídos deste arquivo, se houver
+        const extractedData = extractedDataMap.get(file.name);
+        
         await uploadDocumento.mutateAsync({
           file,
           profileId: activeProfile?.id,
           categoriaSlug: categoria || undefined,
           criarLembrete,
+          extractedData: extractedData ? {
+            title: titulo || extractedData.title,
+            issued_at: dataEmissao || extractedData.issued_at,
+            expires_at: dataValidade || extractedData.expires_at,
+            provider: prestador || extractedData.provider,
+            category: categoria || extractedData.category,
+          } : undefined,
         });
       }
 
