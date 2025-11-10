@@ -81,9 +81,7 @@ export default function OnboardingScreens() {
       console.error("Error completing onboarding:", error);
     }
     setShowOnboarding(false);
-    if (location.pathname !== "/hoje") {
-      navigate("/hoje");
-    }
+    // Keep user on current page instead of redirecting
   };
 
   const handleNext = () => {
