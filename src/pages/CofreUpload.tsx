@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import Header from "@/components/Header";
 import Navigation from "@/components/Navigation";
 import UpgradeModal from "@/components/UpgradeModal";
+import ExtractedDataPreviewModal from "@/components/ExtractedDataPreviewModal";
 
 export default function CofreUpload() {
   const navigate = useNavigate();
@@ -33,6 +34,9 @@ export default function CofreUpload() {
   const [showUpgrade, setShowUpgrade] = useState(false);
   const [isExtracting, setIsExtracting] = useState(false);
   const [extractedDataMap, setExtractedDataMap] = useState<Map<string, any>>(new Map());
+  const [showPreviewModal, setShowPreviewModal] = useState(false);
+  const [currentPreviewFile, setCurrentPreviewFile] = useState<string>("");
+  const [currentPreviewData, setCurrentPreviewData] = useState<any>(null);
 
   const { profiles, activeProfile } = useUserProfiles();
   const uploadDocumento = useUploadDocumento();
@@ -58,30 +62,21 @@ export default function CofreUpload() {
               if (error) throw error;
 
               if (data) {
-                // Salvar dados extraídos para este arquivo
+                // Se for o primeiro arquivo, mostrar modal de prévia
+                if (newFiles[0] === file) {
+                  setCurrentPreviewFile(file.name);
+                  setCurrentPreviewData(data);
+                  setShowPreviewModal(true);
+                  setIsExtracting(false);
+                  return;
+                }
+                
+                // Para arquivos subsequentes, salvar dados extraídos silenciosamente
                 setExtractedDataMap((prev) => {
                   const newMap = new Map(prev);
                   newMap.set(file.name, data);
                   return newMap;
                 });
-
-                // Se for o primeiro arquivo, preencher os campos do formulário
-                if (newFiles[0] === file) {
-                  setTitulo(data.title || '');
-                  if (data.issued_at) setDataEmissao(data.issued_at);
-                  if (data.expires_at) setDataValidade(data.expires_at);
-                  if (data.provider) setPrestador(data.provider);
-                  if (data.category) setCategoria(data.category);
-                  
-                  // Campos específicos por categoria
-                  if (data.doctor) setMedico(data.doctor);
-                  if (data.specialty) setEspecialidade(data.specialty);
-                  if (data.exam_type) setTipoExame(data.exam_type);
-                  if (data.dose) setDose(data.dose);
-                  if (data.next_dose) setProximaDose(data.next_dose);
-
-                  toast.success("✨ Informações extraídas automaticamente! Você pode editá-las se necessário.");
-                }
               }
             };
             reader.readAsDataURL(file);
@@ -96,8 +91,45 @@ export default function CofreUpload() {
     }
   };
 
+  const handlePreviewConfirm = (data: any) => {
+    // Salvar dados editados
+    setExtractedDataMap((prev) => {
+      const newMap = new Map(prev);
+      newMap.set(currentPreviewFile, data);
+      return newMap;
+    });
+
+    // Preencher campos do formulário
+    setTitulo(data.title || '');
+    if (data.issued_at) setDataEmissao(data.issued_at);
+    if (data.expires_at) setDataValidade(data.expires_at);
+    if (data.provider) setPrestador(data.provider);
+    if (data.category) setCategoria(data.category);
+    
+    // Campos específicos por categoria
+    if (data.doctor) setMedico(data.doctor);
+    if (data.specialty) setEspecialidade(data.specialty);
+    if (data.exam_type) setTipoExame(data.exam_type);
+    if (data.dose) setDose(data.dose);
+    if (data.next_dose) setProximaDose(data.next_dose);
+
+    toast.success("✨ Informações confirmadas e aplicadas!");
+  };
+
+  const handlePreviewSkip = () => {
+    toast.info("Preencha os campos manualmente");
+  };
+
   const removeFile = (index: number) => {
+    const file = files[index];
     setFiles((prev) => prev.filter((_, i) => i !== index));
+    
+    // Remover dados extraídos deste arquivo
+    setExtractedDataMap((prev) => {
+      const newMap = new Map(prev);
+      newMap.delete(file.name);
+      return newMap;
+    });
   };
 
   const handleUpload = async () => {
@@ -460,12 +492,31 @@ export default function CofreUpload() {
             className="w-full"
             size="lg"
             onClick={handleUpload}
-            disabled={uploading || files.length === 0 || !categoria || !titulo}
+            disabled={uploading || isExtracting}
           >
-            {uploading ? "Enviando..." : "Enviar Documentos"}
+            {uploading ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Enviando...
+              </>
+            ) : (
+              <>
+                <Upload className="w-4 h-4 mr-2" />
+                Enviar Documentos
+              </>
+            )}
           </Button>
         </div>
       </div>
+
+      <ExtractedDataPreviewModal
+        open={showPreviewModal}
+        onOpenChange={setShowPreviewModal}
+        fileName={currentPreviewFile}
+        extractedData={currentPreviewData || {}}
+        onConfirm={handlePreviewConfirm}
+        onSkip={handlePreviewSkip}
+      />
 
       <UpgradeModal open={showUpgrade} onOpenChange={setShowUpgrade} />
       <Navigation />
