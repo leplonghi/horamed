@@ -25,12 +25,14 @@ async function generateImageHash(imageData: string): Promise<string> {
 }
 
 serve(async (req) => {
+  const startTime = Date.now();
+  
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { image } = await req.json();
+    const { image, documentType = 'auto' } = await req.json();
 
     if (!image || typeof image !== "string") {
       return new Response(
@@ -43,9 +45,18 @@ serve(async (req) => {
     if (!isValidDocumentFormat(normalized)) {
       console.error("Invalid format:", normalized.substring(0, 50));
       return new Response(
-        JSON.stringify({ error: "Formato inválido. Envie data URI base64: data:image/(png|jpeg|jpg|webp);base64,... ou data:application/pdf;base64,..." }),
+        JSON.stringify({ 
+          error: "Formato inválido. Envie uma imagem nítida (JPEG, PNG, WEBP) ou PDF de 1 página.",
+          details: "O arquivo deve ser legível e conter os dados da receita completos."
+        }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
+    }
+
+    // Check if PDF
+    const isPDF = normalized.startsWith('data:application/pdf');
+    if (isPDF) {
+      console.log("PDF detected - will process first page");
     }
 
     // Initialize Supabase client
@@ -90,78 +101,85 @@ serve(async (req) => {
     console.log("Cache miss. Processing document...");
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 
-    const prompt = `Você é um assistente médico especializado em extrair informações PRECISAS de documentos de saúde.
+    // Specialized prompt for prescription documents
+    const prescriptionPrompt = `Você é um especialista em análise de RECEITAS MÉDICAS. Analise este documento e extraia TODOS os dados estruturados.
+
+**CAMPOS ESSENCIAIS DA RECEITA**:
+1. **prescriber_name**: Nome COMPLETO do médico prescritor
+2. **prescriber_registration**: CRM completo com UF (ex: "CRM 12345/SP")
+3. **patient_name**: Nome COMPLETO do paciente
+4. **issued_at**: Data de emissão da receita (formato: YYYY-MM-DD)
+5. **expires_at**: Data de validade (se não houver, calcule: issued_at + 30 dias)
+6. **category**: SEMPRE "receita"
+7. **title**: "Receita Médica - [Nome do Médico]"
+8. **provider**: Nome da clínica/hospital (se houver)
+
+**MEDICAMENTOS PRESCRITOS** (array "prescriptions"):
+Para CADA medicamento, extraia:
+- **name_commercial**: Nome comercial do medicamento (obrigatório)
+- **generic_name**: Princípio ativo (se mencionado)
+- **dose_text**: Dosagem completa (ex: "500mg", "20mg/ml")
+- **form**: Forma farmacêutica (comprimido, cápsula, xarope, pomada, etc)
+- **frequency**: Posologia exata (ex: "8 em 8 horas", "2x ao dia", "1x pela manhã")
+- **duration_days**: Duração do tratamento em dias inteiros
+- **instructions**: Instruções específicas (tomar com água, em jejum, após refeições, etc)
+
+**INSTRUÇÕES GERAIS**:
+9. **instructions**: Observações gerais do médico (se houver)
+
+**REGRAS CRÍTICAS**:
+- Se for PDF, analise APENAS a primeira página
+- Extraia TODOS os medicamentos prescritos
+- Para duration_days: se diz "por 10 dias", retorne 10
+- Se frequency for "se necessário" ou "SOS", mantenha como está
+- Seja PRECISO com CRM (deve incluir número E estado)
+- NUNCA invente dados - use null se não encontrar
+
+Retorne APENAS JSON puro, sem markdown:
+{
+  "category": "receita",
+  "title": "Receita Médica - Dr. Nome",
+  "issued_at": "YYYY-MM-DD",
+  "expires_at": "YYYY-MM-DD",
+  "prescriber_name": "Nome completo",
+  "prescriber_registration": "CRM XXXXX/UF",
+  "patient_name": "Nome do paciente",
+  "provider": "Nome da clínica ou null",
+  "prescriptions": [
+    {
+      "name_commercial": "Nome do medicamento",
+      "generic_name": "Princípio ativo ou null",
+      "dose_text": "Dosagem",
+      "form": "Forma farmacêutica",
+      "frequency": "Frequência de uso",
+      "duration_days": número ou null,
+      "instructions": "Instruções específicas ou null"
+    }
+  ],
+  "instructions": "Observações gerais ou null"
+}`;
+
+    // General document prompt (for non-prescription documents)
+    const generalPrompt = `Você é um assistente médico especializado em extrair informações PRECISAS de documentos de saúde.
 
 Analise CUIDADOSAMENTE este documento e extraia as seguintes informações em formato JSON:
 
 1. **title**: Nome EXATO do exame/documento como aparece no cabeçalho (obrigatório)
-   - Exemplos: "Hemograma Completo", "Glicemia de Jejum", "Atestado Médico"
-
-2. **issued_at**: Data de COLETA/EMISSÃO do documento em formato YYYY-MM-DD
-   - Procure por: "Data de coleta", "Data do exame", "Data de emissão", "Coletado em"
-   - Se houver múltiplas datas, use a data de COLETA do exame ou emissão do documento
-
+2. **issued_at**: Data de COLETA/EMISSÃO do documento (YYYY-MM-DD)
 3. **expires_at**: Data de validade (YYYY-MM-DD) - APENAS se explicitamente mencionada
-   - Receitas médicas geralmente têm validade
-   - Deixe null se não houver validade explícita
-
 4. **provider**: Nome COMPLETO do laboratório/clínica/hospital
-   - Procure no cabeçalho ou rodapé do documento
-   - Exemplos: "Laboratório Sabin", "Hospital Albert Einstein", "Clínica São Lucas"
-   - Se não encontrar, retorne null
+5. **category**: Classifique CORRETAMENTE:
+   - "exame": Exames laboratoriais, de imagem
+   - "receita": Prescrições médicas
+   - "vacinacao": Cartões de vacinação
+   - "consulta": Relatórios de consultas
+   - "outro": Atestados, declarações
+6. **extracted_values**: Array de TODOS os valores numéricos (para exames)
+7. **medications**: Array de medicamentos (para receitas)
 
-5. **category**: Classifique CORRETAMENTE o tipo de documento:
-   - "exame": Exames laboratoriais, de imagem, etc. (hemograma, glicemia, raio-x, etc.)
-   - "receita": Prescrições médicas com medicamentos
-   - "vacinacao": Cartões ou certificados de vacinação
-   - "consulta": Relatórios ou resumos de consultas médicas
-   - "outro": Atestados, declarações, etc.
+Retorne APENAS JSON puro, sem markdown.`;
 
-6. **extracted_values**: Array de TODOS os valores numéricos encontrados (OBRIGATÓRIO para exames):
-   - Formato: {"parameter": "Nome do Parâmetro", "value": 14.5, "unit": "g/dL", "reference_range": "12-16"}
-   - Extraia TODOS os parâmetros do exame com seus valores, unidades e faixas de referência
-   - Para exames de sangue, sempre haverá múltiplos valores
-
-7. **medications**: Array de medicamentos (OBRIGATÓRIO para receitas):
-   - Formato: {"name": "Nome do Medicamento", "dosage": "500mg", "frequency": "1 vez ao dia", "duration": "10 dias"}
-   - Extraia TODOS os medicamentos prescritos com dosagem e frequência
-   - Inclua instruções de uso se presentes
-
-REGRAS CRÍTICAS:
-- Leia TODO o documento antes de responder
-- NÃO confunda tipos de documentos (exame ≠ atestado ≠ receita)
-- Seja PRECISO com datas - verifique o contexto ("coleta", "emissão", "validade")
-- SEMPRE procure o nome do laboratório no cabeçalho/rodapé
-- Para exames laboratoriais, extracted_values NUNCA deve estar vazio
-
-Retorne APENAS um objeto JSON válido, sem markdown ou texto adicional.
-
-Exemplo de exame laboratorial:
-{
-  "title": "Hemograma Completo",
-  "issued_at": "2024-01-15",
-  "expires_at": null,
-  "provider": "Laboratório Sabin",
-  "category": "exame",
-  "extracted_values": [
-    {"parameter": "Hemoglobina", "value": 14.5, "unit": "g/dL", "reference_range": "12-16"},
-    {"parameter": "Leucócitos", "value": 7500, "unit": "/mm³", "reference_range": "4000-11000"},
-    {"parameter": "Plaquetas", "value": 250000, "unit": "/mm³", "reference_range": "150000-400000"}
-  ]
-}
-
-Exemplo de receita médica:
-{
-  "title": "Receita Médica",
-  "issued_at": "2024-01-15",
-  "expires_at": "2024-04-15",
-  "provider": "Dr. João Silva - CRM 12345",
-  "category": "receita",
-  "medications": [
-    {"name": "Amoxicilina 500mg", "dosage": "500mg", "frequency": "8 em 8 horas", "duration": "7 dias"},
-    {"name": "Paracetamol 750mg", "dosage": "750mg", "frequency": "Se necessário", "duration": "Enquanto houver dor"}
-  ]
-}`;
+    const prompt = documentType === 'receita' ? prescriptionPrompt : generalPrompt;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -178,7 +196,7 @@ Exemplo de receita médica:
             content: [
               { 
                 type: "text", 
-                text: "Analise este documento de saúde COM ATENÇÃO e extraia TODAS as informações com PRECISÃO. Leia o documento TODO antes de responder:" 
+                text: "Analise este documento COM ATENÇÃO e extraia TODAS as informações com PRECISÃO:" 
               },
               { type: "image_url", image_url: { url: normalized } },
             ],
@@ -193,7 +211,10 @@ Exemplo de receita médica:
       
       if (response.status === 429) {
         return new Response(
-          JSON.stringify({ error: "Rate limit exceeded. Please try again later." }),
+          JSON.stringify({ 
+            error: "Muitas requisições. Aguarde alguns segundos e tente novamente.",
+            retryAfter: 5
+          }),
           { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
@@ -202,61 +223,79 @@ Exemplo de receita médica:
     }
 
     const data = await response.json();
-    console.log("AI Response:", JSON.stringify(data, null, 2));
+    console.log("AI Response received");
 
     const content = data.choices?.[0]?.message?.content || "";
-    console.log("Raw content:", content);
     
-    // Parse JSON from response, handling markdown code blocks
+    // Parse JSON from response
     let extractedInfo;
     try {
-      // Remove markdown code blocks if present
       const cleanContent = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-      
-      // Try to find JSON object in the content
       const jsonMatch = cleanContent.match(/\{[\s\S]*\}/);
+      
       if (!jsonMatch) {
-        throw new Error("No JSON object found in response");
+        throw new Error("No JSON found in AI response");
       }
       
       extractedInfo = JSON.parse(jsonMatch[0]);
       
       // Validate required fields
       if (!extractedInfo.title) {
-        console.warn("Missing title in extracted data");
         extractedInfo.title = "Documento de Saúde";
       }
       if (!extractedInfo.category) {
-        console.warn("Missing category in extracted data");
         extractedInfo.category = "outro";
       }
-      if (!extractedInfo.extracted_values) {
-        extractedInfo.extracted_values = [];
-      }
       
-      console.log("Successfully extracted:", JSON.stringify(extractedInfo, null, 2));
+      console.log("Extracted data:", JSON.stringify(extractedInfo, null, 2));
     } catch (e) {
-      console.error("Failed to parse AI response:", content);
-      console.error("Parse error:", e);
-      throw new Error("Failed to parse document information from AI response");
+      console.error("Failed to parse AI response:", e);
+      throw new Error("Erro ao processar resposta da IA. Tente novamente com imagem mais nítida.");
     }
 
-    // Calculate confidence score based on filled fields
-    const totalFields = 8; // title, issued_at, expires_at, provider, category, extracted_values, medications, ocr_text
-    let filledFields = 0;
-    if (extractedInfo.title && extractedInfo.title.trim().length > 0) filledFields++;
-    if (extractedInfo.issued_at) filledFields++;
-    if (extractedInfo.expires_at) filledFields++;
-    if (extractedInfo.provider) filledFields++;
-    if (extractedInfo.category) filledFields++;
-    if (extractedInfo.extracted_values && extractedInfo.extracted_values.length > 0) filledFields++;
-    if (extractedInfo.medications && extractedInfo.medications.length > 0) filledFields++;
-    if (extractedInfo.ocr_text && extractedInfo.ocr_text.length > 10) filledFields++;
+    // Calculate confidence score
+    let confidence = 0.85;
     
-    const confidence = filledFields / totalFields;
-    const status = confidence >= 0.7 ? 'pending_review' : 'failed';
+    if (extractedInfo.category === 'receita') {
+      // Stricter validation for prescriptions
+      if (!extractedInfo.prescriber_name) confidence -= 0.25;
+      if (!extractedInfo.prescriber_registration) confidence -= 0.15;
+      if (!extractedInfo.patient_name) confidence -= 0.15;
+      if (!extractedInfo.prescriptions || extractedInfo.prescriptions.length === 0) confidence -= 0.3;
+      if (!extractedInfo.issued_at) confidence -= 0.15;
+    } else {
+      if (!extractedInfo.title || !extractedInfo.category) confidence -= 0.2;
+      if (!extractedInfo.issued_at) confidence -= 0.15;
+      if (!extractedInfo.provider) confidence -= 0.1;
+    }
 
-    console.log(`Extraction confidence: ${confidence.toFixed(2)} (${filledFields}/${totalFields} fields)`);
+    confidence = Math.max(0, Math.min(1, confidence));
+    const status = confidence >= 0.7 ? 'pending_review' : 'failed';
+    const processingTime = Date.now() - startTime;
+
+    console.log(`Confidence: ${confidence.toFixed(2)}, Status: ${status}, Time: ${processingTime}ms`);
+
+    // Log extraction attempt
+    const logData = {
+      user_id: user.id,
+      file_path: 'inline_extraction',
+      mime_type: isPDF ? 'application/pdf' : 'image/jpeg',
+      pages_count: 1,
+      confidence_score: confidence,
+      extraction_type: extractedInfo.category || 'unknown',
+      status: confidence >= 0.7 ? 'success' : 'low_confidence',
+      extracted_fields: extractedInfo,
+      processing_time_ms: processingTime
+    };
+
+    try {
+      await supabase
+        .from('document_extraction_logs')
+        .insert(logData);
+      console.log("Extraction logged");
+    } catch (logError) {
+      console.error("Failed to log extraction:", logError);
+    }
 
     // Save to cache
     try {
@@ -268,21 +307,65 @@ Exemplo de receita médica:
           extraction_type: "document",
           extracted_data: { ...extractedInfo, confidence, status }
         });
-      console.log("Extraction saved to cache");
-    } catch (cacheInsertError) {
-      console.error("Failed to save to cache:", cacheInsertError);
-      // Don't fail the request if cache save fails
+      console.log("Saved to cache");
+    } catch (cacheError) {
+      console.error("Failed to save to cache:", cacheError);
     }
 
     return new Response(
-      JSON.stringify({ ...extractedInfo, confidence, status, cached: false }),
+      JSON.stringify({
+        ...extractedInfo,
+        confidence,
+        status,
+        cached: false,
+        processingTime: `${processingTime}ms`
+      }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
 
   } catch (error: any) {
+    const processingTime = Date.now() - startTime;
     console.error("Error in extract-document:", error);
+
+    // Log failed extraction
+    try {
+      const authHeader = req.headers.get("Authorization");
+      if (authHeader) {
+        const supabase = createClient(
+          Deno.env.get('SUPABASE_URL') ?? '',
+          Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+          { global: { headers: { Authorization: authHeader } } }
+        );
+
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        if (user) {
+          await supabase
+            .from('document_extraction_logs')
+            .insert({
+              user_id: user.id,
+              file_path: 'inline_extraction',
+              mime_type: 'unknown',
+              pages_count: 1,
+              confidence_score: 0,
+              extraction_type: 'unknown',
+              status: 'failed',
+              error_message: error.message,
+              processing_time_ms: processingTime
+            });
+        }
+      }
+    } catch (logError) {
+      console.error("Failed to log error:", logError);
+    }
+
     return new Response(
-      JSON.stringify({ error: error.message || "Failed to process document" }),
+      JSON.stringify({ 
+        error: "Não foi possível extrair os dados deste documento",
+        message: "Por favor, envie uma imagem nítida ou PDF de 1 página com texto legível.",
+        details: error.message,
+        suggestion: "Tente: 1) Melhor iluminação, 2) Foco adequado, 3) Scanner para PDFs"
+      }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }

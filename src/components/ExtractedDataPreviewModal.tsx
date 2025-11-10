@@ -26,6 +26,21 @@ interface ExtractedData {
   exam_type?: string;
   dose?: string;
   next_dose?: string;
+  // Prescription-specific fields
+  prescriber_name?: string;
+  prescriber_registration?: string;
+  patient_name?: string;
+  instructions?: string;
+  prescriptions?: Array<{
+    name_commercial: string;
+    generic_name?: string;
+    dose_text: string;
+    form?: string;
+    frequency?: string;
+    duration_days?: number;
+    instructions?: string;
+  }>;
+  // Legacy format (for backward compatibility)
   medications?: Array<{
     name: string;
     dosage?: string;
@@ -210,6 +225,83 @@ export default function ExtractedDataPreviewModal({
             </div>
 
             {/* Category-specific fields */}
+            {/* Prescription-specific fields */}
+            {editedData.category === "receita" && (
+              <>
+                <div>
+                  <Label htmlFor="preview-prescriber" className="flex items-center gap-2">
+                    Médico Prescritor
+                    {extractedData.prescriber_name && (
+                      <Badge variant="secondary" className="text-xs">
+                        <Check className="h-3 w-3 mr-1" />
+                        Extraído
+                      </Badge>
+                    )}
+                  </Label>
+                  <Input
+                    id="preview-prescriber"
+                    value={editedData.prescriber_name || ""}
+                    onChange={(e) => setEditedData({ ...editedData, prescriber_name: e.target.value })}
+                    placeholder="Nome do médico"
+                    className={!extractedData.prescriber_name ? "border-yellow-500" : ""}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="preview-crm" className="flex items-center gap-2">
+                    CRM/Registro
+                    {extractedData.prescriber_registration && (
+                      <Badge variant="secondary" className="text-xs">
+                        <Check className="h-3 w-3 mr-1" />
+                        Extraído
+                      </Badge>
+                    )}
+                  </Label>
+                  <Input
+                    id="preview-crm"
+                    value={editedData.prescriber_registration || ""}
+                    onChange={(e) => setEditedData({ ...editedData, prescriber_registration: e.target.value })}
+                    placeholder="Ex: CRM 12345/SP"
+                    className={!extractedData.prescriber_registration ? "border-yellow-500" : ""}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="preview-patient" className="flex items-center gap-2">
+                    Paciente
+                    {extractedData.patient_name && (
+                      <Badge variant="secondary" className="text-xs">
+                        <Check className="h-3 w-3 mr-1" />
+                        Extraído
+                      </Badge>
+                    )}
+                  </Label>
+                  <Input
+                    id="preview-patient"
+                    value={editedData.patient_name || ""}
+                    onChange={(e) => setEditedData({ ...editedData, patient_name: e.target.value })}
+                    placeholder="Nome do paciente"
+                    className={!extractedData.patient_name ? "border-yellow-500" : ""}
+                  />
+                </div>
+                {extractedData.instructions && (
+                  <div>
+                    <Label htmlFor="preview-instructions" className="flex items-center gap-2">
+                      Instruções Gerais
+                      <Badge variant="secondary" className="text-xs">
+                        <Check className="h-3 w-3 mr-1" />
+                        Extraído
+                      </Badge>
+                    </Label>
+                    <Input
+                      id="preview-instructions"
+                      value={editedData.instructions || ""}
+                      onChange={(e) => setEditedData({ ...editedData, instructions: e.target.value })}
+                      placeholder="Instruções do médico"
+                    />
+                  </div>
+                )}
+              </>
+            )}
+
             {editedData.category === "consulta" && (
               <>
                 <div>
@@ -307,48 +399,118 @@ export default function ExtractedDataPreviewModal({
             )}
           </div>
 
-          {/* Medications List for Prescriptions */}
-          {editedData.category === "receita" && editedData.medications && editedData.medications.length > 0 && (
-            <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <Pill className="h-4 w-4 text-primary" />
-                <Label className="text-base font-medium">Medicamentos Detectados</Label>
-                <Badge variant="secondary" className="gap-1">
-                  <Sparkles className="w-3 h-3" />
-                  {editedData.medications.length} {editedData.medications.length === 1 ? 'medicamento' : 'medicamentos'}
-                </Badge>
-              </div>
-              <div className="space-y-2 max-h-[200px] overflow-y-auto">
-                {editedData.medications.map((med, idx) => (
-                  <Card key={idx} className="p-3 bg-muted/50">
-                    <div className="space-y-1">
-                      <p className="font-medium text-sm">{med.name}</p>
-                      {med.dosage && (
-                        <p className="text-xs text-muted-foreground">Dose: {med.dosage}</p>
-                      )}
-                      {med.frequency && (
-                        <p className="text-xs text-muted-foreground">Frequência: {med.frequency}</p>
-                      )}
-                      {med.duration_days && (
-                        <p className="text-xs text-muted-foreground">Duração: {med.duration_days} dias</p>
-                      )}
-                    </div>
-                  </Card>
-                ))}
-              </div>
-              <p className="text-xs text-primary/80 flex items-center gap-1">
-                <Sparkles className="w-3 h-3" />
-                Estes medicamentos serão criados automaticamente após o upload
-              </p>
-            </div>
+          {/* Medications/Prescriptions List */}
+          {editedData.category === "receita" && (
+            <>
+              {/* New format (prescriptions) */}
+              {editedData.prescriptions && editedData.prescriptions.length > 0 && (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Pill className="h-4 w-4 text-primary" />
+                    <Label className="text-base font-medium">Medicamentos Prescritos</Label>
+                    <Badge variant="secondary" className="gap-1">
+                      <Sparkles className="w-3 h-3" />
+                      {editedData.prescriptions.length} {editedData.prescriptions.length === 1 ? 'medicamento' : 'medicamentos'}
+                    </Badge>
+                  </div>
+                  <div className="space-y-2 max-h-[280px] overflow-y-auto">
+                    {editedData.prescriptions.map((med, idx) => (
+                      <Card key={idx} className="p-3 bg-muted/50 border-l-2 border-l-primary">
+                        <div className="space-y-1.5">
+                          <div className="flex items-start justify-between gap-2">
+                            <p className="font-semibold text-sm">{med.name_commercial}</p>
+                            {med.form && (
+                              <Badge variant="outline" className="text-[10px] shrink-0">{med.form}</Badge>
+                            )}
+                          </div>
+                          {med.generic_name && (
+                            <p className="text-xs text-muted-foreground italic">({med.generic_name})</p>
+                          )}
+                          <div className="grid grid-cols-2 gap-1 text-xs text-muted-foreground mt-2">
+                            <div>
+                              <span className="font-medium">Dose:</span> {med.dose_text}
+                            </div>
+                            {med.frequency && (
+                              <div>
+                                <span className="font-medium">Freq:</span> {med.frequency}
+                              </div>
+                            )}
+                            {med.duration_days && (
+                              <div>
+                                <span className="font-medium">Duração:</span> {med.duration_days} dias
+                              </div>
+                            )}
+                            {med.instructions && (
+                              <div className="col-span-2 mt-1 pt-1 border-t border-border/50">
+                                <span className="font-medium">Obs:</span> {med.instructions}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </Card>
+                    ))}
+                  </div>
+                  <div className="flex items-start gap-2 p-2 bg-primary/5 rounded-lg border border-primary/20">
+                    <Sparkles className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                    <p className="text-xs text-primary/90">
+                      Estes medicamentos serão automaticamente adicionados ao seu sistema após confirmar
+                    </p>
+                  </div>
+                </div>
+              )}
+              {/* Legacy format (medications) - backward compatibility */}
+              {!editedData.prescriptions && editedData.medications && editedData.medications.length > 0 && (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Pill className="h-4 w-4 text-primary" />
+                    <Label className="text-base font-medium">Medicamentos Detectados</Label>
+                    <Badge variant="secondary" className="gap-1">
+                      <Sparkles className="w-3 h-3" />
+                      {editedData.medications.length} {editedData.medications.length === 1 ? 'medicamento' : 'medicamentos'}
+                    </Badge>
+                  </div>
+                  <div className="space-y-2 max-h-[200px] overflow-y-auto">
+                    {editedData.medications.map((med, idx) => (
+                      <Card key={idx} className="p-3 bg-muted/50">
+                        <div className="space-y-1">
+                          <p className="font-medium text-sm">{med.name}</p>
+                          {med.dosage && (
+                            <p className="text-xs text-muted-foreground">Dose: {med.dosage}</p>
+                          )}
+                          {med.frequency && (
+                            <p className="text-xs text-muted-foreground">Frequência: {med.frequency}</p>
+                          )}
+                          {med.duration_days && (
+                            <p className="text-xs text-muted-foreground">Duração: {med.duration_days} dias</p>
+                          )}
+                        </div>
+                      </Card>
+                    ))}
+                  </div>
+                  <p className="text-xs text-primary/80 flex items-center gap-1">
+                    <Sparkles className="w-3 h-3" />
+                    Estes medicamentos serão criados automaticamente após o upload
+                  </p>
+                </div>
+              )}
+            </>
           )}
 
-          {/* AI Confidence Notice */}
-          <div className="p-3 bg-primary/5 border border-primary/20 rounded-lg">
-            <p className="text-xs text-muted-foreground flex items-center gap-2">
-              <Edit3 className="h-3 w-3" />
-              Todos os campos podem ser editados. Revise as informações antes de confirmar.
-            </p>
+          {/* Confidence and validation warnings */}
+          <div className="space-y-2">
+            {confidence && confidence < 0.7 && (
+              <div className="p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
+                <p className="text-xs text-yellow-700 dark:text-yellow-400 font-medium">
+                  ⚠️ Confiança baixa na extração. Por favor, revise todos os campos cuidadosamente.
+                </p>
+              </div>
+            )}
+            <div className="p-3 bg-primary/5 border border-primary/20 rounded-lg">
+              <p className="text-xs text-muted-foreground flex items-center gap-2">
+                <Edit3 className="h-3 w-3" />
+                Todos os campos podem ser editados. Campos destacados em amarelo requerem atenção especial.
+              </p>
+            </div>
           </div>
         </div>
 

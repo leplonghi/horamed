@@ -431,6 +431,69 @@ export type Database = {
           },
         ]
       }
+      document_extraction_logs: {
+        Row: {
+          confidence_score: number | null
+          created_at: string
+          document_id: string | null
+          error_message: string | null
+          extracted_fields: Json | null
+          extraction_type: string
+          file_path: string
+          id: string
+          mime_type: string
+          pages_count: number | null
+          processing_time_ms: number | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          confidence_score?: number | null
+          created_at?: string
+          document_id?: string | null
+          error_message?: string | null
+          extracted_fields?: Json | null
+          extraction_type: string
+          file_path: string
+          id?: string
+          mime_type: string
+          pages_count?: number | null
+          processing_time_ms?: number | null
+          status: string
+          user_id: string
+        }
+        Update: {
+          confidence_score?: number | null
+          created_at?: string
+          document_id?: string | null
+          error_message?: string | null
+          extracted_fields?: Json | null
+          extraction_type?: string
+          file_path?: string
+          id?: string
+          mime_type?: string
+          pages_count?: number | null
+          processing_time_ms?: number | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_extraction_logs_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documentos_saude"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_extraction_logs_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "medical_exams_v"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       document_shares: {
         Row: {
           allow_download: boolean
