@@ -158,14 +158,44 @@ serve(async (req) => {
       }
     } else if (category === "receita" && extractedData.medications?.length > 0) {
       // Create medication items from prescription
-      const medications = extractedData.medications.map((med: any) => ({
-        user_id: user.id,
-        profile_id: documento.profile_id,
-        name: med.name,
-        dose_text: med.dosage,
-        category: "medicamento",
-        notes: `Prescrito por: ${extractedData.provider || "Médico"}`,
-      }));
+      console.log('Creating medication items from prescription:', extractedData.medications);
+      
+      const medications = extractedData.medications.map((med: any) => {
+        // Parse treatment dates
+        let treatmentStartDate = null;
+        let treatmentEndDate = null;
+        let treatmentDurationDays = null;
+
+        if (med.start_date) {
+          treatmentStartDate = med.start_date;
+        }
+
+        if (med.duration_days) {
+          treatmentDurationDays = parseInt(med.duration_days);
+          if (treatmentStartDate && treatmentDurationDays) {
+            const startDate = new Date(treatmentStartDate);
+            startDate.setDate(startDate.getDate() + treatmentDurationDays);
+            treatmentEndDate = startDate.toISOString().split('T')[0];
+          }
+        }
+
+        return {
+          user_id: user.id,
+          profile_id: documento.profile_id,
+          name: med.name,
+          dose_text: med.dosage || null,
+          category: 'medicamento',
+          treatment_duration_days: treatmentDurationDays,
+          total_doses: med.total_doses ? parseInt(med.total_doses) : null,
+          treatment_start_date: treatmentStartDate,
+          treatment_end_date: treatmentEndDate,
+          notes: [
+            med.frequency ? `Frequência: ${med.frequency}` : null,
+            extractedData.provider ? `Prescrito por: ${extractedData.provider}` : null,
+          ].filter(Boolean).join('\n'),
+          is_active: true,
+        };
+      });
 
       const { data: items, error: itemsError } = await supabase
         .from("items")
@@ -175,6 +205,7 @@ serve(async (req) => {
       if (itemsError) {
         console.error("Error creating medications:", itemsError);
       } else {
+        console.log('Successfully created medication items:', items?.length || 0);
         savedRecords.medications = items;
         savedRecords.medications_count = items?.length || 0;
       }

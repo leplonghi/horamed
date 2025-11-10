@@ -157,16 +157,17 @@ export default function CofreUpload() {
         
         await uploadDocumento.mutateAsync({
           file,
-          profileId: activeProfile?.id,
-          categoriaSlug: categoria || undefined,
-          criarLembrete,
-          extractedData: extractedData ? {
-            title: titulo || extractedData.title,
-            issued_at: dataEmissao || extractedData.issued_at,
-            expires_at: dataValidade || extractedData.expires_at,
-            provider: prestador || extractedData.provider,
-            category: categoria || extractedData.category,
-          } : undefined,
+      profileId: activeProfile?.id,
+      categoriaSlug: categoria || undefined,
+      criarLembrete,
+      extractedData: extractedData ? {
+        title: titulo || extractedData.title,
+        issued_at: dataEmissao || extractedData.issued_at,
+        expires_at: dataValidade || extractedData.expires_at,
+        provider: prestador || extractedData.provider,
+        category: categoria || extractedData.category,
+        medications: extractedData.medications || [],
+      } : undefined,
         });
       }
 

@@ -147,13 +147,14 @@ export function useUploadDocumento() {
       profileId?: string;
       categoriaSlug?: string;
       criarLembrete?: boolean;
-      extractedData?: {
-        title?: string;
-        issued_at?: string;
-        expires_at?: string;
-        provider?: string;
-        category?: string;
-      };
+    extractedData?: {
+      title?: string;
+      issued_at?: string;
+      expires_at?: string;
+      provider?: string;
+      category?: string;
+      medications?: any[];
+    };
     }) => {
       const { file, profileId, categoriaSlug, criarLembrete, extractedData } = params;
 
@@ -226,6 +227,32 @@ export function useUploadDocumento() {
 
       if (docError) throw docError;
 
+      // Process extracted data including medications for prescriptions
+      if (extractedData) {
+        try {
+          const { error: processError } = await supabase.functions.invoke(
+            "process-extracted-document",
+            {
+              body: {
+                documentId: documento.id,
+                extractedData: {
+                  ...extractedData,
+                  medications: extractedData.medications || [],
+                },
+              },
+            }
+          );
+
+          if (processError) {
+            console.error("Erro ao processar dados extraídos:", processError);
+          } else {
+            console.log("Dados extraídos processados com sucesso");
+          }
+        } catch (e) {
+          console.warn("Erro ao processar dados extraídos:", e);
+        }
+      }
+
       // Chamar Edge Function para extrair metadados
       try {
         await supabase.functions.invoke("extrair-metadados-documento", {
@@ -244,7 +271,8 @@ export function useUploadDocumento() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["cofre", "lista"] });
-      toast.success("Documento enviado com sucesso");
+      queryClient.invalidateQueries({ queryKey: ["items"] });
+      toast.success("Documento enviado e medicamentos criados com sucesso");
     },
     onError: (error: any) => {
       if (error.message === "LIMIT_REACHED") {

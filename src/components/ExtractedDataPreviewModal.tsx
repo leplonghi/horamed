@@ -11,8 +11,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Sparkles, Check, Edit3 } from "lucide-react";
+import { Sparkles, Check, Edit3, Pill } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
 
 interface ExtractedData {
   title?: string;
@@ -25,6 +26,14 @@ interface ExtractedData {
   exam_type?: string;
   dose?: string;
   next_dose?: string;
+  medications?: Array<{
+    name: string;
+    dosage?: string;
+    frequency?: string;
+    duration_days?: string;
+    total_doses?: string;
+    start_date?: string;
+  }>;
 }
 
 interface ExtractedDataPreviewModalProps {
@@ -284,6 +293,42 @@ export default function ExtractedDataPreviewModal({
               </>
             )}
           </div>
+
+          {/* Medications List for Prescriptions */}
+          {editedData.category === "receita" && editedData.medications && editedData.medications.length > 0 && (
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <Pill className="h-4 w-4 text-primary" />
+                <Label className="text-base font-medium">Medicamentos Detectados</Label>
+                <Badge variant="secondary" className="gap-1">
+                  <Sparkles className="w-3 h-3" />
+                  {editedData.medications.length} {editedData.medications.length === 1 ? 'medicamento' : 'medicamentos'}
+                </Badge>
+              </div>
+              <div className="space-y-2 max-h-[200px] overflow-y-auto">
+                {editedData.medications.map((med, idx) => (
+                  <Card key={idx} className="p-3 bg-muted/50">
+                    <div className="space-y-1">
+                      <p className="font-medium text-sm">{med.name}</p>
+                      {med.dosage && (
+                        <p className="text-xs text-muted-foreground">Dose: {med.dosage}</p>
+                      )}
+                      {med.frequency && (
+                        <p className="text-xs text-muted-foreground">Frequência: {med.frequency}</p>
+                      )}
+                      {med.duration_days && (
+                        <p className="text-xs text-muted-foreground">Duração: {med.duration_days} dias</p>
+                      )}
+                    </div>
+                  </Card>
+                ))}
+              </div>
+              <p className="text-xs text-primary/80 flex items-center gap-1">
+                <Sparkles className="w-3 h-3" />
+                Estes medicamentos serão criados automaticamente após o upload
+              </p>
+            </div>
+          )}
 
           {/* AI Confidence Notice */}
           <div className="p-3 bg-primary/5 border border-primary/20 rounded-lg">
