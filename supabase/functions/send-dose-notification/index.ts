@@ -67,14 +67,33 @@ serve(async (req) => {
       );
     }
 
-    // Here you would integrate with FCM (Firebase Cloud Messaging) or APNs
-    // For now, we'll log the notification
-    console.log('Sending push notification:', {
+    // Prepare notification with action buttons
+    const notificationPayload = {
       token: preferences.push_token,
       title: body.title,
       body: body.body,
-      scheduledAt: body.scheduledAt,
-    });
+      data: {
+        doseId: body.doseId,
+        type: 'dose_reminder',
+        action_taken_url: `${Deno.env.get('SUPABASE_URL')}/functions/v1/handle-dose-action`,
+        action_snooze_url: `${Deno.env.get('SUPABASE_URL')}/functions/v1/handle-dose-action`,
+      },
+      // Action buttons for Android and iOS
+      actions: [
+        {
+          action: 'taken',
+          title: '✓ Tomei',
+          icon: 'check_circle',
+        },
+        {
+          action: 'snooze',
+          title: '⏰ Mais tarde',
+          icon: 'schedule',
+        },
+      ],
+    };
+
+    console.log('Sending push notification with actions:', notificationPayload);
 
     // Log notification delivery attempt
     await supabaseAdmin.from('notification_logs').insert({

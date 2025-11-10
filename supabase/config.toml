@@ -9,6 +9,9 @@ verify_jwt = true
 [functions.schedule-dose-notifications]
 verify_jwt = false
 
+[functions.handle-dose-action]
+verify_jwt = false
+
 [functions.extract-medication]
 verify_jwt = true
 

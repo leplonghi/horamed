@@ -2,8 +2,11 @@ import { useEffect } from "react";
 import { PushNotifications } from "@capacitor/push-notifications";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
 
 export const usePushNotifications = () => {
+  const navigate = useNavigate();
+  
   useEffect(() => {
     initializePushNotifications();
   }, []);
@@ -49,10 +52,46 @@ export const usePushNotifications = () => {
       // Handle notification action (when user taps notification)
       await PushNotifications.addListener(
         "pushNotificationActionPerformed",
-        (notification) => {
-          console.log("Push action performed: ", notification);
-          // Navigate to Today page or open the app
-          window.location.href = "/hoje";
+        async (action) => {
+          console.log("Push action performed: ", action);
+          
+          const actionId = action.actionId;
+          const doseId = action.notification.data?.doseId;
+
+          if (actionId === 'taken' && doseId) {
+            // Mark dose as taken directly from notification
+            try {
+              const { data, error } = await supabase.functions.invoke('handle-dose-action', {
+                body: { doseId, action: 'taken' }
+              });
+
+              if (error) throw error;
+
+              toast.success(data.message || '✅ Dose marcada!', {
+                description: data.streak > 3 ? `🔥 ${data.streak} dias seguidos!` : undefined
+              });
+            } catch (error) {
+              console.error('Error marking dose as taken:', error);
+              toast.error('Erro ao marcar dose');
+            }
+          } else if (actionId === 'snooze' && doseId) {
+            // Snooze dose
+            try {
+              const { data, error } = await supabase.functions.invoke('handle-dose-action', {
+                body: { doseId, action: 'snooze' }
+              });
+
+              if (error) throw error;
+
+              toast.info(data.message || '⏰ Lembrete adiado');
+            } catch (error) {
+              console.error('Error snoozing dose:', error);
+              toast.error('Erro ao adiar lembrete');
+            }
+          } else {
+            // Default action - navigate to today
+            navigate("/hoje");
+          }
         }
       );
     } catch (error) {

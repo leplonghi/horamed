@@ -18,6 +18,10 @@ import CriticalAlertBanner from "@/components/CriticalAlertBanner";
 import InfoDialog from "@/components/InfoDialog";
 import HealthInsightsCard from "@/components/HealthInsightsCard";
 import { useUserProfiles } from "@/hooks/useUserProfiles";
+import QuickDoseWidget from "@/components/QuickDoseWidget";
+import { useSmartRedirect } from "@/hooks/useSmartRedirect";
+import { useAdaptiveSuggestions } from "@/hooks/useAdaptiveSuggestions";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface TimelineItem {
   id: string;
@@ -38,6 +42,8 @@ export default function Today() {
   const criticalAlerts = useCriticalAlerts();
   const { showFeedback } = useFeedbackToast();
   const { activeProfile } = useUserProfiles();
+  useSmartRedirect();
+  const { suggestions } = useAdaptiveSuggestions();
   
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [timelineItems, setTimelineItems] = useState<TimelineItem[]>([]);
@@ -496,6 +502,20 @@ export default function Today() {
 
           {/* Health Insights Card */}
           <HealthInsightsCard />
+
+          {/* Quick Dose Widget */}
+          <QuickDoseWidget />
+
+          {/* Adaptive Suggestions */}
+          {suggestions.length > 0 && (
+            <div className="space-y-2">
+              {suggestions.map((suggestion, idx) => (
+                <Alert key={idx} className="border-primary/20 bg-primary/5">
+                  <AlertDescription>{suggestion.message}</AlertDescription>
+                </Alert>
+              ))}
+            </div>
+          )}
 
           {/* Today Summary */}
           {format(selectedDate, "yyyy-MM-dd") === format(new Date(), "yyyy-MM-dd") && (
