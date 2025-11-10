@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Camera, Upload, X, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { fileToDataURL } from "@/lib/fileToDataURL";
 
 interface OCRResult {
   name: string;
@@ -26,14 +27,15 @@ export default function MedicationOCR({ onResult }: MedicationOCRProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+      try {
+        const dataURL = await fileToDataURL(file);
+        setPreview(dataURL);
+      } catch (error: any) {
+        toast.error(error.message ?? "Erro ao carregar imagem");
+      }
     }
   };
 
@@ -42,7 +44,6 @@ export default function MedicationOCR({ onResult }: MedicationOCRProps) {
 
     setProcessing(true);
     try {
-      // Call Lovable AI for OCR and extraction
       const { data, error } = await supabase.functions.invoke("extract-medication", {
         body: { image: preview },
       });
@@ -63,9 +64,9 @@ export default function MedicationOCR({ onResult }: MedicationOCRProps) {
       } else {
         toast.error("Não foi possível identificar o medicamento");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error processing image:", error);
-      toast.error("Erro ao processar imagem");
+      toast.error(error.message ?? "Erro ao processar imagem");
     } finally {
       setProcessing(false);
     }

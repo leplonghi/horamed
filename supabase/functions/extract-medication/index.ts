@@ -6,7 +6,15 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Helper function to generate hash from image data
+function isDataUriImage(s: string): boolean {
+  return /^data:image\/(png|jpeg|jpg|webp);base64,[A-Za-z0-9+/=]+$/i.test(s);
+}
+
+function maybeNormalizeBase64(s: string): string {
+  if (/^[A-Za-z0-9+/=]+$/.test(s)) return `data:image/jpeg;base64,${s}`;
+  return s;
+}
+
 async function generateImageHash(imageData: string): Promise<string> {
   const encoder = new TextEncoder();
   const data = encoder.encode(imageData);
@@ -24,18 +32,18 @@ serve(async (req) => {
   try {
     const { image } = await req.json();
     
-    if (!image) {
+    if (!image || typeof image !== "string") {
       return new Response(
-        JSON.stringify({ error: "Image is required" }),
+        JSON.stringify({ error: "Envie { image: string }." }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Validate image format
-    if (!image.startsWith('data:image/')) {
-      console.error("Invalid image format - must be base64 with data URI");
+    const normalized = maybeNormalizeBase64(image);
+    if (!isDataUriImage(normalized)) {
+      console.error("Invalid image format:", normalized.substring(0, 50));
       return new Response(
-        JSON.stringify({ error: "Invalid image format. Must be a base64 data URI (data:image/...)" }),
+        JSON.stringify({ error: "Formato inválido. Envie data URI base64: data:image/(png|jpeg|jpg|webp);base64,..." }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -59,8 +67,7 @@ serve(async (req) => {
       );
     }
 
-    // Generate hash of the image
-    const imageHash = await generateImageHash(image);
+    const imageHash = await generateImageHash(normalized);
     console.log("Image hash generated:", imageHash);
 
     // Check cache for existing extraction
@@ -139,7 +146,7 @@ Exemplo:
               {
                 type: "image_url",
                 image_url: {
-                  url: image
+                  url: normalized
                 }
               }
             ]
@@ -232,7 +239,7 @@ Exemplo:
     );
   } catch (error) {
     console.error("Error in extract-medication function:", error);
-    const errorMessage = error instanceof Error ? error.message : "Internal server error";
+    const errorMessage = error instanceof Error ? error.message : "Erro interno ao processar a imagem.";
     return new Response(
       JSON.stringify({ error: errorMessage }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }

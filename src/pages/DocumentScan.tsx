@@ -9,6 +9,7 @@ import { Loader2, FileText, Pill, Stethoscope, Upload, CheckCircle2 } from 'luci
 import { toast } from 'sonner';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { fileToDataURL } from '@/lib/fileToDataURL';
 
 type ScanType = 'medication' | 'exam' | 'document';
 
@@ -40,17 +41,8 @@ export default function DocumentScan() {
 
     setScanning(true);
     try {
-      // Convert file to base64
-      const reader = new FileReader();
-      reader.readAsDataURL(selectedFile);
-      
-      await new Promise((resolve) => {
-        reader.onloadend = resolve;
-      });
+      const imageData = await fileToDataURL(selectedFile);
 
-      const base64 = (reader.result as string).split(',')[1];
-
-      // Select the appropriate edge function
       let functionName = '';
       switch (activeTab) {
         case 'medication':
@@ -65,7 +57,7 @@ export default function DocumentScan() {
       }
 
       const { data, error } = await supabase.functions.invoke(functionName, {
-        body: { image: base64 }
+        body: { image: imageData }
       });
 
       if (error) throw error;
@@ -73,7 +65,6 @@ export default function DocumentScan() {
       setScanResult(data);
       toast.success('Documento processado com sucesso!');
 
-      // If medication, offer to add to list
       if (activeTab === 'medication' && data.medications) {
         toast.success(`${data.medications.length} medicamento(s) encontrado(s)`, {
           action: {
@@ -85,7 +76,7 @@ export default function DocumentScan() {
 
     } catch (error: any) {
       console.error('Scan error:', error);
-      toast.error('Erro ao processar documento: ' + (error.message || 'Erro desconhecido'));
+      toast.error(error.message ?? 'Erro ao processar documento');
     } finally {
       setScanning(false);
     }

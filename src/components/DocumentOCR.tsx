@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Camera, Upload, X, Sparkles, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { fileToDataURL } from "@/lib/fileToDataURL";
 
 interface OCRResult {
   title: string;
@@ -31,14 +32,16 @@ export default function DocumentOCR({ onResult }: DocumentOCRProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+      try {
+        const dataURL = await fileToDataURL(file);
+        setPreview(dataURL);
+        setError(null);
+      } catch (error: any) {
+        toast.error(error.message ?? "Erro ao carregar imagem");
+      }
     }
   };
 
@@ -75,11 +78,12 @@ export default function DocumentOCR({ onResult }: DocumentOCRProps) {
         setError("Não foi possível identificar informações no documento");
         toast.error("Não foi possível identificar o documento");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error processing image:", error);
       toast.dismiss("doc-ocr");
-      setError("Erro ao processar documento. Tente novamente.");
-      toast.error("Erro ao processar imagem");
+      const errorMsg = error.message ?? "Erro ao processar documento. Tente novamente.";
+      setError(errorMsg);
+      toast.error(errorMsg);
     } finally {
       setProcessing(false);
     }
