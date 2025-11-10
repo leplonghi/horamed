@@ -36,8 +36,7 @@ export const useAdaptiveSuggestions = () => {
             item_id,
             items!inner (
               user_id,
-              name,
-              time
+              name
             )
           `)
           .gte('due_at', sevenDaysAgo.toISOString())
@@ -54,14 +53,14 @@ export const useAdaptiveSuggestions = () => {
         const byMedication = doses.reduce((acc, dose) => {
           const itemData = Array.isArray(dose.items) ? dose.items[0] : dose.items;
           if (!acc[dose.item_id]) {
-            acc[dose.item_id] = { doses: [], name: itemData.name, scheduledTime: itemData.time };
+            acc[dose.item_id] = { doses: [], name: itemData.name };
           }
           acc[dose.item_id].doses.push(dose);
           return acc;
-        }, {} as Record<string, { doses: any[], name: string, scheduledTime: string }>);
+        }, {} as Record<string, { doses: any[], name: string }>);
 
         // Analyze each medication
-        Object.entries(byMedication).forEach(([itemId, { doses: medDoses, name, scheduledTime }]) => {
+        Object.entries(byMedication).forEach(([itemId, { doses: medDoses, name }]) => {
           // Check for consistent delays
           const delays = medDoses
             .filter(d => d.status === 'taken' && d.taken_at && d.due_at)
@@ -82,7 +81,6 @@ export const useAdaptiveSuggestions = () => {
               message: `Você costuma tomar ${name} com ${avgDelayHours}h${avgDelayMinutes}min de atraso. Quer ajustar o horário?`,
               itemId,
               itemName: name,
-              suggestedTime: scheduledTime,
             });
           }
 
