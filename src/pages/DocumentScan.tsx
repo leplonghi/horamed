@@ -46,43 +46,75 @@ export default function DocumentScan() {
     setScanning(true);
     toast.loading('Analisando documento com IA...', { id: 'scan' });
     
-    try {
-      // Usar extract-document que é o mais completo e detecta automaticamente o tipo
-      const { data, error } = await supabase.functions.invoke('extract-document', {
-        body: { image: preview }
-      });
+    let retries = 0;
+    const maxRetries = 2;
 
-      if (error) throw error;
+    while (retries <= maxRetries) {
+      try {
+        const { data, error } = await supabase.functions.invoke('extract-document', {
+          body: { image: preview }
+        });
 
-      toast.dismiss('scan');
-      setScanResult(data);
-      
-      // Auto-redirecionar baseado no tipo de documento detectado pela IA
-      if (data.category === 'receita' && data.medications && data.medications.length > 0) {
-        toast.success(`✨ Receita médica detectada! ${data.medications.length} medicamento(s) encontrado(s)`, {
-          duration: 3000
-        });
-        setTimeout(() => {
-          navigate('/adicionar', { state: { ocrData: data.medications } });
-        }, 2000);
-      } else if (data.category === 'exame' || data.title) {
-        toast.success(`✨ ${data.category === 'exame' ? 'Exame' : 'Documento'} detectado! Redirecionando...`, {
-          duration: 3000
-        });
-        setTimeout(() => {
-          navigate('/cofre/upload', { state: { ocrData: data } });
-        }, 2000);
-      } else {
-        toast.success('Documento processado com sucesso!');
+        if (error) {
+          // Retry on timeout/network errors
+          if (error.message?.includes('timeout') || error.message?.includes('network') || error.message?.includes('FunctionsRelayError')) {
+            retries++;
+            if (retries <= maxRetries) {
+              toast.loading(`Tentando novamente (${retries}/${maxRetries})...`, { id: 'scan' });
+              await new Promise(resolve => setTimeout(resolve, 1500 * retries));
+              continue;
+            }
+          }
+          throw error;
+        }
+
+        toast.dismiss('scan');
+        setScanResult(data);
+        
+        // Auto-redirect based on detected document type
+        if (data.category === 'receita' && data.medications && data.medications.length > 0) {
+          toast.success(`✨ Receita médica detectada! ${data.medications.length} medicamento(s) encontrado(s)`, {
+            duration: 3000
+          });
+          setTimeout(() => {
+            navigate('/adicionar', { state: { ocrData: data.medications } });
+          }, 2000);
+        } else if (data.category === 'exame' || data.title) {
+          toast.success(`✨ ${data.category === 'exame' ? 'Exame' : 'Documento'} detectado! Redirecionando...`, {
+            duration: 3000
+          });
+          setTimeout(() => {
+            navigate('/cofre/upload', { state: { ocrData: data } });
+          }, 2000);
+        } else {
+          toast.success('Documento processado com sucesso!');
+        }
+        return;
+
+      } catch (error: any) {
+        console.error('Scan error:', error);
+        
+        if (retries < maxRetries && (error.message?.includes('timeout') || error.message?.includes('network') || error.message?.includes('FunctionsRelayError'))) {
+          retries++;
+          toast.loading(`Tentando novamente (${retries}/${maxRetries})...`, { id: 'scan' });
+          await new Promise(resolve => setTimeout(resolve, 1500 * retries));
+          continue;
+        }
+        
+        toast.dismiss('scan');
+        const errorMsg = error.message?.includes('timeout')
+          ? 'A análise está demorando muito. Verifique sua conexão.'
+          : error.message ?? 'Erro ao processar documento. Tente novamente.';
+        toast.error(errorMsg);
+        return;
+      } finally {
+        if (retries > maxRetries) {
+          setScanning(false);
+        }
       }
-
-    } catch (error: any) {
-      console.error('Scan error:', error);
-      toast.dismiss('scan');
-      toast.error(error.message ?? 'Erro ao processar documento');
-    } finally {
-      setScanning(false);
     }
+    
+    setScanning(false);
   };
 
   const clearFile = () => {

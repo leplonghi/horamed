@@ -76,7 +76,8 @@ export function useDocumentos(filters: ListaDocumentosFilters = {}) {
           categorias_saude(id, slug, label),
           user_profiles(name)
         `)
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false })
+        .limit(100);
 
       if (filters.profileId) {
         query = query.eq("profile_id", filters.profileId);
@@ -102,7 +103,7 @@ export function useDocumentos(filters: ListaDocumentosFilters = {}) {
       const { data, error } = await query;
       if (error) throw error;
 
-      // Filtro de busca full-text (client-side por simplicidade)
+      // Client-side full-text filter
       let result = data || [];
       if (filters.q) {
         const q = filters.q.toLowerCase();
@@ -116,6 +117,8 @@ export function useDocumentos(filters: ListaDocumentosFilters = {}) {
 
       return result as DocumentoSaude[];
     },
+    staleTime: 60000, // Cache for 1 minute
+    gcTime: 300000, // Keep in cache for 5 minutes
   });
 }
 
@@ -139,6 +142,8 @@ export function useDocumento(id?: string) {
       return data as DocumentoSaude;
     },
     enabled: !!id,
+    staleTime: 120000, // Cache for 2 minutes
+    gcTime: 600000, // Keep in cache for 10 minutes
   });
 }
 

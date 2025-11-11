@@ -56,115 +56,130 @@ export default function HealthTimeline() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
+      const profileId = activeProfile?.id;
       const allEvents: TimelineEvent[] = [];
 
-      // Buscar consultas
-      const { data: consultas } = await supabase
-        .from("consultas_medicas")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("data_consulta", { ascending: false })
-        .limit(50);
+      // Fetch all data in parallel for better performance
+      const [consultasRes, examesRes, medicamentosRes, documentosRes, sinaisRes] = await Promise.allSettled([
+        supabase
+          .from("consultas_medicas")
+          .select("*")
+          .eq("user_id", user.id)
+          .eq("profile_id", profileId || user.id)
+          .order("data_consulta", { ascending: false })
+          .limit(100),
+        
+        supabase
+          .from("exames_laboratoriais")
+          .select("*")
+          .eq("user_id", user.id)
+          .order("data_exame", { ascending: false })
+          .limit(100),
+        
+        supabase
+          .from("items")
+          .select("*")
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false })
+          .limit(100),
+        
+        supabase
+          .from("documentos_saude")
+          .select("*, categorias_saude(label)")
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false })
+          .limit(100),
+        
+        supabase
+          .from("sinais_vitais")
+          .select("*")
+          .eq("user_id", user.id)
+          .order("data_medicao", { ascending: false })
+          .limit(100)
+      ]);
 
-      consultas?.forEach(c => {
-        allEvents.push({
-          id: c.id,
-          type: 'consulta',
-          date: c.data_consulta,
-          title: `Consulta: ${c.especialidade || 'Médica'}`,
-          description: `${c.medico_nome || 'Médico'} - ${c.local || 'Local não informado'}`,
-          metadata: c
+      // Process consultas
+      if (consultasRes.status === 'fulfilled' && consultasRes.value.data) {
+        consultasRes.value.data.forEach(c => {
+          allEvents.push({
+            id: c.id,
+            type: 'consulta',
+            date: c.data_consulta,
+            title: `Consulta: ${c.especialidade || 'Médica'}`,
+            description: `${c.medico_nome || 'Médico'} - ${c.local || 'Local não informado'}`,
+            metadata: c
+          });
         });
-      });
+      }
 
-      // Buscar exames
-      const { data: exames } = await supabase
-        .from("exames_laboratoriais")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("data_exame", { ascending: false })
-        .limit(50);
-
-      exames?.forEach(e => {
-        allEvents.push({
-          id: e.id,
-          type: 'exame',
-          date: e.data_exame,
-          title: `Exame Laboratorial`,
-          description: `${e.laboratorio || 'Laboratório'} - ${e.medico_solicitante || 'Médico'}`,
-          metadata: e
+      // Process exames
+      if (examesRes.status === 'fulfilled' && examesRes.value.data) {
+        examesRes.value.data.forEach(e => {
+          allEvents.push({
+            id: e.id,
+            type: 'exame',
+            date: e.data_exame,
+            title: `Exame Laboratorial`,
+            description: `${e.laboratorio || 'Laboratório'} - ${e.medico_solicitante || 'Médico'}`,
+            metadata: e
+          });
         });
-      });
+      }
 
-      // Buscar medicamentos adicionados
-      const { data: medicamentos } = await supabase
-        .from("items")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false })
-        .limit(50);
-
-      medicamentos?.forEach(m => {
-        allEvents.push({
-          id: m.id,
-          type: 'medicamento',
-          date: m.created_at,
-          title: `Medicamento: ${m.name}`,
-          description: m.dose_text || 'Dose não especificada',
-          metadata: m
+      // Process medicamentos
+      if (medicamentosRes.status === 'fulfilled' && medicamentosRes.value.data) {
+        medicamentosRes.value.data.forEach(m => {
+          allEvents.push({
+            id: m.id,
+            type: 'medicamento',
+            date: m.created_at,
+            title: `Medicamento: ${m.name}`,
+            description: m.dose_text || 'Dose não especificada',
+            metadata: m
+          });
         });
-      });
+      }
 
-      // Buscar documentos
-      const { data: documentos } = await supabase
-        .from("documentos_saude")
-        .select("*, categorias_saude(label)")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false })
-        .limit(50);
-
-      documentos?.forEach(d => {
-        allEvents.push({
-          id: d.id,
-          type: 'documento',
-          date: d.created_at,
-          title: d.title || 'Documento',
-          description: (d.categorias_saude as any)?.label || 'Documento de saúde',
-          metadata: d
+      // Process documentos
+      if (documentosRes.status === 'fulfilled' && documentosRes.value.data) {
+        documentosRes.value.data.forEach(d => {
+          allEvents.push({
+            id: d.id,
+            type: 'documento',
+            date: d.created_at,
+            title: d.title || 'Documento',
+            description: (d.categorias_saude as any)?.label || 'Documento de saúde',
+            metadata: d
+          });
         });
-      });
+      }
 
-      // Buscar sinais vitais
-      const { data: sinais } = await supabase
-        .from("sinais_vitais")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("data_medicao", { ascending: false })
-        .limit(50);
+      // Process sinais vitais
+      if (sinaisRes.status === 'fulfilled' && sinaisRes.value.data) {
+        sinaisRes.value.data.forEach(s => {
+          const valores = [];
+          if (s.pressao_sistolica) valores.push(`PA: ${s.pressao_sistolica}/${s.pressao_diastolica}`);
+          if (s.glicemia) valores.push(`Glicemia: ${s.glicemia}`);
+          if (s.peso_kg) valores.push(`Peso: ${s.peso_kg}kg`);
 
-      sinais?.forEach(s => {
-        const valores = [];
-        if (s.pressao_sistolica) valores.push(`PA: ${s.pressao_sistolica}/${s.pressao_diastolica}`);
-        if (s.glicemia) valores.push(`Glicemia: ${s.glicemia}`);
-        if (s.peso_kg) valores.push(`Peso: ${s.peso_kg}kg`);
-
-        allEvents.push({
-          id: s.id,
-          type: 'sinal_vital',
-          date: s.data_medicao,
-          title: 'Sinais Vitais',
-          description: valores.join(' • '),
-          metadata: s
+          allEvents.push({
+            id: s.id,
+            type: 'sinal_vital',
+            date: s.data_medicao,
+            title: 'Sinais Vitais',
+            description: valores.join(' • '),
+            metadata: s
+          });
         });
-      });
+      }
 
-      // Ordenar por data decrescente
+      // Sort by date descending
       allEvents.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
       setEvents(allEvents);
     } catch (error) {
       console.error("Erro ao carregar timeline:", error);
-      toast.error("Erro ao carregar histórico");
+      toast.error("Erro ao carregar histórico. Tente novamente.");
     } finally {
       setLoading(false);
     }

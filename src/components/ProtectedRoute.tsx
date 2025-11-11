@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 
@@ -9,6 +9,7 @@ interface ProtectedRouteProps {
 
 export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   const navigate = useNavigate();
+  const location = useLocation();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -17,9 +18,14 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
       if (!session) {
-        navigate("/auth");
+        // Save the intended destination
+        navigate("/auth", { state: { from: location.pathname } });
       }
       setLoading(false);
+    }).catch((error) => {
+      console.error("Auth check error:", error);
+      setLoading(false);
+      navigate("/auth");
     });
 
     // Listen for auth changes
@@ -27,13 +33,13 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
-      if (!session) {
-        navigate("/auth");
+      if (!session && location.pathname !== "/auth") {
+        navigate("/auth", { state: { from: location.pathname } });
       }
     });
 
     return () => subscription.unsubscribe();
-  }, [navigate]);
+  }, [navigate, location.pathname]);
 
   if (loading) {
     return (

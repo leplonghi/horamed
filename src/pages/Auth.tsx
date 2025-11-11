@@ -101,7 +101,17 @@ export default function Auth() {
         password,
       });
 
-      if (error) throw error;
+      if (error) {
+        // Provide user-friendly error messages
+        if (error.message.includes('Invalid login credentials')) {
+          throw new Error('E-mail ou senha incorretos');
+        } else if (error.message.includes('Email not confirmed')) {
+          throw new Error('Por favor, confirme seu e-mail antes de fazer login');
+        } else if (error.message.includes('Too many requests')) {
+          throw new Error('Muitas tentativas. Aguarde alguns minutos e tente novamente');
+        }
+        throw error;
+      }
       
       toast.success("Login realizado! 💚");
       

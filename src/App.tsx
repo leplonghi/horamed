@@ -3,8 +3,9 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
-import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { ThemeProvider } from "next-themes";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { PageErrorBoundary } from "@/components/PageErrorBoundary";
 import Index from "./pages/Index";
 import Today from "./pages/Today";
 import Medications from "./pages/Medications";
@@ -43,6 +44,7 @@ import NotificationSettings from "./pages/NotificationSettings";
 import Tutorial from "./pages/Tutorial";
 import HealthTimeline from "./pages/HealthTimeline";
 import OnboardingScreens from "./components/OnboardingScreens";
+import { SubscriptionProvider } from "./contexts/SubscriptionContext";
 
 function AppContent() {
   const location = useLocation();
@@ -58,45 +60,45 @@ function AppContent() {
         <Route path="/" element={<Index />} />
         
         {/* Main Navigation Routes */}
-        <Route path="/hoje" element={<ProtectedRoute><Today /></ProtectedRoute>} />
-        <Route path="/medicamentos" element={<ProtectedRoute><Medications /></ProtectedRoute>} />
-        <Route path="/historico" element={<ProtectedRoute><History /></ProtectedRoute>} />
-        <Route path="/mais" element={<ProtectedRoute><More /></ProtectedRoute>} />
+        <Route path="/hoje" element={<ProtectedRoute><PageErrorBoundary><Today /></PageErrorBoundary></ProtectedRoute>} />
+        <Route path="/medicamentos" element={<ProtectedRoute><PageErrorBoundary><Medications /></PageErrorBoundary></ProtectedRoute>} />
+        <Route path="/historico" element={<ProtectedRoute><PageErrorBoundary><History /></PageErrorBoundary></ProtectedRoute>} />
+        <Route path="/mais" element={<ProtectedRoute><PageErrorBoundary><More /></PageErrorBoundary></ProtectedRoute>} />
         
         {/* Secondary Routes */}
-        <Route path="/adicionar" element={<ProtectedRoute><AddItem /></ProtectedRoute>} />
-        <Route path="/estoque" element={<ProtectedRoute><StockManagement /></ProtectedRoute>} />
-        <Route path="/cofre" element={<ProtectedRoute><Cofre /></ProtectedRoute>} />
-        <Route path="/cofre/upload" element={<ProtectedRoute><CofreUpload /></ProtectedRoute>} />
-        <Route path="/cofre/:id" element={<ProtectedRoute><CofreDocumento /></ProtectedRoute>} />
-        <Route path="/compartilhar/:token" element={<CompartilharDocumento />} />
-        <Route path="/relatorios" element={<ProtectedRoute><MedicalReports /></ProtectedRoute>} />
-        <Route path="/perfil" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-        <Route path="/profile/edit" element={<ProtectedRoute><ProfileEdit /></ProtectedRoute>} />
-        <Route path="/perfis/novo" element={<ProtectedRoute><ProfileCreate /></ProtectedRoute>} />
-        <Route path="/graficos" element={<ProtectedRoute><Charts /></ProtectedRoute>} />
-        <Route path="/calendario" element={<ProtectedRoute><WeeklyCalendar /></ProtectedRoute>} />
-        <Route path="/evolucao" element={<ProtectedRoute><HealthDashboard /></ProtectedRoute>} />
-        <Route path="/timeline" element={<ProtectedRoute><HealthTimeline /></ProtectedRoute>} />
-        <Route path="/medicamentos/:id/historico" element={<ProtectedRoute><MedicationHistory /></ProtectedRoute>} />
+        <Route path="/adicionar" element={<ProtectedRoute><PageErrorBoundary><AddItem /></PageErrorBoundary></ProtectedRoute>} />
+        <Route path="/estoque" element={<ProtectedRoute><PageErrorBoundary><StockManagement /></PageErrorBoundary></ProtectedRoute>} />
+        <Route path="/cofre" element={<ProtectedRoute><PageErrorBoundary><Cofre /></PageErrorBoundary></ProtectedRoute>} />
+        <Route path="/cofre/upload" element={<ProtectedRoute><PageErrorBoundary><CofreUpload /></PageErrorBoundary></ProtectedRoute>} />
+        <Route path="/cofre/:id" element={<ProtectedRoute><PageErrorBoundary><CofreDocumento /></PageErrorBoundary></ProtectedRoute>} />
+        <Route path="/compartilhar/:token" element={<PageErrorBoundary><CompartilharDocumento /></PageErrorBoundary>} />
+        <Route path="/relatorios" element={<ProtectedRoute><PageErrorBoundary><MedicalReports /></PageErrorBoundary></ProtectedRoute>} />
+        <Route path="/perfil" element={<ProtectedRoute><PageErrorBoundary><Profile /></PageErrorBoundary></ProtectedRoute>} />
+        <Route path="/profile/edit" element={<ProtectedRoute><PageErrorBoundary><ProfileEdit /></PageErrorBoundary></ProtectedRoute>} />
+        <Route path="/perfis/novo" element={<ProtectedRoute><PageErrorBoundary><ProfileCreate /></PageErrorBoundary></ProtectedRoute>} />
+        <Route path="/graficos" element={<ProtectedRoute><PageErrorBoundary><Charts /></PageErrorBoundary></ProtectedRoute>} />
+        <Route path="/calendario" element={<ProtectedRoute><PageErrorBoundary><WeeklyCalendar /></PageErrorBoundary></ProtectedRoute>} />
+        <Route path="/evolucao" element={<ProtectedRoute><PageErrorBoundary><HealthDashboard /></PageErrorBoundary></ProtectedRoute>} />
+        <Route path="/timeline" element={<ProtectedRoute><PageErrorBoundary><HealthTimeline /></PageErrorBoundary></ProtectedRoute>} />
+        <Route path="/medicamentos/:id/historico" element={<ProtectedRoute><PageErrorBoundary><MedicationHistory /></PageErrorBoundary></ProtectedRoute>} />
         
         {/* Settings & Account */}
-        <Route path="/tutorial" element={<ProtectedRoute><Tutorial /></ProtectedRoute>} />
-        <Route path="/ajuda" element={<ProtectedRoute><HelpSupport /></ProtectedRoute>} />
-        <Route path="/notificacoes" element={<ProtectedRoute><NotificationSettings /></ProtectedRoute>} />
-        <Route path="/alarme" element={<ProtectedRoute><AlarmSettings /></ProtectedRoute>} />
-        <Route path="/privacy" element={<ProtectedRoute><Privacy /></ProtectedRoute>} />
-        <Route path="/terms" element={<ProtectedRoute><Terms /></ProtectedRoute>} />
-        <Route path="/help-support" element={<ProtectedRoute><HelpSupport /></ProtectedRoute>} />
-        <Route path="/assinatura" element={<ProtectedRoute><SubscriptionManagement /></ProtectedRoute>} />
-        <Route path="/planos" element={<ProtectedRoute><Plans /></ProtectedRoute>} />
-        <Route path="/exportar-dados" element={<ProtectedRoute><DataExport /></ProtectedRoute>} />
+        <Route path="/tutorial" element={<ProtectedRoute><PageErrorBoundary><Tutorial /></PageErrorBoundary></ProtectedRoute>} />
+        <Route path="/ajuda" element={<ProtectedRoute><PageErrorBoundary><HelpSupport /></PageErrorBoundary></ProtectedRoute>} />
+        <Route path="/notificacoes" element={<ProtectedRoute><PageErrorBoundary><NotificationSettings /></PageErrorBoundary></ProtectedRoute>} />
+        <Route path="/alarme" element={<ProtectedRoute><PageErrorBoundary><AlarmSettings /></PageErrorBoundary></ProtectedRoute>} />
+        <Route path="/privacy" element={<ProtectedRoute><PageErrorBoundary><Privacy /></PageErrorBoundary></ProtectedRoute>} />
+        <Route path="/terms" element={<ProtectedRoute><PageErrorBoundary><Terms /></PageErrorBoundary></ProtectedRoute>} />
+        <Route path="/help-support" element={<ProtectedRoute><PageErrorBoundary><HelpSupport /></PageErrorBoundary></ProtectedRoute>} />
+        <Route path="/assinatura" element={<ProtectedRoute><PageErrorBoundary><SubscriptionManagement /></PageErrorBoundary></ProtectedRoute>} />
+        <Route path="/planos" element={<ProtectedRoute><PageErrorBoundary><Plans /></PageErrorBoundary></ProtectedRoute>} />
+        <Route path="/exportar-dados" element={<ProtectedRoute><PageErrorBoundary><DataExport /></PageErrorBoundary></ProtectedRoute>} />
         
         {/* Utility Routes */}
-        <Route path="/digitalizar" element={<ProtectedRoute><DocumentScan /></ProtectedRoute>} />
-        <Route path="/cuidador/aceitar/:token" element={<CaregiverAccept />} />
-        <Route path="/consulta/:token" element={<ConsultationCardView />} />
-        <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
+        <Route path="/digitalizar" element={<ProtectedRoute><PageErrorBoundary><DocumentScan /></PageErrorBoundary></ProtectedRoute>} />
+        <Route path="/cuidador/aceitar/:token" element={<PageErrorBoundary><CaregiverAccept /></PageErrorBoundary>} />
+        <Route path="/consulta/:token" element={<PageErrorBoundary><ConsultationCardView /></PageErrorBoundary>} />
+        <Route path="/admin" element={<ProtectedRoute><PageErrorBoundary><Admin /></PageErrorBoundary></ProtectedRoute>} />
         
         <Route path="*" element={<NotFound />} />
           </Routes>
@@ -105,7 +107,16 @@ function AppContent() {
   );
 }
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 30000, // 30 seconds
+      gcTime: 300000, // 5 minutes
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 const App = () => {
   console.log('App initializing', {
@@ -117,13 +128,15 @@ const App = () => {
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
-        <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
-          <TooltipProvider>
-            <BrowserRouter>
-              <AppContent />
-            </BrowserRouter>
-          </TooltipProvider>
-        </ThemeProvider>
+        <SubscriptionProvider>
+          <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
+            <TooltipProvider>
+              <BrowserRouter>
+                <AppContent />
+              </BrowserRouter>
+            </TooltipProvider>
+          </ThemeProvider>
+        </SubscriptionProvider>
       </QueryClientProvider>
     </ErrorBoundary>
   );

@@ -70,9 +70,19 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     loadSubscription();
     
-    // Refresh every 5 minutes instead of 30 seconds
-    const interval = setInterval(loadSubscription, 300000);
-    return () => clearInterval(interval);
+    // Refresh only when window regains focus or every 10 minutes
+    const interval = setInterval(loadSubscription, 600000);
+    
+    const handleFocus = () => {
+      loadSubscription();
+    };
+    
+    window.addEventListener('focus', handleFocus);
+    
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('focus', handleFocus);
+    };
   }, []);
 
   const syncWithStripe = async () => {

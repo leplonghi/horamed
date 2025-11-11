@@ -52,41 +52,74 @@ export default function DocumentOCR({ onResult }: DocumentOCRProps) {
     setError(null);
     toast.loading("Analisando documento com IA...", { id: "doc-ocr" });
 
-    try {
-      const { data, error: invokeError } = await supabase.functions.invoke("extract-document", {
-        body: { image: preview },
-      });
+    let retries = 0;
+    const maxRetries = 2;
 
-      if (invokeError) throw invokeError;
-
-      if (data?.title) {
-        toast.dismiss("doc-ocr");
-        toast.success("✓ Documento identificado com sucesso!", { duration: 3000 });
-        
-        onResult({
-          title: data.title,
-          issued_at: data.issued_at,
-          expires_at: data.expires_at,
-          provider: data.provider,
-          category: data.category || "outro",
-          extracted_values: data.extracted_values || [],
+    while (retries <= maxRetries) {
+      try {
+        const { data, error: invokeError } = await supabase.functions.invoke("extract-document", {
+          body: { image: preview },
         });
+
+        if (invokeError) {
+          // Check if it's a timeout or network error
+          if (invokeError.message?.includes('timeout') || invokeError.message?.includes('network')) {
+            retries++;
+            if (retries <= maxRetries) {
+              toast.loading(`Tentando novamente (${retries}/${maxRetries})...`, { id: "doc-ocr" });
+              await new Promise(resolve => setTimeout(resolve, 1000 * retries));
+              continue;
+            }
+          }
+          throw invokeError;
+        }
+
+        if (data?.title) {
+          toast.dismiss("doc-ocr");
+          toast.success("✓ Documento identificado com sucesso!", { duration: 3000 });
+          
+          onResult({
+            title: data.title,
+            issued_at: data.issued_at,
+            expires_at: data.expires_at,
+            provider: data.provider,
+            category: data.category || "outro",
+            extracted_values: data.extracted_values || [],
+          });
+          
+          clearImage();
+          return;
+        } else {
+          toast.dismiss("doc-ocr");
+          setError("Não foi possível identificar informações no documento. Tente tirar uma foto mais nítida.");
+          toast.error("Documento não identificado");
+          return;
+        }
+      } catch (error: any) {
+        console.error("Error processing image:", error);
         
-        clearImage();
-      } else {
+        if (retries < maxRetries && (error.message?.includes('timeout') || error.message?.includes('network'))) {
+          retries++;
+          toast.loading(`Tentando novamente (${retries}/${maxRetries})...`, { id: "doc-ocr" });
+          await new Promise(resolve => setTimeout(resolve, 1000 * retries));
+          continue;
+        }
+        
         toast.dismiss("doc-ocr");
-        setError("Não foi possível identificar informações no documento");
-        toast.error("Não foi possível identificar o documento");
+        const errorMsg = error.message?.includes('timeout') 
+          ? "A análise está demorando muito. Verifique sua conexão e tente novamente."
+          : error.message ?? "Erro ao processar documento. Tente novamente.";
+        setError(errorMsg);
+        toast.error(errorMsg);
+        return;
+      } finally {
+        if (retries > maxRetries) {
+          setProcessing(false);
+        }
       }
-    } catch (error: any) {
-      console.error("Error processing image:", error);
-      toast.dismiss("doc-ocr");
-      const errorMsg = error.message ?? "Erro ao processar documento. Tente novamente.";
-      setError(errorMsg);
-      toast.error(errorMsg);
-    } finally {
-      setProcessing(false);
     }
+    
+    setProcessing(false);
   };
 
   const clearImage = () => {
