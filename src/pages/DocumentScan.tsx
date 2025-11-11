@@ -9,7 +9,6 @@ import { toast } from 'sonner';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { fileToDataURL } from '@/lib/fileToDataURL';
-import { convertPDFToImage, validatePDFFile } from '@/lib/pdfToImage';
 
 export default function DocumentScan() {
   const navigate = useNavigate();
@@ -23,54 +22,33 @@ export default function DocumentScan() {
     if (!file) return;
 
     try {
-      const isPDF = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
-      
-      if (isPDF) {
-        // Validate PDF first
-        const validation = validatePDFFile(file);
-        if (!validation.valid) {
-          toast.error(validation.error);
-          return;
-        }
-
-        toast.loading('Carregando PDF...', { id: 'load-pdf' });
-        
-        // Convert PDF to data URL first
-        const pdfDataURL = await fileToDataURL(file);
-        
-        // Convert first page to image
-        toast.loading('Convertendo PDF para imagem (melhor qualidade)...', { id: 'load-pdf' });
-        const pdfInfo = await convertPDFToImage(pdfDataURL, {
-          maxPages: 1,
-          scale: 2.5, // High DPI for medical documents
-          format: 'jpeg',
-          quality: 0.95
-        });
-
-        toast.dismiss('load-pdf');
-        
-        if (pdfInfo.isMultiPage) {
-          toast.warning('PDF tem múltiplas páginas. Processando apenas a primeira.');
-        }
-
-        setPreview(pdfInfo.firstPageImage);
-        setSelectedFile(file);
-        setScanResult(null);
-        toast.success('PDF carregado e convertido com sucesso!');
-      } else {
-        // Handle images normally
-        if (file.size > 10 * 1024 * 1024) {
-          toast.error('Arquivo muito grande. Máximo 10MB');
-          return;
-        }
-        
-        const dataURL = await fileToDataURL(file);
-        setPreview(dataURL);
-        setSelectedFile(file);
-        setScanResult(null);
+      // Validate file size (max 10MB)
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error('Arquivo muito grande. Máximo 10MB');
+        return;
       }
+
+      const isPDF = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+      const isImage = file.type.startsWith('image/');
+      
+      if (!isPDF && !isImage) {
+        toast.error('Formato não suportado. Envie PDF ou imagem (JPG/PNG)');
+        return;
+      }
+
+      toast.loading(isPDF ? 'Carregando PDF...' : 'Carregando imagem...', { id: 'load-file' });
+      
+      // Convert to data URL (works for both PDF and images)
+      const dataURL = await fileToDataURL(file);
+      
+      toast.dismiss('load-file');
+      setPreview(dataURL);
+      setSelectedFile(file);
+      setScanResult(null);
+      toast.success(isPDF ? 'PDF carregado com sucesso!' : 'Imagem carregada com sucesso!');
+      
     } catch (error: any) {
-      toast.dismiss('load-pdf');
+      toast.dismiss('load-file');
       console.error('File load error:', error);
       toast.error(error.message ?? 'Erro ao carregar arquivo');
     }
