@@ -43,7 +43,6 @@ import NotificationSettings from "./pages/NotificationSettings";
 import Tutorial from "./pages/Tutorial";
 import HealthTimeline from "./pages/HealthTimeline";
 import OnboardingScreens from "./components/OnboardingScreens";
-import { SubscriptionProvider } from "./contexts/SubscriptionContext";
 
 function AppContent() {
   const location = useLocation();
@@ -120,11 +119,9 @@ const App = () => {
       <QueryClientProvider client={queryClient}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
           <TooltipProvider>
-            <SubscriptionProvider>
-              <BrowserRouter>
-                <AppContent />
-              </BrowserRouter>
-            </SubscriptionProvider>
+            <BrowserRouter>
+              <AppContent />
+            </BrowserRouter>
           </TooltipProvider>
         </ThemeProvider>
       </QueryClientProvider>
