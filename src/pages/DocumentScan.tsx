@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import Header from '@/components/Header';
@@ -16,6 +16,12 @@ export default function DocumentScan() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [scanResult, setScanResult] = useState<any>(null);
+  
+  // Debug log on mount
+  useEffect(() => {
+    console.log('DocumentScan component mounted');
+    return () => console.log('DocumentScan component unmounted');
+  }, []);
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
