@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { FileText, Upload, Filter, Calendar, Scan, TrendingUp, Plus } from "lucide-react";
+import { FileText, Calendar, Plus } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -82,50 +82,25 @@ export default function Cofre() {
     <div className="min-h-screen bg-background pb-20">
       <Header />
       <div className="container max-w-4xl mx-auto px-4 pt-20 pb-6 space-y-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold">Cofre de Saúde</h1>
-            <p className="text-muted-foreground">
-              {documentos && documentos.length > 0 
-                ? `${documentos.length} documento${documentos.length > 1 ? 's' : ''} guardado${documentos.length > 1 ? 's' : ''}`
-                : "Seus documentos médicos em um só lugar"}
-            </p>
-          </div>
-          <Link to="/cofre/upload">
-            <Button size="sm">
-              <Plus className="w-4 h-4 mr-1.5" />
-              Adicionar
-            </Button>
-          </Link>
+        <div>
+          <h1 className="text-3xl font-bold">Cofre de Saúde</h1>
+          <p className="text-muted-foreground text-sm mt-1">
+            {documentos && documentos.length > 0 
+              ? `${documentos.length} documento${documentos.length > 1 ? 's' : ''} guardado${documentos.length > 1 ? 's' : ''}`
+              : "Seus documentos médicos em um só lugar"}
+          </p>
+          <p className="text-muted-foreground text-xs mt-2">
+            ✨ O HoraMed identifica automaticamente o tipo do documento e extrai os dados pra você
+          </p>
         </div>
 
-        {/* Quick Actions */}
-        <div className="grid grid-cols-3 gap-2">
-          <Link to="/cofre/upload">
-            <Button variant="outline" className="w-full h-auto py-3">
-              <Upload className="h-4 w-4 mr-1.5" />
-              <div className="text-left flex-1">
-                <div className="text-xs font-medium">Upload</div>
-              </div>
-            </Button>
-          </Link>
-          <Link to="/digitalizar">
-            <Button variant="outline" className="w-full h-auto py-3">
-              <Scan className="h-4 w-4 mr-1.5" />
-              <div className="text-left flex-1">
-                <div className="text-xs font-medium">Digitalizar</div>
-              </div>
-            </Button>
-          </Link>
-          <Link to="/relatorios">
-            <Button variant="outline" className="w-full h-auto py-3">
-              <FileText className="h-4 w-4 mr-1.5" />
-              <div className="text-left flex-1">
-                <div className="text-xs font-medium">Relatórios</div>
-              </div>
-            </Button>
-          </Link>
-        </div>
+        {/* Botão principal único */}
+        <Link to="/cofre/upload">
+          <Button size="lg" className="w-full">
+            <Plus className="w-5 h-5 mr-2" />
+            Adicionar Documento
+          </Button>
+        </Link>
 
         <TutorialHint
           id="cofre_page"
@@ -171,19 +146,27 @@ export default function Cofre() {
               <Card>
                 <CardContent className="py-12 text-center">
                   <FileText className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-                  <p className="text-muted-foreground">Nenhum documento encontrado</p>
-                  <Link to="/cofre/upload">
-                    <Button className="mt-4">
-                      <Upload className="w-4 h-4 mr-2" />
-                      Enviar primeiro documento
-                    </Button>
-                  </Link>
+                  <p className="text-muted-foreground mb-2">Nenhum documento encontrado</p>
+                  <p className="text-xs text-muted-foreground">
+                    Clique em "Adicionar Documento" acima para começar
+                  </p>
                 </CardContent>
               </Card>
             )}
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Botão flutuante mobile */}
+      <Link to="/cofre/upload" className="md:hidden">
+        <Button
+          size="lg"
+          className="fixed bottom-20 right-4 h-14 w-14 rounded-full shadow-lg"
+        >
+          <Plus className="w-6 h-6" />
+        </Button>
+      </Link>
+
       <Navigation />
     </div>
   );

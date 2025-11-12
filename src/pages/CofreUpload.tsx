@@ -41,42 +41,59 @@ export default function CofreUpload() {
       const newFiles = Array.from(e.target.files);
       setFiles((prev) => [...prev, ...newFiles]);
 
-      // Extrai automaticamente do primeiro arquivo se for imagem
+      // Extrai automaticamente do primeiro arquivo
       const firstFile = newFiles[0];
-      if (firstFile && firstFile.type.startsWith('image/')) {
+      if (firstFile) {
         setIsExtracting(true);
+        toast.loading("Analisando documento...", { id: "extract" });
+        
         try {
           const reader = new FileReader();
           reader.onloadend = async () => {
             const base64 = reader.result as string;
             
-            const { data, error } = await supabase.functions.invoke('extract-document', {
-              body: { image: base64 }
-            });
+            // Tentar com retry
+            let attempts = 0;
+            let success = false;
+            
+            while (attempts < 3 && !success) {
+              try {
+                const { data, error } = await supabase.functions.invoke('extract-document', {
+                  body: { image: base64 }
+                });
 
-            if (error) throw error;
+                if (error) {
+                  console.error(`Tentativa ${attempts + 1} falhou:`, error);
+                  if (attempts === 2) throw error;
+                  attempts++;
+                  await new Promise(resolve => setTimeout(resolve, 1000));
+                  continue;
+                }
 
-            if (data) {
-              setTitulo(data.title || '');
-              if (data.issued_at) setDataEmissao(data.issued_at);
-              if (data.expires_at) setDataValidade(data.expires_at);
-              if (data.provider) setPrestador(data.provider);
-              if (data.category) setCategoria(data.category);
-              
-              // Campos específicos por categoria
-              if (data.doctor) setMedico(data.doctor);
-              if (data.specialty) setEspecialidade(data.specialty);
-              if (data.exam_type) setTipoExame(data.exam_type);
-              if (data.dose) setDose(data.dose);
-              if (data.next_dose) setProximaDose(data.next_dose);
-
-              toast.success("Informações extraídas automaticamente! Você pode editá-las se necessário.");
+                if (data) {
+                  success = true;
+                  setTitulo(data.title || '');
+                  if (data.issued_at) setDataEmissao(data.issued_at);
+                  if (data.expires_at) setDataValidade(data.expires_at);
+                  if (data.provider) setPrestador(data.provider);
+                  if (data.category) setCategoria(data.category);
+                  
+                  toast.dismiss("extract");
+                  toast.success("✓ Documento identificado! Revise os dados extraídos.", { duration: 4000 });
+                }
+                break;
+              } catch (err) {
+                if (attempts === 2) throw err;
+                attempts++;
+                await new Promise(resolve => setTimeout(resolve, 1000));
+              }
             }
           };
           reader.readAsDataURL(firstFile);
-        } catch (error) {
+        } catch (error: any) {
           console.error('Erro ao extrair informações:', error);
-          toast.error("Não foi possível extrair informações automaticamente. Preencha os campos manualmente.");
+          toast.dismiss("extract");
+          toast.error("Não conseguimos ler este documento. Preencha os dados manualmente.", { duration: 5000 });
         } finally {
           setIsExtracting(false);
         }

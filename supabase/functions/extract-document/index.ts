@@ -84,7 +84,7 @@ Exemplo de exame laboratorial:
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-pro",
+        model: "google/gemini-2.5-flash",
         messages: [
           { role: "system", content: prompt },
           {
@@ -98,7 +98,7 @@ Exemplo de exame laboratorial:
             ],
           },
         ],
-        temperature: 0.1, // Baixa temperatura para respostas mais precisas
+        temperature: 0.1,
       }),
     });
 
