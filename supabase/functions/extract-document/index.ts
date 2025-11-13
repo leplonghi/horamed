@@ -97,55 +97,64 @@ serve(async (req) => {
 
 Analise CUIDADOSAMENTE este documento e extraia as seguintes informações em formato JSON:
 
-1. **title**: Nome EXATO do exame/documento como aparece no cabeçalho (obrigatório)
-   - Exemplos: "Hemograma Completo", "Glicemia de Jejum", "Atestado Médico"
+**CAMPOS COMUNS (obrigatórios):**
+1. **title**: Nome EXATO do documento como aparece no cabeçalho
+2. **category**: Tipo do documento - "exame" | "receita" | "vacinacao" | "consulta" | "outro"
+3. **issued_at**: Data de emissão/coleta (YYYY-MM-DD)
+4. **expires_at**: Data de validade (YYYY-MM-DD) ou null
+5. **provider**: Nome do laboratório/clínica/hospital
+6. **confidence_score**: Score de 0 a 1 baseado na qualidade da extração
 
-2. **issued_at**: Data de COLETA/EMISSÃO do documento em formato YYYY-MM-DD
-   - Procure por: "Data de coleta", "Data do exame", "Data de emissão", "Coletado em"
-   - Se houver múltiplas datas, use a data de COLETA do exame ou emissão do documento
+**CAMPOS ESPECÍFICOS POR TIPO:**
 
-3. **expires_at**: Data de validade (YYYY-MM-DD) - APENAS se explicitamente mencionada
-   - Receitas médicas geralmente têm validade
-   - Deixe null se não houver validade explícita
+Se category = "exame":
+  - "extracted_values": Array de TODOS os parâmetros do exame
+    Formato: [{"parameter": "Nome", "value": 14.5, "unit": "g/dL", "reference_range": "12-16", "status": "normal|high|low"}]
 
-4. **provider**: Nome COMPLETO do laboratório/clínica/hospital
-   - Procure no cabeçalho ou rodapé do documento
-   - Exemplos: "Laboratório Sabin", "Hospital Albert Einstein", "Clínica São Lucas"
-   - Se não encontrar, retorne null
+Se category = "receita":
+  - "prescriptions": Array de medicamentos prescritos
+    Formato: [{"drug_name": "Amoxicilina", "dose": "500mg", "frequency": "8/8h", "duration_days": 7, "observations": "com alimento"}]
+  - "doctor_name": Nome do médico prescritor
+  - "doctor_registration": CRM do médico
 
-5. **category**: Classifique CORRETAMENTE o tipo de documento:
-   - "exame": Exames laboratoriais, de imagem, etc. (hemograma, glicemia, raio-x, etc.)
-   - "receita": Prescrições médicas com medicamentos
-   - "vacinacao": Cartões ou certificados de vacinação
-   - "consulta": Relatórios ou resumos de consultas médicas
-   - "outro": Atestados, declarações, etc.
+Se category = "vacinacao":
+  - "vaccine_name": Nome da vacina (ex: "COVID-19", "Influenza")
+  - "dose_number": Número da dose (ex: "1ª dose", "2ª dose", "Reforço")
+  - "application_date": Data da aplicação (YYYY-MM-DD)
+  - "next_dose_date": Próxima dose se indicado (YYYY-MM-DD) ou null
+  - "vaccination_location": Local de aplicação
+  - "batch_number": Lote da vacina se disponível
 
-6. **extracted_values**: Array de TODOS os valores numéricos encontrados (OBRIGATÓRIO para exames):
-   - Formato: {"parameter": "Nome do Parâmetro", "value": 14.5, "unit": "g/dL", "reference_range": "12-16"}
-   - Extraia TODOS os parâmetros do exame com seus valores, unidades e faixas de referência
-   - Para exames de sangue, sempre haverá múltiplos valores
+Se category = "consulta":
+  - "doctor_name": Nome do médico
+  - "specialty": Especialidade médica
+  - "diagnosis": Diagnóstico ou hipótese diagnóstica
+  - "notes": Observações e recomendações do médico
+  - "followup_date": Data de retorno se indicado (YYYY-MM-DD) ou null
 
-REGRAS CRÍTICAS:
-- Leia TODO o documento antes de responder
-- NÃO confunda tipos de documentos (exame ≠ atestado ≠ receita)
-- Seja PRECISO com datas - verifique o contexto ("coleta", "emissão", "validade")
-- SEMPRE procure o nome do laboratório no cabeçalho/rodapé
-- Para exames laboratoriais, extracted_values NUNCA deve estar vazio
+**REGRAS CRÍTICAS:**
+- Leia TODO o documento antes de classificar
+- Não confunda tipos: exame ≠ atestado ≠ receita ≠ vacina
+- Para exames: extracted_values NUNCA vazio, sempre extraia TODOS os valores
+- Para receitas: prescriptions NUNCA vazio, liste TODOS os medicamentos
+- Seja PRECISO com datas (coleta ≠ emissão ≠ validade)
+- confidence_score: 1.0 se todos os campos preenchidos, < 0.7 se informações faltando
 
-Retorne APENAS um objeto JSON válido, sem markdown ou texto adicional.
+Retorne APENAS um objeto JSON válido, sem markdown.
 
-Exemplo de exame laboratorial:
+Exemplo de receita:
 {
-  "title": "Hemograma Completo",
+  "title": "Receita - Antibiótico",
+  "category": "receita",
   "issued_at": "2024-01-15",
-  "expires_at": null,
-  "provider": "Laboratório Sabin",
-  "category": "exame",
-  "extracted_values": [
-    {"parameter": "Hemoglobina", "value": 14.5, "unit": "g/dL", "reference_range": "12-16"},
-    {"parameter": "Leucócitos", "value": 7500, "unit": "/mm³", "reference_range": "4000-11000"},
-    {"parameter": "Plaquetas", "value": 250000, "unit": "/mm³", "reference_range": "150000-400000"}
-  ]
+  "expires_at": "2024-02-15",
+  "provider": "Clínica São Lucas",
+  "confidence_score": 0.95,
+  "prescriptions": [
+    {"drug_name": "Amoxicilina", "dose": "500mg", "frequency": "8/8h", "duration_days": 7, "observations": "Tomar com alimento"}
+  ],
+  "doctor_name": "Dr. João Silva",
+  "doctor_registration": "CRM 12345"
 }`;
 
     console.log("Sending request to AI API...");
@@ -232,9 +241,18 @@ Exemplo de exame laboratorial:
         console.warn("Missing category in extracted data");
         extractedInfo.category = "outro";
       }
-      if (!extractedInfo.extracted_values) {
-        extractedInfo.extracted_values = [];
+      
+      // Set confidence score if not provided
+      if (!extractedInfo.confidence_score) {
+        // Auto-calculate based on filled fields
+        const requiredFields = ["title", "category", "issued_at", "provider"];
+        const filledFields = requiredFields.filter(f => extractedInfo[f as keyof typeof extractedInfo]);
+        extractedInfo.confidence_score = filledFields.length / requiredFields.length;
       }
+      
+      // Initialize type-specific arrays
+      if (!extractedInfo.extracted_values) extractedInfo.extracted_values = [];
+      if (!extractedInfo.prescriptions) extractedInfo.prescriptions = [];
       
       console.log("Successfully extracted:", JSON.stringify(extractedInfo, null, 2));
     } catch (e) {

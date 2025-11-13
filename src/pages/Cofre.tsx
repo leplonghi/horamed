@@ -38,14 +38,30 @@ export default function Cofre() {
 
   const renderDocumentoCard = (doc: DocumentoSaude) => {
     const isExpiringSoon = doc.expires_at && new Date(doc.expires_at) <= new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+    const needsReview = doc.status_extraction === "pending_review";
+    
+    const getCategoryIcon = (categorySlug?: string) => {
+      switch (categorySlug) {
+        case "receita":
+          return "💊";
+        case "exame":
+          return "🧪";
+        case "vacinacao":
+          return "💉";
+        case "consulta":
+          return "🩺";
+        default:
+          return "📋";
+      }
+    };
 
     return (
       <Link key={doc.id} to={`/cofre/${doc.id}`}>
         <Card className="hover:shadow-lg transition-all cursor-pointer">
           <CardContent className="p-3">
             <div className="flex gap-2.5">
-              <div className="w-12 h-12 rounded bg-muted flex items-center justify-center flex-shrink-0">
-                <FileText className="w-6 h-6 text-muted-foreground" />
+              <div className="w-12 h-12 rounded bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center flex-shrink-0">
+                <span className="text-2xl">{getCategoryIcon(doc.categorias_saude?.slug)}</span>
               </div>
               <div className="flex-1 min-w-0">
                 <h3 className="font-semibold text-sm truncate">{doc.title || "Sem título"}</h3>
@@ -53,6 +69,11 @@ export default function Cofre() {
                   {doc.categorias_saude && (
                     <Badge variant="outline" className="text-[10px] h-5">
                       {doc.categorias_saude.label}
+                    </Badge>
+                  )}
+                  {needsReview && (
+                    <Badge variant="secondary" className="text-[10px] h-5 bg-amber-500/20 text-amber-700 dark:text-amber-400 border-amber-500/30">
+                      Revisar
                     </Badge>
                   )}
                   {isExpiringSoon && (
@@ -68,7 +89,7 @@ export default function Cofre() {
                   {doc.expires_at && (
                     <div>Validade: {format(new Date(doc.expires_at), "dd/MM/yyyy", { locale: ptBR })}</div>
                   )}
-                  {doc.provider && <div className="truncate">Prestador: {doc.provider}</div>}
+                  {doc.provider && <div className="truncate">📍 {doc.provider}</div>}
                 </div>
               </div>
             </div>
@@ -83,14 +104,14 @@ export default function Cofre() {
       <Header />
       <div className="container max-w-4xl mx-auto px-4 pt-20 pb-6 space-y-4">
         <div>
-          <h1 className="text-3xl font-bold">Cofre de Saúde</h1>
+          <h1 className="text-3xl font-bold">Cofre de Saúde 🔒</h1>
           <p className="text-muted-foreground text-sm mt-1">
             {documentos && documentos.length > 0 
-              ? `${documentos.length} documento${documentos.length > 1 ? 's' : ''} guardado${documentos.length > 1 ? 's' : ''}`
-              : "Seus documentos médicos em um só lugar"}
+              ? `${documentos.length} documento${documentos.length > 1 ? 's' : ''} seguro${documentos.length > 1 ? 's' : ''}`
+              : "Seus documentos médicos organizados em um só lugar"}
           </p>
           <p className="text-muted-foreground text-xs mt-2">
-            ✨ O HoraMed identifica automaticamente o tipo do documento e extrai os dados pra você
+            ✨ Classificação e extração automática de dados
           </p>
         </div>
 

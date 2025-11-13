@@ -22,6 +22,8 @@ export interface DocumentoSaude {
   notes?: string;
   ocr_text?: string;
   meta?: any;
+  confidence_score?: number;
+  status_extraction?: string;
   created_at: string;
   updated_at: string;
   categorias_saude?: Categoria;

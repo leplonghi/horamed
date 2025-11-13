@@ -1,14 +1,9 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Upload, FileText, ArrowLeft, Loader2, FileCheck } from "lucide-react";
+import { Upload, FileText, ArrowLeft, Loader2, Camera } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useUploadDocumento } from "@/hooks/useCofre";
 import { useUserProfiles } from "@/hooks/useUserProfiles";
 import { toast } from "sonner";
 import Header from "@/components/Header";
@@ -16,30 +11,25 @@ import Navigation from "@/components/Navigation";
 import UpgradeModal from "@/components/UpgradeModal";
 import { convertPDFToImages, isPDF } from "@/lib/pdfProcessor";
 import { Progress } from "@/components/ui/progress";
+import DocumentReviewModal from "@/components/DocumentReviewModal";
 
 export default function CofreUpload() {
   const navigate = useNavigate();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  
   const [files, setFiles] = useState<File[]>([]);
-  const [categoria, setCategoria] = useState<string>("");
-  const [titulo, setTitulo] = useState<string>("");
-  const [dataEmissao, setDataEmissao] = useState<string>("");
-  const [dataValidade, setDataValidade] = useState<string>("");
-  const [prestador, setPrestador] = useState<string>("");
-  const [medico, setMedico] = useState<string>("");
-  const [especialidade, setEspecialidade] = useState<string>("");
-  const [tipoExame, setTipoExame] = useState<string>("");
-  const [dose, setDose] = useState<string>("");
-  const [proximaDose, setProximaDose] = useState<string>("");
-  const [criarLembrete, setCriarLembrete] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [showUpgrade, setShowUpgrade] = useState(false);
   const [isExtracting, setIsExtracting] = useState(false);
   const [extractionProgress, setExtractionProgress] = useState(0);
   const [currentPage, setCurrentPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [extractedData, setExtractedData] = useState<any>(null);
+  const [currentImagePreview, setCurrentImagePreview] = useState<string>("");
 
-  const { profiles, activeProfile } = useUserProfiles();
-  const uploadDocumento = useUploadDocumento();
+  const { activeProfile } = useUserProfiles();
 
   const extractFromImage = async (base64: string) => {
     let attempts = 0;
@@ -80,27 +70,23 @@ export default function CofreUpload() {
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const newFiles = Array.from(e.target.files);
-      setFiles((prev) => [...prev, ...newFiles]);
+      setFiles(newFiles);
 
-      // Extrai automaticamente do primeiro arquivo
       const firstFile = newFiles[0];
       if (firstFile) {
         setIsExtracting(true);
         toast.loading("Analisando documento...", { id: "extract" });
         
         try {
-          // Se for PDF, processar múltiplas páginas
           if (isPDF(firstFile)) {
             console.log('Processando PDF multipágina...');
             
-            // Converter PDF em imagens
-            const pages = await convertPDFToImages(firstFile, 5); // Máximo 5 páginas
+            const pages = await convertPDFToImages(firstFile, 5);
             setTotalPages(pages.length);
             
             toast.dismiss("extract");
             toast.loading(`Analisando página 1 de ${pages.length}...`, { id: "extract" });
             
-            // Processar cada página e agregar resultados
             const allData: any[] = [];
             
             for (let i = 0; i < pages.length; i++) {
@@ -116,23 +102,17 @@ export default function CofreUpload() {
               }
             }
             
-            // Usar dados da primeira página válida como padrão
             const firstValidData = allData.find(d => d.title);
             if (firstValidData) {
-              setTitulo(firstValidData.title || '');
-              if (firstValidData.issued_at) setDataEmissao(firstValidData.issued_at);
-              if (firstValidData.expires_at) setDataValidade(firstValidData.expires_at);
-              if (firstValidData.provider) setPrestador(firstValidData.provider);
-              if (firstValidData.category) setCategoria(firstValidData.category);
-              
               toast.dismiss("extract");
-              toast.success(`✓ PDF processado! ${allData.length} página(s) analisada(s). Revise os dados.`, { duration: 5000 });
+              setExtractedData(firstValidData);
+              setCurrentImagePreview(pages[0].imageData);
+              setShowReviewModal(true);
             } else {
               toast.dismiss("extract");
-              toast.warning("Não foi possível extrair informações do PDF. Preencha manualmente.", { duration: 5000 });
+              toast.warning("Não foi possível extrair informações do PDF.", { duration: 5000 });
             }
           } else {
-            // Processar imagem única
             const reader = new FileReader();
             reader.onloadend = async () => {
               const base64 = reader.result as string;
@@ -141,14 +121,10 @@ export default function CofreUpload() {
                 const data = await extractFromImage(base64);
                 
                 if (data) {
-                  setTitulo(data.title || '');
-                  if (data.issued_at) setDataEmissao(data.issued_at);
-                  if (data.expires_at) setDataValidade(data.expires_at);
-                  if (data.provider) setPrestador(data.provider);
-                  if (data.category) setCategoria(data.category);
-                  
                   toast.dismiss("extract");
-                  toast.success("✓ Documento identificado! Revise os dados extraídos.", { duration: 4000 });
+                  setExtractedData(data);
+                  setCurrentImagePreview(base64);
+                  setShowReviewModal(true);
                 }
               } catch (err: any) {
                 throw err;
@@ -160,7 +136,6 @@ export default function CofreUpload() {
           console.error('Erro ao extrair informações:', error);
           toast.dismiss("extract");
           
-          // Mensagens de erro mais específicas
           let errorMessage = "Não conseguimos ler este documento. ";
           
           if (error.message?.includes('Invalid') || error.message?.includes('formato')) {
@@ -169,10 +144,8 @@ export default function CofreUpload() {
             errorMessage = "Arquivo muito grande. Envie um arquivo menor que 20MB.";
           } else if (error.message?.includes('nítida') || error.message?.includes('processar')) {
             errorMessage = "Qualidade baixa. Use imagens mais nítidas ou PDFs com texto selecionável.";
-          } else if (error.message?.includes('PDF')) {
-            errorMessage = "Erro ao processar PDF. " + error.message;
           } else {
-            errorMessage += "Preencha os dados manualmente.";
+            errorMessage += "Tente novamente ou envie outro arquivo.";
           }
           
           toast.error(errorMessage, { duration: 6000 });
@@ -186,49 +159,77 @@ export default function CofreUpload() {
     }
   };
 
-  const removeFile = (index: number) => {
-    setFiles((prev) => prev.filter((_, i) => i !== index));
-  };
-
-  const handleUpload = async () => {
+  const handleReviewConfirm = async (reviewedData: any) => {
     if (files.length === 0) {
-      toast.error("Selecione pelo menos um arquivo");
-      return;
-    }
-
-    if (!categoria) {
-      toast.error("Selecione uma categoria");
-      return;
-    }
-
-    if (!titulo) {
-      toast.error("Preencha o título do documento");
+      toast.error("Nenhum arquivo selecionado");
       return;
     }
 
     setUploading(true);
 
     try {
-      for (const file of files) {
-        await uploadDocumento.mutateAsync({
-          file,
-          profileId: activeProfile?.id,
-          categoriaSlug: categoria || undefined,
-          criarLembrete,
-        });
-      }
+      const file = files[0];
+      
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Usuário não autenticado");
 
-      toast.success("Documentos enviados com sucesso!");
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+      const filePath = `${user.id}/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('cofre-saude')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: categoriaData } = await supabase
+        .from('categorias_saude')
+        .select('id')
+        .eq('slug', reviewedData.category)
+        .single();
+
+      const { error: insertError } = await supabase
+        .from('documentos_saude')
+        .insert({
+          user_id: user.id,
+          profile_id: activeProfile?.id,
+          categoria_id: categoriaData?.id,
+          title: reviewedData.title,
+          file_path: filePath,
+          mime_type: file.type,
+          issued_at: reviewedData.issued_at || null,
+          expires_at: reviewedData.expires_at || null,
+          provider: reviewedData.provider || null,
+          confidence_score: reviewedData.confidence_score || 0,
+          status_extraction: reviewedData.confidence_score >= 0.7 ? 'confirmed' : 'pending_review',
+          meta: {
+            extracted_values: reviewedData.extracted_values,
+            prescriptions: reviewedData.prescriptions,
+            vaccine_name: reviewedData.vaccine_name,
+            dose_number: reviewedData.dose_number,
+            doctor_name: reviewedData.doctor_name,
+            specialty: reviewedData.specialty,
+          },
+          notes: reviewedData.notes,
+        });
+
+      if (insertError) throw insertError;
+
+      toast.success("✓ Documento salvo com sucesso!");
       navigate("/cofre");
     } catch (error: any) {
-      if (error.message === "LIMIT_REACHED") {
-        setShowUpgrade(true);
-      } else {
-        console.error("Erro no upload:", error);
-      }
+      console.error("Erro ao salvar:", error);
+      toast.error("Erro ao salvar documento");
     } finally {
       setUploading(false);
     }
+  };
+
+  const handleReviewSkip = () => {
+    toast.info("Documento salvo sem revisão");
+    setShowReviewModal(false);
+    // Could offer manual form here
   };
 
   return (
@@ -240,13 +241,13 @@ export default function CofreUpload() {
           Voltar
         </Button>
 
-        <h1 className="text-3xl font-bold mb-2">Enviar Documentos</h1>
+        <h1 className="text-3xl font-bold mb-2">Adicionar Documento</h1>
         <p className="text-muted-foreground mb-6">
-          Selecione a categoria primeiro para ver os campos específicos
+          Envie PDF ou foto. O HoraMed identifica o tipo e extrai os dados automaticamente.
         </p>
 
         {isExtracting && (
-          <Card className="mb-4 bg-primary/10 border-primary/20">
+          <Card className="mb-6 bg-primary/10 border-primary/20">
             <CardContent className="p-4">
               <div className="flex items-start gap-3">
                 <Loader2 className="w-5 h-5 animate-spin text-primary flex-shrink-0 mt-0.5" />
@@ -254,7 +255,7 @@ export default function CofreUpload() {
                   <p className="text-sm font-medium">
                     {totalPages > 0 
                       ? `Analisando página ${currentPage} de ${totalPages}...` 
-                      : "Extraindo informações do documento automaticamente..."}
+                      : "Extraindo informações automaticamente..."}
                   </p>
                   {totalPages > 0 && (
                     <>
@@ -270,302 +271,102 @@ export default function CofreUpload() {
           </Card>
         )}
 
-        <div className="space-y-6">
+        <div className="space-y-4">
           <Card>
-            <CardContent className="pt-6">
-              <Label htmlFor="file-upload" className="cursor-pointer">
-                <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 text-center hover:border-primary transition-colors">
-                  <Upload className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-                  <p className="text-sm text-muted-foreground">
-                    Clique ou arraste arquivos aqui
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-2">
-                    PDF, JPG ou PNG até 20MB
-                  </p>
-                  <p className="text-xs text-primary mt-2 font-medium">
-                    ✨ PDFs e imagens processados automaticamente (até 5 páginas)
-                  </p>
+            <CardContent className="p-8">
+              <div className="flex flex-col gap-4">
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="w-full h-auto py-8"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isExtracting}
+                >
+                  <div className="flex flex-col items-center gap-3">
+                    <Upload className="w-12 h-12 text-primary" />
+                    <div>
+                      <p className="text-lg font-semibold">Enviar Arquivo</p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        PDF, JPG ou PNG (até 20MB)
+                      </p>
+                    </div>
+                  </div>
+                </Button>
+
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t" />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-background px-2 text-muted-foreground">ou</span>
+                  </div>
                 </div>
+
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="w-full h-auto py-8"
+                  onClick={() => cameraInputRef.current?.click()}
+                  disabled={isExtracting}
+                >
+                  <div className="flex flex-col items-center gap-3">
+                    <Camera className="w-12 h-12 text-primary" />
+                    <div>
+                      <p className="text-lg font-semibold">Tirar Foto</p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Fotografar documento direto
+                      </p>
+                    </div>
+                  </div>
+                </Button>
+
                 <input
-                  id="file-upload"
+                  ref={fileInputRef}
                   type="file"
-                  multiple
                   accept=".pdf,.jpg,.jpeg,.png"
                   className="hidden"
                   onChange={handleFileChange}
                 />
-              </Label>
+
+                <input
+                  ref={cameraInputRef}
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  className="hidden"
+                  onChange={handleFileChange}
+                />
+              </div>
 
               {files.length > 0 && (
-                <div className="mt-4 space-y-2">
-                  {files.map((file, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center justify-between p-3 bg-muted rounded-lg"
-                    >
-                      <div className="flex items-center gap-2">
-                        <FileText className="w-4 h-4" />
-                        <span className="text-sm truncate">{file.name}</span>
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => removeFile(index)}
-                      >
-                        ✕
-                      </Button>
-                    </div>
-                  ))}
+                <div className="mt-6 p-3 bg-muted rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <FileText className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-sm truncate flex-1">{files[0].name}</span>
+                  </div>
                 </div>
               )}
             </CardContent>
           </Card>
 
-          <Card>
-            <CardContent className="pt-6 space-y-4">
-              <div>
-                <Label htmlFor="categoria">Categoria *</Label>
-                <Select value={categoria} onValueChange={setCategoria}>
-                  <SelectTrigger id="categoria">
-                    <SelectValue placeholder="Selecione primeiro a categoria" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="exame">Exames Laboratoriais</SelectItem>
-                    <SelectItem value="receita">Receitas Médicas</SelectItem>
-                    <SelectItem value="vacinacao">Vacinação</SelectItem>
-                    <SelectItem value="consulta">Consultas Médicas</SelectItem>
-                    <SelectItem value="outro">Outros Documentos</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {categoria && (
-                <>
-                  <div>
-                    <Label htmlFor="titulo">Título *</Label>
-                    <Input
-                      id="titulo"
-                      placeholder={
-                        categoria === "exame" ? "Ex: Hemograma Completo" :
-                        categoria === "receita" ? "Ex: Receita de Antibiótico" :
-                        categoria === "vacinacao" ? "Ex: Vacina COVID-19" :
-                        categoria === "consulta" ? "Ex: Consulta Cardiologista" :
-                        "Nome do documento"
-                      }
-                      value={titulo}
-                      onChange={(e) => setTitulo(e.target.value)}
-                    />
-                  </div>
-
-                  {/* Campos para EXAMES */}
-                  {categoria === "exame" && (
-                    <>
-                      <div>
-                        <Label htmlFor="tipoExame">Tipo de Exame</Label>
-                        <Input
-                          id="tipoExame"
-                          placeholder="Ex: Sangue, Urina, Imagem"
-                          value={tipoExame}
-                          onChange={(e) => setTipoExame(e.target.value)}
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="dataEmissao">Data do Exame *</Label>
-                        <Input
-                          id="dataEmissao"
-                          type="date"
-                          value={dataEmissao}
-                          onChange={(e) => setDataEmissao(e.target.value)}
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="prestador">Laboratório</Label>
-                        <Input
-                          id="prestador"
-                          placeholder="Ex: Delboni, Fleury"
-                          value={prestador}
-                          onChange={(e) => setPrestador(e.target.value)}
-                        />
-                      </div>
-                    </>
-                  )}
-
-                  {/* Campos para RECEITAS */}
-                  {categoria === "receita" && (
-                    <>
-                      <div>
-                        <Label htmlFor="dataEmissao">Data da Receita *</Label>
-                        <Input
-                          id="dataEmissao"
-                          type="date"
-                          value={dataEmissao}
-                          onChange={(e) => setDataEmissao(e.target.value)}
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="dataValidade">Validade</Label>
-                        <Input
-                          id="dataValidade"
-                          type="date"
-                          value={dataValidade}
-                          onChange={(e) => setDataValidade(e.target.value)}
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="medico">Médico Prescritor</Label>
-                        <Input
-                          id="medico"
-                          placeholder="Nome do médico"
-                          value={medico}
-                          onChange={(e) => setMedico(e.target.value)}
-                        />
-                      </div>
-                    </>
-                  )}
-
-                  {/* Campos para VACINAÇÃO */}
-                  {categoria === "vacinacao" && (
-                    <>
-                      <div>
-                        <Label htmlFor="dataEmissao">Data da Aplicação *</Label>
-                        <Input
-                          id="dataEmissao"
-                          type="date"
-                          value={dataEmissao}
-                          onChange={(e) => setDataEmissao(e.target.value)}
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="dose">Dose</Label>
-                        <Input
-                          id="dose"
-                          placeholder="Ex: 1ª dose, 2ª dose, Reforço"
-                          value={dose}
-                          onChange={(e) => setDose(e.target.value)}
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="proximaDose">Próxima Dose</Label>
-                        <Input
-                          id="proximaDose"
-                          type="date"
-                          value={proximaDose}
-                          onChange={(e) => setProximaDose(e.target.value)}
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="prestador">Local de Aplicação</Label>
-                        <Input
-                          id="prestador"
-                          placeholder="Ex: UBS, Clínica particular"
-                          value={prestador}
-                          onChange={(e) => setPrestador(e.target.value)}
-                        />
-                      </div>
-                    </>
-                  )}
-
-                  {/* Campos para CONSULTAS */}
-                  {categoria === "consulta" && (
-                    <>
-                      <div>
-                        <Label htmlFor="dataEmissao">Data da Consulta *</Label>
-                        <Input
-                          id="dataEmissao"
-                          type="date"
-                          value={dataEmissao}
-                          onChange={(e) => setDataEmissao(e.target.value)}
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="medico">Nome do Médico</Label>
-                        <Input
-                          id="medico"
-                          placeholder="Ex: Dr. João Silva"
-                          value={medico}
-                          onChange={(e) => setMedico(e.target.value)}
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="especialidade">Especialidade</Label>
-                        <Input
-                          id="especialidade"
-                          placeholder="Ex: Cardiologia, Dermatologia"
-                          value={especialidade}
-                          onChange={(e) => setEspecialidade(e.target.value)}
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="prestador">Local</Label>
-                        <Input
-                          id="prestador"
-                          placeholder="Ex: Hospital São Luiz"
-                          value={prestador}
-                          onChange={(e) => setPrestador(e.target.value)}
-                        />
-                      </div>
-                    </>
-                  )}
-
-                  {/* Campos para OUTROS */}
-                  {categoria === "outro" && (
-                    <>
-                      <div>
-                        <Label htmlFor="dataEmissao">Data do Documento</Label>
-                        <Input
-                          id="dataEmissao"
-                          type="date"
-                          value={dataEmissao}
-                          onChange={(e) => setDataEmissao(e.target.value)}
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="prestador">Origem/Prestador</Label>
-                        <Input
-                          id="prestador"
-                          placeholder="Nome do prestador de serviço"
-                          value={prestador}
-                          onChange={(e) => setPrestador(e.target.value)}
-                        />
-                      </div>
-                    </>
-                  )}
-
-                  {/* Lembrete automático - mostrar apenas para categorias relevantes */}
-                  {(categoria === "vacinacao" || categoria === "exame") && (
-                    <div className="flex items-center justify-between pt-2 border-t">
-                      <div>
-                        <Label htmlFor="lembrete">Criar lembrete automático</Label>
-                        <p className="text-xs text-muted-foreground">
-                          {categoria === "vacinacao" 
-                            ? "Para a próxima dose" 
-                            : "Para próximo check-up"}
-                        </p>
-                      </div>
-                      <Switch
-                        id="lembrete"
-                        checked={criarLembrete}
-                        onCheckedChange={setCriarLembrete}
-                      />
-                    </div>
-                  )}
-                </>
-              )}
-            </CardContent>
-          </Card>
-
-          <Button
-            className="w-full"
-            size="lg"
-            onClick={handleUpload}
-            disabled={uploading || files.length === 0 || !categoria || !titulo}
-          >
-            {uploading ? "Enviando..." : "Enviar Documentos"}
-          </Button>
+          <div className="text-center text-xs text-muted-foreground space-y-1">
+            <p>✨ <strong>Extração automática inteligente:</strong></p>
+            <p>Exames, receitas, vacinas e consultas são identificados automaticamente</p>
+            <p>Você poderá revisar os dados antes de salvar</p>
+          </div>
         </div>
       </div>
 
-      <UpgradeModal open={showUpgrade} onOpenChange={setShowUpgrade} />
+      <DocumentReviewModal
+        open={showReviewModal}
+        onOpenChange={setShowReviewModal}
+        extractedData={extractedData || {}}
+        imagePreview={currentImagePreview}
+        onConfirm={handleReviewConfirm}
+        onSkip={handleReviewSkip}
+      />
+
+      <UpgradeModal open={showUpgrade} onOpenChange={setShowUpgrade} feature="Cofre de documentos" />
       <Navigation />
     </div>
   );
