@@ -172,6 +172,14 @@ export default function HealthDashboard() {
       });
 
       // === DADOS DE ADESÃO POR DIA (últimos 30 dias) ===
+      // Buscar todas as doses dos últimos 30 dias de uma vez
+      const { data: allDosesLast30Days } = await supabase
+        .from("dose_instances")
+        .select("status, due_at, item_id, items!inner(user_id)")
+        .eq("items.user_id", user.id)
+        .gte("due_at", thirtyDaysAgo.toISOString());
+
+      // Agrupar por dia
       const last30Days = Array.from({ length: 30 }, (_, i) => {
         const date = subDays(new Date(), 29 - i);
         return {
@@ -180,30 +188,24 @@ export default function HealthDashboard() {
         };
       });
 
-      const adherenceByDay: AdherenceData[] = [];
-      
-      for (const day of last30Days) {
-        const dayStart = startOfDay(day.date);
-        const dayEnd = endOfDay(day.date);
-        
-        const { data: dayDoses } = await supabase
-          .from("dose_instances")
-          .select("status, item_id, items!inner(user_id)")
-          .eq("items.user_id", user.id)
-          .gte("due_at", dayStart.toISOString())
-          .lte("due_at", dayEnd.toISOString());
+      const adherenceByDay: AdherenceData[] = last30Days.map(day => {
+        const dayStr = format(day.date, "yyyy-MM-dd");
+        const dayDoses = allDosesLast30Days?.filter(d => {
+          const doseDate = format(new Date(d.due_at), "yyyy-MM-dd");
+          return doseDate === dayStr;
+        }) || [];
 
-        const total = dayDoses?.length || 0;
-        const taken = dayDoses?.filter(d => d.status === "taken").length || 0;
+        const total = dayDoses.length;
+        const taken = dayDoses.filter(d => d.status === "taken").length;
         const rate = total > 0 ? Math.round((taken / total) * 100) : 0;
 
-        adherenceByDay.push({
+        return {
           data: format(day.date, "dd/MMM", { locale: ptBR }),
           taxa: rate,
           total: total,
           tomadas: taken
-        });
-      }
+        };
+      });
       
       setAdherenceData(adherenceByDay);
 
@@ -275,45 +277,35 @@ export default function HealthDashboard() {
       setExamesAlterados(alterados);
 
       // === CORRELAÇÃO ADESÃO x SINAIS VITAIS ===
-      // Combinar dados de adesão com sinais vitais dos últimos 30 dias
-      const correlations: CorrelationData[] = [];
-      
-      for (const day of last30Days) {
-        const dayStart = startOfDay(day.date);
-        const dayEnd = endOfDay(day.date);
+      // Buscar todos os sinais vitais dos últimos 30 dias de uma vez
+      const { data: allVitalsLast30Days } = await supabase
+        .from("sinais_vitais")
+        .select("*")
+        .eq("user_id", user.id)
+        .gte("data_medicao", thirtyDaysAgo.toISOString())
+        .order("data_medicao", { ascending: false });
+
+      // Correlacionar com os dados de adesão já calculados
+      const correlations: CorrelationData[] = last30Days.map((day, index) => {
+        const dayStr = format(day.date, "yyyy-MM-dd");
+        const adesao = adherenceByDay[index]?.taxa || 0;
         
-        // Adesão do dia
-        const { data: dayDoses } = await supabase
-          .from("dose_instances")
-          .select("status, item_id, items!inner(user_id)")
-          .eq("items.user_id", user.id)
-          .gte("due_at", dayStart.toISOString())
-          .lte("due_at", dayEnd.toISOString());
+        // Buscar sinais vitais do dia
+        const dayVitals = allVitalsLast30Days?.filter(v => {
+          const vitalDate = format(new Date(v.data_medicao), "yyyy-MM-dd");
+          return vitalDate === dayStr;
+        }) || [];
+        
+        const vital = dayVitals[0]; // Pegar o mais recente do dia
 
-        const total = dayDoses?.length || 0;
-        const taken = dayDoses?.filter(d => d.status === "taken").length || 0;
-        const adesao = total > 0 ? Math.round((taken / total) * 100) : 0;
-
-        // Sinais vitais do dia
-        const { data: vitals } = await supabase
-          .from("sinais_vitais")
-          .select("*")
-          .eq("user_id", user.id)
-          .gte("data_medicao", dayStart.toISOString())
-          .lte("data_medicao", dayEnd.toISOString())
-          .order("data_medicao", { ascending: false })
-          .limit(1);
-
-        const vital = vitals?.[0];
-
-        correlations.push({
+        return {
           data: format(day.date, "dd/MMM", { locale: ptBR }),
           adesao: adesao,
           peso: vital?.peso_kg ? parseFloat(String(vital.peso_kg)) : undefined,
           pressao: vital?.pressao_sistolica || undefined,
           glicemia: vital?.glicemia || undefined
-        });
-      }
+        };
+      });
 
       setCorrelationData(correlations);
 
