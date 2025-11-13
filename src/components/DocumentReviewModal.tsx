@@ -63,6 +63,34 @@ export default function DocumentReviewModal({
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
+  const updateExamValue = (idx: number, field: string, value: any) => {
+    setFormData((prev) => ({
+      ...prev,
+      extracted_values: prev.extracted_values?.map((val, i) =>
+        i === idx ? { ...val, [field]: value } : val
+      ),
+    }));
+  };
+
+  const updatePrescription = (idx: number, field: string, value: any) => {
+    setFormData((prev) => ({
+      ...prev,
+      prescriptions: prev.prescriptions?.map((med, i) =>
+        i === idx ? { ...med, [field]: value } : med
+      ),
+    }));
+  };
+
+  const getFieldConfidenceClass = (hasValue: boolean) => {
+    if (!hasValue && isLowConfidence) {
+      return "border-red-400 bg-red-50 dark:bg-red-950/20";
+    }
+    if (isLowConfidence) {
+      return "border-amber-400 bg-amber-50 dark:bg-amber-950/20";
+    }
+    return "";
+  };
+
   const handleConfirm = () => {
     onConfirm(formData);
     onOpenChange(false);
@@ -132,13 +160,16 @@ export default function DocumentReviewModal({
                 <div>
                   <Label htmlFor="title" className="flex items-center gap-2">
                     Título *
-                    {isLowConfidence && <Badge variant="outline" className="text-[10px]">Revisar</Badge>}
+                    {!formData.title && isLowConfidence && (
+                      <Badge variant="destructive" className="text-[10px]">Obrigatório</Badge>
+                    )}
                   </Label>
                   <Input
                     id="title"
                     value={formData.title || ""}
                     onChange={(e) => updateField("title", e.target.value)}
-                    className={isLowConfidence ? "border-amber-500" : ""}
+                    className={getFieldConfidenceClass(!!formData.title)}
+                    placeholder="Nome do documento"
                   />
                 </div>
 
@@ -160,12 +191,18 @@ export default function DocumentReviewModal({
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="issued_at">Data de Emissão</Label>
+                    <Label htmlFor="issued_at" className="flex items-center gap-2">
+                      Data de Emissão
+                      {!formData.issued_at && isLowConfidence && (
+                        <Badge variant="outline" className="text-[10px]">Revisar</Badge>
+                      )}
+                    </Label>
                     <Input
                       id="issued_at"
                       type="date"
                       value={formData.issued_at || ""}
                       onChange={(e) => updateField("issued_at", e.target.value)}
+                      className={getFieldConfidenceClass(!!formData.issued_at)}
                     />
                   </div>
                   <div>
@@ -180,11 +217,17 @@ export default function DocumentReviewModal({
                 </div>
 
                 <div>
-                  <Label htmlFor="provider">Prestador (Lab/Clínica)</Label>
+                  <Label htmlFor="provider" className="flex items-center gap-2">
+                    Prestador (Lab/Clínica)
+                    {!formData.provider && isLowConfidence && (
+                      <Badge variant="outline" className="text-[10px]">Revisar</Badge>
+                    )}
+                  </Label>
                   <Input
                     id="provider"
                     value={formData.provider || ""}
                     onChange={(e) => updateField("provider", e.target.value)}
+                    className={getFieldConfidenceClass(!!formData.provider)}
                     placeholder="Ex: Laboratório Sabin, Hospital Albert Einstein"
                   />
                 </div>
@@ -192,46 +235,136 @@ export default function DocumentReviewModal({
                 {/* Campos específicos por tipo */}
                 {formData.category === "exame" && formData.extracted_values && formData.extracted_values.length > 0 && (
                   <div>
-                    <Label>Valores Extraídos ({formData.extracted_values.length})</Label>
-                    <div className="mt-2 space-y-2 max-h-[200px] overflow-y-auto">
-                      {formData.extracted_values.map((val, idx) => (
-                        <div key={idx} className="text-xs bg-muted p-2 rounded">
-                          <strong>{val.parameter}:</strong> {val.value} {val.unit}
-                          {val.reference_range && (
-                            <span className="text-muted-foreground ml-2">
-                              (Ref: {val.reference_range})
-                            </span>
-                          )}
-                        </div>
-                      ))}
-                    </div>
+                    <Label className="flex items-center gap-2">
+                      Valores Extraídos ({formData.extracted_values.length})
+                      {isLowConfidence && (
+                        <Badge variant="outline" className="text-[10px]">Revisar valores</Badge>
+                      )}
+                    </Label>
+                    <ScrollArea className="mt-2 max-h-[300px] border rounded-md p-2">
+                      <div className="space-y-3">
+                        {formData.extracted_values.map((val, idx) => (
+                          <div key={idx} className="grid grid-cols-2 gap-2 p-3 bg-muted rounded-lg">
+                            <div>
+                              <Label htmlFor={`param-${idx}`} className="text-xs">Parâmetro</Label>
+                              <Input
+                                id={`param-${idx}`}
+                                value={val.parameter}
+                                onChange={(e) => updateExamValue(idx, "parameter", e.target.value)}
+                                className="h-8 text-xs"
+                              />
+                            </div>
+                            <div>
+                              <Label htmlFor={`value-${idx}`} className="text-xs">Valor</Label>
+                              <Input
+                                id={`value-${idx}`}
+                                value={val.value}
+                                onChange={(e) => updateExamValue(idx, "value", e.target.value)}
+                                className="h-8 text-xs"
+                              />
+                            </div>
+                            <div>
+                              <Label htmlFor={`unit-${idx}`} className="text-xs">Unidade</Label>
+                              <Input
+                                id={`unit-${idx}`}
+                                value={val.unit || ""}
+                                onChange={(e) => updateExamValue(idx, "unit", e.target.value)}
+                                className="h-8 text-xs"
+                                placeholder="g/dL, mg/L..."
+                              />
+                            </div>
+                            <div>
+                              <Label htmlFor={`ref-${idx}`} className="text-xs">Ref.</Label>
+                              <Input
+                                id={`ref-${idx}`}
+                                value={val.reference_range || ""}
+                                onChange={(e) => updateExamValue(idx, "reference_range", e.target.value)}
+                                className="h-8 text-xs"
+                                placeholder="12-16"
+                              />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </ScrollArea>
                   </div>
                 )}
 
                 {formData.category === "receita" && formData.prescriptions && formData.prescriptions.length > 0 && (
                   <div>
-                    <Label>Medicamentos Prescritos ({formData.prescriptions.length})</Label>
-                    <div className="mt-2 space-y-2 max-h-[200px] overflow-y-auto">
-                      {formData.prescriptions.map((med, idx) => (
-                        <div key={idx} className="text-xs bg-muted p-2 rounded">
-                          <strong>{med.drug_name}</strong>
-                          {med.dose && <div>Dose: {med.dose}</div>}
-                          {med.frequency && <div>Frequência: {med.frequency}</div>}
-                          {med.duration_days && <div>Duração: {med.duration_days} dias</div>}
-                        </div>
-                      ))}
-                    </div>
+                    <Label className="flex items-center gap-2">
+                      Medicamentos Prescritos ({formData.prescriptions.length})
+                      {isLowConfidence && (
+                        <Badge variant="outline" className="text-[10px]">Revisar medicamentos</Badge>
+                      )}
+                    </Label>
+                    <ScrollArea className="mt-2 max-h-[300px] border rounded-md p-2">
+                      <div className="space-y-3">
+                        {formData.prescriptions.map((med, idx) => (
+                          <div key={idx} className="space-y-2 p-3 bg-muted rounded-lg">
+                            <div>
+                              <Label htmlFor={`drug-${idx}`} className="text-xs">Medicamento</Label>
+                              <Input
+                                id={`drug-${idx}`}
+                                value={med.drug_name}
+                                onChange={(e) => updatePrescription(idx, "drug_name", e.target.value)}
+                                className="h-8 text-xs font-medium"
+                              />
+                            </div>
+                            <div className="grid grid-cols-3 gap-2">
+                              <div>
+                                <Label htmlFor={`dose-${idx}`} className="text-xs">Dose</Label>
+                                <Input
+                                  id={`dose-${idx}`}
+                                  value={med.dose || ""}
+                                  onChange={(e) => updatePrescription(idx, "dose", e.target.value)}
+                                  className="h-8 text-xs"
+                                  placeholder="500mg"
+                                />
+                              </div>
+                              <div>
+                                <Label htmlFor={`freq-${idx}`} className="text-xs">Frequência</Label>
+                                <Input
+                                  id={`freq-${idx}`}
+                                  value={med.frequency || ""}
+                                  onChange={(e) => updatePrescription(idx, "frequency", e.target.value)}
+                                  className="h-8 text-xs"
+                                  placeholder="8/8h"
+                                />
+                              </div>
+                              <div>
+                                <Label htmlFor={`days-${idx}`} className="text-xs">Dias</Label>
+                                <Input
+                                  id={`days-${idx}`}
+                                  type="number"
+                                  value={med.duration_days || ""}
+                                  onChange={(e) => updatePrescription(idx, "duration_days", parseInt(e.target.value))}
+                                  className="h-8 text-xs"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </ScrollArea>
                   </div>
                 )}
 
                 {formData.category === "vacinacao" && (
                   <div className="space-y-3">
                     <div>
-                      <Label htmlFor="vaccine_name">Nome da Vacina</Label>
+                      <Label htmlFor="vaccine_name" className="flex items-center gap-2">
+                        Nome da Vacina
+                        {!formData.vaccine_name && isLowConfidence && (
+                          <Badge variant="outline" className="text-[10px]">Revisar</Badge>
+                        )}
+                      </Label>
                       <Input
                         id="vaccine_name"
                         value={formData.vaccine_name || ""}
                         onChange={(e) => updateField("vaccine_name", e.target.value)}
+                        className={getFieldConfidenceClass(!!formData.vaccine_name)}
+                        placeholder="COVID-19, Influenza..."
                       />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
@@ -260,11 +393,18 @@ export default function DocumentReviewModal({
                 {formData.category === "consulta" && (
                   <div className="space-y-3">
                     <div>
-                      <Label htmlFor="doctor_name">Médico</Label>
+                      <Label htmlFor="doctor_name" className="flex items-center gap-2">
+                        Médico
+                        {!formData.doctor_name && isLowConfidence && (
+                          <Badge variant="outline" className="text-[10px]">Revisar</Badge>
+                        )}
+                      </Label>
                       <Input
                         id="doctor_name"
                         value={formData.doctor_name || ""}
                         onChange={(e) => updateField("doctor_name", e.target.value)}
+                        className={getFieldConfidenceClass(!!formData.doctor_name)}
+                        placeholder="Dr. João Silva"
                       />
                     </div>
                     <div>
