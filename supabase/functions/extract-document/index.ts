@@ -64,17 +64,29 @@ serve(async (req) => {
       );
     }
 
-    // Detect if it's a PDF or image
-    const isPDF = image.includes('application/pdf') || image.startsWith('data:application/pdf');
-    let processedImage = image;
-    
-    if (!image.startsWith('data:')) {
-      processedImage = isPDF ? `data:application/pdf;base64,${image}` : `data:image/jpeg;base64,${image}`;
-    }
-    
+    // Accept both single image and array of images (for multi-page PDFs)
+    const images = Array.isArray(image) ? image : [image];
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 
-    console.log("Sending to AI (PDF detection:", isPDF, ")");
+    console.log(`Sending ${images.length} image(s) to AI...`);
+    
+    // Build content array with text prompt + all images
+    const content: any[] = [
+      { 
+        type: "text", 
+        text: "Analise este documento de saúde completo (pode ter múltiplas páginas) e extraia TODAS as informações em formato JSON:" 
+      }
+    ];
+    
+    // Add all images to the content
+    for (const img of images) {
+      const processedImage = img.startsWith('data:') ? img : `data:image/jpeg;base64,${img}`;
+      content.push({
+        type: "image_url",
+        image_url: { url: processedImage }
+      });
+    }
+
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -82,22 +94,10 @@ serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.0-flash-exp",
+        model: "google/gemini-2.5-pro",
         messages: [
           { role: "system", content: PROMPT },
-          {
-            role: "user",
-            content: [
-              { 
-                type: "text", 
-                text: "Analise este documento de saúde e extraia TODAS as informações em formato JSON:" 
-              },
-              { 
-                type: "image_url", 
-                image_url: { url: processedImage } 
-              },
-            ],
-          },
+          { role: "user", content }
         ],
         temperature: 0.2,
       }),

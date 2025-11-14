@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import Header from "@/components/Header";
 import Navigation from "@/components/Navigation";
 import UpgradeModal from "@/components/UpgradeModal";
-import { isPDF } from "@/lib/pdfProcessor";
+import { convertPDFToImages, isPDF } from "@/lib/pdfProcessor";
 import DocumentReviewModal from "@/components/DocumentReviewModal";
 
 export default function CofreUpload() {
@@ -69,14 +69,14 @@ export default function CofreUpload() {
     return { valid: true };
   };
 
-  const extractFromImage = async (base64: string) => {
+  const extractFromImage = async (imageOrImages: string | string[]) => {
     let attempts = 0;
     let success = false;
     
     while (attempts < 3 && !success) {
       try {
         const { data, error } = await supabase.functions.invoke('extract-document', {
-          body: { image: base64 }
+          body: { image: imageOrImages }
         });
 
         if (error) {
@@ -130,29 +130,30 @@ export default function CofreUpload() {
             console.log('Processando PDF completo...');
             
             toast.dismiss("extract");
-            toast.loading("Analisando PDF completo com IA avançada...", { id: "extract" });
+            toast.loading("Convertendo PDF em imagens de alta qualidade...", { id: "extract" });
             
-            // Read PDF as base64
-            const reader = new FileReader();
-            reader.onloadend = async () => {
-              try {
-                const base64 = reader.result as string;
-                const data = await extractFromImage(base64);
-                
-                if (data) {
-                  toast.dismiss("extract");
-                  setExtractedData(data);
-                  // For PDF preview, create a simple placeholder or use first page
-                  setCurrentImagePreview(base64);
-                  setShowReviewModal(true);
-                } else {
-                  throw new Error("Não foi possível extrair dados do PDF");
-                }
-              } catch (err) {
-                throw err;
-              }
-            };
-            reader.readAsDataURL(firstFile);
+            // Convert PDF to images (max 5 pages for performance)
+            const pages = await convertPDFToImages(firstFile, 5);
+            
+            if (pages.length === 0) {
+              throw new Error("Não foi possível processar o PDF");
+            }
+            
+            toast.dismiss("extract");
+            toast.loading(`Analisando ${pages.length} página(s) com IA avançada...`, { id: "extract" });
+            
+            // Send all pages at once to AI
+            const pageImages = pages.map(p => p.imageData);
+            const data = await extractFromImage(pageImages);
+            
+            if (data) {
+              toast.dismiss("extract");
+              setExtractedData(data);
+              setCurrentImagePreview(pages[0].imageData);
+              setShowReviewModal(true);
+            } else {
+              throw new Error("Não foi possível extrair dados do PDF");
+            }
           } else {
             const reader = new FileReader();
             reader.onloadend = async () => {
