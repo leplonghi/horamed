@@ -31,6 +31,48 @@ export default function CofreUpload() {
 
   const { activeProfile } = useUserProfiles();
 
+  const validateImageQuality = async (file: File): Promise<{ valid: boolean; error?: string }> => {
+    // Check file size
+    const maxSize = 20 * 1024 * 1024; // 20MB
+    if (file.size > maxSize) {
+      return { valid: false, error: "Arquivo muito grande. Máximo: 20MB" };
+    }
+
+    // For images, check resolution
+    if (file.type.startsWith('image/')) {
+      return new Promise((resolve) => {
+        const img = new Image();
+        const reader = new FileReader();
+        
+        reader.onload = (e) => {
+          img.src = e.target?.result as string;
+        };
+        
+        img.onload = () => {
+          const minWidth = 800;
+          const minHeight = 600;
+          
+          if (img.width < minWidth || img.height < minHeight) {
+            resolve({ 
+              valid: false, 
+              error: `Imagem muito pequena (${img.width}x${img.height}). Mínimo recomendado: ${minWidth}x${minHeight}px` 
+            });
+          } else {
+            resolve({ valid: true });
+          }
+        };
+        
+        img.onerror = () => {
+          resolve({ valid: false, error: "Não foi possível ler a imagem" });
+        };
+        
+        reader.readAsDataURL(file);
+      });
+    }
+    
+    return { valid: true };
+  };
+
   const extractFromImage = async (base64: string) => {
     let attempts = 0;
     let success = false;
@@ -74,6 +116,16 @@ export default function CofreUpload() {
 
       const firstFile = newFiles[0];
       if (firstFile) {
+        // Validate quality first
+        const validation = await validateImageQuality(firstFile);
+        if (!validation.valid) {
+          toast.error(validation.error, { duration: 6000 });
+          setFiles([]);
+          if (fileInputRef.current) fileInputRef.current.value = '';
+          if (cameraInputRef.current) cameraInputRef.current.value = '';
+          return;
+        }
+
         setIsExtracting(true);
         toast.loading("Analisando documento...", { id: "extract" });
         
@@ -136,19 +188,21 @@ export default function CofreUpload() {
           console.error('Erro ao extrair informações:', error);
           toast.dismiss("extract");
           
-          let errorMessage = "Não conseguimos ler este documento. ";
+          let errorMessage = "Não conseguimos extrair as informações. ";
+          let suggestions = "";
           
           if (error.message?.includes('Invalid') || error.message?.includes('formato')) {
-            errorMessage = "Formato de arquivo inválido. Use PDF, PNG ou JPEG.";
+            errorMessage = "Formato de arquivo inválido.";
+            suggestions = "Use apenas PDF, PNG ou JPEG.";
           } else if (error.message?.includes('large') || error.message?.includes('size')) {
-            errorMessage = "Arquivo muito grande. Envie um arquivo menor que 20MB.";
-          } else if (error.message?.includes('nítida') || error.message?.includes('processar')) {
-            errorMessage = "Qualidade baixa. Use imagens mais nítidas ou PDFs com texto selecionável.";
+            errorMessage = "Arquivo muito grande.";
+            suggestions = "Reduza o tamanho para menos de 20MB.";
           } else {
-            errorMessage += "Tente novamente ou envie outro arquivo.";
+            errorMessage = "Qualidade insuficiente para leitura.";
+            suggestions = "Dicas: tire foto com boa iluminação, evite sombras, mantenha o documento plano e use resolução mínima de 800x600px.";
           }
           
-          toast.error(errorMessage, { duration: 6000 });
+          toast.error(`${errorMessage} ${suggestions}`, { duration: 8000 });
         } finally {
           setIsExtracting(false);
           setExtractionProgress(0);
@@ -270,6 +324,23 @@ export default function CofreUpload() {
             </CardContent>
           </Card>
         )}
+
+        <Card className="mb-4 border-primary/20 bg-primary/5">
+          <CardContent className="p-6">
+            <div className="space-y-3">
+              <h3 className="font-semibold text-sm flex items-center gap-2">
+                <FileText className="h-4 w-4 text-primary" />
+                Requisitos para melhor extração
+              </h3>
+              <ul className="text-xs text-muted-foreground space-y-1.5 ml-6">
+                <li>• <strong>Imagens:</strong> mínimo 800x600px, com boa iluminação e sem sombras</li>
+                <li>• <strong>PDFs:</strong> preferir documentos com texto selecionável</li>
+                <li>• <strong>Foco:</strong> documento deve estar nítido e plano</li>
+                <li>• <strong>Tamanho:</strong> máximo 20MB por arquivo</li>
+              </ul>
+            </div>
+          </CardContent>
+        </Card>
 
         <div className="space-y-4">
           <Card>
