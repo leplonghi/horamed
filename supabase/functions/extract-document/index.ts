@@ -72,47 +72,68 @@ serve(async (req) => {
       processedImage = isPDF ? `data:application/pdf;base64,${image}` : `data:image/jpeg;base64,${image}`;
     }
     
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    const GOOGLE_AI_API_KEY = Deno.env.get("GOOGLE_AI_API_KEY");
+    if (!GOOGLE_AI_API_KEY) {
+      return new Response(
+        JSON.stringify({ error: "Google AI API key not configured" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
-    console.log("Sending to AI (PDF detection:", isPDF, ")");
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    console.log("Sending to Google Gemini 2.5 (PDF detection:", isPDF, ")");
+    
+    // Prepare the request body for Google Gemini API
+    const parts: any[] = [
+      { text: PROMPT + "\n\nAnalise este documento de saúde e extraia TODAS as informações em formato JSON:" }
+    ];
+    
+    if (isPDF) {
+      // For PDFs, send as inline data
+      const base64Data = processedImage.split(',')[1];
+      parts.push({
+        inline_data: {
+          mime_type: "application/pdf",
+          data: base64Data
+        }
+      });
+    } else {
+      // For images
+      const base64Data = processedImage.split(',')[1];
+      parts.push({
+        inline_data: {
+          mime_type: "image/jpeg",
+          data: base64Data
+        }
+      });
+    }
+
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GOOGLE_AI_API_KEY}`, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.0-flash-exp",
-        messages: [
-          { role: "system", content: PROMPT },
-          {
-            role: "user",
-            content: [
-              { 
-                type: "text", 
-                text: "Analise este documento de saúde e extraia TODAS as informações em formato JSON:" 
-              },
-              { 
-                type: "image_url", 
-                image_url: { url: processedImage } 
-              },
-            ],
-          },
-        ],
-        temperature: 0.2,
+        contents: [{
+          parts: parts
+        }],
+        generationConfig: {
+          temperature: 0.2,
+          maxOutputTokens: 8192,
+        }
       }),
     });
 
     if (!response.ok) {
-      console.error("AI Error:", response.status);
+      const errorText = await response.text();
+      console.error("Google AI Error:", response.status, errorText);
       return new Response(
-        JSON.stringify({ error: "Erro ao processar imagem" }),
+        JSON.stringify({ error: "Erro ao processar documento com Gemini", details: errorText }),
         { status: response.status, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
     const data = await response.json();
-    const content = data.choices?.[0]?.message?.content || "";
+    const content = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
     
     const cleanContent = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
     const jsonMatch = cleanContent.match(/\{[\s\S]*\}/);
