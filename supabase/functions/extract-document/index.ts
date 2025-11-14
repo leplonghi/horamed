@@ -112,9 +112,9 @@ serve(async (req) => {
     }
 
     const data = await response.json();
-    const content = data.choices?.[0]?.message?.content || "";
+    const responseContent = data.choices?.[0]?.message?.content || "";
     
-    const cleanContent = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+    const cleanContent = responseContent.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
     const jsonMatch = cleanContent.match(/\{[\s\S]*\}/);
     
     if (!jsonMatch) {
