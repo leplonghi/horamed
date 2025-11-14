@@ -9,8 +9,7 @@ import { toast } from "sonner";
 import Header from "@/components/Header";
 import Navigation from "@/components/Navigation";
 import UpgradeModal from "@/components/UpgradeModal";
-import { convertPDFToImages, isPDF } from "@/lib/pdfProcessor";
-import { Progress } from "@/components/ui/progress";
+import { isPDF } from "@/lib/pdfProcessor";
 import DocumentReviewModal from "@/components/DocumentReviewModal";
 
 export default function CofreUpload() {
@@ -22,9 +21,6 @@ export default function CofreUpload() {
   const [uploading, setUploading] = useState(false);
   const [showUpgrade, setShowUpgrade] = useState(false);
   const [isExtracting, setIsExtracting] = useState(false);
-  const [extractionProgress, setExtractionProgress] = useState(0);
-  const [currentPage, setCurrentPage] = useState(0);
-  const [totalPages, setTotalPages] = useState(0);
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [extractedData, setExtractedData] = useState<any>(null);
   const [currentImagePreview, setCurrentImagePreview] = useState<string>("");
@@ -131,39 +127,32 @@ export default function CofreUpload() {
         
         try {
           if (isPDF(firstFile)) {
-            console.log('Processando PDF multipágina...');
-            
-            const pages = await convertPDFToImages(firstFile, 5);
-            setTotalPages(pages.length);
+            console.log('Processando PDF completo...');
             
             toast.dismiss("extract");
-            toast.loading(`Analisando página 1 de ${pages.length}...`, { id: "extract" });
+            toast.loading("Analisando PDF completo com IA avançada...", { id: "extract" });
             
-            const allData: any[] = [];
-            
-            for (let i = 0; i < pages.length; i++) {
-              setCurrentPage(i + 1);
-              setExtractionProgress(((i + 1) / pages.length) * 100);
-              
-              toast.dismiss("extract");
-              toast.loading(`Analisando página ${i + 1} de ${pages.length}...`, { id: "extract" });
-              
-              const pageData = await extractFromImage(pages[i].imageData);
-              if (pageData) {
-                allData.push(pageData);
+            // Read PDF as base64
+            const reader = new FileReader();
+            reader.onloadend = async () => {
+              try {
+                const base64 = reader.result as string;
+                const data = await extractFromImage(base64);
+                
+                if (data) {
+                  toast.dismiss("extract");
+                  setExtractedData(data);
+                  // For PDF preview, create a simple placeholder or use first page
+                  setCurrentImagePreview(base64);
+                  setShowReviewModal(true);
+                } else {
+                  throw new Error("Não foi possível extrair dados do PDF");
+                }
+              } catch (err) {
+                throw err;
               }
-            }
-            
-            const firstValidData = allData.find(d => d.title);
-            if (firstValidData) {
-              toast.dismiss("extract");
-              setExtractedData(firstValidData);
-              setCurrentImagePreview(pages[0].imageData);
-              setShowReviewModal(true);
-            } else {
-              toast.dismiss("extract");
-              toast.warning("Não foi possível extrair informações do PDF.", { duration: 5000 });
-            }
+            };
+            reader.readAsDataURL(firstFile);
           } else {
             const reader = new FileReader();
             reader.onloadend = async () => {
@@ -205,9 +194,6 @@ export default function CofreUpload() {
           toast.error(`${errorMessage} ${suggestions}`, { duration: 8000 });
         } finally {
           setIsExtracting(false);
-          setExtractionProgress(0);
-          setCurrentPage(0);
-          setTotalPages(0);
         }
       }
     }
@@ -305,20 +291,13 @@ export default function CofreUpload() {
             <CardContent className="p-4">
               <div className="flex items-start gap-3">
                 <Loader2 className="w-5 h-5 animate-spin text-primary flex-shrink-0 mt-0.5" />
-                <div className="flex-1 space-y-2">
+                <div className="flex-1">
                   <p className="text-sm font-medium">
-                    {totalPages > 0 
-                      ? `Analisando página ${currentPage} de ${totalPages}...` 
-                      : "Extraindo informações automaticamente..."}
+                    Analisando documento com IA avançada...
                   </p>
-                  {totalPages > 0 && (
-                    <>
-                      <Progress value={extractionProgress} className="h-2" />
-                      <p className="text-xs text-muted-foreground">
-                        PDFs com múltiplas páginas podem levar alguns segundos
-                      </p>
-                    </>
-                  )}
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Processando e extraindo informações automaticamente
+                  </p>
                 </div>
               </div>
             </CardContent>

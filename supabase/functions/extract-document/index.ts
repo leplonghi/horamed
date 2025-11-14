@@ -5,23 +5,50 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const PROMPT = `Analise este documento de saúde e extraia em JSON:
+const PROMPT = `Analise este documento de saúde (imagem ou PDF) e extraia TODAS as informações em JSON estruturado:
 
 CAMPOS OBRIGATÓRIOS:
-- title: Nome do documento
+- title: Título/Nome do documento (ex: "Hemograma Completo", "Receita Médica")
 - category: "exame"|"receita"|"vacinacao"|"consulta"|"outro"
-- issued_at: Data (YYYY-MM-DD)
-- expires_at: Validade (YYYY-MM-DD) ou null
-- provider: Instituição
-- confidence_score: 0-1
+- issued_at: Data de emissão (formato YYYY-MM-DD)
+- expires_at: Data de validade/expiração (YYYY-MM-DD) ou null se não aplicável
+- provider: Nome da instituição/clínica/hospital/laboratório
+- confidence_score: Número entre 0 e 1 indicando confiança na extração (use 0.9+ para documentos muito claros, 0.7-0.9 para razoáveis, <0.7 para duvidosos)
 
-ESPECÍFICOS POR TIPO:
-exame: extracted_values: [{"parameter":"Nome","value":14.5,"unit":"g/dL","reference_range":"12-16","status":"normal|high|low"}]
-receita: prescriptions: [{"drug_name":"Med","dose":"500mg","frequency":"8/8h","duration_days":7}], doctor_name, doctor_registration
-vacinacao: vaccine_name, dose_number, application_date, next_dose_date, vaccination_location, batch_number
-consulta: doctor_name, specialty, diagnosis, notes, followup_date
+CAMPOS ESPECÍFICOS POR CATEGORIA:
 
-Retorne apenas JSON válido.`;
+EXAME:
+- extracted_values: Array com TODOS os parâmetros encontrados:
+  [{"parameter":"Hemoglobina","value":14.5,"unit":"g/dL","reference_range":"12-16","status":"normal"}]
+  * status deve ser "normal", "high", "low" ou "critical" baseado na faixa de referência
+
+RECEITA:
+- prescriptions: Array com TODOS os medicamentos:
+  [{"drug_name":"Amoxicilina","dose":"500mg","frequency":"8/8h","duration_days":7}]
+- doctor_name: Nome completo do médico
+- doctor_registration: CRM ou registro profissional
+
+VACINAÇÃO:
+- vaccine_name: Nome da vacina
+- dose_number: Número da dose (1ª, 2ª, etc)
+- application_date: Data da aplicação (YYYY-MM-DD)
+- next_dose_date: Data da próxima dose (YYYY-MM-DD) ou null
+- vaccination_location: Local onde foi aplicada
+- batch_number: Número do lote
+
+CONSULTA:
+- doctor_name: Nome do médico
+- specialty: Especialidade médica
+- diagnosis: Diagnóstico ou avaliação
+- notes: Observações/anotações importantes
+- followup_date: Data de retorno (YYYY-MM-DD) ou null
+
+IMPORTANTE:
+- Extraia TODO o texto relevante, não apenas parte
+- Para PDFs com múltiplas páginas, consolide todas as informações
+- Se o documento estiver em português, mantenha os nomes em português
+- Use "outro" como category apenas se realmente não se encaixar nas outras
+- Retorne APENAS o JSON, sem texto adicional`;
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -37,10 +64,17 @@ serve(async (req) => {
       );
     }
 
-    const processedImage = image.startsWith('data:') ? image : `data:image/jpeg;base64,${image}`;
+    // Detect if it's a PDF or image
+    const isPDF = image.includes('application/pdf') || image.startsWith('data:application/pdf');
+    let processedImage = image;
+    
+    if (!image.startsWith('data:')) {
+      processedImage = isPDF ? `data:application/pdf;base64,${image}` : `data:image/jpeg;base64,${image}`;
+    }
+    
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 
-    console.log("Sending to AI...");
+    console.log("Sending to AI (PDF detection:", isPDF, ")");
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -48,18 +82,24 @@ serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "google/gemini-2.0-flash-exp",
         messages: [
           { role: "system", content: PROMPT },
           {
             role: "user",
             content: [
-              { type: "text", text: "Extraia as informações deste documento:" },
-              { type: "image_url", image_url: { url: processedImage } },
+              { 
+                type: "text", 
+                text: "Analise este documento de saúde e extraia TODAS as informações em formato JSON:" 
+              },
+              { 
+                type: "image_url", 
+                image_url: { url: processedImage } 
+              },
             ],
           },
         ],
-        temperature: 0.1,
+        temperature: 0.2,
       }),
     });
 
