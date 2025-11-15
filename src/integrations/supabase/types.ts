@@ -431,6 +431,69 @@ export type Database = {
           },
         ]
       }
+      document_extraction_logs: {
+        Row: {
+          confidence_score: number | null
+          created_at: string
+          document_id: string | null
+          error_message: string | null
+          extracted_fields: Json | null
+          extraction_type: string
+          file_path: string
+          id: string
+          mime_type: string
+          pages_count: number | null
+          processing_time_ms: number | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          confidence_score?: number | null
+          created_at?: string
+          document_id?: string | null
+          error_message?: string | null
+          extracted_fields?: Json | null
+          extraction_type: string
+          file_path: string
+          id?: string
+          mime_type: string
+          pages_count?: number | null
+          processing_time_ms?: number | null
+          status: string
+          user_id: string
+        }
+        Update: {
+          confidence_score?: number | null
+          created_at?: string
+          document_id?: string | null
+          error_message?: string | null
+          extracted_fields?: Json | null
+          extraction_type?: string
+          file_path?: string
+          id?: string
+          mime_type?: string
+          pages_count?: number | null
+          processing_time_ms?: number | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_extraction_logs_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documentos_saude"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_extraction_logs_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "medical_exams_v"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       document_shares: {
         Row: {
           allow_download: boolean
@@ -485,8 +548,11 @@ export type Database = {
       documentos_saude: {
         Row: {
           categoria_id: string | null
+          confidence_score: number | null
           created_at: string | null
           expires_at: string | null
+          extraction_attempted_at: string | null
+          extraction_error: string | null
           file_path: string
           id: string
           issued_at: string | null
@@ -496,14 +562,19 @@ export type Database = {
           ocr_text: string | null
           profile_id: string | null
           provider: string | null
+          reviewed_at: string | null
+          status_extraction: string | null
           title: string | null
           updated_at: string | null
           user_id: string
         }
         Insert: {
           categoria_id?: string | null
+          confidence_score?: number | null
           created_at?: string | null
           expires_at?: string | null
+          extraction_attempted_at?: string | null
+          extraction_error?: string | null
           file_path: string
           id?: string
           issued_at?: string | null
@@ -513,14 +584,19 @@ export type Database = {
           ocr_text?: string | null
           profile_id?: string | null
           provider?: string | null
+          reviewed_at?: string | null
+          status_extraction?: string | null
           title?: string | null
           updated_at?: string | null
           user_id: string
         }
         Update: {
           categoria_id?: string | null
+          confidence_score?: number | null
           created_at?: string | null
           expires_at?: string | null
+          extraction_attempted_at?: string | null
+          extraction_error?: string | null
           file_path?: string
           id?: string
           issued_at?: string | null
@@ -530,6 +606,8 @@ export type Database = {
           ocr_text?: string | null
           profile_id?: string | null
           provider?: string | null
+          reviewed_at?: string | null
+          status_extraction?: string | null
           title?: string | null
           updated_at?: string | null
           user_id?: string
@@ -756,6 +834,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      extraction_cache: {
+        Row: {
+          created_at: string
+          extracted_data: Json
+          extraction_type: string
+          id: string
+          image_hash: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          extracted_data: Json
+          extraction_type: string
+          id?: string
+          image_hash: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          extracted_data?: Json
+          extraction_type?: string
+          id?: string
+          image_hash?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       feature_flags: {
         Row: {
