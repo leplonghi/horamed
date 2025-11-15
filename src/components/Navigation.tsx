@@ -12,8 +12,8 @@ export default function Navigation() {
   const navItems = [
     { path: "/hoje", icon: Home, label: "Hoje" },
     { path: "/medicamentos", icon: Pill, label: "Medicamentos" },
+    { path: "/saude", icon: Activity, label: "Saúde" },
     { path: "/cofre", icon: FileText, label: "Cofre", badge: expiringCount > 0 ? expiringCount : undefined },
-    { path: "/evolucao", icon: Activity, label: "Insights" },
     { path: "/perfil", icon: User, label: "Perfil" },
   ];
 
