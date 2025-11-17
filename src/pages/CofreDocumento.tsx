@@ -82,7 +82,7 @@ export default function CofreDocumento() {
     return (
       <div className="min-h-screen bg-background pb-20">
         <Header />
-        <div className="container max-w-4xl mx-auto px-4 py-6">
+        <div className="container max-w-4xl mx-auto px-4 py-6 pt-24">{/* pt-24 para compensar o header fixo */}
           <Skeleton className="h-8 w-24 mb-4" />
           <Skeleton className="h-96" />
         </div>

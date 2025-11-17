@@ -63,7 +63,7 @@ export default function Saude() {
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
       <Header />
       
-      <main className="container mx-auto px-4 py-6 pb-24 max-w-4xl">
+      <main className="container mx-auto px-4 py-6 pb-24 max-w-4xl pt-24">{/* pt-24 para compensar o header fixo */}
         {/* Hero Section */}
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">

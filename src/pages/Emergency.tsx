@@ -94,7 +94,7 @@ const Emergency = () => {
     <div className="min-h-screen bg-background pb-20">
       <Header />
       
-      <main className="container mx-auto px-4 py-6 space-y-6">
+      <main className="container mx-auto px-4 py-6 pt-24 space-y-6">{/* pt-24 para compensar o header fixo */}
         <Alert className="border-red-500 bg-red-500/10">
           <AlertTriangle className="h-5 w-5 text-red-600" />
           <AlertDescription className="text-red-600 font-semibold">
