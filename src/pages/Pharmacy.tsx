@@ -84,7 +84,7 @@ const Pharmacy = () => {
     <div className="min-h-screen bg-background pb-20">
       <Header />
       
-      <main className="container mx-auto px-4 py-6 space-y-6">
+      <main className="container mx-auto px-4 py-6 pt-24 space-y-6">{/* pt-24 para compensar o header fixo */}
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold">Farmácia Virtual</h1>
