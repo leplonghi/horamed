@@ -9,6 +9,7 @@ import Index from "./pages/Index";
 import Today from "./pages/Today";
 import Medications from "./pages/Medications";
 import Saude from "./pages/Saude";
+import Agenda from "./pages/Agenda";
 import History from "./pages/History";
 import More from "./pages/More";
 import AddItem from "./pages/AddItem";
@@ -79,6 +80,7 @@ function AppContent() {
         <Route path="/medicamentos/:id/historico" element={<ProtectedRoute><MedicationHistory /></ProtectedRoute>} />
         
         {/* Saúde subroutes */}
+        <Route path="/saude/agenda" element={<ProtectedRoute><Agenda /></ProtectedRoute>} />
         <Route path="/consultas" element={<ProtectedRoute><MedicalAppointments /></ProtectedRoute>} />
         <Route path="/exames" element={<ProtectedRoute><MedicalReports /></ProtectedRoute>} />
         <Route path="/relatorios" element={<ProtectedRoute><MedicalReports /></ProtectedRoute>} />

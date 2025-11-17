@@ -9,6 +9,13 @@ import { cn } from "@/lib/utils";
 export default function Saude() {
   const healthSections = [
     {
+      title: "Agenda de Saúde",
+      description: "Calendário com todos seus compromissos",
+      icon: Calendar,
+      path: "/saude/agenda",
+      color: "from-purple-500 to-purple-600",
+    },
+    {
       title: "Consultas Médicas",
       description: "Agende e acompanhe suas consultas",
       icon: Stethoscope,
