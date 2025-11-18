@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
+import { useUserProfiles } from "@/hooks/useUserProfiles";
 import Header from "@/components/Header";
 import Navigation from "@/components/Navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -90,6 +91,7 @@ interface PeriodComparison {
 
 export default function HealthDashboard() {
   const navigate = useNavigate();
+  const { activeProfile } = useUserProfiles();
   const [loading, setLoading] = useState(true);
   const [pesoData, setPesoData] = useState<any[]>([]);
   const [pressaoData, setPressaoData] = useState<any[]>([]);
@@ -107,7 +109,7 @@ export default function HealthDashboard() {
 
   useEffect(() => {
     loadDashboardData();
-  }, []);
+  }, [activeProfile?.id]);
 
   const loadDashboardData = async () => {
     try {
@@ -120,18 +122,30 @@ export default function HealthDashboard() {
       // === ESTATÍSTICAS PRINCIPAIS ===
       
       // Medicamentos ativos
-      const { count: activeMeds } = await supabase
+      let activeMedsQuery = supabase
         .from("items")
         .select("*", { count: "exact", head: true })
         .eq("user_id", user.id)
         .eq("is_active", true);
+      
+      if (activeProfile) {
+        activeMedsQuery = activeMedsQuery.eq("profile_id", activeProfile.id);
+      }
+      
+      const { count: activeMeds } = await activeMedsQuery;
 
       // Taxa de adesão nos últimos 30 dias
-      const { data: recentDoses } = await supabase
+      let recentDosesQuery = supabase
         .from("dose_instances")
-        .select("status, item_id, items!inner(user_id)")
+        .select("status, item_id, items!inner(user_id, profile_id)")
         .eq("items.user_id", user.id)
         .gte("due_at", thirtyDaysAgo.toISOString());
+      
+      if (activeProfile) {
+        recentDosesQuery = recentDosesQuery.eq("items.profile_id", activeProfile.id);
+      }
+      
+      const { data: recentDoses } = await recentDosesQuery;
 
       const totalDoses = recentDoses?.length || 0;
       const takenDoses = recentDoses?.filter(d => d.status === "taken").length || 0;
@@ -139,30 +153,50 @@ export default function HealthDashboard() {
 
       // Próximos eventos (consultas + eventos de saúde)
       const hoje = new Date().toISOString().split("T")[0];
-      const { data: upcomingConsultas } = await supabase
+      
+      let upcomingConsultasQuery = supabase
         .from("consultas_medicas")
         .select("id")
         .eq("user_id", user.id)
         .gte("data_consulta", hoje);
+      
+      if (activeProfile) {
+        upcomingConsultasQuery = upcomingConsultasQuery.eq("profile_id", activeProfile.id);
+      }
+      
+      const { data: upcomingConsultas } = await upcomingConsultasQuery;
 
-      const { data: upcomingEventos } = await supabase
+      let upcomingEventosQuery = supabase
         .from("eventos_saude")
         .select("id")
         .eq("user_id", user.id)
         .gte("due_date", hoje)
         .is("completed_at", null);
+      
+      if (activeProfile) {
+        upcomingEventosQuery = upcomingEventosQuery.eq("profile_id", activeProfile.id);
+      }
+      
+      const { data: upcomingEventos } = await upcomingEventosQuery;
 
       const upcomingEvents = (upcomingConsultas?.length || 0) + (upcomingEventos?.length || 0);
 
       // Documentos vencendo em 30 dias
       const em30Dias = new Date();
       em30Dias.setDate(em30Dias.getDate() + 30);
-      const { count: expiringDocs } = await supabase
+      
+      let expiringDocsQuery = supabase
         .from("documentos_saude")
         .select("*", { count: "exact", head: true })
         .eq("user_id", user.id)
         .gte("expires_at", hoje)
         .lte("expires_at", em30Dias.toISOString().split("T")[0]);
+      
+      if (activeProfile) {
+        expiringDocsQuery = expiringDocsQuery.eq("profile_id", activeProfile.id);
+      }
+      
+      const { count: expiringDocs } = await expiringDocsQuery;
 
       setStats({
         medicamentosAtivos: activeMeds || 0,
@@ -173,11 +207,17 @@ export default function HealthDashboard() {
 
       // === DADOS DE ADESÃO POR DIA (últimos 30 dias) ===
       // Buscar todas as doses dos últimos 30 dias de uma vez
-      const { data: allDosesLast30Days } = await supabase
+      let allDosesQuery = supabase
         .from("dose_instances")
-        .select("status, due_at, item_id, items!inner(user_id)")
+        .select("status, due_at, item_id, items!inner(user_id, profile_id)")
         .eq("items.user_id", user.id)
         .gte("due_at", thirtyDaysAgo.toISOString());
+      
+      if (activeProfile) {
+        allDosesQuery = allDosesQuery.eq("items.profile_id", activeProfile.id);
+      }
+      
+      const { data: allDosesLast30Days } = await allDosesQuery;
 
       // Agrupar por dia
       const last30Days = Array.from({ length: 30 }, (_, i) => {
@@ -210,12 +250,18 @@ export default function HealthDashboard() {
       setAdherenceData(adherenceByDay);
 
       // Buscar sinais vitais dos últimos 3 meses
-      const { data: sinais } = await supabase
+      let sinaisQuery = supabase
         .from("sinais_vitais")
         .select("*")
         .eq("user_id", user.id)
         .gte("data_medicao", threeMonthsAgo.toISOString())
         .order("data_medicao", { ascending: true });
+      
+      if (activeProfile) {
+        sinaisQuery = sinaisQuery.eq("profile_id", activeProfile.id);
+      }
+      
+      const { data: sinais } = await sinaisQuery;
 
       // Processar dados de peso
       const peso = sinais
@@ -246,7 +292,7 @@ export default function HealthDashboard() {
       setGlicemiaData(glicemia);
 
       // Buscar exames com valores alterados
-      const { data: exames } = await supabase
+      let examesQuery = supabase
         .from("exames_laboratoriais")
         .select(`
           id,
@@ -258,6 +304,12 @@ export default function HealthDashboard() {
         .gte("data_exame", threeMonthsAgo.toISOString())
         .order("data_exame", { ascending: false })
         .limit(10);
+      
+      if (activeProfile) {
+        examesQuery = examesQuery.eq("profile_id", activeProfile.id);
+      }
+      
+      const { data: exames } = await examesQuery;
 
       const alterados: ExamValue[] = [];
       exames?.forEach((exame: any) => {
@@ -278,12 +330,18 @@ export default function HealthDashboard() {
 
       // === CORRELAÇÃO ADESÃO x SINAIS VITAIS ===
       // Buscar todos os sinais vitais dos últimos 30 dias de uma vez
-      const { data: allVitalsLast30Days } = await supabase
+      let allVitalsQuery = supabase
         .from("sinais_vitais")
         .select("*")
         .eq("user_id", user.id)
         .gte("data_medicao", thirtyDaysAgo.toISOString())
         .order("data_medicao", { ascending: false });
+      
+      if (activeProfile) {
+        allVitalsQuery = allVitalsQuery.eq("profile_id", activeProfile.id);
+      }
+      
+      const { data: allVitalsLast30Days } = await allVitalsQuery;
 
       // Correlacionar com os dados de adesão já calculados
       const correlations: CorrelationData[] = last30Days.map((day, index) => {
@@ -316,38 +374,62 @@ export default function HealthDashboard() {
       const mesAnteriorFim = endOfMonth(subMonths(new Date(), 1));
 
       // Dados do mês atual
-      const { data: dosesCurrentMonth } = await supabase
+      let dosesCurrentMonthQuery = supabase
         .from("dose_instances")
-        .select("status, item_id, items!inner(user_id)")
+        .select("status, item_id, items!inner(user_id, profile_id)")
         .eq("items.user_id", user.id)
         .gte("due_at", mesAtualInicio.toISOString())
         .lte("due_at", mesAtualFim.toISOString());
+      
+      if (activeProfile) {
+        dosesCurrentMonthQuery = dosesCurrentMonthQuery.eq("items.profile_id", activeProfile.id);
+      }
+      
+      const { data: dosesCurrentMonth } = await dosesCurrentMonthQuery;
 
-      const { count: medsCurrentMonth } = await supabase
+      let medsCurrentMonthQuery = supabase
         .from("items")
         .select("*", { count: "exact", head: true })
         .eq("user_id", user.id)
         .eq("is_active", true)
         .lte("created_at", mesAtualFim.toISOString());
+      
+      if (activeProfile) {
+        medsCurrentMonthQuery = medsCurrentMonthQuery.eq("profile_id", activeProfile.id);
+      }
+      
+      const { count: medsCurrentMonth } = await medsCurrentMonthQuery;
 
       const totalCurrentMonth = dosesCurrentMonth?.length || 0;
       const takenCurrentMonth = dosesCurrentMonth?.filter(d => d.status === "taken").length || 0;
       const adherenceCurrentMonth = totalCurrentMonth > 0 ? Math.round((takenCurrentMonth / totalCurrentMonth) * 100) : 0;
 
       // Dados do mês anterior
-      const { data: dosesPreviousMonth } = await supabase
+      let dosesPreviousMonthQuery = supabase
         .from("dose_instances")
-        .select("status, item_id, items!inner(user_id)")
+        .select("status, item_id, items!inner(user_id, profile_id)")
         .eq("items.user_id", user.id)
         .gte("due_at", mesAnteriorInicio.toISOString())
         .lte("due_at", mesAnteriorFim.toISOString());
+      
+      if (activeProfile) {
+        dosesPreviousMonthQuery = dosesPreviousMonthQuery.eq("items.profile_id", activeProfile.id);
+      }
+      
+      const { data: dosesPreviousMonth } = await dosesPreviousMonthQuery;
 
-      const { count: medsPreviousMonth } = await supabase
+      let medsPreviousMonthQuery = supabase
         .from("items")
         .select("*", { count: "exact", head: true })
         .eq("user_id", user.id)
         .eq("is_active", true)
         .lte("created_at", mesAnteriorFim.toISOString());
+      
+      if (activeProfile) {
+        medsPreviousMonthQuery = medsPreviousMonthQuery.eq("profile_id", activeProfile.id);
+      }
+      
+      const { count: medsPreviousMonth } = await medsPreviousMonthQuery;
 
       const totalPreviousMonth = dosesPreviousMonth?.length || 0;
       const takenPreviousMonth = dosesPreviousMonth?.filter(d => d.status === "taken").length || 0;
