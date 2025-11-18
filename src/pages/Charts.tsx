@@ -268,7 +268,7 @@ export default function Charts() {
   return (
     <>
       <Header />
-      <div className="min-h-screen bg-background pt-20 p-6 pb-24">
+      <div className="min-h-screen bg-background pt-24 p-6 pb-24">{/* pt-24 para compensar o header fixo */}
         <div className="max-w-4xl mx-auto space-y-6">
           <div className="space-y-4">
             <div className="space-y-2">

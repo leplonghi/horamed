@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Share2, Download, Trash2, Calendar } from "lucide-react";
+import { ArrowLeft, Share2, Download, Trash2, Calendar, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -162,6 +162,10 @@ export default function CofreDocumento() {
             )}
 
             <div className="flex flex-wrap gap-2 pt-4">
+              <Button onClick={() => navigate(`/cofre/${id}/editar`)} variant="outline">
+                <Edit className="w-4 h-4 mr-2" />
+                Editar
+              </Button>
               <Button onClick={handleCompartilhar} variant="outline">
                 <Share2 className="w-4 h-4 mr-2" />
                 Compartilhar

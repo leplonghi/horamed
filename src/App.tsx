@@ -35,6 +35,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import Cofre from "./pages/Cofre";
 import CofreUpload from "./pages/CofreUpload";
 import CofreDocumento from "./pages/CofreDocumento";
+import CofreDocumentoEdit from "./pages/CofreDocumentoEdit";
 import CompartilharDocumento from "./pages/CompartilharDocumento";
 import DataExport from './pages/DataExport';
 import DocumentScan from './pages/DocumentScan';
@@ -116,6 +117,7 @@ function AppContent() {
         {/* Cofre subroutes */}
         <Route path="/cofre/upload" element={<ProtectedRoute><CofreUpload /></ProtectedRoute>} />
         <Route path="/cofre/:id" element={<ProtectedRoute><CofreDocumento /></ProtectedRoute>} />
+        <Route path="/cofre/:id/editar" element={<ProtectedRoute><CofreDocumentoEdit /></ProtectedRoute>} />
         <Route path="/cofre/documento/:id" element={<ProtectedRoute><CofreDocumento /></ProtectedRoute>} />
         <Route path="/compartilhar/:token" element={<CompartilharDocumento />} />
         <Route path="/scan" element={<ProtectedRoute><DocumentScan /></ProtectedRoute>} />
