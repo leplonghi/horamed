@@ -137,7 +137,7 @@ export function useUserProfiles() {
   const switchProfile = (profile: UserProfile) => {
     setActiveProfile(profile);
     localStorage.setItem('activeProfileId', profile.id);
-    toast.success(`Perfil alterado para ${profile.name}`);
+    toast.success(`Perfil alterado para ${profile.name}`, { duration: 1500 });
   };
 
   return {
