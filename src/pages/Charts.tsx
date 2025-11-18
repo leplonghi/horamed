@@ -8,7 +8,7 @@ import { ptBR } from "date-fns/locale";
 import { useSubscription } from "@/hooks/useSubscription";
 import UpgradeModal from "@/components/UpgradeModal";
 import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import Header from "@/components/Header";
 import HealthDataChart from "@/components/HealthDataChart";
 import AdherenceChart from "@/components/AdherenceChart";
@@ -52,6 +52,9 @@ export default function Charts() {
   const { hasFeature } = useSubscription();
   const { activeProfile } = useUserProfiles();
   const navigate = useNavigate();
+  const location = useLocation();
+  
+  const isSinaisVitais = location.pathname === '/sinais-vitais';
 
   useEffect(() => {
     // Mantém check de subscription, mas respeita feature flag também
@@ -273,11 +276,23 @@ export default function Charts() {
           <div className="space-y-4">
             <div className="space-y-2">
               <h2 className="text-3xl font-bold text-foreground flex items-center gap-2">
-                <TrendingUp className="h-7 w-7 text-primary" />
-                Análise e Estatísticas
+                {isSinaisVitais ? (
+                  <>
+                    <Activity className="h-7 w-7 text-primary" />
+                    Sinais Vitais
+                  </>
+                ) : (
+                  <>
+                    <TrendingUp className="h-7 w-7 text-primary" />
+                    Análise e Estatísticas
+                  </>
+                )}
               </h2>
               <p className="text-muted-foreground">
-                Acompanhe sua adesão ao tratamento e gerencie seu estoque
+                {isSinaisVitais 
+                  ? "Monitore sua saúde e acompanhe a evolução dos seus sinais vitais"
+                  : "Acompanhe sua adesão ao tratamento e gerencie seu estoque"
+                }
               </p>
             </div>
             
