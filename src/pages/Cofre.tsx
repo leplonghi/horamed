@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
-import { FileText, Calendar, Plus } from "lucide-react";
+import { FileText, Calendar, Plus, Clock, AlertTriangle, FolderOpen } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useDocumentos, DocumentoSaude } from "@/hooks/useCofre";
 import { useUserProfiles } from "@/hooks/useUserProfiles";
@@ -22,12 +22,44 @@ export default function Cofre() {
   const [filtroExp, setFiltroExp] = useState<"30" | "all">("all");
   const { activeProfile } = useUserProfiles();
   
+  const { data: allDocumentos } = useDocumentos({
+    profileId: activeProfile?.id,
+  });
+
   const { data: documentos, isLoading } = useDocumentos({
     profileId: activeProfile?.id,
     categoria: categoriaAtiva === "todos" ? undefined : categoriaAtiva,
     q: busca,
     exp: filtroExp,
   });
+
+  const stats = useMemo(() => {
+    if (!allDocumentos) return null;
+    
+    const now = new Date();
+    const thirtyDaysFromNow = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+    
+    const expiringSoon = allDocumentos.filter(doc => 
+      doc.expires_at && new Date(doc.expires_at) <= thirtyDaysFromNow && new Date(doc.expires_at) > now
+    ).length;
+    
+    const needsReview = allDocumentos.filter(doc => 
+      doc.status_extraction === "pending_review"
+    ).length;
+    
+    const byCategory = allDocumentos.reduce((acc, doc) => {
+      const slug = doc.categorias_saude?.slug || "outros";
+      acc[slug] = (acc[slug] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+    
+    return {
+      total: allDocumentos.length,
+      expiringSoon,
+      needsReview,
+      byCategory,
+    };
+  }, [allDocumentos]);
 
   const getSignedUrl = async (path: string) => {
     const { data } = await supabase.storage
@@ -102,26 +134,82 @@ export default function Cofre() {
   return (
     <div className="min-h-screen bg-background pb-20">
       <Header />
-      <div className="container max-w-4xl mx-auto px-4 pt-20 pb-6 space-y-4">
-        <div>
-          <h1 className="text-3xl font-bold">Cofre de Saúde 🔒</h1>
-          <p className="text-muted-foreground text-sm mt-1">
-            {documentos && documentos.length > 0 
-              ? `${documentos.length} documento${documentos.length > 1 ? 's' : ''} seguro${documentos.length > 1 ? 's' : ''}`
-              : "Seus documentos médicos organizados em um só lugar"}
-          </p>
-          <p className="text-muted-foreground text-xs mt-2">
-            ✨ Classificação e extração automática de dados
-          </p>
+      <div className="container max-w-6xl mx-auto px-4 pt-24 pb-6 space-y-6">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold">Cofre de Saúde 🔒</h1>
+            <p className="text-muted-foreground text-sm mt-1">
+              Seus documentos médicos organizados e seguros
+            </p>
+          </div>
+          <Link to="/cofre/upload">
+            <Button size="lg" className="gap-2">
+              <Plus className="w-5 h-5" />
+              <span className="hidden sm:inline">Adicionar</span>
+            </Button>
+          </Link>
         </div>
 
-        {/* Botão principal único */}
-        <Link to="/cofre/upload">
-          <Button size="lg" className="w-full">
-            <Plus className="w-5 h-5 mr-2" />
-            Adicionar Documento
-          </Button>
-        </Link>
+        {/* Dashboard Stats */}
+        {stats && (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <Card className="hover:shadow-md transition-shadow">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                  <FolderOpen className="w-4 h-4" />
+                  Total
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold">{stats.total}</div>
+                <p className="text-xs text-muted-foreground mt-1">documentos</p>
+              </CardContent>
+            </Card>
+
+            <Card className="hover:shadow-md transition-shadow">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                  <Clock className="w-4 h-4" />
+                  Expirando
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold text-orange-600 dark:text-orange-400">
+                  {stats.expiringSoon}
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">em 30 dias</p>
+              </CardContent>
+            </Card>
+
+            <Card className="hover:shadow-md transition-shadow">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4" />
+                  Revisar
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold text-amber-600 dark:text-amber-400">
+                  {stats.needsReview}
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">pendentes</p>
+              </CardContent>
+            </Card>
+
+            <Card className="hover:shadow-md transition-shadow">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                  <FileText className="w-4 h-4" />
+                  Categorias
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold">{Object.keys(stats.byCategory).length}</div>
+                <p className="text-xs text-muted-foreground mt-1">tipos</p>
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
         <TutorialHint
           id="cofre_page"
