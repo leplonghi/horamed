@@ -1,13 +1,15 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import Header from '@/components/Header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Loader2, Download, FileText, Shield, Database } from 'lucide-react';
+import { Loader2, Download, FileText, Shield, Database, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 export default function DataExport() {
+  const navigate = useNavigate();
   const [exporting, setExporting] = useState(false);
 
   const exportData = async () => {
@@ -42,6 +44,10 @@ export default function DataExport() {
       <Header />
       
       <div className="container max-w-4xl mx-auto px-4 py-6 pt-24 space-y-6">{/* pt-24 para compensar o header fixo */}
+        <Button variant="ghost" onClick={() => navigate(-1)} className="mb-4">
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Voltar
+        </Button>
         <div>
           <h1 className="text-3xl font-bold flex items-center gap-2">
             <Database className="h-8 w-8 text-primary" />
