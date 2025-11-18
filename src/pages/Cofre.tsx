@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
-import { Link } from "react-router-dom";
-import { FileText, Calendar, Plus, Clock, AlertTriangle, FolderOpen } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { FileText, Calendar, Plus, Clock, AlertTriangle, FolderOpen, Edit } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -21,6 +21,7 @@ export default function Cofre() {
   const [busca, setBusca] = useState("");
   const [filtroExp, setFiltroExp] = useState<"30" | "all">("all");
   const { activeProfile } = useUserProfiles();
+  const navigate = useNavigate();
   
   const { data: allDocumentos } = useDocumentos({
     profileId: activeProfile?.id,
@@ -89,7 +90,19 @@ export default function Cofre() {
 
     return (
       <Link key={doc.id} to={`/cofre/${doc.id}`}>
-        <Card className="hover:shadow-lg transition-all cursor-pointer">
+        <Card className="hover:shadow-lg transition-all cursor-pointer relative group">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="absolute top-2 right-2 h-7 w-7 p-0 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              navigate(`/cofre/${doc.id}/editar`);
+            }}
+          >
+            <Edit className="h-3.5 w-3.5" />
+          </Button>
           <CardContent className="p-3">
             <div className="flex gap-2.5">
               <div className="w-12 h-12 rounded bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center flex-shrink-0">
