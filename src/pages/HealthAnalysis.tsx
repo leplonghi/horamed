@@ -5,7 +5,7 @@ import Header from '@/components/Header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Brain, AlertTriangle, Info, CheckCircle2, RefreshCw } from 'lucide-react';
+import { Loader2, Brain, AlertTriangle, Info, CheckCircle2, RefreshCw, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
@@ -115,6 +115,10 @@ export default function HealthAnalysis() {
       <Header />
       
       <div className="container max-w-4xl mx-auto px-4 py-6 pt-24 space-y-6">{/* pt-24 para compensar o header fixo */}
+        <Button variant="ghost" onClick={() => navigate(-1)} className="mb-4">
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Voltar
+        </Button>
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold flex items-center gap-2">

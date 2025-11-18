@@ -5,7 +5,7 @@ import Header from '@/components/Header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader2, FileText, Pill, Stethoscope, Upload, CheckCircle2 } from 'lucide-react';
+import { Loader2, FileText, Pill, Stethoscope, Upload, CheckCircle2, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -118,6 +118,10 @@ export default function DocumentScan() {
       <Header />
       
       <div className="container max-w-4xl mx-auto px-4 py-6 pt-24 space-y-6">{/* pt-24 para compensar o header fixo */}
+        <Button variant="ghost" onClick={() => navigate(-1)} className="mb-4">
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Voltar
+        </Button>
         <div>
           <h1 className="text-3xl font-bold flex items-center gap-2">
             <FileText className="h-8 w-8 text-primary" />
