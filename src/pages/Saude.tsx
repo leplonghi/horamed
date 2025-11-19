@@ -30,8 +30,8 @@ export default function Saude() {
       color: "from-green-500 to-green-600",
     },
     {
-      title: "Sinais Vitais",
-      description: "Monitore pressão, peso, glicemia",
+      title: "Monitoramento de Saúde",
+      description: "Acompanhe pressão, peso, glicemia e mais",
       icon: Heart,
       path: "/sinais-vitais",
       color: "from-red-500 to-red-600",
