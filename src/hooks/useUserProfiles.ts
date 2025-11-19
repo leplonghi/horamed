@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useProfileCache } from './useProfileCache';
 
 export interface UserProfile {
   id: string;
@@ -18,6 +19,7 @@ export function useUserProfiles() {
   const [profiles, setProfiles] = useState<UserProfile[]>([]);
   const [activeProfile, setActiveProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const { prefetchAllProfiles, invalidateAllCache } = useProfileCache();
 
   useEffect(() => {
     loadProfiles();
@@ -38,6 +40,11 @@ export function useUserProfiles() {
       if (error) throw error;
 
       setProfiles(data || []);
+      
+      // Pré-carregar dados de todos os perfis
+      if (data && data.length > 0) {
+        prefetchAllProfiles(data, user.id).catch(console.error);
+      }
       
       // Try to restore active profile from localStorage
       const savedProfileId = localStorage.getItem('activeProfileId');
@@ -135,9 +142,13 @@ export function useUserProfiles() {
   };
 
   const switchProfile = (profile: UserProfile) => {
+    // Troca instantânea - os dados já estão em cache
     setActiveProfile(profile);
     localStorage.setItem('activeProfileId', profile.id);
     toast.success(`Perfil alterado para ${profile.name}`, { duration: 1500 });
+    
+    // Força um re-render nos componentes que dependem do activeProfile
+    window.dispatchEvent(new CustomEvent('profile-switched', { detail: profile }));
   };
 
   return {

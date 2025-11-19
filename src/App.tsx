@@ -52,6 +52,7 @@ import Emergency from "./pages/Emergency";
 import Notifications from "./pages/Notifications";
 import OnboardingScreens from "./components/OnboardingScreens";
 import { SubscriptionProvider } from "./contexts/SubscriptionContext";
+import { ProfileCacheProvider } from "./contexts/ProfileCacheContext";
 
 function AppContent() {
   const location = useLocation();
@@ -162,11 +163,13 @@ const App = () => {
       <QueryClientProvider client={queryClient}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
           <TooltipProvider>
-            <SubscriptionProvider>
-              <BrowserRouter>
-                <AppContent />
-              </BrowserRouter>
-            </SubscriptionProvider>
+            <ProfileCacheProvider>
+              <SubscriptionProvider>
+                <BrowserRouter>
+                  <AppContent />
+                </BrowserRouter>
+              </SubscriptionProvider>
+            </ProfileCacheProvider>
           </TooltipProvider>
         </ThemeProvider>
       </QueryClientProvider>
