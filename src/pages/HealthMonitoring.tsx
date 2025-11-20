@@ -3,6 +3,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Activity, Heart, Droplets, Weight, Thermometer, Wind, Plus } from "lucide-react";
 import { format, subDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -29,14 +33,44 @@ export default function HealthMonitoring() {
   const [period, setPeriod] = useState<"week" | "month">("week");
   const [vitalSigns, setVitalSigns] = useState<VitalSign[]>([]);
   const [loading, setLoading] = useState(true);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
   const { activeProfile } = useUserProfiles();
   const navigate = useNavigate();
+
+  const [formData, setFormData] = useState({
+    pressao_sistolica: "",
+    pressao_diastolica: "",
+    frequencia_cardiaca: "",
+    temperatura: "",
+    glicemia: "",
+    saturacao_oxigenio: "",
+    peso_kg: "",
+    observacoes: "",
+  });
 
   useEffect(() => {
     if (activeProfile) {
       loadVitalSigns();
     }
   }, [period, activeProfile?.id]);
+
+  useEffect(() => {
+    if (dialogOpen && vitalSigns.length > 0) {
+      // Pré-preencher com última medição
+      const latest = vitalSigns[vitalSigns.length - 1];
+      setFormData({
+        pressao_sistolica: latest.pressao_sistolica?.toString() || "",
+        pressao_diastolica: latest.pressao_diastolica?.toString() || "",
+        frequencia_cardiaca: latest.frequencia_cardiaca?.toString() || "",
+        temperatura: latest.temperatura?.toString() || "",
+        glicemia: latest.glicemia?.toString() || "",
+        saturacao_oxigenio: latest.saturacao_oxigenio?.toString() || "",
+        peso_kg: latest.peso_kg?.toString() || "",
+        observacoes: "",
+      });
+    }
+  }, [dialogOpen, vitalSigns]);
 
   const loadVitalSigns = async () => {
     try {
@@ -80,6 +114,57 @@ export default function HealthMonitoring() {
       .sort((a, b) => new Date(b.data_medicao).getTime() - new Date(a.data_medicao).getTime())[0];
     const value = latest?.[key];
     return typeof value === 'number' ? value : null;
+  };
+
+  const handleSave = async () => {
+    try {
+      setSaving(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user || !activeProfile) return;
+
+      const dataToInsert: any = {
+        user_id: user.id,
+        profile_id: activeProfile.id,
+        data_medicao: new Date().toISOString(),
+      };
+
+      // Adicionar apenas campos preenchidos
+      if (formData.pressao_sistolica) dataToInsert.pressao_sistolica = parseInt(formData.pressao_sistolica);
+      if (formData.pressao_diastolica) dataToInsert.pressao_diastolica = parseInt(formData.pressao_diastolica);
+      if (formData.frequencia_cardiaca) dataToInsert.frequencia_cardiaca = parseInt(formData.frequencia_cardiaca);
+      if (formData.temperatura) dataToInsert.temperatura = parseFloat(formData.temperatura);
+      if (formData.glicemia) dataToInsert.glicemia = parseInt(formData.glicemia);
+      if (formData.saturacao_oxigenio) dataToInsert.saturacao_oxigenio = parseInt(formData.saturacao_oxigenio);
+      if (formData.peso_kg) dataToInsert.peso_kg = parseFloat(formData.peso_kg);
+      if (formData.observacoes) dataToInsert.observacoes = formData.observacoes;
+
+      const { error } = await supabase
+        .from("sinais_vitais")
+        .insert(dataToInsert);
+
+      if (error) throw error;
+
+      toast.success("Registro salvo com sucesso!");
+      setDialogOpen(false);
+      loadVitalSigns();
+      
+      // Limpar formulário
+      setFormData({
+        pressao_sistolica: "",
+        pressao_diastolica: "",
+        frequencia_cardiaca: "",
+        temperatura: "",
+        glicemia: "",
+        saturacao_oxigenio: "",
+        peso_kg: "",
+        observacoes: "",
+      });
+    } catch (error) {
+      console.error("Erro ao salvar registro:", error);
+      toast.error("Erro ao salvar registro");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const StatCard = ({ 
@@ -217,10 +302,121 @@ export default function HealthMonitoring() {
                 Acompanhe a evolução dos seus indicadores de saúde
               </p>
             </div>
-            <Button onClick={() => navigate("/perfil")} className="gap-2">
-              <Plus className="h-4 w-4" />
-              Adicionar Registro
-            </Button>
+            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+              <DialogTrigger asChild>
+                <Button className="gap-2">
+                  <Plus className="h-4 w-4" />
+                  Adicionar Registro
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>Adicionar Sinais Vitais</DialogTitle>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="pressao_sistolica">Pressão Sistólica (mmHg)</Label>
+                      <Input
+                        id="pressao_sistolica"
+                        type="number"
+                        placeholder="Ex: 120"
+                        value={formData.pressao_sistolica}
+                        onChange={(e) => setFormData({ ...formData, pressao_sistolica: e.target.value })}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="pressao_diastolica">Pressão Diastólica (mmHg)</Label>
+                      <Input
+                        id="pressao_diastolica"
+                        type="number"
+                        placeholder="Ex: 80"
+                        value={formData.pressao_diastolica}
+                        onChange={(e) => setFormData({ ...formData, pressao_diastolica: e.target.value })}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="glicemia">Glicemia (mg/dL)</Label>
+                      <Input
+                        id="glicemia"
+                        type="number"
+                        placeholder="Ex: 95"
+                        value={formData.glicemia}
+                        onChange={(e) => setFormData({ ...formData, glicemia: e.target.value })}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="peso_kg">Peso (kg)</Label>
+                      <Input
+                        id="peso_kg"
+                        type="number"
+                        step="0.1"
+                        placeholder="Ex: 70.5"
+                        value={formData.peso_kg}
+                        onChange={(e) => setFormData({ ...formData, peso_kg: e.target.value })}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="frequencia_cardiaca">Frequência Cardíaca (bpm)</Label>
+                      <Input
+                        id="frequencia_cardiaca"
+                        type="number"
+                        placeholder="Ex: 72"
+                        value={formData.frequencia_cardiaca}
+                        onChange={(e) => setFormData({ ...formData, frequencia_cardiaca: e.target.value })}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="saturacao_oxigenio">Saturação O2 (%)</Label>
+                      <Input
+                        id="saturacao_oxigenio"
+                        type="number"
+                        placeholder="Ex: 98"
+                        value={formData.saturacao_oxigenio}
+                        onChange={(e) => setFormData({ ...formData, saturacao_oxigenio: e.target.value })}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="temperatura">Temperatura (°C)</Label>
+                    <Input
+                      id="temperatura"
+                      type="number"
+                      step="0.1"
+                      placeholder="Ex: 36.5"
+                      value={formData.temperatura}
+                      onChange={(e) => setFormData({ ...formData, temperatura: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="observacoes">Observações</Label>
+                    <Textarea
+                      id="observacoes"
+                      placeholder="Observações adicionais sobre a medição..."
+                      value={formData.observacoes}
+                      onChange={(e) => setFormData({ ...formData, observacoes: e.target.value })}
+                      rows={3}
+                    />
+                  </div>
+                </div>
+                <div className="flex justify-end gap-2">
+                  <Button variant="outline" onClick={() => setDialogOpen(false)}>
+                    Cancelar
+                  </Button>
+                  <Button onClick={handleSave} disabled={saving}>
+                    {saving ? "Salvando..." : "Salvar Registro"}
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
           </div>
 
           {/* Period Selector */}
