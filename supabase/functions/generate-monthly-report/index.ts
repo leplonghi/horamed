@@ -111,6 +111,90 @@ serve(async (req) => {
       taken: stats.taken,
     }));
 
+    // Get vital signs for the month
+    const { data: vitalSigns } = await supabase
+      .from("sinais_vitais")
+      .select("*")
+      .eq("user_id", user.id)
+      .gte("data_medicao", startDate.toISOString())
+      .lte("data_medicao", endDate.toISOString())
+      .order("data_medicao", { ascending: true });
+
+    // Calculate vital signs statistics
+    let vitalSignsStats = null;
+    if (vitalSigns && vitalSigns.length > 0) {
+      const calculateStats = (field: string) => {
+        const values = vitalSigns
+          .map((v: any) => v[field])
+          .filter((v: any) => v !== null && v !== undefined);
+        
+        if (values.length === 0) return null;
+        
+        const avg = values.reduce((a: number, b: number) => a + b, 0) / values.length;
+        const min = Math.min(...values);
+        const max = Math.max(...values);
+        
+        return {
+          avg: Math.round(avg * 10) / 10,
+          min,
+          max,
+          count: values.length,
+        };
+      };
+
+      vitalSignsStats = {
+        pressao_sistolica: calculateStats("pressao_sistolica"),
+        pressao_diastolica: calculateStats("pressao_diastolica"),
+        frequencia_cardiaca: calculateStats("frequencia_cardiaca"),
+        temperatura: calculateStats("temperatura"),
+        glicemia: calculateStats("glicemia"),
+        saturacao_oxigenio: calculateStats("saturacao_oxigenio"),
+        peso_kg: calculateStats("peso_kg"),
+        totalRecords: vitalSigns.length,
+        trends: {},
+      };
+
+      // Get previous month vital signs for comparison
+      const { data: prevVitalSigns } = await supabase
+        .from("sinais_vitais")
+        .select("*")
+        .eq("user_id", user.id)
+        .gte("data_medicao", prevStartDate.toISOString())
+        .lte("data_medicao", prevEndDate.toISOString());
+
+      if (prevVitalSigns && prevVitalSigns.length > 0) {
+        const calculateTrend = (field: string, currentStats: any) => {
+          if (!currentStats) return null;
+          
+          const prevValues = prevVitalSigns
+            .map((v: any) => v[field])
+            .filter((v: any) => v !== null && v !== undefined);
+          
+          if (prevValues.length === 0) return null;
+          
+          const prevAvg = prevValues.reduce((a: number, b: number) => a + b, 0) / prevValues.length;
+          const diff = currentStats.avg - prevAvg;
+          const percentChange = Math.round((diff / prevAvg) * 100);
+          
+          return {
+            diff: Math.round(diff * 10) / 10,
+            percentChange,
+            direction: diff > 0 ? "up" : diff < 0 ? "down" : "stable",
+          };
+        };
+
+        vitalSignsStats.trends = {
+          pressao_sistolica: calculateTrend("pressao_sistolica", vitalSignsStats.pressao_sistolica),
+          pressao_diastolica: calculateTrend("pressao_diastolica", vitalSignsStats.pressao_diastolica),
+          frequencia_cardiaca: calculateTrend("frequencia_cardiaca", vitalSignsStats.frequencia_cardiaca),
+          temperatura: calculateTrend("temperatura", vitalSignsStats.temperatura),
+          glicemia: calculateTrend("glicemia", vitalSignsStats.glicemia),
+          saturacao_oxigenio: calculateTrend("saturacao_oxigenio", vitalSignsStats.saturacao_oxigenio),
+          peso_kg: calculateTrend("peso_kg", vitalSignsStats.peso_kg),
+        };
+      }
+    }
+
     const report = {
       month,
       year,
@@ -122,6 +206,7 @@ serve(async (req) => {
       improvementPercent,
       avgDelayMinutes: avgDelay,
       medicationBreakdown,
+      vitalSigns: vitalSignsStats,
       generatedAt: new Date().toISOString(),
     };
 
