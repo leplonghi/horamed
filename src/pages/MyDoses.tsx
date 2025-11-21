@@ -235,13 +235,13 @@ export default function MyDoses() {
     setModalOpen(true);
   };
 
-  const calculateAdherence = () => {
+  const calculateProgress = () => {
     if (doses.length === 0) return 0;
     const takenCount = doses.filter(d => d.status === 'taken').length;
     return Math.round((takenCount / doses.length) * 100);
   };
 
-  const adherence = calculateAdherence();
+  const progress = calculateProgress();
   const nextDose = doses.find(d => d.status === 'scheduled' && new Date(d.due_at) > new Date());
 
   // Group medications for summary cards
@@ -282,16 +282,16 @@ export default function MyDoses() {
             <CardContent className="pt-6">
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">Compromisso {activeTab === 'today' ? 'de Hoje' : activeTab === 'week' ? 'da Semana' : 'Mensal'}</span>
-                  <span className="text-2xl font-bold text-primary">{adherence}%</span>
+                 <span className="text-sm font-medium">Compromisso {activeTab === 'today' ? 'de Hoje' : activeTab === 'week' ? 'da Semana' : 'Mensal'}</span>
+                  <span className="text-2xl font-bold text-primary">{progress}%</span>
                 </div>
-                <Progress value={adherence} className="h-3" />
-                <p className="text-sm text-muted-foreground">
-                  {adherence >= 90 && "🎉 Você está indo muito bem!"}
-                  {adherence >= 70 && adherence < 90 && "💪 Bom trabalho! Continue assim!"}
-                  {adherence >= 50 && adherence < 70 && "⚡ Você pode melhorar!"}
-                  {adherence < 50 && "Vamos retomar o compromisso!"}
-                </p>
+               <Progress value={progress} className="h-3" />
+               <p className="text-sm text-muted-foreground">
+                 {progress >= 90 && "🎉 Você está indo muito bem!"}
+                 {progress >= 70 && progress < 90 && "💪 Bom trabalho! Continue assim!"}
+                 {progress >= 50 && progress < 70 && "⚡ Você pode melhorar!"}
+                 {progress < 50 && "Vamos retomar o compromisso!"}
+               </p>
               </div>
             </CardContent>
           </Card>

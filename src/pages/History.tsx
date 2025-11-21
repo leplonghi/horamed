@@ -6,7 +6,7 @@ import { Progress } from "@/components/ui/progress";
 import Navigation from "@/components/Navigation";
 import Header from "@/components/Header";
 import StreakBadge from "@/components/StreakBadge";
-import AdherenceChart from "@/components/AdherenceChart";
+import InteractiveTimelineChart from "@/components/InteractiveTimelineChart";
 import DoseTimeline from "@/components/DoseTimeline";
 import InfoDialog from "@/components/InfoDialog";
 import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, subWeeks, subMonths, subDays, eachDayOfInterval } from "date-fns";
@@ -41,14 +41,14 @@ interface Stats {
   taken: number;
   missed: number;
   skipped: number;
-  adherenceRate: number;
+  progressRate: number;
 }
 
 interface MedicationStats {
   name: string;
   total: number;
   taken: number;
-  adherenceRate: number;
+  progressRate: number;
 }
 
 export default function History() {
@@ -245,8 +245,8 @@ export default function History() {
 
       const stats = Object.values(statsByMed).map(stat => ({
         ...stat,
-        adherenceRate: stat.total > 0 ? Math.round((stat.taken / stat.total) * 100) : 0
-      })).sort((a, b) => b.adherenceRate - a.adherenceRate);
+        progressRate: stat.total > 0 ? Math.round((stat.taken / stat.total) * 100) : 0
+      })).sort((a, b) => b.progressRate - a.progressRate);
 
       setMedicationStats(stats);
     } catch (error) {
@@ -259,14 +259,14 @@ export default function History() {
     const taken = dosesData.filter(d => d.status === 'taken').length;
     const missed = dosesData.filter(d => d.status === 'missed').length;
     const skipped = dosesData.filter(d => d.status === 'skipped').length;
-    const adherenceRate = total > 0 ? Math.round((taken / total) * 100) : 0;
+    const progressRate = total > 0 ? Math.round((taken / total) * 100) : 0;
     
-    return { total, taken, missed, skipped, adherenceRate };
+    return { total, taken, missed, skipped, progressRate };
   };
 
   const currentStats = calculateStats(doses);
   const previousStats = calculateStats(previousDoses);
-  const difference = currentStats.adherenceRate - previousStats.adherenceRate;
+  const difference = currentStats.progressRate - previousStats.progressRate;
 
   const getPeriodLabel = () => {
     switch (activeTab) {
@@ -304,7 +304,7 @@ export default function History() {
           <div>
             <h1 className="text-3xl font-bold">Histórico Completo</h1>
             <p className="text-muted-foreground">
-              Análises detalhadas da sua adesão ao tratamento
+              Análises detalhadas do seu compromisso com o tratamento
             </p>
           </div>
           {streak > 0 && <StreakBadge streak={streak} type="current" />}
@@ -324,7 +324,7 @@ export default function History() {
                 />
               </div>
               <div className="text-3xl font-bold text-primary">
-                {currentStats.adherenceRate}%
+                {currentStats.progressRate}%
               </div>
               <div className="flex items-center gap-1 mt-2 text-xs">
                 {difference > 0 && (
@@ -428,11 +428,11 @@ export default function History() {
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-sm font-medium">{getPeriodLabel()}</span>
-                    <span className="text-lg font-bold text-primary">
-                      {currentStats.adherenceRate}%
-                    </span>
+                   <span className="text-lg font-bold text-primary">
+                     {currentStats.progressRate}%
+                   </span>
                   </div>
-                  <Progress value={currentStats.adherenceRate} className="h-2" />
+                  <Progress value={currentStats.progressRate} className="h-2" />
                   <p className="text-xs text-muted-foreground mt-1">
                     {currentStats.taken} de {currentStats.total} doses tomadas
                   </p>
@@ -443,11 +443,11 @@ export default function History() {
                     <span className="text-sm font-medium text-muted-foreground">
                       {getPreviousPeriodLabel()}
                     </span>
-                    <span className="text-lg font-bold text-muted-foreground">
-                      {previousStats.adherenceRate}%
-                    </span>
+                   <span className="text-lg font-bold text-muted-foreground">
+                     {previousStats.progressRate}%
+                   </span>
                   </div>
-                  <Progress value={previousStats.adherenceRate} className="h-2 opacity-50" />
+                  <Progress value={previousStats.progressRate} className="h-2 opacity-50" />
                   <p className="text-xs text-muted-foreground mt-1">
                     {previousStats.taken} de {previousStats.total} doses tomadas
                   </p>
@@ -459,7 +459,7 @@ export default function History() {
                       {difference > 0 ? (
                         <>🎉 Parabéns! Você melhorou {Math.abs(difference)}% comparado com {getPreviousPeriodLabel().toLowerCase()}!</>
                       ) : (
-                        <>⚠️ Sua adesão caiu {Math.abs(difference)}% comparado com {getPreviousPeriodLabel().toLowerCase()}. Vamos retomar!</>
+                        <>⚠️ Seu compromisso caiu {Math.abs(difference)}% comparado com {getPreviousPeriodLabel().toLowerCase()}. Vamos retomar!</>
                       )}
                     </p>
                   </div>
@@ -467,8 +467,8 @@ export default function History() {
               </CardContent>
             </Card>
 
-            {/* Adherence Chart */}
-            <AdherenceChart 
+            {/* Interactive Timeline Chart */}
+            <InteractiveTimelineChart 
               doses={doses}
               period={activeTab}
             />
@@ -483,18 +483,18 @@ export default function History() {
             {medicationStats.length > 0 && (
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg">Adesão por Medicamento (últimos 30 dias)</CardTitle>
+                  <CardTitle className="text-lg">Compromisso por Medicamento (últimos 30 dias)</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {medicationStats.map((med) => (
-                    <div key={med.name}>
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-medium">{med.name}</span>
-                        <span className="text-sm font-bold text-primary">
-                          {med.adherenceRate}%
-                        </span>
-                      </div>
-                      <Progress value={med.adherenceRate} className="h-2" />
+                     <div key={med.name}>
+                       <div className="flex items-center justify-between mb-2">
+                         <span className="text-sm font-medium">{med.name}</span>
+                         <span className="text-sm font-bold text-primary">
+                           {med.progressRate}%
+                         </span>
+                       </div>
+                       <Progress value={med.progressRate} className="h-2" />
                       <p className="text-xs text-muted-foreground mt-1">
                         {med.taken} de {med.total} doses tomadas
                       </p>
