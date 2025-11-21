@@ -49,7 +49,6 @@ import MedicalAppointments from "./pages/MedicalAppointments";
 import HealthTimeline from "./pages/HealthTimeline";
 import HealthAnalysis from "./pages/HealthAnalysis";
 import Emergency from "./pages/Emergency";
-import HealthMonitoring from "./pages/HealthMonitoring";
 import Notifications from "./pages/Notifications";
 import OnboardingScreens from "./components/OnboardingScreens";
 import { SubscriptionProvider } from "./contexts/SubscriptionContext";
@@ -89,8 +88,6 @@ function AppContent() {
         <Route path="/exames" element={<ProtectedRoute><MedicalReports /></ProtectedRoute>} />
         <Route path="/relatorios" element={<ProtectedRoute><MedicalReports /></ProtectedRoute>} />
         <Route path="/relatorios-medicos" element={<ProtectedRoute><MedicalReports /></ProtectedRoute>} />
-        <Route path="/sinais-vitais" element={<ProtectedRoute><HealthMonitoring /></ProtectedRoute>} />
-        <Route path="/monitoramento-saude" element={<ProtectedRoute><HealthMonitoring /></ProtectedRoute>} />
         <Route path="/graficos" element={<ProtectedRoute><Charts /></ProtectedRoute>} />
         <Route path="/dashboard-saude" element={<ProtectedRoute><HealthDashboard /></ProtectedRoute>} />
         <Route path="/linha-do-tempo" element={<ProtectedRoute><HealthTimeline /></ProtectedRoute>} />
