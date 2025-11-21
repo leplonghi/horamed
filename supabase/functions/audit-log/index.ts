@@ -72,18 +72,18 @@ serve(async (req) => {
     console.log('IP headers:', { forwardedFor, realIP });
     
     // Get first IP from x-forwarded-for chain
-    let clientIP = 'unknown';
+    let clientIP: string | null = null;
     if (forwardedFor) {
       const firstIP = forwardedFor.split(',')[0].trim();
       // Validate IP format (basic IPv4/IPv6 check)
-      if (/^[\d.:]+$/.test(firstIP)) {
+      if (/^[\d.:a-fA-F]+$/.test(firstIP) && firstIP.length <= 45) {
         clientIP = firstIP;
       }
-    } else if (realIP && /^[\d.:]+$/.test(realIP)) {
+    } else if (realIP && /^[\d.:a-fA-F]+$/.test(realIP) && realIP.length <= 45) {
       clientIP = realIP;
     }
     
-    console.log('Using IP:', clientIP);
+    console.log('Using IP:', clientIP || 'null');
 
     const { error: insertError } = await supabaseAdmin.from('audit_logs').insert({
       user_id: user.id,
@@ -91,7 +91,7 @@ serve(async (req) => {
       resource: body.resource,
       resource_id: body.resource_id || null,
       metadata: body.metadata || {},
-      ip_address: clientIP,
+      ip_address: clientIP, // Will be null if invalid
       user_agent: req.headers.get('user-agent') || null,
     });
 
