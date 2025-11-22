@@ -7,6 +7,7 @@ import Navigation from "@/components/Navigation";
 import Header from "@/components/Header";
 import StreakBadge from "@/components/StreakBadge";
 import InteractiveTimelineChart from "@/components/InteractiveTimelineChart";
+import { MonthlyProgressCalendar } from "@/components/MonthlyProgressCalendar";
 import DoseTimeline from "@/components/DoseTimeline";
 import InfoDialog from "@/components/InfoDialog";
 import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, subWeeks, subMonths, subDays, eachDayOfInterval } from "date-fns";
@@ -467,17 +468,34 @@ export default function History() {
               </CardContent>
             </Card>
 
-            {/* Interactive Timeline Chart */}
-            <InteractiveTimelineChart 
-              doses={doses}
-              period={activeTab}
-            />
+            {/* Visualization Options */}
+            <Tabs defaultValue="timeline" className="space-y-6">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="timeline">Linha do Tempo</TabsTrigger>
+                <TabsTrigger value="calendar">Calendário Mensal</TabsTrigger>
+                <TabsTrigger value="list">Lista de Doses</TabsTrigger>
+              </TabsList>
 
-            {/* Dose Timeline */}
-            <DoseTimeline 
-              doses={doses}
-              period={activeTab}
-            />
+              <TabsContent value="timeline">
+                <InteractiveTimelineChart 
+                  doses={doses}
+                  period={activeTab}
+                />
+              </TabsContent>
+
+              <TabsContent value="calendar">
+                <MonthlyProgressCalendar 
+                  profileId={activeProfile?.id}
+                />
+              </TabsContent>
+
+              <TabsContent value="list">
+                <DoseTimeline 
+                  doses={doses}
+                  period={activeTab}
+                />
+              </TabsContent>
+            </Tabs>
 
             {/* Medication Stats */}
             {medicationStats.length > 0 && (
