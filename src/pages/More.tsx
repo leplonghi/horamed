@@ -12,10 +12,13 @@ import Navigation from "@/components/Navigation";
 import Header from "@/components/Header";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useUserProfiles } from "@/hooks/useUserProfiles";
+import { useAuth } from "@/contexts/AuthContext";
 import SubscriptionBadge from "@/components/SubscriptionBadge";
+import { toast } from "sonner";
 
 export default function More() {
   const navigate = useNavigate();
+  const { signOut } = useAuth();
   const [userEmail, setUserEmail] = useState("");
   const [userName, setUserName] = useState("");
   const { isPremium } = useSubscription();
@@ -46,8 +49,17 @@ export default function More() {
   };
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigate("/auth");
+    try {
+      await signOut();
+      // Limpar dados do localStorage da biometria
+      localStorage.removeItem("biometric_refresh_token");
+      localStorage.removeItem("biometric_expiry");
+      localStorage.removeItem("biometric_enabled");
+      toast.success("Logout realizado com sucesso");
+    } catch (error: any) {
+      console.error("Error logging out:", error);
+      toast.error("Erro ao fazer logout");
+    }
   };
 
   const menuItems = [

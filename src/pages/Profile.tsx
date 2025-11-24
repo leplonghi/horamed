@@ -18,10 +18,12 @@ import Navigation from "@/components/Navigation";
 import Header from "@/components/Header";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useUserProfiles } from "@/hooks/useUserProfiles";
+import { useAuth } from "@/contexts/AuthContext";
 import logo from "@/assets/horamed-logo.png";
 
 export default function Profile() {
   const navigate = useNavigate();
+  const { signOut } = useAuth();
   const [userEmail, setUserEmail] = useState("");
   const [profile, setProfile] = useState<any>({
     full_name: "",
@@ -55,8 +57,17 @@ export default function Profile() {
   };
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigate("/auth");
+    try {
+      await signOut();
+      // Limpar dados do localStorage da biometria
+      localStorage.removeItem("biometric_refresh_token");
+      localStorage.removeItem("biometric_expiry");
+      localStorage.removeItem("biometric_enabled");
+      toast.success("Logout realizado com sucesso");
+    } catch (error: any) {
+      console.error("Error logging out:", error);
+      toast.error("Erro ao fazer logout");
+    }
   };
 
   const getInitials = (name: string) => {
