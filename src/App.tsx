@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { ThemeProvider } from "next-themes";
+import { AuthProvider } from "@/contexts/AuthContext";
 import Index from "./pages/Index";
 import Today from "./pages/Today";
 import Medications from "./pages/Medications";
@@ -165,7 +166,9 @@ const App = () => {
             <ProfileCacheProvider>
               <SubscriptionProvider>
                 <BrowserRouter>
-                  <AppContent />
+                  <AuthProvider>
+                    <AppContent />
+                  </AuthProvider>
                 </BrowserRouter>
               </SubscriptionProvider>
             </ProfileCacheProvider>

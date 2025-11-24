@@ -8,20 +8,23 @@ import { ThemeToggle } from "./ThemeToggle";
 import ProfileSelector from "./ProfileSelector";
 import logo from "@/assets/horamed-logo.png";
 import { useUserProfiles } from "@/hooks/useUserProfiles";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function Header() {
+  const { user } = useAuth();
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [userEmail, setUserEmail] = useState<string>("");
   const [userName, setUserName] = useState<string | null>(null);
   const { profiles, activeProfile } = useUserProfiles();
 
   useEffect(() => {
-    loadUserData();
-  }, []);
+    if (user) {
+      loadUserData();
+    }
+  }, [user]);
 
   const loadUserData = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
       setUserEmail(user.email || "");

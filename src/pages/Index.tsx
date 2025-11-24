@@ -4,41 +4,43 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import logo from "@/assets/horamed-logo.png";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 
 const Index = () => {
   const navigate = useNavigate();
+  const { user, loading } = useAuth();
 
   useEffect(() => {
-    console.log('Index page mounted');
-    supabase.auth.getSession()
-      .then(({ data: { session } }) => {
-        console.log('Session check:', !!session);
-        if (session) {
-          navigate("/hoje");
-        }
-      })
-      .catch((error) => {
-        console.error('Error checking session:', error);
-      });
-  }, [navigate]);
+    console.log('Index page mounted, user:', user?.email);
+    if (!loading && user) {
+      navigate("/hoje");
+    }
+  }, [user, loading, navigate]);
 
   const handleGoogleLogin = async () => {
     try {
-      console.log('Starting Google login');
+      const redirectUrl = `${window.location.origin}/`;
+      console.log('Initiating Google login with redirect:', redirectUrl);
+      
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${window.location.origin}/`,
+          redirectTo: redirectUrl,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
         },
       });
 
       if (error) {
         console.error("Google login error:", error);
-        alert('Erro ao fazer login com Google. Por favor, tente novamente.');
+        toast.error('Erro ao fazer login com Google. Verifique se está configurado no backend.');
       }
     } catch (error) {
       console.error("Exception during Google login:", error);
-      alert('Erro inesperado. Por favor, recarregue a página.');
+      toast.error('Erro ao fazer login com Google');
     }
   };
 

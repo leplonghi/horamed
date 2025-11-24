@@ -11,6 +11,7 @@ import { Mail, Chrome, Fingerprint } from "lucide-react";
 import logo from "@/assets/horamed-logo.png";
 import { z } from "zod";
 import { useBiometricAuth } from "@/hooks/useBiometricAuth";
+import { useAuth } from "@/contexts/AuthContext";
 
 const passwordSchema = z.string()
   .min(8, "A senha deve ter no mínimo 8 caracteres")
@@ -20,6 +21,7 @@ const passwordSchema = z.string()
 
 export default function Auth() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -27,28 +29,40 @@ export default function Auth() {
 
   useEffect(() => {
     // Auto-redirect if already logged in
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        navigate("/");
-      }
-    });
-  }, [navigate]);
+    if (user) {
+      navigate("/");
+    }
+  }, [user, navigate]);
 
   const handleGoogleLogin = async () => {
     try {
       setLoading(true);
-      const { error } = await supabase.auth.signInWithOAuth({
+      
+      const redirectUrl = `${window.location.origin}/`;
+      console.log('Initiating Google OAuth with redirect:', redirectUrl);
+      
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${window.location.origin}/`,
+          redirectTo: redirectUrl,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Google OAuth error:", error);
+        throw error;
+      }
+      
+      console.log('Google OAuth initiated successfully:', data);
+      
+      // OAuth will handle the redirect, don't show error toast
     } catch (error: any) {
-      console.error("Error:", error);
-      toast.error(error.message || "Erro ao fazer login com Google");
-    } finally {
+      console.error("Exception during Google login:", error);
+      toast.error(error.message || "Erro ao fazer login com Google. Verifique se o Google Auth está configurado no backend.");
       setLoading(false);
     }
   };
