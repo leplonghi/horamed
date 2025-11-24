@@ -19,9 +19,11 @@ import {
 import Navigation from "@/components/Navigation";
 import ConsentManager from "@/components/ConsentManager";
 import { useAuditLog } from "@/hooks/useAuditLog";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function Privacy() {
   const navigate = useNavigate();
+  const { signOut } = useAuth();
   const [loading, setLoading] = useState(false);
   const { logAction } = useAuditLog();
 
@@ -63,10 +65,12 @@ export default function Privacy() {
       await supabase.from("consents").delete().eq("user_id", user.id);
       await supabase.from("profiles").delete().eq("user_id", user.id);
       
-      // Sign out
-      await supabase.auth.signOut();
+      // Sign out and clear all data
+      await signOut();
+      localStorage.removeItem("biometric_refresh_token");
+      localStorage.removeItem("biometric_expiry");
+      localStorage.removeItem("biometric_enabled");
       toast.success("Conta deletada com sucesso");
-      navigate("/auth");
     } catch (error) {
       console.error("Error deleting account:", error);
       toast.error("Erro ao deletar conta");
