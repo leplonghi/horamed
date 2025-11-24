@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -42,14 +43,21 @@ serve(async (req) => {
       }
     }
 
-    const { token } = await req.json();
+    const requestSchema = z.object({
+      token: z.string().min(16, "Token inválido")
+    });
 
-    if (!token) {
+    const body = await req.json();
+    const parsed = requestSchema.safeParse(body);
+    
+    if (!parsed.success) {
       return new Response(
-        JSON.stringify({ error: "Token é obrigatório" }),
+        JSON.stringify({ error: parsed.error.issues[0].message }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+
+    const { token } = parsed.data;
 
     // Use SERVICE_ROLE_KEY to bypass RLS
     const supabaseAdmin = createClient(

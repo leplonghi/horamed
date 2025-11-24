@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -25,7 +26,23 @@ serve(async (req) => {
   }
 
   try {
-    const { documentId, allowDownload = true, ttlHours } = await req.json();
+    const requestSchema = z.object({
+      documentId: z.string().uuid({ message: "ID do documento inválido" }),
+      allowDownload: z.boolean().default(true),
+      ttlHours: z.number().int().min(1).max(8760).optional()
+    });
+
+    const body = await req.json();
+    const parsed = requestSchema.safeParse(body);
+    
+    if (!parsed.success) {
+      return new Response(
+        JSON.stringify({ error: parsed.error.issues[0].message }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const { documentId, allowDownload, ttlHours } = parsed.data;
 
     if (!documentId) {
       return new Response(

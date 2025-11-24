@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -35,7 +36,24 @@ serve(async (req) => {
       });
     }
 
-    const { action, profileId, expiresInDays = 30 } = await req.json();
+    const requestSchema = z.object({
+      action: z.enum(['create', 'list', 'revoke']),
+      profileId: z.string().uuid().optional(),
+      expiresInDays: z.number().int().min(1).max(365).optional(),
+      shareId: z.string().uuid().optional()
+    });
+
+    const body = await req.json();
+    const parsed = requestSchema.safeParse(body);
+    
+    if (!parsed.success) {
+      return new Response(
+        JSON.stringify({ error: parsed.error.issues[0].message }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const { action, profileId, expiresInDays = 30, shareId } = parsed.data;
 
     if (action === 'create') {
       // Gerar token único
@@ -101,7 +119,12 @@ serve(async (req) => {
     }
 
     if (action === 'revoke') {
-      const { shareId } = await req.json();
+      if (!shareId) {
+        return new Response(JSON.stringify({ error: 'shareId é obrigatório' }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
       
       const { error: revokeError } = await supabase
         .from('medical_shares')
