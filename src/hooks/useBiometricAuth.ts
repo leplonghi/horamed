@@ -134,15 +134,19 @@ export const useBiometricAuth = () => {
   const setupBiometricLogin = async (email: string, password: string) => {
     const success = await authenticate();
     if (success) {
-      // Get current session to store refresh token
+      // Get current session to store refresh token with 7-day expiry
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.refresh_token) {
         const encrypted = await encryptToken(session.refresh_token);
+        const expiryDate = new Date();
+        expiryDate.setDate(expiryDate.getDate() + 7); // 7-day expiry
+        
         localStorage.setItem("biometric_refresh_token", encrypted);
+        localStorage.setItem("biometric_expiry", expiryDate.getTime().toString());
         localStorage.setItem("biometric_enabled", "true");
         toast({
           title: "Biometria ativada",
-          description: "Login por biometria configurado com sucesso. Nota: Esta é uma funcionalidade de conveniência com trade-offs de segurança.",
+          description: "Login por biometria ativado por 7 dias. Você precisará fazer login novamente após esse período por segurança.",
         });
       }
     }
@@ -150,10 +154,28 @@ export const useBiometricAuth = () => {
 
   const loginWithBiometric = async () => {
     const encryptedToken = localStorage.getItem("biometric_refresh_token");
-    if (!encryptedToken) {
+    const expiryTimestamp = localStorage.getItem("biometric_expiry");
+    
+    if (!encryptedToken || !expiryTimestamp) {
       toast({
         title: "Erro",
         description: "Biometria não configurada",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    // Check if biometric session has expired (7 days)
+    const now = Date.now();
+    const expiry = parseInt(expiryTimestamp, 10);
+    
+    if (now > expiry) {
+      localStorage.removeItem("biometric_refresh_token");
+      localStorage.removeItem("biometric_expiry");
+      localStorage.removeItem("biometric_enabled");
+      toast({
+        title: "Sessão biométrica expirada",
+        description: "Por segurança, faça login novamente para reativar a biometria",
         variant: "destructive",
       });
       return false;
@@ -164,6 +186,7 @@ export const useBiometricAuth = () => {
       const refreshToken = await decryptToken(encryptedToken);
       if (!refreshToken) {
         localStorage.removeItem("biometric_refresh_token");
+        localStorage.removeItem("biometric_expiry");
         localStorage.removeItem("biometric_enabled");
         toast({
           title: "Erro de segurança",
@@ -182,6 +205,7 @@ export const useBiometricAuth = () => {
       if (error) {
         // If refresh token expired, clear and ask to login again
         localStorage.removeItem("biometric_refresh_token");
+        localStorage.removeItem("biometric_expiry");
         localStorage.removeItem("biometric_enabled");
         toast({
           title: "Sessão expirada",
@@ -202,6 +226,7 @@ export const useBiometricAuth = () => {
 
   const disableBiometric = () => {
     localStorage.removeItem("biometric_refresh_token");
+    localStorage.removeItem("biometric_expiry");
     localStorage.removeItem("biometric_enabled");
     toast({
       title: "Biometria desativada",
