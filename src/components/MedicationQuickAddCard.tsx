@@ -1,7 +1,8 @@
+import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus, Pill } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { PrescriptionBulkAddWizard } from "@/components/PrescriptionBulkAddWizard";
 
 interface MedicationQuickAddCardProps {
   prescriptionId?: string;
@@ -9,7 +10,7 @@ interface MedicationQuickAddCardProps {
 }
 
 export function MedicationQuickAddCard({ prescriptionId, medications }: MedicationQuickAddCardProps) {
-  const navigate = useNavigate();
+  const [wizardOpen, setWizardOpen] = useState(false);
 
   if (!medications || medications.length === 0) return null;
 
@@ -51,17 +52,24 @@ export function MedicationQuickAddCard({ prescriptionId, medications }: Medicati
             <Button 
               size="lg" 
               className="w-full sm:w-auto gap-2 text-base"
-              onClick={() => {
-                // TODO: Implementar wizard de adição
-                navigate('/adicionar-medicamento');
-              }}
+              onClick={() => setWizardOpen(true)}
             >
               <Plus className="h-5 w-5" />
               Adicionar Agora
             </Button>
           </div>
         </div>
+
       </CardContent>
+
+      {prescriptionId && medications && (
+        <PrescriptionBulkAddWizard
+          prescriptionId={prescriptionId}
+          medications={medications}
+          open={wizardOpen}
+          onClose={() => setWizardOpen(false)}
+        />
+      )}
     </Card>
   );
 }

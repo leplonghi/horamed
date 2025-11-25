@@ -113,9 +113,9 @@ serve(async (req) => {
 
       // Schedule notifications at: 15 min before, 5 min before, and at dose time
       const notificationTimes = [
-        { offset: 15, title: '⏰ Lembrete: Remédio em 15 minutos' },
-        { offset: 5, title: '⏰ Lembrete: Remédio em 5 minutos' },
-        { offset: 0, title: '⏰ Hora do remédio!' },
+        { offset: 15, title: '💊 Em 15 minutos: hora do remédio!' },
+        { offset: 5, title: '⏰ Quase na hora! Remédio em 5 minutos' },
+        { offset: 0, title: '🔔 Hora do remédio!' },
       ];
 
       for (const { offset, title } of notificationTimes) {
