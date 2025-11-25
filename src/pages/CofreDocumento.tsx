@@ -166,61 +166,160 @@ export default function CofreDocumento() {
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              {documento.issued_at && (
-                <div>
-                  <p className="text-muted-foreground">📅 Data de Emissão</p>
-                  <p className="font-medium">
-                    {format(new Date(documento.issued_at), "dd/MM/yyyy", { locale: ptBR })}
-                  </p>
+            <div className="space-y-6">
+              {/* Dados do Paciente */}
+              {(meta?.patient_name || meta?.patient_age || meta?.patient_cpf) && (
+                <div className="p-4 bg-secondary/30 rounded-lg">
+                  <h3 className="font-semibold mb-3 flex items-center gap-2">
+                    <span>👤</span> Dados do Paciente
+                  </h3>
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    {meta.patient_name && (
+                      <div className="col-span-2">
+                        <p className="text-muted-foreground">Nome</p>
+                        <p className="font-medium">{meta.patient_name}</p>
+                      </div>
+                    )}
+                    {meta.patient_age && (
+                      <div>
+                        <p className="text-muted-foreground">Idade</p>
+                        <p className="font-medium">{meta.patient_age}</p>
+                      </div>
+                    )}
+                    {meta.patient_cpf && (
+                      <div>
+                        <p className="text-muted-foreground">CPF</p>
+                        <p className="font-medium">{meta.patient_cpf}</p>
+                      </div>
+                    )}
+                    {meta.patient_address && (
+                      <div className="col-span-2">
+                        <p className="text-muted-foreground">Endereço</p>
+                        <p className="font-medium">{meta.patient_address}</p>
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
-              {documento.expires_at && (
-                <div>
-                  <p className="text-muted-foreground">⏰ Validade</p>
-                  <p className="font-medium">
-                    {format(new Date(documento.expires_at), "dd/MM/yyyy", { locale: ptBR })}
-                  </p>
+
+              {/* Identificação do Emitente */}
+              {(meta?.emitter_name || meta?.emitter_address || documento.provider) && (
+                <div className="p-4 bg-secondary/30 rounded-lg">
+                  <h3 className="font-semibold mb-3 flex items-center gap-2">
+                    <span>🏥</span> Identificação do Emitente
+                  </h3>
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    {(meta?.emitter_name || documento.provider) && (
+                      <div className="col-span-2">
+                        <p className="text-muted-foreground">Nome</p>
+                        <p className="font-medium">{meta?.emitter_name || documento.provider}</p>
+                      </div>
+                    )}
+                    {meta?.emitter_cnpj && (
+                      <div className="col-span-2">
+                        <p className="text-muted-foreground">CNPJ</p>
+                        <p className="font-medium">{meta.emitter_cnpj}</p>
+                      </div>
+                    )}
+                    {meta?.emitter_address && (
+                      <div className="col-span-2">
+                        <p className="text-muted-foreground">Endereço</p>
+                        <p className="font-medium">{meta.emitter_address}</p>
+                      </div>
+                    )}
+                    {(meta?.emitter_city || meta?.emitter_state) && (
+                      <div className="col-span-2">
+                        <p className="text-muted-foreground">Cidade/Estado</p>
+                        <p className="font-medium">
+                          {[meta?.emitter_city, meta?.emitter_state].filter(Boolean).join(' - ')}
+                        </p>
+                      </div>
+                    )}
+                    {meta?.emitter_zip && (
+                      <div>
+                        <p className="text-muted-foreground">CEP</p>
+                        <p className="font-medium">{meta.emitter_zip}</p>
+                      </div>
+                    )}
+                    {meta?.emitter_phone && (
+                      <div>
+                        <p className="text-muted-foreground">Telefone</p>
+                        <p className="font-medium">{meta.emitter_phone}</p>
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
-              {documento.provider && (
-                <div className="col-span-2">
-                  <p className="text-muted-foreground">🏥 Prestador</p>
-                  <p className="font-medium">{documento.provider}</p>
-                </div>
-              )}
+
+              {/* Dados do Médico */}
               {meta?.doctor_name && (
-                <div className="col-span-2">
-                  <p className="text-muted-foreground">👨‍⚕️ Médico</p>
-                  <p className="font-medium">
-                    {meta.doctor_name}
-                    {meta.doctor_registration && ` • CRM ${meta.doctor_registration}`}
-                    {meta.specialty && ` • ${meta.specialty}`}
-                  </p>
+                <div className="p-4 bg-secondary/30 rounded-lg">
+                  <h3 className="font-semibold mb-3 flex items-center gap-2">
+                    <span>👨‍⚕️</span> Dados do Médico
+                  </h3>
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div className="col-span-2">
+                      <p className="text-muted-foreground">Nome</p>
+                      <p className="font-medium">{meta.doctor_name}</p>
+                    </div>
+                    {meta?.doctor_registration && (
+                      <div>
+                        <p className="text-muted-foreground">CRM</p>
+                        <p className="font-medium">
+                          {meta.doctor_registration}
+                          {meta.doctor_state && ` - ${meta.doctor_state}`}
+                        </p>
+                      </div>
+                    )}
+                    {meta?.specialty && (
+                      <div>
+                        <p className="text-muted-foreground">Especialidade</p>
+                        <p className="font-medium">{meta.specialty}</p>
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
-              {meta?.diagnosis && (
-                <div className="col-span-2">
-                  <p className="text-muted-foreground">🔍 Diagnóstico</p>
-                  <p className="font-medium">{meta.diagnosis}</p>
-                </div>
-              )}
-              {meta?.prescription_date && (
-                <div className="col-span-2">
-                  <p className="text-muted-foreground">📋 Data da Prescrição</p>
-                  <p className="font-medium">
-                    {format(new Date(meta.prescription_date), "dd/MM/yyyy", { locale: ptBR })}
-                  </p>
-                </div>
-              )}
-              {meta?.followup_date && (
-                <div className="col-span-2">
-                  <p className="text-muted-foreground">📅 Data de Retorno</p>
-                  <p className="font-medium">
-                    {format(new Date(meta.followup_date), "dd/MM/yyyy", { locale: ptBR })}
-                  </p>
-                </div>
-              )}
+
+              {/* Informações Gerais */}
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                {documento.issued_at && (
+                  <div>
+                    <p className="text-muted-foreground">📅 Data de Emissão</p>
+                    <p className="font-medium">
+                      {format(new Date(documento.issued_at), "dd/MM/yyyy", { locale: ptBR })}
+                    </p>
+                  </div>
+                )}
+                {documento.expires_at && (
+                  <div>
+                    <p className="text-muted-foreground">⏰ Validade</p>
+                    <p className="font-medium">
+                      {format(new Date(documento.expires_at), "dd/MM/yyyy", { locale: ptBR })}
+                    </p>
+                  </div>
+                )}
+                {meta?.prescription_type && (
+                  <div>
+                    <p className="text-muted-foreground">📋 Tipo de Receita</p>
+                    <p className="font-medium capitalize">{meta.prescription_type}</p>
+                  </div>
+                )}
+                {meta?.diagnosis && (
+                  <div className="col-span-2">
+                    <p className="text-muted-foreground">🔍 Diagnóstico</p>
+                    <p className="font-medium">{meta.diagnosis}</p>
+                  </div>
+                )}
+                {meta?.followup_date && (
+                  <div className="col-span-2">
+                    <p className="text-muted-foreground">📅 Data de Retorno</p>
+                    <p className="font-medium">
+                      {format(new Date(meta.followup_date), "dd/MM/yyyy", { locale: ptBR })}
+                    </p>
+                  </div>
+                )}
+              </div>
             </div>
 
             {documento.notes && (
@@ -286,7 +385,52 @@ export default function CofreDocumento() {
                 <CardContent className="space-y-3">
                   {meta.prescriptions.map((med: any, idx: number) => (
                     <div key={idx} className="p-4 bg-blue-50 dark:bg-blue-950 rounded-lg border border-blue-200 dark:border-blue-900">
-                      <p className="font-semibold text-lg text-blue-900 dark:text-blue-100 mb-2">{med.drug_name}</p>
+                      {/* Cabeçalho do Medicamento */}
+                      <div className="mb-3">
+                        <div className="flex items-start justify-between gap-2 mb-2">
+                          <div className="flex-1">
+                            <p className="font-semibold text-lg text-blue-900 dark:text-blue-100">
+                              {med.commercial_name || med.drug_name}
+                            </p>
+                            {med.commercial_name && med.drug_name && (
+                              <p className="text-sm text-blue-700 dark:text-blue-300">
+                                {med.drug_name}
+                              </p>
+                            )}
+                          </div>
+                          {med.is_generic !== undefined && (
+                            <Badge variant={med.is_generic ? "default" : "secondary"} className="shrink-0">
+                              {med.is_generic ? "💊 Genérico" : "Referência"}
+                            </Badge>
+                          )}
+                        </div>
+                        {med.active_ingredient && (
+                          <p className="text-sm text-blue-600 dark:text-blue-400">
+                            <span className="font-medium">Princípio Ativo:</span> {med.active_ingredient}
+                          </p>
+                        )}
+                      </div>
+
+                      <Separator className="my-3" />
+
+                      {/* Informações de Embalagem */}
+                      {(med.package_type || med.package_quantity) && (
+                        <div className="mb-3 p-2 bg-blue-100/50 dark:bg-blue-900/30 rounded">
+                          <p className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-1">
+                            📦 Informações da Embalagem
+                          </p>
+                          <div className="text-sm text-blue-700 dark:text-blue-300 space-y-1">
+                            {med.package_type && (
+                              <p>• Tipo: {med.package_type}</p>
+                            )}
+                            {med.package_quantity && (
+                              <p>• Quantidade: {med.package_quantity}</p>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Instruções de Uso */}
                       <div className="text-sm text-blue-700 dark:text-blue-300 space-y-2">
                         {med.dose && (
                           <div className="flex items-start gap-2">
