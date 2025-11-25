@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { ThemeProvider } from "next-themes";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { lazy } from "react";
 import Index from "./pages/Index";
 import Today from "./pages/Today";
 import Medications from "./pages/Medications";
@@ -48,6 +49,7 @@ import ConsultationCardView from './pages/ConsultationCardView';
 import Admin from './pages/Admin';
 import NotificationSettings from "./pages/NotificationSettings";
 import Tutorial from "./pages/Tutorial";
+import Achievements from "./pages/Achievements";
 import MedicalAppointments from "./pages/MedicalAppointments";
 import HealthTimeline from "./pages/HealthTimeline";
 import HealthAnalysis from "./pages/HealthAnalysis";
@@ -73,6 +75,7 @@ function AppContent() {
         <Route path="/hoje" element={<ProtectedRoute><Today /></ProtectedRoute>} />
         <Route path="/rotina" element={<ProtectedRoute><Medications /></ProtectedRoute>} />
         <Route path="/progresso" element={<ProtectedRoute><Progress /></ProtectedRoute>} />
+        <Route path="/conquistas" element={<ProtectedRoute><Achievements /></ProtectedRoute>} />
         <Route path="/cofre" element={<ProtectedRoute><Cofre /></ProtectedRoute>} />
         <Route path="/perfil" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
         
