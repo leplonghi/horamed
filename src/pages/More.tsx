@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { 
   FileText, Users, Settings, Crown, LogOut, 
-  ChevronRight, HelpCircle, Shield, Bell, QrCode, Package, FolderHeart, History, BookOpen
+  ChevronRight, HelpCircle, Shield, Bell, QrCode, Package, FolderHeart, History, BookOpen, Plane
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Navigation from "@/components/Navigation";
@@ -63,6 +63,13 @@ export default function More() {
   };
 
   const menuItems = [
+    {
+      title: "Modo Viagem",
+      description: "Planeje viagens com ajustes automáticos",
+      icon: Plane,
+      path: "/viagem",
+      badge: <Badge variant="secondary" className="ml-2">Novo</Badge>,
+    },
     {
       title: "Cofre de Saúde",
       description: "Documentos e exames",

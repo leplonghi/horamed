@@ -58,6 +58,7 @@ import Notifications from "./pages/Notifications";
 import SmartOnboarding from "./components/onboarding/SmartOnboarding";
 import { SubscriptionProvider } from "./contexts/SubscriptionContext";
 import { ProfileCacheProvider } from "./contexts/ProfileCacheContext";
+import TravelMode from "./pages/TravelMode";
 
 function AppContent() {
   const location = useLocation();
@@ -95,6 +96,7 @@ function AppContent() {
         {/* Saúde subroutes */}
         <Route path="/saude/agenda" element={<ProtectedRoute><Agenda /></ProtectedRoute>} />
         <Route path="/consultas" element={<ProtectedRoute><MedicalAppointments /></ProtectedRoute>} />
+        <Route path="/viagem" element={<ProtectedRoute><TravelMode /></ProtectedRoute>} />
         <Route path="/exames" element={<ProtectedRoute><MedicalReports /></ProtectedRoute>} />
         <Route path="/relatorios" element={<ProtectedRoute><MedicalReports /></ProtectedRoute>} />
         <Route path="/relatorios-medicos" element={<ProtectedRoute><MedicalReports /></ProtectedRoute>} />
