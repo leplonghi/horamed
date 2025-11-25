@@ -8,6 +8,7 @@ import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import Navigation from "@/components/Navigation";
+import { VaccineNotificationSettings } from "@/components/VaccineNotificationSettings";
 
 export default function Notifications() {
   const navigate = useNavigate();
@@ -242,6 +243,8 @@ export default function Notifications() {
             </div>
 
           </Card>
+
+          <VaccineNotificationSettings />
 
           <Button
             onClick={handleSave}

@@ -30,6 +30,7 @@ import { useAdaptiveSuggestions } from "@/hooks/useAdaptiveSuggestions";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { SideEffectQuickLog } from "@/components/SideEffectQuickLog";
 import { VaccineRemindersWidget } from "@/components/VaccineRemindersWidget";
+import { CaregiverVaccineReminders } from "@/components/CaregiverVaccineReminders";
 
 interface TimelineItem {
   id: string;
@@ -607,6 +608,9 @@ export default function Today() {
 
           {/* Vaccine Reminders Widget */}
           <VaccineRemindersWidget />
+
+          {/* Caregiver Vaccine Reminders */}
+          <CaregiverVaccineReminders />
 
           {/* Quick Dose Widget */}
           <QuickDoseWidget />
