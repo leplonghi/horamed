@@ -20,6 +20,7 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { useUserProfiles } from "@/hooks/useUserProfiles";
 import { useAuth } from "@/contexts/AuthContext";
 import logo from "@/assets/horamed-logo.png";
+import TutorialHint from "@/components/TutorialHint";
 
 export default function Profile() {
   const navigate = useNavigate();
@@ -124,6 +125,13 @@ export default function Profile() {
             </div>
           </div>
         </div>
+
+        {/* Tutorial Hint */}
+        <TutorialHint
+          id="profile_page"
+          title="Gerencie sua conta e perfis 👤"
+          message="Configure sua conta, adicione perfis de família (filhos, pais, cônjuges), gerencie cuidadores, e personalize suas preferências de notificações. Explore também o plano Premium para recursos avançados!"
+        />
 
         {/* Tabs Section */}
         <Tabs defaultValue="account" className="w-full">

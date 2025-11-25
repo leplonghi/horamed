@@ -33,6 +33,8 @@ import { VaccineRemindersWidget } from "@/components/VaccineRemindersWidget";
 import { CaregiverVaccineReminders } from "@/components/CaregiverVaccineReminders";
 import { ExpiredPrescriptionsAlert } from "@/components/ExpiredPrescriptionsAlert";
 import { SmartActionCards } from "@/components/SmartActionCards";
+import TutorialHint from "@/components/TutorialHint";
+import HelpTooltip from "@/components/HelpTooltip";
 
 interface TimelineItem {
   id: string;
@@ -607,6 +609,13 @@ export default function Today() {
 
           {/* Smart Action Cards */}
           <SmartActionCards />
+
+          {/* Tutorial Hint */}
+          <TutorialHint
+            id="today_page"
+            title="Sua rotina diária de saúde 📅"
+            message="Aqui você vê todas as suas doses do dia. Toque em ✓ para marcar como tomada, ⏰ para adiar 15 minutos, ou → para pular. Acompanhe seu progresso e mantenha sua sequência de dias!"
+          />
 
           {/* Health Insights Card */}
           <HealthInsightsCard />

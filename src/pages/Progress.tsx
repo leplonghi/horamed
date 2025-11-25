@@ -13,6 +13,8 @@ import StreakAnimation from "@/components/celebrations/StreakAnimation";
 import { Trophy, TrendingUp, Calendar, Target, Award, Zap, Sparkles, ArrowRight } from "lucide-react";
 import { subDays } from "date-fns";
 import { motion } from "framer-motion";
+import TutorialHint from "@/components/TutorialHint";
+import HelpTooltip from "@/components/HelpTooltip";
 
 export default function Progress() {
   const { user } = useAuth();
@@ -101,6 +103,13 @@ export default function Progress() {
           title="Seu Progresso"
           description="Acompanhe seu compromisso e conquistas"
           icon={<TrendingUp className="h-6 w-6 text-primary" />}
+        />
+
+        {/* Tutorial Hint */}
+        <TutorialHint
+          id="progress_page"
+          title="Acompanhe sua evolução 📈"
+          message="Aqui você vê sua sequência de dias, taxa de compromisso, e conquistas. Cada dia tomando suas doses aumenta seu streak. Acima de 80% de compromisso é excelente! Ganhe XP e desbloqueie medalhas."
         />
 
         {/* Conquistas Card - Promocional */}

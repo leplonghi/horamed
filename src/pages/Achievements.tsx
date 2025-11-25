@@ -14,6 +14,7 @@ import { Trophy, Star, Flame, Lock } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { PageSkeleton } from "@/components/LoadingSkeleton";
+import TutorialHint from "@/components/TutorialHint";
 
 export default function Achievements() {
   const { achievements, loading: achievementsLoading, unlockedCount } = useAchievements();
@@ -54,6 +55,13 @@ export default function Achievements() {
       />
 
       <div className="container mx-auto p-4 space-y-6">
+        {/* Tutorial Hint */}
+        <TutorialHint
+          id="achievements_page"
+          title="Seu sistema de conquistas 🏆"
+          message="Desbloqueie medalhas mantendo sua sequência de dias, tomando doses no horário, e atingindo metas. Ganhe XP a cada dose tomada e suba de nível! Compartilhe suas conquistas nas redes sociais."
+        />
+
         {/* XP System */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}

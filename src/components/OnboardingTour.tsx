@@ -15,31 +15,31 @@ interface OnboardingStep {
 const steps: OnboardingStep[] = [
   {
     title: "Bem-vindo ao HoraMed! 👋",
-    description: "Vamos fazer um tour rápido para você conhecer o aplicativo e começar a organizar seus medicamentos.",
+    description: "Vamos fazer um tour rápido para você conhecer o aplicativo e começar a organizar sua saúde de forma simples.",
   },
   {
-    title: "Adicione seu primeiro medicamento",
-    description: "Clique no botão + flutuante ou no botão 'Adicionar' para cadastrar medicamentos. Você pode fazer manualmente ou tirar foto da caixa/receita!",
-    target: "fab-button",
-  },
-  {
-    title: "Página Hoje",
-    description: "Aqui você vê suas doses do dia, pode confirmar quando tomar, adiar por 15 minutos ou pular. Acompanhe seu progresso diário!",
+    title: "Página Hoje - Seu dia a dia",
+    description: "Aqui você vê suas doses do dia com horários. Toque em ✓ quando tomar, em ⏰ para adiar 15min, ou → para pular. Simples assim!",
     action: () => window.location.href = "/hoje",
   },
   {
-    title: "Seus Medicamentos",
-    description: "Gerencie todos os seus medicamentos aqui. Edite horários, doses, ou exclua quando não precisar mais.",
-    action: () => window.location.href = "/medicamentos",
+    title: "Rotina - Seus medicamentos",
+    description: "Cadastre remédios, vitaminas e suplementos. Escolha os horários e pronto! O app avisa você automaticamente.",
+    action: () => window.location.href = "/rotina",
   },
   {
-    title: "Cofre de Saúde",
-    description: "Guarde seus documentos médicos, exames e receitas com segurança. Compartilhe facilmente com médicos quando precisar!",
+    title: "Progresso - Acompanhe sua evolução",
+    description: "Veja seu compromisso com a saúde, sequências de dias sem perder doses, e conquiste medalhas! Cada dia conta.",
+    action: () => window.location.href = "/progresso",
+  },
+  {
+    title: "Carteira de Saúde - Documentos seguros",
+    description: "Guarde receitas, exames e vacinas em um só lugar. Tire foto e o app lê automaticamente! Compartilhe com médicos quando precisar.",
     action: () => window.location.href = "/cofre",
   },
   {
     title: "Está pronto! 🎉",
-    description: "Comece adicionando seus medicamentos. Se precisar de ajuda, visite a página 'Ajuda' no menu Mais.",
+    description: "Comece adicionando seu primeiro medicamento. Use o botão + sempre que precisar adicionar algo novo. Boa saúde!",
   },
 ];
 

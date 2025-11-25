@@ -17,6 +17,7 @@ import { useSubscription } from "@/hooks/useSubscription";
 import UpgradeModal from "@/components/UpgradeModal";
 import { ListSkeleton } from "@/components/LoadingSkeleton";
 import logo from "@/assets/horamed-logo.png";
+import TutorialHint from "@/components/TutorialHint";
 
 interface Item {
   id: string;
@@ -245,6 +246,13 @@ export default function Rotina() {
               </Button>
             </div>
           </div>
+
+          {/* Tutorial Hint */}
+          <TutorialHint
+            id="rotina_page"
+            title="Organize sua rotina de saúde 💊"
+            message="Aqui você cadastra todos os seus medicamentos, vitaminas e suplementos. Defina horários, doses e durações. Use o botão + para adicionar manualmente ou 📷 para tirar foto da caixa/receita. Simples e rápido!"
+          />
 
           <AdBanner />
 

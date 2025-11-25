@@ -15,6 +15,8 @@ import { useStockProjection } from "@/hooks/useStockProjection";
 import { StockTimeline } from "@/components/StockTimeline";
 import { StockOriginBadge } from "@/components/StockOriginBadge";
 import { StockConsumptionChart } from "@/components/StockConsumptionChart";
+import TutorialHint from "@/components/TutorialHint";
+import HelpTooltip from "@/components/HelpTooltip";
 import {
   Dialog,
   DialogContent,
@@ -137,6 +139,13 @@ export default function StockManagement() {
             Acompanhe consumo real, projeções automáticas e receba alertas personalizados
           </p>
         </div>
+
+        {/* Tutorial Hint */}
+        <TutorialHint
+          id="stock_page"
+          title="Controle inteligente de estoque 📦"
+          message="O sistema calcula automaticamente quanto tempo seus medicamentos vão durar baseado no uso real. Veja projeções, receba alertas de estoque baixo e links para reposição. Atualize o estoque sempre que comprar mais."
+        />
 
         {/* Empty State */}
         {(!stockProjections || stockProjections.length === 0) && (
