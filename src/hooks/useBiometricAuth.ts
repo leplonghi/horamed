@@ -134,19 +134,19 @@ export const useBiometricAuth = () => {
   const setupBiometricLogin = async (email: string, password: string) => {
     const success = await authenticate();
     if (success) {
-      // Get current session to store refresh token with 24-hour expiry for security
+      // Get current session to store refresh token with 4-hour expiry for healthcare data security
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.refresh_token) {
         const encrypted = await encryptToken(session.refresh_token);
         const expiryDate = new Date();
-        expiryDate.setTime(expiryDate.getTime() + (24 * 60 * 60 * 1000)); // 24-hour expiry
+        expiryDate.setTime(expiryDate.getTime() + (4 * 60 * 60 * 1000)); // 4-hour expiry for medical data security
         
         localStorage.setItem("biometric_refresh_token", encrypted);
         localStorage.setItem("biometric_expiry", expiryDate.getTime().toString());
         localStorage.setItem("biometric_enabled", "true");
         toast({
           title: "Biometria ativada",
-          description: "Login por biometria ativado por 24 horas por segurança. Reautenticação diária necessária.",
+          description: "Login por biometria ativado por 4 horas para proteger seus dados médicos.",
         });
       }
     }
@@ -165,7 +165,7 @@ export const useBiometricAuth = () => {
       return false;
     }
 
-    // Check if biometric session has expired (24 hours)
+    // Check if biometric session has expired (4 hours for medical data security)
     const now = Date.now();
     const expiry = parseInt(expiryTimestamp, 10);
     
@@ -175,7 +175,7 @@ export const useBiometricAuth = () => {
       localStorage.removeItem("biometric_enabled");
       toast({
         title: "Sessão biométrica expirada",
-        description: "Por segurança, faça login novamente (reautenticação diária obrigatória)",
+        description: "Por segurança de dados médicos, faça login novamente",
         variant: "destructive",
       });
       return false;
