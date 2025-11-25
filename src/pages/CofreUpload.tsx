@@ -244,6 +244,9 @@ export default function CofreUpload() {
             doctor_name: extractedData.doctor_name,
             doctor_registration: extractedData.doctor_registration,
             specialty: extractedData.specialty,
+            diagnosis: extractedData.diagnosis,
+            notes: extractedData.notes,
+            followup_date: extractedData.followup_date,
           },
           ocr_text: JSON.stringify(extractedData),
         })
@@ -252,8 +255,22 @@ export default function CofreUpload() {
 
       if (insertError) throw insertError;
 
+      // Create related records based on category
+      const createdRecords = await createRelatedRecords(extractedData, newDoc.id, userId);
+
       toast.dismiss("extract");
-      toast.success("✓ Documento salvo automaticamente!", { duration: 3000 });
+      
+      // Show what was created
+      const created = [];
+      if (createdRecords.consulta) created.push("📋 Consulta");
+      if (createdRecords.exame) created.push(`🧪 Exame com ${createdRecords.valoresCount || 0} valores`);
+      if (createdRecords.evento) created.push("💉 Lembrete de vacina");
+      
+      if (created.length > 0) {
+        toast.success(`✓ Documento salvo! Criado: ${created.join(", ")}`, { duration: 4000 });
+      } else {
+        toast.success("✓ Documento salvo automaticamente!", { duration: 3000 });
+      }
       
       // Show brief summary
       const summary = [];
@@ -285,6 +302,85 @@ export default function CofreUpload() {
     }
   };
 
+  const createRelatedRecords = async (extractedData: any, documentId: string, userId: string) => {
+    const results: any = { consulta: false, exame: false, evento: false, valoresCount: 0 };
+    
+    try {
+      // CONSULTA: Create consultation record
+      if (extractedData.category === 'consulta') {
+        const consultaData = {
+          user_id: userId,
+          profile_id: activeProfile?.id,
+          documento_id: documentId,
+          data_consulta: extractedData.issued_at || new Date().toISOString(),
+          medico_nome: extractedData.doctor_name || null,
+          especialidade: extractedData.specialty || null,
+          local: extractedData.provider || null,
+          observacoes: extractedData.diagnosis || extractedData.notes || null,
+          status: 'realizada',
+        };
+
+        const { error } = await supabase.from('consultas_medicas').insert(consultaData);
+        if (!error) results.consulta = true;
+      }
+
+      // EXAME: Create exam record with values
+      if (extractedData.category === 'exame' && extractedData.extracted_values?.length > 0) {
+        const { data: exame } = await supabase
+          .from('exames_laboratoriais')
+          .insert({
+            user_id: userId,
+            profile_id: activeProfile?.id,
+            documento_id: documentId,
+            data_exame: extractedData.issued_at || new Date().toISOString().split('T')[0],
+            laboratorio: extractedData.provider || null,
+          })
+          .select()
+          .single();
+
+        if (exame) {
+          results.exame = true;
+          // Insert exam values
+          const valores = extractedData.extracted_values.map((val: any) => ({
+            exame_id: exame.id,
+            parametro: val.parameter,
+            valor: val.value ? parseFloat(val.value) : null,
+            valor_texto: val.value?.toString() || null,
+            unidade: val.unit || null,
+            referencia_texto: val.reference_range || null,
+            referencia_min: val.reference_min ? parseFloat(val.reference_min) : null,
+            referencia_max: val.reference_max ? parseFloat(val.reference_max) : null,
+            status: val.status || null,
+          }));
+
+          const { data: insertedValores } = await supabase.from('valores_exames').insert(valores).select();
+          results.valoresCount = insertedValores?.length || 0;
+        }
+      }
+
+      // VACINAÇÃO: Create health event
+      if (extractedData.category === 'vacinacao') {
+        const eventData = {
+          user_id: userId,
+          profile_id: activeProfile?.id,
+          related_document_id: documentId,
+          type: 'reforco_vacina' as const,
+          title: extractedData.vaccine_name || 'Vacina',
+          due_date: extractedData.next_dose_date || extractedData.issued_at || new Date().toISOString().split('T')[0],
+          notes: extractedData.dose_number ? `Dose ${extractedData.dose_number}` : null,
+        };
+
+        const { error } = await supabase.from('eventos_saude').insert(eventData);
+        if (!error) results.evento = true;
+      }
+    } catch (error) {
+      console.error("Error creating related records:", error);
+      // Don't throw - document is already saved
+    }
+    
+    return results;
+  };
+
   const addMedicationsFromPrescription = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -293,6 +389,14 @@ export default function CofreUpload() {
       toast.loading("Adicionando medicamentos...", { id: "add-meds" });
 
       for (const med of extractedMedications) {
+        // Calculate treatment end date if duration is provided
+        let endDate = null;
+        if (med.duration_days) {
+          const start = new Date();
+          start.setDate(start.getDate() + parseInt(med.duration_days));
+          endDate = start.toISOString().split('T')[0];
+        }
+
         // Create medication item
         const { data: newItem, error: itemError } = await supabase
           .from('items')
@@ -303,8 +407,9 @@ export default function CofreUpload() {
             dose_text: med.dose,
             category: 'medicamento',
             notes: med.duration_days ? `Duração: ${med.duration_days} dias` : null,
-            treatment_duration_days: med.duration_days || null,
+            treatment_duration_days: med.duration_days ? parseInt(med.duration_days) : null,
             treatment_start_date: new Date().toISOString().split('T')[0],
+            treatment_end_date: endDate,
           })
           .select()
           .single();
