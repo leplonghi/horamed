@@ -39,11 +39,18 @@ export default function WeightRegistrationModal({
       const weightValue = parseFloat(weight);
 
       // Get previous weight for comparison
-      const { data: previousLog } = await supabase
+      let prevQuery = supabase
         .from("weight_logs")
         .select("weight_kg")
-        .eq("user_id", user.id)
-        .eq("profile_id", profileId || null)
+        .eq("user_id", user.id);
+      
+      if (profileId) {
+        prevQuery = prevQuery.eq("profile_id", profileId);
+      } else {
+        prevQuery = prevQuery.is("profile_id", null);
+      }
+      
+      const { data: previousLog } = await prevQuery
         .order("recorded_at", { ascending: false })
         .limit(1)
         .maybeSingle();

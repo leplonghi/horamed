@@ -23,11 +23,18 @@ export default function WeightHistory() {
   const { data: weightLogs, refetch } = useQuery({
     queryKey: ["weight-history", user?.id, profileId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from("weight_logs")
         .select("*")
-        .eq("user_id", user?.id)
-        .eq("profile_id", profileId || null)
+        .eq("user_id", user?.id);
+      
+      if (profileId) {
+        query = query.eq("profile_id", profileId);
+      } else {
+        query = query.is("profile_id", null);
+      }
+      
+      const { data, error } = await query
         .order("recorded_at", { ascending: false });
 
       if (error) throw error;

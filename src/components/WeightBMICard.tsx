@@ -35,11 +35,18 @@ export default function WeightBMICard({ userId, profileId }: WeightBMICardProps)
   const { data: latestWeight, refetch } = useQuery({
     queryKey: ["latest-weight", userId, profileId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from("weight_logs")
         .select("*")
-        .eq("user_id", userId)
-        .eq("profile_id", profileId || null)
+        .eq("user_id", userId);
+      
+      if (profileId) {
+        query = query.eq("profile_id", profileId);
+      } else {
+        query = query.is("profile_id", null);
+      }
+      
+      const { data, error } = await query
         .order("recorded_at", { ascending: false })
         .limit(1)
         .maybeSingle();
@@ -54,11 +61,18 @@ export default function WeightBMICard({ userId, profileId }: WeightBMICardProps)
     queryKey: ["weight-chart", userId, profileId],
     queryFn: async () => {
       const thirtyDaysAgo = subDays(new Date(), 30);
-      const { data, error } = await supabase
+      let query = supabase
         .from("weight_logs")
         .select("weight_kg, recorded_at")
-        .eq("user_id", userId)
-        .eq("profile_id", profileId || null)
+        .eq("user_id", userId);
+      
+      if (profileId) {
+        query = query.eq("profile_id", profileId);
+      } else {
+        query = query.is("profile_id", null);
+      }
+      
+      const { data, error } = await query
         .gte("recorded_at", thirtyDaysAgo.toISOString())
         .order("recorded_at", { ascending: true });
 
