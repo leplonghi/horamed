@@ -14,9 +14,9 @@ export default function PageHeader({ title, description, icon, actions }: PageHe
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="flex items-center justify-between mb-6"
+      className="flex items-center justify-between mb-8"
     >
-      <div className="space-y-1">
+      <div className="space-y-3">
         <div className="flex items-center gap-3">
           {icon && (
             <div className="p-2 rounded-xl bg-primary/10">

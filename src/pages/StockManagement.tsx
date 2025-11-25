@@ -161,9 +161,9 @@ export default function StockManagement() {
     <div className="min-h-screen bg-background pb-20">
       <Header />
       
-      <main className="container max-w-4xl mx-auto p-6 space-y-6">
+      <main className="container max-w-4xl mx-auto p-6 space-y-8">
         {/* Header */}
-        <div className="space-y-2">
+        <div className="space-y-3">
           <h1 className="text-3xl font-bold flex items-center gap-3">
             <Package className="h-8 w-8 text-primary" />
             Gerenciar Estoque
