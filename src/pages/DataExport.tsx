@@ -86,7 +86,7 @@ export default function DataExport() {
         doc.rect(15, yPos, 180, 6, 'F');
         doc.setFontSize(10);
         doc.setTextColor(255, 255, 255);
-        doc.text('📋 Informações do Usuário', 18, yPos + 4);
+        doc.text('Informacoes do Usuario', 18, yPos + 4);
         yPos += 10;
         
         const profileData = [
@@ -127,7 +127,7 @@ export default function DataExport() {
         doc.rect(15, yPos, 180, 6, 'F');
         doc.setFontSize(10);
         doc.setTextColor(255, 255, 255);
-        doc.text('👥 Perfis de Família', 18, yPos + 4);
+        doc.text('Perfis de Familia', 18, yPos + 4);
         yPos += 10;
         
         const profilesData = data.user_profiles.map((p: any) => [
@@ -163,7 +163,7 @@ export default function DataExport() {
         doc.rect(15, yPos, 180, 6, 'F');
         doc.setFontSize(10);
         doc.setTextColor(255, 255, 255);
-        doc.text('💊 Medicamentos', 18, yPos + 4);
+        doc.text('Medicamentos', 18, yPos + 4);
         yPos += 10;
         
         const medsData = data.items.map((item: any) => [
@@ -200,7 +200,7 @@ export default function DataExport() {
         doc.rect(15, yPos, 180, 6, 'F');
         doc.setFontSize(10);
         doc.setTextColor(255, 255, 255);
-        doc.text('📊 Histórico de Doses (Resumo)', 18, yPos + 4);
+        doc.text('Historico de Doses (Resumo)', 18, yPos + 4);
         yPos += 10;
         
         const taken = data.dose_instances.filter((d: any) => d.status === 'taken').length;
@@ -247,7 +247,7 @@ export default function DataExport() {
         doc.rect(15, yPos, 180, 6, 'F');
         doc.setFontSize(10);
         doc.setTextColor(255, 255, 255);
-        doc.text('📄 Documentos de Saúde', 18, yPos + 4);
+        doc.text('Documentos de Saude', 18, yPos + 4);
         yPos += 10;
         
         const docsData = data.documentos_saude.slice(0, 20).map((document: any) => [
@@ -283,19 +283,28 @@ export default function DataExport() {
         doc.rect(15, yPos, 180, 6, 'F');
         doc.setFontSize(10);
         doc.setTextColor(255, 255, 255);
-        doc.text('💡 Insights de Saúde', 18, yPos + 4);
+        doc.text('Insights de Saude', 18, yPos + 4);
         yPos += 10;
         
         const severityMap: Record<string, string> = {
-          critical: 'Crítico',
-          warning: 'Atenção',
+          critical: 'Critico',
+          warning: 'Atencao',
           info: 'Info'
+        };
+        
+        const typeMap: Record<string, string> = {
+          drug_interaction: 'Interacao Medicamentosa',
+          adherence_pattern: 'Padrao de Adesao',
+          stock_alert: 'Alerta de Estoque',
+          schedule_conflict: 'Conflito de Horario',
+          side_effect: 'Efeito Colateral',
+          renewal_needed: 'Renovacao Necessaria'
         };
         
         const insightsData = data.health_insights.slice(0, 10).map((insight: any) => [
           insight.title || '-',
           severityMap[insight.severity] || insight.severity || '-',
-          insight.insight_type || '-',
+          typeMap[insight.insight_type] || insight.insight_type || '-',
         ]);
         autoTable(doc, {
           startY: yPos,
@@ -325,7 +334,7 @@ export default function DataExport() {
       doc.rect(15, yPos, 180, 6, 'F');
       doc.setFontSize(10);
       doc.setTextColor(255, 255, 255);
-      doc.text('📈 Resumo da Exportação', 18, yPos + 4);
+      doc.text('Resumo da Exportacao', 18, yPos + 4);
       yPos += 10;
       
       const summaryData = [
