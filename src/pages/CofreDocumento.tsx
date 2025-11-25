@@ -138,6 +138,20 @@ export default function CofreDocumento() {
   const CategoryIcon = categoryConfig.icon;
   const meta = documento?.meta as any;
 
+  // Função para extrair número da quantidade da embalagem
+  const extractQuantity = (packageQuantity: string): number | null => {
+    if (!packageQuantity) return null;
+    const match = packageQuantity.match(/\d+/);
+    return match ? parseInt(match[0]) : null;
+  };
+
+  // Calcular total de unidades
+  const calculateTotalUnits = (packagesCount: number | undefined, packageQuantity: string | undefined): number | null => {
+    if (!packagesCount || !packageQuantity) return null;
+    const quantity = extractQuantity(packageQuantity);
+    return quantity ? packagesCount * quantity : null;
+  };
+
   return (
     <div className="min-h-screen bg-background pb-20">
       <Header />
@@ -429,6 +443,14 @@ export default function CofreDocumento() {
                             {med.packages_count && (
                               <p>• Número de embalagens: {med.packages_count} {med.packages_count === 1 ? 'embalagem' : 'embalagens'}</p>
                             )}
+                            {(() => {
+                              const totalUnits = calculateTotalUnits(med.packages_count, med.package_quantity);
+                              return totalUnits && (
+                                <p className="font-semibold pt-1 border-t border-blue-200 dark:border-blue-800 mt-2">
+                                  ✨ Total disponível: {totalUnits} {extractQuantity(med.package_quantity || '') === 1 ? 'unidade' : 'unidades'}
+                                </p>
+                              );
+                            })()}
                           </div>
                         </div>
                       )}
