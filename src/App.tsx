@@ -59,6 +59,7 @@ import SmartOnboarding from "./components/onboarding/SmartOnboarding";
 import { SubscriptionProvider } from "./contexts/SubscriptionContext";
 import { ProfileCacheProvider } from "./contexts/ProfileCacheContext";
 import TravelMode from "./pages/TravelMode";
+import SideEffectsDiary from "./pages/SideEffectsDiary";
 
 function AppContent() {
   const location = useLocation();
@@ -97,6 +98,7 @@ function AppContent() {
         <Route path="/saude/agenda" element={<ProtectedRoute><Agenda /></ProtectedRoute>} />
         <Route path="/consultas" element={<ProtectedRoute><MedicalAppointments /></ProtectedRoute>} />
         <Route path="/viagem" element={<ProtectedRoute><TravelMode /></ProtectedRoute>} />
+        <Route path="/diario-efeitos" element={<ProtectedRoute><SideEffectsDiary /></ProtectedRoute>} />
         <Route path="/exames" element={<ProtectedRoute><MedicalReports /></ProtectedRoute>} />
         <Route path="/relatorios" element={<ProtectedRoute><MedicalReports /></ProtectedRoute>} />
         <Route path="/relatorios-medicos" element={<ProtectedRoute><MedicalReports /></ProtectedRoute>} />

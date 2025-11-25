@@ -28,6 +28,7 @@ import QuickDoseWidget from "@/components/QuickDoseWidget";
 import { useSmartRedirect } from "@/hooks/useSmartRedirect";
 import { useAdaptiveSuggestions } from "@/hooks/useAdaptiveSuggestions";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { SideEffectQuickLog } from "@/components/SideEffectQuickLog";
 
 interface TimelineItem {
   id: string;
@@ -66,6 +67,12 @@ export default function Today() {
   const [showMilestoneReward, setShowMilestoneReward] = useState(false);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [selectedAchievement, setSelectedAchievement] = useState<any>(null);
+  
+  // Side Effects Log states
+  const [sideEffectLogOpen, setSideEffectLogOpen] = useState(false);
+  const [loggedDoseId, setLoggedDoseId] = useState<string>("");
+  const [loggedItemId, setLoggedItemId] = useState<string>("");
+  const [loggedItemName, setLoggedItemName] = useState<string>("");
 
   // Show milestone reward when detected
   useEffect(() => {
@@ -468,6 +475,12 @@ export default function Today() {
       loadData(selectedDate);
       streakData.refresh();
       criticalAlerts.refresh();
+      
+      // Open Side Effect Log modal
+      setLoggedDoseId(doseId);
+      setLoggedItemId(itemId);
+      setLoggedItemName(itemName);
+      setSideEffectLogOpen(true);
     } catch (error) {
       console.error("Error marking dose:", error);
       toast.error("Erro ao confirmar dose");
@@ -672,6 +685,16 @@ export default function Today() {
           onShare={handleMilestoneShare}
         />
       )}
+
+      {/* Side Effect Log Modal */}
+      <SideEffectQuickLog
+        open={sideEffectLogOpen}
+        onOpenChange={setSideEffectLogOpen}
+        doseId={loggedDoseId}
+        itemId={loggedItemId}
+        itemName={loggedItemName}
+        profileId={activeProfile?.id}
+      />
 
       {/* Achievement Share Dialog */}
       {selectedAchievement && (

@@ -1373,6 +1373,82 @@ export type Database = {
           },
         ]
       }
+      side_effects_log: {
+        Row: {
+          created_at: string
+          dose_id: string | null
+          energy_level: number | null
+          id: string
+          item_id: string | null
+          nausea_level: number | null
+          notes: string | null
+          overall_feeling: number | null
+          pain_level: number | null
+          profile_id: string | null
+          recorded_at: string
+          side_effect_tags: string[] | null
+          sleep_quality: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          dose_id?: string | null
+          energy_level?: number | null
+          id?: string
+          item_id?: string | null
+          nausea_level?: number | null
+          notes?: string | null
+          overall_feeling?: number | null
+          pain_level?: number | null
+          profile_id?: string | null
+          recorded_at?: string
+          side_effect_tags?: string[] | null
+          sleep_quality?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          dose_id?: string | null
+          energy_level?: number | null
+          id?: string
+          item_id?: string | null
+          nausea_level?: number | null
+          notes?: string | null
+          overall_feeling?: number | null
+          pain_level?: number | null
+          profile_id?: string | null
+          recorded_at?: string
+          side_effect_tags?: string[] | null
+          sleep_quality?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "side_effects_log_dose_id_fkey"
+            columns: ["dose_id"]
+            isOneToOne: false
+            referencedRelation: "dose_instances"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "side_effects_log_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "side_effects_log_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sinais_vitais: {
         Row: {
           created_at: string
