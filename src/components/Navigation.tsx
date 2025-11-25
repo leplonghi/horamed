@@ -3,9 +3,12 @@ import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { useDocumentos } from "@/hooks/useCofre";
+import { useHapticFeedback } from "@/hooks/useHapticFeedback";
+import { motion } from "framer-motion";
 
 export default function Navigation() {
   const location = useLocation();
+  const { triggerLight } = useHapticFeedback();
   const { data: docsExpirando } = useDocumentos({ exp: "30" });
   const expiringCount = docsExpirando?.length || 0;
 
@@ -27,6 +30,7 @@ export default function Navigation() {
               <Link
                 key={item.path}
                 to={item.path}
+                onClick={() => triggerLight()}
                 style={{ animationDelay: `${index * 50}ms` }}
                 className={cn(
                   "flex flex-col items-center justify-center gap-1 px-4 py-2 rounded-xl transition-all duration-300 relative group animate-fade-in",
@@ -36,7 +40,11 @@ export default function Navigation() {
                 )}
               >
                 {isActive && (
-                  <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-primary/5 rounded-xl animate-pulse" />
+                  <motion.div 
+                    className="absolute inset-0 bg-gradient-to-br from-primary/10 to-primary/5 rounded-xl"
+                    layoutId="activeTab"
+                    transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                  />
                 )}
                 <div className="relative">
                   <item.icon

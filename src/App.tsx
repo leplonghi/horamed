@@ -71,10 +71,14 @@ function AppContent() {
         
         {/* Main navigation routes - HoraMed 2.0 */}
         <Route path="/hoje" element={<ProtectedRoute><Today /></ProtectedRoute>} />
-        <Route path="/medicamentos" element={<ProtectedRoute><Medications /></ProtectedRoute>} />
-        <Route path="/saude" element={<ProtectedRoute><Saude /></ProtectedRoute>} />
+        <Route path="/rotina" element={<ProtectedRoute><Medications /></ProtectedRoute>} />
+        <Route path="/progresso" element={<ProtectedRoute><Progress /></ProtectedRoute>} />
         <Route path="/cofre" element={<ProtectedRoute><Cofre /></ProtectedRoute>} />
         <Route path="/perfil" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+        
+        {/* Legacy routes */}
+        <Route path="/medicamentos" element={<ProtectedRoute><Medications /></ProtectedRoute>} />
+        <Route path="/saude" element={<ProtectedRoute><Saude /></ProtectedRoute>} />
         
         {/* Medicamentos subroutes */}
         <Route path="/adicionar" element={<ProtectedRoute><AddItem /></ProtectedRoute>} />

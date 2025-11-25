@@ -3,14 +3,15 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
 import Navigation from "@/components/Navigation";
+import PageHeader from "@/components/PageHeader";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfileCacheContext } from "@/contexts/ProfileCacheContext";
 import StreakAnimation from "@/components/celebrations/StreakAnimation";
-import { Trophy, TrendingUp, Calendar, Target } from "lucide-react";
-import { format, subDays, startOfDay, endOfDay } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { Trophy, TrendingUp, Calendar, Target, Award, Zap } from "lucide-react";
+import { subDays } from "date-fns";
+import { motion } from "framer-motion";
 
 export default function Progress() {
   const { user } = useAuth();
@@ -90,126 +91,162 @@ export default function Progress() {
   );
 
   return (
-    <div className="min-h-screen flex flex-col pb-20">
+    <div className="min-h-screen flex flex-col pb-20 bg-gradient-to-br from-background via-background to-muted/20">
       <Header />
 
       <main className="flex-1 container mx-auto p-6 space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">Seu Progresso</h1>
-            <p className="text-muted-foreground">
-              Acompanhe sua jornada de saúde
-            </p>
-          </div>
-        </div>
+        <PageHeader
+          title="Seu Progresso"
+          description="Acompanhe seu compromisso e conquistas"
+          icon={<TrendingUp className="h-6 w-6 text-primary" />}
+        />
 
-        {/* Streak Card */}
-        <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Trophy className="h-5 w-5 text-primary" />
-              Compromisso Atual
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between">
-              <div className="space-y-2">
-                <div className="flex items-center gap-4">
-                  <StreakAnimation streak={streakData?.current_streak || 0} />
-                  <div>
-                    <p className="text-4xl font-bold text-foreground">
-                      {streakData?.current_streak || 0}
-                    </p>
-                    <p className="text-sm text-muted-foreground">dias seguidos</p>
-                  </div>
-                </div>
+        {/* Streak Card - Destaque */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.1 }}
+        >
+          <Card className="overflow-hidden border-2 border-primary/20 bg-gradient-to-br from-primary/5 via-background to-background shadow-xl">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  <Award className="h-5 w-5 text-primary" />
+                  Sequência Atual
+                </CardTitle>
                 {currentMilestone && (
-                  <div className="mt-4 p-3 rounded-lg bg-background/50 border border-border">
-                    <p className="font-semibold text-sm">{currentMilestone.badge}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {currentMilestone.reward}
-                    </p>
-                  </div>
+                  <span className="text-2xl">{currentMilestone.badge.split(" ")[0]}</span>
                 )}
               </div>
-
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-center">
+                <StreakAnimation streak={streakData?.current_streak || 0} />
+              </div>
+              {currentMilestone && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="text-center space-y-1 p-4 bg-primary/10 rounded-lg"
+                >
+                  <p className="font-semibold text-primary">{currentMilestone.badge}</p>
+                  <p className="text-sm text-muted-foreground">{currentMilestone.reward}</p>
+                </motion.div>
+              )}
               {nextMilestone && (
-                <div className="text-right">
-                  <p className="text-sm text-muted-foreground mb-1">Próxima meta</p>
-                  <p className="text-lg font-semibold">{nextMilestone.badge}</p>
-                  <p className="text-sm text-muted-foreground">
-                    Faltam {nextMilestone.days - (streakData?.current_streak || 0)}{" "}
-                    dias
+                <div className="text-center text-sm text-muted-foreground">
+                  <p>
+                    Faltam apenas <span className="font-bold text-foreground">{nextMilestone.days - (streakData?.current_streak || 0)} dias</span> para{" "}
+                    <span className="font-semibold">{nextMilestone.badge}</span>
                   </p>
                 </div>
               )}
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </motion.div>
 
-        {/* Statistics */}
-        <Tabs value={selectedPeriod} onValueChange={(v) => setSelectedPeriod(v as any)}>
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="week">7 dias</TabsTrigger>
-            <TabsTrigger value="month">30 dias</TabsTrigger>
-            <TabsTrigger value="all">Todo período</TabsTrigger>
-          </TabsList>
+        {/* Period Selector */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+        >
+          <Tabs value={selectedPeriod} onValueChange={(v) => setSelectedPeriod(v as any)} className="w-full">
+            <TabsList className="grid w-full grid-cols-3 h-auto p-1">
+              <TabsTrigger value="week" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                <Calendar className="h-4 w-4 mr-2" />
+                7 dias
+              </TabsTrigger>
+              <TabsTrigger value="month" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                <Calendar className="h-4 w-4 mr-2" />
+                30 dias
+              </TabsTrigger>
+              <TabsTrigger value="all" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                <Calendar className="h-4 w-4 mr-2" />
+                Todos
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </motion.div>
 
-          <TabsContent value={selectedPeriod} className="space-y-4 mt-6">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardDescription>Taxa de Adesão</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center gap-2">
-                    <TrendingUp className="h-4 w-4 text-primary" />
-                    <p className="text-3xl font-bold">
-                      {doseStats?.adherence || 0}%
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
+        {/* Stats Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+          >
+            <Card className="hover:shadow-lg transition-shadow">
+              <CardHeader className="pb-2">
+                <CardDescription className="flex items-center gap-2">
+                  <Target className="h-4 w-4" />
+                  Total
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-3xl font-bold">{doseStats?.total || 0}</p>
+                <p className="text-xs text-muted-foreground mt-1">doses programadas</p>
+              </CardContent>
+            </Card>
+          </motion.div>
 
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardDescription>No Horário</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center gap-2">
-                    <Target className="h-4 w-4 text-green-500" />
-                    <p className="text-3xl font-bold">
-                      {doseStats?.onTimeRate || 0}%
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.35 }}
+          >
+            <Card className="border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-950/20 hover:shadow-lg transition-shadow">
+              <CardHeader className="pb-2">
+                <CardDescription className="flex items-center gap-2 text-green-700 dark:text-green-400">
+                  <Zap className="h-4 w-4" />
+                  Tomadas
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-3xl font-bold text-green-700 dark:text-green-400">{doseStats?.taken || 0}</p>
+                <p className="text-xs text-muted-foreground mt-1">doses completadas</p>
+              </CardContent>
+            </Card>
+          </motion.div>
 
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardDescription>Doses Tomadas</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-blue-500" />
-                    <p className="text-3xl font-bold">
-                      {doseStats?.taken || 0}
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+          >
+            <Card className="border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/20 hover:shadow-lg transition-shadow">
+              <CardHeader className="pb-2">
+                <CardDescription className="flex items-center gap-2 text-blue-700 dark:text-blue-400">
+                  <Trophy className="h-4 w-4" />
+                  Compromisso
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-3xl font-bold text-blue-700 dark:text-blue-400">{doseStats?.adherence || 0}%</p>
+                <p className="text-xs text-muted-foreground mt-1">taxa de sucesso</p>
+              </CardContent>
+            </Card>
+          </motion.div>
 
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardDescription>Total de Doses</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-3xl font-bold">{doseStats?.total || 0}</p>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-        </Tabs>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.45 }}
+          >
+            <Card className="border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/20 hover:shadow-lg transition-shadow">
+              <CardHeader className="pb-2">
+                <CardDescription className="flex items-center gap-2 text-amber-700 dark:text-amber-400">
+                  <TrendingUp className="h-4 w-4" />
+                  No Horário
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-3xl font-bold text-amber-700 dark:text-amber-400">{doseStats?.onTimeRate || 0}%</p>
+                <p className="text-xs text-muted-foreground mt-1">pontualidade</p>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </div>
       </main>
 
       <Navigation />
