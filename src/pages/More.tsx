@@ -123,6 +123,13 @@ export default function More() {
 
   const settingsItems = [
     {
+      title: "Exportar Meus Dados",
+      description: "Baixe medicamentos, documentos e histórico",
+      icon: FileText,
+      path: "/exportar",
+      badge: <Badge variant="secondary" className="ml-2">LGPD</Badge>,
+    },
+    {
       title: "Tutorial Interativo",
       description: "Aprenda a usar o app",
       icon: BookOpen,
@@ -222,7 +229,10 @@ export default function More() {
                   <div className="flex items-center gap-4">
                     <item.icon className="h-5 w-5 text-muted-foreground" />
                     <div>
-                      <h4 className="font-semibold">{item.title}</h4>
+                      <div className="flex items-center">
+                        <h4 className="font-semibold">{item.title}</h4>
+                        {item.badge}
+                      </div>
                       <p className="text-sm text-muted-foreground">{item.description}</p>
                     </div>
                   </div>

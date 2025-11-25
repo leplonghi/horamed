@@ -480,48 +480,59 @@ export default function Profile() {
           <TabsContent value="data" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle>Exportação de Dados</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <FileDown className="h-5 w-5" />
+                  Exportação de Dados
+                </CardTitle>
                 <CardDescription>
-                  Exporte todos os seus dados de saúde
+                  Baixe todos os seus dados de saúde (direito garantido pela LGPD)
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="bg-muted/50 rounded-lg p-4 space-y-2">
-                  <p className="text-sm font-medium">Dados disponíveis para exportação:</p>
-                  <ul className="space-y-1 text-sm text-muted-foreground">
-                    <li className="flex items-center gap-2">
-                      <FileText className="h-4 w-4" />
-                      Histórico de medicamentos
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <FileText className="h-4 w-4" />
-                      Consultas e exames
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <FileText className="h-4 w-4" />
-                      Documentos do cofre
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <FileText className="h-4 w-4" />
-                      Sinais vitais
-                    </li>
-                  </ul>
+                <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 space-y-3">
+                  <div className="flex items-start gap-3">
+                    <Shield className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-semibold mb-2">Direito LGPD</p>
+                      <p className="text-xs text-muted-foreground">
+                        Você tem o direito legal de acessar e baixar todos os seus dados pessoais e de saúde armazenados no HoraMed.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <p className="text-sm font-medium">📦 Dados incluídos na exportação:</p>
+                  <div className="grid gap-2">
+                    {[
+                      'Perfis e informações pessoais',
+                      'Medicamentos e horários',
+                      'Histórico completo de doses',
+                      'Documentos e exames do cofre',
+                      'Receitas e vacinas',
+                      'Consultas e eventos de saúde',
+                      'Métricas de adesão e progresso'
+                    ].map((item, index) => (
+                      <div key={index} className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <div className="h-1.5 w-1.5 rounded-full bg-primary" />
+                        {item}
+                      </div>
+                    ))}
+                  </div>
                 </div>
 
                 <Button
+                  size="lg"
                   className="w-full"
                   onClick={() => navigate('/exportar')}
-                  disabled={!isPremium}
                 >
                   <Download className="h-4 w-4 mr-2" />
-                  Exportar Dados (PDF)
+                  Exportar Todos os Dados (JSON)
                 </Button>
 
-                {!isPremium && (
-                  <p className="text-xs text-center text-muted-foreground">
-                    Exportação disponível apenas no plano Premium
-                  </p>
-                )}
+                <p className="text-xs text-center text-muted-foreground">
+                  Arquivo em formato JSON com todos os seus dados
+                </p>
               </CardContent>
             </Card>
           </TabsContent>

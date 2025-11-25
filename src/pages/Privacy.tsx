@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { ArrowLeft, Shield, Trash2 } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { ArrowLeft, Shield, Trash2, Download } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -165,15 +165,19 @@ export default function Privacy() {
                 Você tem controle total sobre seus dados pessoais e de saúde.
               </p>
               
-              <div className="space-y-2">
+              <CardContent className="p-4">
                 <Button
                   variant="outline"
                   className="w-full justify-start"
-                  onClick={() => navigate("/perfil")}
+                  onClick={() => navigate('/exportar')}
                 >
-                  Exportar meus dados
+                  <Download className="h-4 w-4 mr-2" />
+                  Exportar Meus Dados
                 </Button>
-              </div>
+                <p className="text-xs text-muted-foreground mt-2 ml-1">
+                  Baixe todos os seus dados (LGPD)
+                </p>
+              </CardContent>
             </div>
           </Card>
 
