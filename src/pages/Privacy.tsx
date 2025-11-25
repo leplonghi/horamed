@@ -98,20 +98,61 @@ export default function Privacy() {
 
           <Card className="p-6 space-y-4">
             <div>
-              <h3 className="font-semibold text-foreground mb-2">Seus Dados</h3>
+              <h3 className="font-semibold text-foreground mb-2">Privacidade e LGPD</h3>
               <p className="text-sm text-muted-foreground">
-                O HoraMed leva sua privacidade a sério. Todos os seus dados são armazenados de forma segura e criptografada.
+                O HoraMed está em total conformidade com a Lei Geral de Proteção de Dados (LGPD - Lei nº 13.709/2018). 
+                Todos os seus dados são armazenados de forma segura e criptografada.
               </p>
             </div>
 
-            <div className="space-y-2">
-              <h4 className="font-medium text-foreground">Proteção de Dados</h4>
-              <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
-                <li>Seus dados médicos são criptografados</li>
-                <li>Nunca compartilhamos seus dados com terceiros</li>
-                <li>Você pode exportar ou deletar seus dados a qualquer momento</li>
-                <li>Estamos em conformidade com a LGPD</li>
-              </ul>
+            <div className="space-y-3">
+              <div>
+                <h4 className="font-medium text-foreground mb-2">🛡️ Proteção de Dados</h4>
+                <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside ml-2">
+                  <li>Dados médicos criptografados</li>
+                  <li>Criptografia HTTPS em trânsito</li>
+                  <li>Controle de acesso e autenticação</li>
+                  <li>Nunca comercializamos seus dados</li>
+                  <li>Compartilhamento limitado ao necessário</li>
+                </ul>
+              </div>
+
+              <div>
+                <h4 className="font-medium text-foreground mb-2">📋 Dados Coletados</h4>
+                <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside ml-2">
+                  <li><strong>Cadastro:</strong> Nome, e-mail, senha protegida</li>
+                  <li><strong>Perfis familiares:</strong> Nome, data de nascimento, relação</li>
+                  <li><strong>Saúde (sensíveis):</strong> Medicamentos, doses, documentos</li>
+                  <li><strong>Uso:</strong> Logs de ações, dispositivo, notificações</li>
+                  <li><strong>Assinatura:</strong> Status via lojas (não dados de cartão)</li>
+                </ul>
+              </div>
+
+              <div>
+                <h4 className="font-medium text-foreground mb-2">✅ Seus Direitos LGPD</h4>
+                <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside ml-2">
+                  <li><strong>Acesso:</strong> Ver todos os dados coletados</li>
+                  <li><strong>Correção:</strong> Atualizar dados incorretos</li>
+                  <li><strong>Portabilidade:</strong> Exportar em formato legível</li>
+                  <li><strong>Eliminação:</strong> Deletar permanentemente</li>
+                  <li><strong>Revogação:</strong> Cancelar consentimentos</li>
+                </ul>
+              </div>
+
+              <div className="bg-primary/5 p-3 rounded-lg border border-primary/20">
+                <p className="text-sm font-semibold text-foreground mb-2">📄 Documento Legal Completo</p>
+                <p className="text-xs text-muted-foreground mb-3">
+                  Para informações detalhadas sobre Termos de Uso, Assinaturas, Cookies e Segurança, consulte o documento legal completo.
+                </p>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="w-full"
+                  onClick={() => navigate("/termos")}
+                >
+                  Ver Documento Legal Completo
+                </Button>
+              </div>
             </div>
           </Card>
 
