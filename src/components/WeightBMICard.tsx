@@ -3,16 +3,17 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { Scale, Plus, TrendingUp, TrendingDown } from "lucide-react";
-import { LineChart, Line, ResponsiveContainer } from "recharts";
-import { format, subDays } from "date-fns";
+import { Scale, Plus, TrendingUp, TrendingDown, Info, Minus } from "lucide-react";
+import { LineChart, Line, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid, ReferenceLine } from "recharts";
+import { format, subDays, startOfMonth, endOfMonth, eachMonthOfInterval, subMonths } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import WeightRegistrationModal from "./WeightRegistrationModal";
-import { Info } from "lucide-react";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { Badge } from "@/components/ui/badge";
 
 interface WeightBMICardProps {
   userId: string;
@@ -63,11 +64,11 @@ export default function WeightBMICard({ userId, profileId }: WeightBMICardProps)
     },
   });
 
-  // Get last 30 days of weight data for chart
+  // Get last 6 months of weight data for chart
   const { data: weightHistory } = useQuery({
     queryKey: ["weight-chart", userId, profileId],
     queryFn: async () => {
-      const thirtyDaysAgo = subDays(new Date(), 30);
+      const sixMonthsAgo = subMonths(new Date(), 6);
       let query = supabase
         .from("weight_logs")
         .select("weight_kg, recorded_at")
@@ -80,13 +81,14 @@ export default function WeightBMICard({ userId, profileId }: WeightBMICardProps)
       }
       
       const { data, error } = await query
-        .gte("recorded_at", thirtyDaysAgo.toISOString())
+        .gte("recorded_at", sixMonthsAgo.toISOString())
         .order("recorded_at", { ascending: true });
 
       if (error) throw error;
       return data?.map((log) => ({
         weight: typeof log.weight_kg === 'string' ? parseFloat(log.weight_kg) : log.weight_kg,
-        date: format(new Date(log.recorded_at), "dd/MM"),
+        date: new Date(log.recorded_at),
+        dateLabel: format(new Date(log.recorded_at), "dd/MM/yy"),
       }));
     },
   });
@@ -140,7 +142,67 @@ export default function WeightBMICard({ userId, profileId }: WeightBMICardProps)
     return diff;
   };
 
+  const getMonthlyComparison = () => {
+    if (!weightHistory || weightHistory.length < 2) return null;
+    
+    const now = new Date();
+    const currentMonthStart = startOfMonth(now);
+    const lastMonthStart = startOfMonth(subMonths(now, 1));
+    const lastMonthEnd = endOfMonth(subMonths(now, 1));
+    
+    const currentMonthWeights = weightHistory.filter(log => 
+      log.date >= currentMonthStart
+    );
+    const lastMonthWeights = weightHistory.filter(log => 
+      log.date >= lastMonthStart && log.date <= lastMonthEnd
+    );
+    
+    if (currentMonthWeights.length === 0 || lastMonthWeights.length === 0) return null;
+    
+    const currentAvg = currentMonthWeights.reduce((sum, log) => sum + log.weight, 0) / currentMonthWeights.length;
+    const lastAvg = lastMonthWeights.reduce((sum, log) => sum + log.weight, 0) / lastMonthWeights.length;
+    const diff = currentAvg - lastAvg;
+    
+    return {
+      currentAvg: currentAvg.toFixed(1),
+      lastAvg: lastAvg.toFixed(1),
+      diff: diff.toFixed(1),
+      percentChange: ((diff / lastAvg) * 100).toFixed(1)
+    };
+  };
+
+  const getSignificantChanges = () => {
+    if (!weightHistory || weightHistory.length < 2) return [];
+    
+    const changes = [];
+    const significantThreshold = 2; // kg
+    
+    for (let i = 1; i < weightHistory.length; i++) {
+      const diff = weightHistory[i].weight - weightHistory[i - 1].weight;
+      if (Math.abs(diff) >= significantThreshold) {
+        changes.push({
+          date: weightHistory[i].dateLabel,
+          change: diff,
+          weight: weightHistory[i].weight
+        });
+      }
+    }
+    
+    return changes.slice(-3); // Last 3 significant changes
+  };
+
+  const getWeightRange = () => {
+    if (!weightHistory || weightHistory.length === 0) return null;
+    const weights = weightHistory.map(log => log.weight);
+    const min = Math.min(...weights);
+    const max = Math.max(...weights);
+    return { min, max, range: (max - min).toFixed(1) };
+  };
+
   const trend = getTrend();
+  const monthlyComparison = getMonthlyComparison();
+  const significantChanges = getSignificantChanges();
+  const weightRange = getWeightRange();
 
   return (
     <>
@@ -233,21 +295,137 @@ export default function WeightBMICard({ userId, profileId }: WeightBMICardProps)
           </div>
 
           {weightHistory && weightHistory.length > 1 && (
-            <div className="h-32 -mx-2">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={weightHistory}>
-                  <Line
-                    type="monotone"
-                    dataKey="weight"
-                    stroke="hsl(var(--primary))"
-                    strokeWidth={2}
-                    dot={false}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-              <p className="text-xs text-center text-muted-foreground mt-2">
-                Últimos 30 dias
-              </p>
+            <div className="space-y-4">
+              {/* Monthly Comparison */}
+              {monthlyComparison && (
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="p-3 bg-muted/30 rounded-lg border">
+                    <p className="text-xs text-muted-foreground mb-1">Média este mês</p>
+                    <p className="text-2xl font-bold text-primary">{monthlyComparison.currentAvg} kg</p>
+                  </div>
+                  <div className="p-3 bg-muted/30 rounded-lg border">
+                    <p className="text-xs text-muted-foreground mb-1">vs. mês anterior</p>
+                    <div className="flex items-center gap-2">
+                      {parseFloat(monthlyComparison.diff) > 0 ? (
+                        <>
+                          <TrendingUp className="h-5 w-5 text-orange-600" />
+                          <span className="text-2xl font-bold text-orange-600">+{monthlyComparison.diff}</span>
+                        </>
+                      ) : parseFloat(monthlyComparison.diff) < 0 ? (
+                        <>
+                          <TrendingDown className="h-5 w-5 text-green-600" />
+                          <span className="text-2xl font-bold text-green-600">{monthlyComparison.diff}</span>
+                        </>
+                      ) : (
+                        <>
+                          <Minus className="h-5 w-5 text-muted-foreground" />
+                          <span className="text-2xl font-bold text-muted-foreground">0.0</span>
+                        </>
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {monthlyComparison.percentChange}% {parseFloat(monthlyComparison.diff) >= 0 ? 'de aumento' : 'de redução'}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Chart */}
+              <div className="h-48">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={weightHistory} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
+                    <XAxis 
+                      dataKey="dateLabel" 
+                      tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
+                      tickMargin={5}
+                    />
+                    <YAxis 
+                      tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
+                      domain={['dataMin - 2', 'dataMax + 2']}
+                    />
+                    <Tooltip 
+                      contentStyle={{ 
+                        backgroundColor: 'hsl(var(--popover))',
+                        border: '1px solid hsl(var(--border))',
+                        borderRadius: '8px',
+                        fontSize: '12px'
+                      }}
+                      formatter={(value: number) => [`${value.toFixed(1)} kg`, 'Peso']}
+                      labelFormatter={(label) => `Data: ${label}`}
+                    />
+                    {latestWeight && (
+                      <ReferenceLine 
+                        y={typeof latestWeight.weight_kg === 'string' ? parseFloat(latestWeight.weight_kg) : latestWeight.weight_kg} 
+                        stroke="hsl(var(--primary))" 
+                        strokeDasharray="3 3"
+                        label={{ value: 'Atual', position: 'right', fontSize: 10, fill: 'hsl(var(--primary))' }}
+                      />
+                    )}
+                    <Line
+                      type="monotone"
+                      dataKey="weight"
+                      stroke="hsl(var(--primary))"
+                      strokeWidth={3}
+                      dot={{ r: 4, fill: 'hsl(var(--primary))' }}
+                      activeDot={{ r: 6 }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+                <p className="text-xs text-center text-muted-foreground mt-2">
+                  Evolução dos últimos 6 meses
+                </p>
+              </div>
+
+              {/* Weight Range */}
+              {weightRange && (
+                <div className="p-3 bg-muted/30 rounded-lg border">
+                  <div className="flex items-center justify-between text-xs">
+                    <div>
+                      <span className="text-muted-foreground">Peso mínimo:</span>
+                      <span className="font-semibold ml-1">{weightRange.min} kg</span>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">Variação:</span>
+                      <span className="font-semibold ml-1">{weightRange.range} kg</span>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">Peso máximo:</span>
+                      <span className="font-semibold ml-1">{weightRange.max} kg</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Significant Changes */}
+              {significantChanges.length > 0 && (
+                <div className="space-y-2">
+                  <h4 className="text-sm font-semibold flex items-center gap-2">
+                    Mudanças significativas (≥ 2 kg)
+                  </h4>
+                  <div className="space-y-2">
+                    {significantChanges.map((change, idx) => (
+                      <div key={idx} className="flex items-center justify-between p-2 bg-muted/30 rounded border">
+                        <div className="flex items-center gap-2">
+                          {change.change > 0 ? (
+                            <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200">
+                              <TrendingUp className="h-3 w-3 mr-1" />
+                              +{change.change.toFixed(1)} kg
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                              <TrendingDown className="h-3 w-3 mr-1" />
+                              {change.change.toFixed(1)} kg
+                            </Badge>
+                          )}
+                          <span className="text-xs text-muted-foreground">{change.date}</span>
+                        </div>
+                        <span className="text-sm font-semibold">{change.weight} kg</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
