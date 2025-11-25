@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Share2, Download, Trash2, Calendar, Edit, Pill, Stethoscope, TestTube2, Syringe, ChevronDown, ChevronUp, ExternalLink } from "lucide-react";
+import { ArrowLeft, Share2, Download, Trash2, Calendar, Edit, Pill, Stethoscope, TestTube2, Syringe, ChevronDown, ChevronUp, ExternalLink, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -18,6 +18,8 @@ import Navigation from "@/components/Navigation";
 import UpgradeModal from "@/components/UpgradeModal";
 import { PrescriptionStatusBadge } from "@/components/PrescriptionStatusBadge";
 import { MedicationQuickAddCard } from "@/components/MedicationQuickAddCard";
+import { useAuth } from "@/contexts/AuthContext";
+import { useQuery } from "@tanstack/react-query";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -37,6 +39,7 @@ import {
 export default function CofreDocumento() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [signedUrl, setSignedUrl] = useState<string>("");
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showUpgrade, setShowUpgrade] = useState(false);
@@ -51,6 +54,34 @@ export default function CofreDocumento() {
   const { data: documento, isLoading } = useDocumento(id);
   const { data: compartilhamentos } = useCompartilhamentos(id);
   const { mutate: deletar } = useDeletarDocumento();
+
+  // Buscar medicamentos já adicionados pelo usuário
+  const { data: existingMedications = [] } = useQuery({
+    queryKey: ["existing-medications", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      
+      const { data, error } = await supabase
+        .from("items")
+        .select("name")
+        .eq("user_id", user.id)
+        .eq("is_active", true);
+      
+      if (error) throw error;
+      return data.map(item => item.name.toLowerCase().trim());
+    },
+    enabled: !!user?.id,
+  });
+
+  // Função para verificar se um medicamento já foi adicionado
+  const isMedicationAdded = (medicationName: string) => {
+    const normalizedName = medicationName.toLowerCase().trim();
+    return existingMedications.some((existingName: string) => 
+      existingName === normalizedName || 
+      existingName.includes(normalizedName) ||
+      normalizedName.includes(existingName)
+    );
+  };
 
   const toggleSection = (section: keyof typeof expandedSections) => {
     setExpandedSections(prev => ({ ...prev, [section]: !prev[section] }));
@@ -479,10 +510,28 @@ export default function CofreDocumento() {
                   <MedicationQuickAddCard 
                     prescriptionId={id}
                     medications={meta.prescriptions}
+                    existingMedications={existingMedications}
                   />
 
-                  {meta.prescriptions.map((med: any, idx: number) => (
-                    <div key={idx} className="p-4 bg-blue-50 dark:bg-blue-950 rounded-lg border border-blue-200 dark:border-blue-900">
+                  {meta.prescriptions.map((med: any, idx: number) => {
+                    const medName = med.commercial_name || med.drug_name || med.name;
+                    const isAdded = isMedicationAdded(medName);
+                    
+                    return (
+                    <div 
+                      key={idx} 
+                      className={`p-4 rounded-lg border transition-all ${
+                        isAdded 
+                          ? 'bg-muted/50 border-muted opacity-60' 
+                          : 'bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-900'
+                      }`}
+                    >
+                      {isAdded && (
+                        <div className="mb-3 flex items-center gap-2 text-green-600 dark:text-green-400">
+                          <CheckCircle2 className="h-4 w-4" />
+                          <span className="text-sm font-medium">Já adicionado à rotina</span>
+                        </div>
+                      )}
                       {/* Cabeçalho do Medicamento */}
                       <div className="mb-3">
                         <div className="flex items-start justify-between gap-2 mb-2">
@@ -573,7 +622,8 @@ export default function CofreDocumento() {
                         )}
                       </div>
                     </div>
-                  ))}
+                    );
+                  })}
                   {meta?.notes && (
                     <div className="p-3 bg-amber-50 dark:bg-amber-950 rounded-lg border border-amber-200 dark:border-amber-900 mt-3">
                       <p className="text-sm font-medium text-amber-900 dark:text-amber-100 mb-1">📋 Observações do Médico</p>
