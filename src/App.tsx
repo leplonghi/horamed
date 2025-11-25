@@ -103,6 +103,7 @@ function AppContent() {
         <Route path="/graficos" element={<ProtectedRoute><Charts /></ProtectedRoute>} />
         <Route path="/dashboard-saude" element={<ProtectedRoute><HealthDashboard /></ProtectedRoute>} />
         <Route path="/linha-do-tempo" element={<ProtectedRoute><HealthTimeline /></ProtectedRoute>} />
+        <Route path="/timeline" element={<ProtectedRoute><HealthTimeline /></ProtectedRoute>} />
         <Route path="/analise-saude" element={<ProtectedRoute><HealthAnalysis /></ProtectedRoute>} />
         
         {/* Perfil subroutes */}
