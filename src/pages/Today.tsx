@@ -13,7 +13,7 @@ import { useCriticalAlerts } from "@/hooks/useCriticalAlerts";
 import { PageSkeleton } from "@/components/LoadingSkeleton";
 import { useFeedbackToast } from "@/hooks/useFeedbackToast";
 import DayTimeline from "@/components/DayTimeline";
-import WeekCalendarView from "@/components/WeekCalendarView";
+import ImprovedCalendar from "@/components/ImprovedCalendar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import StreakBadge from "@/components/StreakBadge";
@@ -666,8 +666,8 @@ export default function Today() {
             </Card>
           )}
 
-          {/* Calendário Semanal */}
-          <WeekCalendarView
+          {/* Calendário Melhorado */}
+          <ImprovedCalendar
             selectedDate={selectedDate}
             onDateSelect={(newDate) => {
               setSelectedDate(newDate);
