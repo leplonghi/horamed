@@ -4,9 +4,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Scale } from "lucide-react";
+import { Scale, CalendarIcon } from "lucide-react";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { cn } from "@/lib/utils";
 
 interface WeightRegistrationModalProps {
   open: boolean;
@@ -23,6 +28,7 @@ export default function WeightRegistrationModal({
 }: WeightRegistrationModalProps) {
   const [weight, setWeight] = useState("");
   const [notes, setNotes] = useState("");
+  const [date, setDate] = useState<Date>(new Date());
   const [loading, setLoading] = useState(false);
 
   const handleSave = async () => {
@@ -63,7 +69,7 @@ export default function WeightRegistrationModal({
           profile_id: profileId || null,
           weight_kg: weightValue,
           notes: notes.trim() || null,
-          recorded_at: new Date().toISOString(),
+          recorded_at: date.toISOString(),
         });
 
       if (error) throw error;
@@ -82,6 +88,7 @@ export default function WeightRegistrationModal({
       toast.success(message);
       setWeight("");
       setNotes("");
+      setDate(new Date());
       onOpenChange(false);
       onSuccess?.();
     } catch (error: any) {
@@ -106,6 +113,37 @@ export default function WeightRegistrationModal({
         </DialogHeader>
 
         <div className="space-y-4 py-4">
+          <div className="space-y-2">
+            <Label htmlFor="date" className="text-base font-medium">
+              Data da medição *
+            </Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "w-full justify-start text-left font-normal h-12",
+                    !date && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {date ? format(date, "PPP", { locale: ptBR }) : <span>Selecione a data</span>}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={date}
+                  onSelect={(newDate) => newDate && setDate(newDate)}
+                  disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
+                  initialFocus
+                  className={cn("p-3 pointer-events-auto")}
+                  locale={ptBR}
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+
           <div className="space-y-2">
             <Label htmlFor="weight" className="text-base font-medium">
               Peso (kg) *
