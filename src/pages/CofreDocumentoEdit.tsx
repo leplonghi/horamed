@@ -600,7 +600,7 @@ export default function CofreDocumentoEdit() {
 
                             <Separator />
 
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-3 gap-4">
                               <div className="space-y-2">
                                 <Label>Tipo de Embalagem</Label>
                                 <Input
@@ -610,12 +610,12 @@ export default function CofreDocumentoEdit() {
                                     newPrescriptions[idx] = { ...med, package_type: e.target.value };
                                     setPrescriptions(newPrescriptions);
                                   }}
-                                  placeholder="Ex: Caixa, Frasco"
+                                  placeholder="Ex: caixa, frasco"
                                 />
                               </div>
 
                               <div className="space-y-2">
-                                <Label>Quantidade na Embalagem</Label>
+                                <Label>Qtd. por Embalagem</Label>
                                 <Input
                                   value={med.package_quantity || ""}
                                   onChange={(e) => {
@@ -623,7 +623,22 @@ export default function CofreDocumentoEdit() {
                                     newPrescriptions[idx] = { ...med, package_quantity: e.target.value };
                                     setPrescriptions(newPrescriptions);
                                   }}
-                                  placeholder="Ex: 30 comprimidos"
+                                  placeholder="Ex: 30 comp."
+                                />
+                              </div>
+
+                              <div className="space-y-2">
+                                <Label>Nº de Embalagens</Label>
+                                <Input
+                                  type="number"
+                                  min="1"
+                                  value={med.packages_count || ""}
+                                  onChange={(e) => {
+                                    const newPrescriptions = [...prescriptions];
+                                    newPrescriptions[idx] = { ...med, packages_count: parseInt(e.target.value) || null };
+                                    setPrescriptions(newPrescriptions);
+                                  }}
+                                  placeholder="Ex: 2"
                                 />
                               </div>
                             </div>

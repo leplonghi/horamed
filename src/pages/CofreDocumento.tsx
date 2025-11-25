@@ -414,7 +414,7 @@ export default function CofreDocumento() {
                       <Separator className="my-3" />
 
                       {/* Informações de Embalagem */}
-                      {(med.package_type || med.package_quantity) && (
+                      {(med.package_type || med.package_quantity || med.packages_count) && (
                         <div className="mb-3 p-2 bg-blue-100/50 dark:bg-blue-900/30 rounded">
                           <p className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-1">
                             📦 Informações da Embalagem
@@ -425,6 +425,9 @@ export default function CofreDocumento() {
                             )}
                             {med.package_quantity && (
                               <p>• Quantidade: {med.package_quantity}</p>
+                            )}
+                            {med.packages_count && (
+                              <p>• Número de embalagens: {med.packages_count} {med.packages_count === 1 ? 'embalagem' : 'embalagens'}</p>
                             )}
                           </div>
                         </div>

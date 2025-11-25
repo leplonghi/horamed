@@ -24,16 +24,17 @@ EXAME:
 
 RECEITA:
 - prescriptions: Array com TODOS os medicamentos prescritos:
-  [{"drug_name":"Amoxicilina","commercial_name":"Amoxil","dose":"500mg","frequency":"8/8h","duration":"7 dias","duration_days":7,"instructions":"Tomar com água","with_food":true,"is_generic":true,"package_type":"caixa","package_quantity":"21 comprimidos","active_ingredient":"Amoxicilina triidratada"}]
-  * drug_name: nome do princípio ativo ou medicamento
-  * commercial_name: nome comercial do medicamento (se houver)
-  * is_generic: true se for genérico, false se for referência/similar
-  * package_type: tipo de embalagem (caixa, frasco, envelope, etc)
-  * package_quantity: quantidade na embalagem (ex: "30 comprimidos", "120ml", "10 ampolas")
-  * active_ingredient: princípio ativo do medicamento
-  * duration_days deve ser o número de dias do tratamento
-  * with_food: true se deve tomar com alimentos, false ou null caso contrário
-  * instructions: instruções adicionais sobre como tomar
+   [{"drug_name":"Amoxicilina","commercial_name":"Amoxil","dose":"500mg","frequency":"8/8h","duration":"7 dias","duration_days":7,"instructions":"Tomar com água","with_food":true,"is_generic":true,"package_type":"caixa","package_quantity":"21 comprimidos","packages_count":2,"active_ingredient":"Amoxicilina triidratada"}]
+   * drug_name: nome do princípio ativo ou medicamento
+   * commercial_name: nome comercial do medicamento (se houver)
+   * is_generic: true se for genérico, false se for referência/similar
+   * package_type: tipo de embalagem (caixa, frasco, envelope, etc)
+   * package_quantity: quantidade na embalagem (ex: "30 comprimidos", "120ml", "10 ampolas")
+   * packages_count: número de embalagens prescritas (ex: 2 caixas, 1 frasco)
+   * active_ingredient: princípio ativo do medicamento
+   * duration_days deve ser o número de dias do tratamento
+   * with_food: true se deve tomar com alimentos, false ou null caso contrário
+   * instructions: instruções adicionais sobre como tomar
 
 IDENTIFICAÇÃO DO EMITENTE (dados da clínica/hospital/consultório):
 - emitter_name: Nome da instituição/clínica/hospital
