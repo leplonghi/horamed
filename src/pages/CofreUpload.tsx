@@ -224,24 +224,49 @@ export default function CofreUpload() {
 
       // Build comprehensive metadata based on category
       const metaData: any = {
+        // Dados do médico
         doctor_name: extractedData.doctor_name,
         doctor_registration: extractedData.doctor_registration,
+        doctor_state: extractedData.doctor_state,
         specialty: extractedData.specialty,
+        
+        // Dados do emitente
+        emitter_name: extractedData.emitter_name,
+        emitter_address: extractedData.emitter_address,
+        emitter_city: extractedData.emitter_city,
+        emitter_state: extractedData.emitter_state,
+        emitter_zip: extractedData.emitter_zip,
+        emitter_phone: extractedData.emitter_phone,
+        emitter_cnpj: extractedData.emitter_cnpj,
+        
+        // Dados do paciente
+        patient_name: extractedData.patient_name,
+        patient_age: extractedData.patient_age,
+        patient_cpf: extractedData.patient_cpf,
+        patient_address: extractedData.patient_address,
+        
+        // Outros dados
         diagnosis: extractedData.diagnosis,
         notes: extractedData.notes,
         followup_date: extractedData.followup_date,
+        prescription_type: extractedData.prescription_type,
       };
 
-      // RECEITA: Store all prescription details
+      // RECEITA: Store all prescription details including package info
       if (extractedData.category === 'receita' && extractedData.prescriptions?.length > 0) {
         metaData.prescriptions = extractedData.prescriptions.map((med: any) => ({
           drug_name: med.drug_name,
+          commercial_name: med.commercial_name,
           dose: med.dose,
           frequency: med.frequency,
           duration: med.duration,
           duration_days: med.duration_days,
           instructions: med.instructions,
           with_food: med.with_food,
+          is_generic: med.is_generic,
+          package_type: med.package_type,
+          package_quantity: med.package_quantity,
+          active_ingredient: med.active_ingredient,
         }));
         metaData.prescription_count = extractedData.prescriptions.length;
         metaData.prescription_date = extractedData.issued_at;

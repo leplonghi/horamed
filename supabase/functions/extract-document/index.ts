@@ -24,16 +24,43 @@ EXAME:
 
 RECEITA:
 - prescriptions: Array com TODOS os medicamentos prescritos:
-  [{"drug_name":"Amoxicilina","dose":"500mg","frequency":"8/8h","duration":"7 dias","duration_days":7,"instructions":"Tomar com água","with_food":true}]
+  [{"drug_name":"Amoxicilina","commercial_name":"Amoxil","dose":"500mg","frequency":"8/8h","duration":"7 dias","duration_days":7,"instructions":"Tomar com água","with_food":true,"is_generic":true,"package_type":"caixa","package_quantity":"21 comprimidos","active_ingredient":"Amoxicilina triidratada"}]
+  * drug_name: nome do princípio ativo ou medicamento
+  * commercial_name: nome comercial do medicamento (se houver)
+  * is_generic: true se for genérico, false se for referência/similar
+  * package_type: tipo de embalagem (caixa, frasco, envelope, etc)
+  * package_quantity: quantidade na embalagem (ex: "30 comprimidos", "120ml", "10 ampolas")
+  * active_ingredient: princípio ativo do medicamento
   * duration_days deve ser o número de dias do tratamento
   * with_food: true se deve tomar com alimentos, false ou null caso contrário
   * instructions: instruções adicionais sobre como tomar
+
+IDENTIFICAÇÃO DO EMITENTE (dados da clínica/hospital/consultório):
+- emitter_name: Nome da instituição/clínica/hospital
+- emitter_address: Endereço completo
+- emitter_city: Cidade
+- emitter_state: Estado
+- emitter_zip: CEP
+- emitter_phone: Telefone
+- emitter_cnpj: CNPJ da instituição (se houver)
+
+DADOS DO MÉDICO:
 - doctor_name: Nome completo do médico
 - doctor_registration: CRM ou registro profissional
+- doctor_state: Estado do CRM (ex: CRM/SP)
 - specialty: Especialidade do médico (se informada)
+
+DADOS DO PACIENTE:
+- patient_name: Nome completo do paciente
+- patient_age: Idade do paciente
+- patient_cpf: CPF do paciente (se informado)
+- patient_address: Endereço do paciente (se informado)
+
+OUTROS CAMPOS:
 - diagnosis: Diagnóstico ou condição sendo tratada (se informada)
 - notes: Observações ou recomendações adicionais do médico
 - followup_date: Data de retorno/revisão (YYYY-MM-DD) ou null
+- prescription_type: "simples"|"controlada"|"especial" baseado no tipo de receituário
 
 VACINAÇÃO:
 - vaccine_name: Nome da vacina
