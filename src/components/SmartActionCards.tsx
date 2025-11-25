@@ -1,0 +1,90 @@
+import { useNavigate } from "react-router-dom";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { ChevronRight, Loader2 } from "lucide-react";
+import { useSmartMedicationSuggestions } from "@/hooks/useSmartMedicationSuggestions";
+import { useUserProfiles } from "@/hooks/useUserProfiles";
+import { motion } from "framer-motion";
+
+export function SmartActionCards() {
+  const navigate = useNavigate();
+  const { activeProfile } = useUserProfiles();
+  const { data: suggestions, isLoading } = useSmartMedicationSuggestions(activeProfile?.id);
+
+  if (isLoading) {
+    return (
+      <Card className="bg-muted/30">
+        <CardContent className="p-6 flex items-center justify-center">
+          <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (!suggestions || suggestions.length === 0) {
+    return null;
+  }
+
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'high':
+        return 'border-l-4 border-l-destructive bg-destructive/5';
+      case 'medium':
+        return 'border-l-4 border-l-primary bg-primary/5';
+      default:
+        return 'border-l-4 border-l-muted-foreground bg-muted/5';
+    }
+  };
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center gap-2">
+        <div className="h-1 w-1 rounded-full bg-primary animate-pulse" />
+        <h3 className="heading-section">Ações Sugeridas</h3>
+      </div>
+      
+      <div className="space-y-3">
+        {suggestions.slice(0, 3).map((suggestion, index) => (
+          <motion.div
+            key={`${suggestion.type}-${index}`}
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: index * 0.1 }}
+          >
+            <Card 
+              className={`${getPriorityColor(suggestion.priority)} hover:shadow-md transition-all cursor-pointer group`}
+              onClick={() => navigate(suggestion.actionPath)}
+            >
+              <CardContent className="p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex-1 space-y-2">
+                    <h4 className="heading-card text-base">{suggestion.title}</h4>
+                    <p className="text-subtitle leading-relaxed">{suggestion.description}</p>
+                  </div>
+                  
+                  <Button 
+                    size="sm" 
+                    className="shrink-0 gap-2 group-hover:gap-3 transition-all"
+                  >
+                    {suggestion.actionLabel}
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        ))}
+      </div>
+
+      {suggestions.length > 3 && (
+        <Button 
+          variant="ghost" 
+          className="w-full text-subtitle"
+          onClick={() => navigate('/medications')}
+        >
+          Ver mais {suggestions.length - 3} {suggestions.length - 3 === 1 ? 'sugestão' : 'sugestões'}
+        </Button>
+      )}
+    </div>
+  );
+}

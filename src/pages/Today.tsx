@@ -32,6 +32,7 @@ import { SideEffectQuickLog } from "@/components/SideEffectQuickLog";
 import { VaccineRemindersWidget } from "@/components/VaccineRemindersWidget";
 import { CaregiverVaccineReminders } from "@/components/CaregiverVaccineReminders";
 import { ExpiredPrescriptionsAlert } from "@/components/ExpiredPrescriptionsAlert";
+import { SmartActionCards } from "@/components/SmartActionCards";
 
 interface TimelineItem {
   id: string;
@@ -603,6 +604,9 @@ export default function Today() {
               onDismissAll={criticalAlerts.dismissAll}
             />
           )}
+
+          {/* Smart Action Cards */}
+          <SmartActionCards />
 
           {/* Health Insights Card */}
           <HealthInsightsCard />

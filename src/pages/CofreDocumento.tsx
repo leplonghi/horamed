@@ -17,6 +17,7 @@ import Header from "@/components/Header";
 import Navigation from "@/components/Navigation";
 import UpgradeModal from "@/components/UpgradeModal";
 import { PrescriptionStatusBadge } from "@/components/PrescriptionStatusBadge";
+import { MedicationQuickAddCard } from "@/components/MedicationQuickAddCard";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -473,7 +474,13 @@ export default function CofreDocumento() {
                 </div>
               </CardHeader>
               <CollapsibleContent>
-                <CardContent className="space-y-3">
+                <CardContent className="space-y-4">
+                  {/* Card de Ação Rápida */}
+                  <MedicationQuickAddCard 
+                    prescriptionId={id}
+                    medications={meta.prescriptions}
+                  />
+
                   {meta.prescriptions.map((med: any, idx: number) => (
                     <div key={idx} className="p-4 bg-blue-50 dark:bg-blue-950 rounded-lg border border-blue-200 dark:border-blue-900">
                       {/* Cabeçalho do Medicamento */}
