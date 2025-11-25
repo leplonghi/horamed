@@ -89,6 +89,7 @@ export default function WeightBMICard({ userId, profileId }: WeightBMICardProps)
         weight: typeof log.weight_kg === 'string' ? parseFloat(log.weight_kg) : log.weight_kg,
         date: new Date(log.recorded_at),
         dateLabel: format(new Date(log.recorded_at), "dd/MM/yy"),
+        fullDate: format(new Date(log.recorded_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR }),
       }));
     },
   });
@@ -339,6 +340,7 @@ export default function WeightBMICard({ userId, profileId }: WeightBMICardProps)
                       dataKey="dateLabel" 
                       tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
                       tickMargin={5}
+                      interval="preserveStartEnd"
                     />
                     <YAxis 
                       tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
@@ -352,7 +354,12 @@ export default function WeightBMICard({ userId, profileId }: WeightBMICardProps)
                         fontSize: '12px'
                       }}
                       formatter={(value: number) => [`${value.toFixed(1)} kg`, 'Peso']}
-                      labelFormatter={(label) => `Data: ${label}`}
+                      labelFormatter={(label, payload) => {
+                        if (payload && payload[0]) {
+                          return `Registrado em: ${payload[0].payload.fullDate}`;
+                        }
+                        return `Data: ${label}`;
+                      }}
                     />
                     {latestWeight && (
                       <ReferenceLine 
@@ -367,13 +374,13 @@ export default function WeightBMICard({ userId, profileId }: WeightBMICardProps)
                       dataKey="weight"
                       stroke="hsl(var(--primary))"
                       strokeWidth={3}
-                      dot={{ r: 4, fill: 'hsl(var(--primary))' }}
-                      activeDot={{ r: 6 }}
+                      dot={{ r: 5, fill: 'hsl(var(--primary))', strokeWidth: 2, stroke: 'hsl(var(--background))' }}
+                      activeDot={{ r: 7, strokeWidth: 2 }}
                     />
                   </LineChart>
                 </ResponsiveContainer>
                 <p className="text-xs text-center text-muted-foreground mt-2">
-                  Evolução dos últimos 6 meses
+                  Evolução dos últimos 6 meses • Pontos marcam datas reais de registro
                 </p>
               </div>
 
@@ -426,6 +433,22 @@ export default function WeightBMICard({ userId, profileId }: WeightBMICardProps)
                   </div>
                 </div>
               )}
+
+              {/* All Registrations */}
+              <div className="space-y-2">
+                <h4 className="text-sm font-semibold">Todos os registros</h4>
+                <div className="max-h-48 overflow-y-auto space-y-1 pr-2">
+                  {weightHistory.slice().reverse().map((log, idx) => (
+                    <div key={idx} className="flex items-center justify-between p-2 bg-muted/20 rounded text-sm">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-primary flex-shrink-0" />
+                        <span className="text-xs text-muted-foreground">{log.fullDate}</span>
+                      </div>
+                      <span className="font-semibold">{log.weight} kg</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           )}
 
