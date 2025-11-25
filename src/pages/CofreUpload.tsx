@@ -10,7 +10,7 @@ import Header from "@/components/Header";
 import Navigation from "@/components/Navigation";
 import UpgradeModal from "@/components/UpgradeModal";
 import { isPDF } from "@/lib/pdfProcessor";
-import DocumentReviewModal from "@/components/DocumentReviewModal";
+
 
 export default function CofreUpload() {
   const navigate = useNavigate();
@@ -21,9 +21,6 @@ export default function CofreUpload() {
   const [uploading, setUploading] = useState(false);
   const [showUpgrade, setShowUpgrade] = useState(false);
   const [isExtracting, setIsExtracting] = useState(false);
-  const [showReviewModal, setShowReviewModal] = useState(false);
-  const [extractedData, setExtractedData] = useState<any>(null);
-  const [currentImagePreview, setCurrentImagePreview] = useState<string>("");
 
   const { activeProfile } = useUserProfiles();
 
@@ -123,16 +120,32 @@ export default function CofreUpload() {
         }
 
         setIsExtracting(true);
+        setUploading(true);
         toast.loading("Analisando documento...", { id: "extract" });
         
         try {
+          // First, upload the file
+          const { data: { user } } = await supabase.auth.getUser();
+          if (!user) throw new Error("Usuário não autenticado");
+
+          const fileExt = firstFile.name.split('.').pop();
+          const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+          const filePath = `${user.id}/${fileName}`;
+
+          toast.loading("Enviando arquivo...", { id: "extract" });
+
+          const { error: uploadError } = await supabase.storage
+            .from('cofre-saude')
+            .upload(filePath, firstFile);
+
+          if (uploadError) throw uploadError;
+
+          // Now extract data from the file
+          toast.loading("Analisando conteúdo com IA...", { id: "extract" });
+
           if (isPDF(firstFile)) {
             console.log('Processando PDF completo...');
             
-            toast.dismiss("extract");
-            toast.loading("Analisando PDF completo com IA avançada...", { id: "extract" });
-            
-            // Read PDF as base64
             const reader = new FileReader();
             reader.onloadend = async () => {
               try {
@@ -140,15 +153,12 @@ export default function CofreUpload() {
                 const data = await extractFromImage(base64);
                 
                 if (data) {
-                  toast.dismiss("extract");
-                  setExtractedData(data);
-                  // For PDF preview, create a simple placeholder or use first page
-                  setCurrentImagePreview(base64);
-                  setShowReviewModal(true);
+                  await saveDocumentAutomatically(data, user.id, filePath, firstFile.type);
                 } else {
                   throw new Error("Não foi possível extrair dados do PDF");
                 }
               } catch (err) {
+                await supabase.storage.from('cofre-saude').remove([filePath]);
                 throw err;
               }
             };
@@ -162,22 +172,23 @@ export default function CofreUpload() {
                 const data = await extractFromImage(base64);
                 
                 if (data) {
-                  toast.dismiss("extract");
-                  setExtractedData(data);
-                  setCurrentImagePreview(base64);
-                  setShowReviewModal(true);
+                  await saveDocumentAutomatically(data, user.id, filePath, firstFile.type);
+                } else {
+                  await supabase.storage.from('cofre-saude').remove([filePath]);
+                  throw new Error("Não foi possível extrair informações da imagem");
                 }
               } catch (err: any) {
+                await supabase.storage.from('cofre-saude').remove([filePath]);
                 throw err;
               }
             };
             reader.readAsDataURL(firstFile);
           }
         } catch (error: any) {
-          console.error('Erro ao extrair informações:', error);
+          console.error('Erro ao processar documento:', error);
           toast.dismiss("extract");
           
-          let errorMessage = "Não conseguimos extrair as informações. ";
+          let errorMessage = "Não conseguimos processar o documento. ";
           let suggestions = "";
           
           if (error.message?.includes('Invalid') || error.message?.includes('formato')) {
@@ -192,85 +203,77 @@ export default function CofreUpload() {
           }
           
           toast.error(`${errorMessage} ${suggestions}`, { duration: 8000 });
-        } finally {
           setIsExtracting(false);
+          setUploading(false);
         }
       }
     }
   };
 
-  const handleReviewConfirm = async (reviewedData: any) => {
-    if (files.length === 0) {
-      toast.error("Nenhum arquivo selecionado");
-      return;
-    }
-
-    setUploading(true);
-
+  const saveDocumentAutomatically = async (extractedData: any, userId: string, filePath: string, mimeType: string) => {
     try {
-      const file = files[0];
-      
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Usuário não autenticado");
-
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-      const filePath = `${user.id}/${fileName}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('cofre-saude')
-        .upload(filePath, file);
-
-      if (uploadError) throw uploadError;
+      toast.loading("Salvando documento...", { id: "extract" });
 
       const { data: categoriaData } = await supabase
         .from('categorias_saude')
         .select('id')
-        .eq('slug', reviewedData.category)
-        .single();
+        .eq('slug', extractedData.category)
+        .maybeSingle();
 
-      const { error: insertError } = await supabase
+      const { data: newDoc, error: insertError } = await supabase
         .from('documentos_saude')
         .insert({
-          user_id: user.id,
+          user_id: userId,
           profile_id: activeProfile?.id,
           categoria_id: categoriaData?.id,
-          title: reviewedData.title,
+          title: extractedData.title,
           file_path: filePath,
-          mime_type: file.type,
-          issued_at: reviewedData.issued_at || null,
-          expires_at: reviewedData.expires_at || null,
-          provider: reviewedData.provider || null,
-          confidence_score: reviewedData.confidence_score || 0,
-          status_extraction: reviewedData.confidence_score >= 0.7 ? 'confirmed' : 'pending_review',
+          mime_type: mimeType,
+          issued_at: extractedData.issued_at || null,
+          expires_at: extractedData.expires_at || null,
+          provider: extractedData.provider || null,
+          confidence_score: extractedData.confidence_score || 0,
+          status_extraction: 'confirmed',
           meta: {
-            extracted_values: reviewedData.extracted_values,
-            prescriptions: reviewedData.prescriptions,
-            vaccine_name: reviewedData.vaccine_name,
-            dose_number: reviewedData.dose_number,
-            doctor_name: reviewedData.doctor_name,
-            specialty: reviewedData.specialty,
+            extracted_values: extractedData.extracted_values,
+            prescriptions: extractedData.prescriptions,
+            vaccine_name: extractedData.vaccine_name,
+            dose_number: extractedData.dose_number,
+            doctor_name: extractedData.doctor_name,
+            specialty: extractedData.specialty,
           },
-          notes: reviewedData.notes,
-        });
+          ocr_text: JSON.stringify(extractedData),
+        })
+        .select()
+        .single();
 
       if (insertError) throw insertError;
 
-      toast.success("✓ Documento salvo com sucesso!");
-      navigate("/cofre");
+      toast.dismiss("extract");
+      toast.success("✓ Documento salvo automaticamente!", { duration: 3000 });
+      
+      // Show brief summary
+      const summary = [];
+      if (extractedData.title) summary.push(`📄 ${extractedData.title}`);
+      if (extractedData.provider) summary.push(`🏥 ${extractedData.provider}`);
+      if (extractedData.issued_at) summary.push(`📅 ${new Date(extractedData.issued_at).toLocaleDateString('pt-BR')}`);
+      
+      if (summary.length > 0) {
+        toast.info(summary.join(' • '), { duration: 5000 });
+      }
+
+      navigate(`/cofre/${newDoc.id}`);
     } catch (error: any) {
       console.error("Erro ao salvar:", error);
+      toast.dismiss("extract");
       toast.error("Erro ao salvar documento");
+      await supabase.storage.from('cofre-saude').remove([filePath]);
     } finally {
+      setIsExtracting(false);
       setUploading(false);
     }
   };
 
-  const handleReviewSkip = () => {
-    toast.info("Documento salvo sem revisão");
-    setShowReviewModal(false);
-    // Could offer manual form here
-  };
 
   return (
     <div className="min-h-screen bg-background pb-20">
@@ -427,21 +430,12 @@ export default function CofreUpload() {
           </Card>
 
           <div className="text-center text-xs text-muted-foreground space-y-1">
-            <p>✨ <strong>Extração automática inteligente:</strong></p>
-            <p>Exames, receitas, vacinas e consultas são identificados automaticamente</p>
-            <p>Você poderá revisar os dados antes de salvar</p>
+            <p>✨ <strong>Extração e salvamento automáticos:</strong></p>
+            <p>IA identifica exames, receitas, vacinas e consultas</p>
+            <p>Dados são preenchidos e salvos automaticamente</p>
           </div>
         </div>
       </div>
-
-      <DocumentReviewModal
-        open={showReviewModal}
-        onOpenChange={setShowReviewModal}
-        extractedData={extractedData || {}}
-        imagePreview={currentImagePreview}
-        onConfirm={handleReviewConfirm}
-        onSkip={handleReviewSkip}
-      />
 
       <UpgradeModal open={showUpgrade} onOpenChange={setShowUpgrade} feature="Cofre de documentos" />
       <Navigation />
