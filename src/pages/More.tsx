@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { 
   FileText, Users, Settings, Crown, LogOut, 
-  ChevronRight, HelpCircle, Shield, Bell, QrCode, Package, FolderHeart, History, BookOpen, Plane
+  ChevronRight, HelpCircle, Shield, Bell, QrCode, Package, FolderHeart, History, BookOpen, Plane, Activity
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Navigation from "@/components/Navigation";
@@ -63,6 +63,13 @@ export default function More() {
   };
 
   const menuItems = [
+    {
+      title: "Diário de Efeitos",
+      description: "Registre como você se sente",
+      icon: Activity,
+      path: "/diario-efeitos",
+      badge: <Badge variant="secondary" className="ml-2">Novo</Badge>,
+    },
     {
       title: "Modo Viagem",
       description: "Planeje viagens com ajustes automáticos",
