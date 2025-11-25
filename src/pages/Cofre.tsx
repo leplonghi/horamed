@@ -201,7 +201,7 @@ export default function Cofre() {
       <div className="container max-w-6xl mx-auto px-4 pt-24 pb-6 space-y-6">
         <div className="flex items-start justify-between gap-4">
           <div className="space-y-3">
-            <h1 className="heading-page">Cofre de Saúde 🔒</h1>
+            <h1 className="heading-page">Carteira de Saúde 🏥</h1>
             <p className="text-description">
               Seus documentos médicos organizados e seguros
             </p>
@@ -276,7 +276,7 @@ export default function Cofre() {
 
         <TutorialHint
           id="cofre_page"
-          title="Seu cofre digital seguro 🔒"
+          title="Sua carteira de saúde digital 🏥"
           message="Guarde exames, receitas, vacinas e consultas aqui. Compartilhe facilmente com médicos quando precisar! Tudo com segurança e privacidade."
         />
 

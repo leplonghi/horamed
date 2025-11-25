@@ -16,7 +16,7 @@ export default function Navigation() {
     { path: "/hoje", icon: Home, label: "Hoje" },
     { path: "/rotina", icon: CalendarDays, label: "Rotina" },
     { path: "/progresso", icon: TrendingUp, label: "Progresso" },
-    { path: "/cofre", icon: FileText, label: "Cofre", badge: expiringCount > 0 ? expiringCount : undefined },
+    { path: "/cofre", icon: FileText, label: "Carteira", badge: expiringCount > 0 ? expiringCount : undefined },
     { path: "/perfil", icon: User, label: "Eu" },
   ];
 
