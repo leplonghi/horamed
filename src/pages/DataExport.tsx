@@ -59,19 +59,36 @@ export default function DataExport() {
       const doc = new jsPDF();
       let yPos = 20;
 
-      // Add header with logo
-      yPos = addHeader(
-        doc,
-        'Exportação Completa de Dados',
-        'HoraMed - Seus dados de saúde',
-        yPos,
-        logoImage
-      );
+      // Add compact header with logo
+      if (logoImage) {
+        try {
+          doc.addImage(logoImage, 'PNG', 15, yPos, 20, 20);
+        } catch (error) {
+          console.error('Error adding logo:', error);
+        }
+      }
+      
+      doc.setFontSize(16);
+      doc.setTextColor(82, 109, 255);
+      doc.text('Exportação de Dados - HoraMed', 105, yPos + 8, { align: 'center' });
+      
+      doc.setFontSize(8);
+      doc.setTextColor(100, 116, 139);
+      doc.text(`Gerado em ${format(new Date(), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}`, 105, yPos + 14, { align: 'center' });
+      
+      yPos += 25;
 
       // User info section
-      if (selectedSections.profile) {
-        yPos = addSectionHeader(doc, '📋 Informações do Usuário', yPos);
-        if (data.profile) {
+      if (selectedSections.profile && data.profile) {
+        yPos = checkPageBreak(doc, yPos, 60);
+        
+        doc.setFillColor(82, 109, 255);
+        doc.rect(15, yPos, 180, 6, 'F');
+        doc.setFontSize(10);
+        doc.setTextColor(255, 255, 255);
+        doc.text('📋 Informações do Usuário', 18, yPos + 4);
+        yPos += 10;
+        
         const profileData = [
           ['Nome', data.profile.full_name || '-'],
           ['Data de Nascimento', data.profile.birth_date ? format(new Date(data.profile.birth_date), 'dd/MM/yyyy', { locale: ptBR }) : '-'],
@@ -82,19 +99,39 @@ export default function DataExport() {
           startY: yPos,
           head: [['Campo', 'Valor']],
           body: profileData,
-          theme: 'striped',
-          headStyles: { fillColor: [82, 109, 255] },
+          theme: 'grid',
+          headStyles: { 
+            fillColor: [240, 240, 245],
+            textColor: [30, 30, 30],
+            fontSize: 9,
+            fontStyle: 'bold'
+          },
+          bodyStyles: {
+            fontSize: 8,
+            textColor: [50, 50, 50]
+          },
+          columnStyles: {
+            0: { cellWidth: 60, fontStyle: 'bold' },
+            1: { cellWidth: 120 }
+          },
+          margin: { left: 15, right: 15 }
         });
-        yPos = (doc as any).lastAutoTable.finalY + 15;
-        }
+        yPos = (doc as any).lastAutoTable.finalY + 10;
       }
 
       // Profiles section
       if (selectedSections.profiles && data.user_profiles && data.user_profiles.length > 0) {
         yPos = checkPageBreak(doc, yPos, 60);
-        yPos = addSectionHeader(doc, '👥 Perfis de Família', yPos);
+        
+        doc.setFillColor(82, 109, 255);
+        doc.rect(15, yPos, 180, 6, 'F');
+        doc.setFontSize(10);
+        doc.setTextColor(255, 255, 255);
+        doc.text('👥 Perfis de Família', 18, yPos + 4);
+        yPos += 10;
+        
         const profilesData = data.user_profiles.map((p: any) => [
-          p.name,
+          p.name || '-',
           p.relationship || 'Principal',
           p.birth_date ? format(new Date(p.birth_date), 'dd/MM/yyyy', { locale: ptBR }) : '-',
         ]);
@@ -102,18 +139,35 @@ export default function DataExport() {
           startY: yPos,
           head: [['Nome', 'Relação', 'Data de Nascimento']],
           body: profilesData,
-          theme: 'striped',
-          headStyles: { fillColor: [82, 109, 255] },
+          theme: 'grid',
+          headStyles: { 
+            fillColor: [240, 240, 245],
+            textColor: [30, 30, 30],
+            fontSize: 9,
+            fontStyle: 'bold'
+          },
+          bodyStyles: {
+            fontSize: 8,
+            textColor: [50, 50, 50]
+          },
+          margin: { left: 15, right: 15 }
         });
-        yPos = (doc as any).lastAutoTable.finalY + 15;
+        yPos = (doc as any).lastAutoTable.finalY + 10;
       }
 
       // Medications section
       if (selectedSections.medications && data.items && data.items.length > 0) {
         yPos = checkPageBreak(doc, yPos, 60);
-        yPos = addSectionHeader(doc, '💊 Medicamentos', yPos);
+        
+        doc.setFillColor(82, 109, 255);
+        doc.rect(15, yPos, 180, 6, 'F');
+        doc.setFontSize(10);
+        doc.setTextColor(255, 255, 255);
+        doc.text('💊 Medicamentos', 18, yPos + 4);
+        yPos += 10;
+        
         const medsData = data.items.map((item: any) => [
-          item.name,
+          item.name || '-',
           item.category || '-',
           item.dose_text || '-',
           item.is_active ? 'Ativo' : 'Inativo',
@@ -122,78 +176,158 @@ export default function DataExport() {
           startY: yPos,
           head: [['Nome', 'Categoria', 'Dosagem', 'Status']],
           body: medsData,
-          theme: 'striped',
-          headStyles: { fillColor: [82, 109, 255] },
+          theme: 'grid',
+          headStyles: { 
+            fillColor: [240, 240, 245],
+            textColor: [30, 30, 30],
+            fontSize: 9,
+            fontStyle: 'bold'
+          },
+          bodyStyles: {
+            fontSize: 8,
+            textColor: [50, 50, 50]
+          },
+          margin: { left: 15, right: 15 }
         });
-        yPos = (doc as any).lastAutoTable.finalY + 15;
+        yPos = (doc as any).lastAutoTable.finalY + 10;
       }
 
       // Doses section - summary
       if (selectedSections.doses && data.dose_instances && data.dose_instances.length > 0) {
         yPos = checkPageBreak(doc, yPos, 60);
-        yPos = addSectionHeader(doc, '📊 Histórico de Doses (Resumo)', yPos);
+        
+        doc.setFillColor(82, 109, 255);
+        doc.rect(15, yPos, 180, 6, 'F');
+        doc.setFontSize(10);
+        doc.setTextColor(255, 255, 255);
+        doc.text('📊 Histórico de Doses (Resumo)', 18, yPos + 4);
+        yPos += 10;
+        
         const taken = data.dose_instances.filter((d: any) => d.status === 'taken').length;
         const skipped = data.dose_instances.filter((d: any) => d.status === 'skipped').length;
         const pending = data.dose_instances.filter((d: any) => d.status === 'pending').length;
+        const adherenceRate = taken + skipped > 0 ? Math.round((taken / (taken + skipped)) * 100) : 0;
+        
         const summaryData = [
           ['Total de Doses', data.dose_instances.length.toString()],
           ['Tomadas', taken.toString()],
           ['Puladas', skipped.toString()],
           ['Pendentes', pending.toString()],
-          ['Taxa de Compromisso', `${Math.round((taken / (taken + skipped)) * 100)}%`],
+          ['Taxa de Compromisso', `${adherenceRate}%`],
         ];
         autoTable(doc, {
           startY: yPos,
           head: [['Métrica', 'Valor']],
           body: summaryData,
-          theme: 'striped',
-          headStyles: { fillColor: [82, 109, 255] },
+          theme: 'grid',
+          headStyles: { 
+            fillColor: [240, 240, 245],
+            textColor: [30, 30, 30],
+            fontSize: 9,
+            fontStyle: 'bold'
+          },
+          bodyStyles: {
+            fontSize: 8,
+            textColor: [50, 50, 50]
+          },
+          columnStyles: {
+            0: { cellWidth: 100, fontStyle: 'bold' },
+            1: { cellWidth: 80 }
+          },
+          margin: { left: 15, right: 15 }
         });
-        yPos = (doc as any).lastAutoTable.finalY + 15;
+        yPos = (doc as any).lastAutoTable.finalY + 10;
       }
 
       // Documents section
       if (selectedSections.documents && data.documentos_saude && data.documentos_saude.length > 0) {
         yPos = checkPageBreak(doc, yPos, 60);
-        yPos = addSectionHeader(doc, '📄 Documentos de Saúde', yPos);
-        const docsData = data.documentos_saude.slice(0, 20).map((doc: any) => [
-          doc.title || 'Sem título',
-          doc.categoria_id || '-',
-          doc.issued_at ? format(new Date(doc.issued_at), 'dd/MM/yyyy', { locale: ptBR }) : '-',
+        
+        doc.setFillColor(82, 109, 255);
+        doc.rect(15, yPos, 180, 6, 'F');
+        doc.setFontSize(10);
+        doc.setTextColor(255, 255, 255);
+        doc.text('📄 Documentos de Saúde', 18, yPos + 4);
+        yPos += 10;
+        
+        const docsData = data.documentos_saude.slice(0, 20).map((document: any) => [
+          document.title || 'Sem título',
+          document.categoria_id || '-',
+          document.issued_at ? format(new Date(document.issued_at), 'dd/MM/yyyy', { locale: ptBR }) : '-',
         ]);
         autoTable(doc, {
           startY: yPos,
           head: [['Título', 'Categoria', 'Data']],
           body: docsData,
-          theme: 'striped',
-          headStyles: { fillColor: [82, 109, 255] },
+          theme: 'grid',
+          headStyles: { 
+            fillColor: [240, 240, 245],
+            textColor: [30, 30, 30],
+            fontSize: 9,
+            fontStyle: 'bold'
+          },
+          bodyStyles: {
+            fontSize: 8,
+            textColor: [50, 50, 50]
+          },
+          margin: { left: 15, right: 15 }
         });
-        yPos = (doc as any).lastAutoTable.finalY + 15;
+        yPos = (doc as any).lastAutoTable.finalY + 10;
       }
 
       // Health insights section
       if (selectedSections.insights && data.health_insights && data.health_insights.length > 0) {
         yPos = checkPageBreak(doc, yPos, 60);
-        yPos = addSectionHeader(doc, '💡 Insights de Saúde', yPos);
+        
+        doc.setFillColor(82, 109, 255);
+        doc.rect(15, yPos, 180, 6, 'F');
+        doc.setFontSize(10);
+        doc.setTextColor(255, 255, 255);
+        doc.text('💡 Insights de Saúde', 18, yPos + 4);
+        yPos += 10;
+        
+        const severityMap: Record<string, string> = {
+          critical: 'Crítico',
+          warning: 'Atenção',
+          info: 'Info'
+        };
+        
         const insightsData = data.health_insights.slice(0, 10).map((insight: any) => [
-          insight.title,
-          insight.severity,
-          insight.insight_type,
+          insight.title || '-',
+          severityMap[insight.severity] || insight.severity || '-',
+          insight.insight_type || '-',
         ]);
         autoTable(doc, {
           startY: yPos,
           head: [['Título', 'Severidade', 'Tipo']],
           body: insightsData,
-          theme: 'striped',
-          headStyles: { fillColor: [82, 109, 255] },
+          theme: 'grid',
+          headStyles: { 
+            fillColor: [240, 240, 245],
+            textColor: [30, 30, 30],
+            fontSize: 9,
+            fontStyle: 'bold'
+          },
+          bodyStyles: {
+            fontSize: 8,
+            textColor: [50, 50, 50]
+          },
+          margin: { left: 15, right: 15 }
         });
-        yPos = (doc as any).lastAutoTable.finalY + 15;
+        yPos = (doc as any).lastAutoTable.finalY + 10;
       }
 
       // Summary section at the end
       doc.addPage();
       yPos = 20;
-      yPos = addSectionHeader(doc, '📈 Resumo da Exportação', yPos);
+      
+      doc.setFillColor(82, 109, 255);
+      doc.rect(15, yPos, 180, 6, 'F');
+      doc.setFontSize(10);
+      doc.setTextColor(255, 255, 255);
+      doc.text('📈 Resumo da Exportação', 18, yPos + 4);
+      yPos += 10;
+      
       const summaryData = [
         ['Total de Perfis', (data.user_profiles?.length || 0).toString()],
         ['Total de Medicamentos', (data.items?.length || 0).toString()],
@@ -206,12 +340,40 @@ export default function DataExport() {
         startY: yPos,
         head: [['Item', 'Quantidade']],
         body: summaryData,
-        theme: 'striped',
-        headStyles: { fillColor: [82, 109, 255] },
+        theme: 'grid',
+        headStyles: { 
+          fillColor: [240, 240, 245],
+          textColor: [30, 30, 30],
+          fontSize: 9,
+          fontStyle: 'bold'
+        },
+        bodyStyles: {
+          fontSize: 8,
+          textColor: [50, 50, 50]
+        },
+        columnStyles: {
+          0: { cellWidth: 120, fontStyle: 'bold' },
+          1: { cellWidth: 60 }
+        },
+        margin: { left: 15, right: 15 }
       });
 
       // Add footer to all pages
-      addFooter(doc, 'Documento gerado em conformidade com a LGPD. Mantenha em local seguro.');
+      const pageCount = doc.getNumberOfPages();
+      for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(7);
+        doc.setTextColor(100, 116, 139);
+        doc.text(
+          `Página ${i} de ${pageCount} | HoraMed - Gestão de Saúde`,
+          105,
+          287,
+          { align: 'center' }
+        );
+        doc.setFontSize(6);
+        doc.setTextColor(150, 150, 150);
+        doc.text('Documento gerado em conformidade com a LGPD. Mantenha em local seguro.', 105, 292, { align: 'center' });
+      }
 
       // Save PDF
       doc.save(`horamed-dados-${format(new Date(), 'yyyy-MM-dd')}.pdf`);
