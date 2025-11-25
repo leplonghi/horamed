@@ -35,6 +35,7 @@ import { ExpiredPrescriptionsAlert } from "@/components/ExpiredPrescriptionsAler
 import { SmartActionCards } from "@/components/SmartActionCards";
 import TutorialHint from "@/components/TutorialHint";
 import HelpTooltip from "@/components/HelpTooltip";
+import { FileDown, ArrowRight } from "lucide-react";
 
 interface TimelineItem {
   id: string;
@@ -674,6 +675,29 @@ export default function Today() {
               </CardContent>
             </Card>
           )}
+
+          {/* Export Card */}
+          <Card 
+            className="border-muted hover:border-primary/30 transition-colors cursor-pointer group"
+            onClick={() => navigate('/exportar')}
+          >
+            <CardContent className="pt-6 pb-6 space-y-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-muted rounded-lg group-hover:bg-primary/10 transition-colors">
+                    <FileDown className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold group-hover:text-primary transition-colors">Exportar Dados</p>
+                    <p className="text-xs text-muted-foreground">
+                      Baixe seus dados de saúde em PDF (LGPD)
+                    </p>
+                  </div>
+                </div>
+                <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Calendário Melhorado */}
           <ImprovedCalendar

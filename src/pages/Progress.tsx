@@ -10,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfileCacheContext } from "@/contexts/ProfileCacheContext";
 import StreakAnimation from "@/components/celebrations/StreakAnimation";
-import { Trophy, TrendingUp, Calendar, Target, Award, Zap, Sparkles, ArrowRight } from "lucide-react";
+import { Trophy, TrendingUp, Calendar, Target, Award, Zap, Sparkles, ArrowRight, FileDown } from "lucide-react";
 import { subDays } from "date-fns";
 import { motion } from "framer-motion";
 import TutorialHint from "@/components/TutorialHint";
@@ -326,6 +326,35 @@ export default function Progress() {
             </Card>
           </motion.div>
         </div>
+
+        {/* Export Card */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+        >
+          <Card 
+            className="border-muted hover:border-primary/30 transition-all cursor-pointer group hover:shadow-lg"
+            onClick={() => navigate('/exportar')}
+          >
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-3 bg-muted rounded-lg group-hover:bg-primary/10 transition-colors">
+                    <FileDown className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-base">Exportar Dados</CardTitle>
+                    <CardDescription className="text-xs">
+                      Baixe relatório completo em PDF
+                    </CardDescription>
+                  </div>
+                </div>
+                <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
+              </div>
+            </CardHeader>
+          </Card>
+        </motion.div>
       </main>
 
       <Navigation />
