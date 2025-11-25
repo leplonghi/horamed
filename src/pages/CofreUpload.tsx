@@ -260,28 +260,35 @@ export default function CofreUpload() {
 
       toast.dismiss("extract");
       
-      // Show what was created
-      const created = [];
-      if (createdRecords.consulta) created.push("📋 Consulta");
-      if (createdRecords.exame) created.push(`🧪 Exame com ${createdRecords.valoresCount || 0} valores`);
-      if (createdRecords.evento) created.push("💉 Lembrete de vacina");
+      // Show comprehensive success message
+      const createdItems = [];
+      if (createdRecords.consulta) createdItems.push("✓ Consulta registrada");
+      if (createdRecords.exame) createdItems.push(`✓ Exame com ${createdRecords.valoresCount || 0} parâmetro(s)`);
+      if (createdRecords.evento) createdItems.push("✓ Lembrete de vacina criado");
       
-      if (created.length > 0) {
-        toast.success(`✓ Documento salvo! Criado: ${created.join(", ")}`, { duration: 4000 });
+      if (createdItems.length > 0) {
+        toast.success("✓ Documento salvo com sucesso!", { duration: 4000 });
+        toast.info(createdItems.join("\n"), { duration: 5000 });
       } else {
-        toast.success("✓ Documento salvo automaticamente!", { duration: 3000 });
+        toast.success("✓ Documento salvo!", { duration: 3000 });
       }
       
-      // Show brief summary
+      // Show document summary
       const summary = [];
       if (extractedData.title) summary.push(`📄 ${extractedData.title}`);
       if (extractedData.provider) summary.push(`🏥 ${extractedData.provider}`);
-      if (extractedData.doctor_name) summary.push(`👨‍⚕️ Dr(a). ${extractedData.doctor_name}`);
-      if (extractedData.doctor_registration) summary.push(`📋 CRM ${extractedData.doctor_registration}`);
+      if (extractedData.doctor_name) {
+        const doctorInfo = `👨‍⚕️ Dr(a). ${extractedData.doctor_name}`;
+        if (extractedData.doctor_registration) {
+          summary.push(`${doctorInfo} (CRM ${extractedData.doctor_registration})`);
+        } else {
+          summary.push(doctorInfo);
+        }
+      }
       if (extractedData.issued_at) summary.push(`📅 ${new Date(extractedData.issued_at).toLocaleDateString('pt-BR')}`);
       
       if (summary.length > 0) {
-        toast.info(summary.join(' • '), { duration: 5000 });
+        toast.info(summary.join(" • "), { duration: 4000 });
       }
 
       // Check for medications to add
@@ -434,7 +441,8 @@ export default function CofreUpload() {
       }
 
       toast.dismiss("add-meds");
-      toast.success(`✓ ${extractedMedications.length} medicamento(s) adicionado(s)!`);
+      toast.success(`✓ ${extractedMedications.length} medicamento(s) adicionado(s) à sua rotina!`, { duration: 4000 });
+      toast.info("Você receberá lembretes automáticos nos horários configurados", { duration: 4000 });
       setShowMedicationModal(false);
       navigate('/rotina');
     } catch (error) {
@@ -637,44 +645,85 @@ export default function CofreUpload() {
       
       {/* Medication suggestion modal */}
       {showMedicationModal && (
-        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <Card className="w-full max-w-lg">
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
+          <Card className="w-full max-w-lg animate-scale-in">
             <CardContent className="p-6">
-              <h2 className="text-xl font-bold mb-2">💊 Medicamentos Encontrados</h2>
-              <p className="text-sm text-muted-foreground mb-4">
-                Detectamos {extractedMedications.length} medicamento(s) na receita. Deseja adicioná-los à sua rotina?
-              </p>
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
+                  <span className="text-2xl">💊</span>
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold">Medicamentos da Receita</h2>
+                  <p className="text-sm text-muted-foreground">
+                    Adicionar à sua rotina de medicamentos
+                  </p>
+                </div>
+              </div>
+
+              <div className="bg-blue-50 dark:bg-blue-950 p-3 rounded-lg mb-4">
+                <p className="text-sm text-blue-900 dark:text-blue-100">
+                  <strong>{extractedMedications.length} medicamento(s)</strong> encontrados nesta receita.
+                  Vamos criar lembretes automáticos nos horários corretos!
+                </p>
+              </div>
               
               <div className="space-y-3 mb-6 max-h-64 overflow-y-auto">
                 {extractedMedications.map((med, idx) => (
-                  <div key={idx} className="p-3 bg-muted rounded-lg">
-                    <p className="font-semibold">{med.drug_name}</p>
-                    <div className="text-sm text-muted-foreground space-y-1 mt-1">
-                      {med.dose && <p>💊 Dose: {med.dose}</p>}
-                      {med.frequency && <p>⏰ Frequência: {med.frequency}</p>}
-                      {med.duration_days && <p>📅 Duração: {med.duration_days} dias</p>}
+                  <div key={idx} className="p-4 border border-blue-200 dark:border-blue-800 bg-background rounded-lg">
+                    <div className="flex items-start gap-3">
+                      <div className="w-10 h-10 rounded bg-blue-100 dark:bg-blue-900 flex items-center justify-center flex-shrink-0">
+                        <span className="text-lg">💊</span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-base">{med.drug_name}</p>
+                        <div className="text-sm space-y-1 mt-2">
+                          {med.dose && (
+                            <div className="flex items-center gap-2 text-muted-foreground">
+                              <span className="w-5">💊</span>
+                              <span>Dose: <strong>{med.dose}</strong></span>
+                            </div>
+                          )}
+                          {med.frequency && (
+                            <div className="flex items-center gap-2 text-muted-foreground">
+                              <span className="w-5">⏰</span>
+                              <span>Frequência: <strong>{med.frequency}</strong></span>
+                            </div>
+                          )}
+                          {med.duration_days && (
+                            <div className="flex items-center gap-2 text-muted-foreground">
+                              <span className="w-5">📅</span>
+                              <span>Duração: <strong>{med.duration_days} dias</strong></span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   </div>
                 ))}
               </div>
-              
-              <div className="flex gap-3">
-                <Button
-                  variant="outline"
-                  className="flex-1"
-                  onClick={() => {
-                    setShowMedicationModal(false);
-                    navigate('/cofre');
-                  }}
-                >
-                  Agora Não
-                </Button>
-                <Button
-                  className="flex-1"
-                  onClick={addMedicationsFromPrescription}
-                >
-                  Adicionar Medicamentos
-                </Button>
+
+              <div className="border-t pt-4">
+                <p className="text-xs text-muted-foreground mb-3 text-center">
+                  ℹ️ Você poderá ajustar horários e doses depois na página "Rotina"
+                </p>
+                <div className="flex gap-3">
+                  <Button
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => {
+                      setShowMedicationModal(false);
+                      navigate('/cofre');
+                    }}
+                  >
+                    Agora Não
+                  </Button>
+                  <Button
+                    className="flex-1 bg-blue-600 hover:bg-blue-700"
+                    onClick={addMedicationsFromPrescription}
+                  >
+                    ✓ Adicionar à Rotina
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>

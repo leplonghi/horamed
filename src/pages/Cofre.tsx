@@ -76,21 +76,23 @@ export default function Cofre() {
     const getCategoryIcon = (categorySlug?: string) => {
       switch (categorySlug) {
         case "receita":
-          return "💊";
+          return { emoji: "💊", label: "Receita", color: "text-blue-600 dark:text-blue-400", bg: "bg-blue-50 dark:bg-blue-900/30" };
         case "exame":
-          return "🧪";
+          return { emoji: "🧪", label: "Exame", color: "text-green-600 dark:text-green-400", bg: "bg-green-50 dark:bg-green-900/30" };
         case "vacinacao":
-          return "💉";
+          return { emoji: "💉", label: "Vacina", color: "text-purple-600 dark:text-purple-400", bg: "bg-purple-50 dark:bg-purple-900/30" };
         case "consulta":
-          return "🩺";
+          return { emoji: "🩺", label: "Consulta", color: "text-orange-600 dark:text-orange-400", bg: "bg-orange-50 dark:bg-orange-900/30" };
         default:
-          return "📋";
+          return { emoji: "📋", label: "Documento", color: "text-gray-600 dark:text-gray-400", bg: "bg-gray-50 dark:bg-gray-900/30" };
       }
     };
 
+    const category = getCategoryIcon(doc.categorias_saude?.slug);
+
     return (
       <Link key={doc.id} to={`/cofre/${doc.id}`}>
-        <Card className="hover:shadow-lg transition-all cursor-pointer relative group">
+        <Card className="hover:shadow-lg transition-all cursor-pointer relative group border-l-4" style={{ borderLeftColor: category.color.includes('blue') ? '#2563eb' : category.color.includes('green') ? '#16a34a' : category.color.includes('purple') ? '#9333ea' : category.color.includes('orange') ? '#ea580c' : '#6b7280' }}>
           <Button
             variant="ghost"
             size="sm"
@@ -103,38 +105,47 @@ export default function Cofre() {
           >
             <Edit className="h-3.5 w-3.5" />
           </Button>
-          <CardContent className="p-3">
-            <div className="flex gap-2.5">
-              <div className="w-12 h-12 rounded bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center flex-shrink-0">
-                <span className="text-2xl">{getCategoryIcon(doc.categorias_saude?.slug)}</span>
+          <CardContent className="p-4">
+            <div className="flex gap-3">
+              <div className={`w-14 h-14 rounded-lg ${category.bg} flex items-center justify-center flex-shrink-0`}>
+                <span className="text-2xl">{category.emoji}</span>
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-sm truncate">{doc.title || "Sem título"}</h3>
-                <div className="flex flex-wrap gap-1.5 mt-1">
-                  {doc.categorias_saude && (
-                    <Badge variant="outline" className="text-[10px] h-5">
-                      {doc.categorias_saude.label}
-                    </Badge>
-                  )}
+                <h3 className="font-semibold text-base truncate mb-1">{doc.title || "Sem título"}</h3>
+                <div className="flex flex-wrap gap-1.5 mb-2">
+                  <Badge variant="outline" className={`text-[10px] h-5 ${category.color}`}>
+                    {category.label}
+                  </Badge>
                   {needsReview && (
                     <Badge variant="secondary" className="text-[10px] h-5 bg-amber-500/20 text-amber-700 dark:text-amber-400 border-amber-500/30">
-                      Revisar
+                      ⚠️ Revisar
                     </Badge>
                   )}
                   {isExpiringSoon && (
                     <Badge variant="destructive" className="text-[10px] h-5">
-                      Vence em breve
+                      ⏰ Vence em breve
                     </Badge>
                   )}
                 </div>
-                <div className="text-[10px] text-muted-foreground mt-1.5 space-y-0.5">
+                <div className="text-xs text-muted-foreground space-y-1">
                   {doc.issued_at && (
-                    <div>Emissão: {format(new Date(doc.issued_at), "dd/MM/yyyy", { locale: ptBR })}</div>
+                    <div className="flex items-center gap-1.5">
+                      <span>📅</span>
+                      <span>Emissão: {format(new Date(doc.issued_at), "dd/MM/yyyy", { locale: ptBR })}</span>
+                    </div>
                   )}
                   {doc.expires_at && (
-                    <div>Validade: {format(new Date(doc.expires_at), "dd/MM/yyyy", { locale: ptBR })}</div>
+                    <div className="flex items-center gap-1.5">
+                      <span>⏰</span>
+                      <span>Validade: {format(new Date(doc.expires_at), "dd/MM/yyyy", { locale: ptBR })}</span>
+                    </div>
                   )}
-                  {doc.provider && <div className="truncate">📍 {doc.provider}</div>}
+                  {doc.provider && (
+                    <div className="flex items-center gap-1.5 truncate">
+                      <span>🏥</span>
+                      <span className="truncate">{doc.provider}</span>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

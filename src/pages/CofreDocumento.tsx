@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Share2, Download, Trash2, Calendar, Edit } from "lucide-react";
+import { ArrowLeft, Share2, Download, Trash2, Calendar, Edit, Pill, Stethoscope, TestTube2, Syringe, ChevronDown, ChevronUp, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Separator } from "@/components/ui/separator";
 import { useDocumento, useCompartilhamentos, useDeletarDocumento } from "@/hooks/useCofre";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
@@ -23,6 +24,11 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 
 export default function CofreDocumento() {
   const { id } = useParams<{ id: string }>();
@@ -30,10 +36,35 @@ export default function CofreDocumento() {
   const [signedUrl, setSignedUrl] = useState<string>("");
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showUpgrade, setShowUpgrade] = useState(false);
+  const [expandedSections, setExpandedSections] = useState({
+    prescriptions: true,
+    exam: true,
+    consultation: true,
+    vaccine: true,
+  });
 
   const { data: documento, isLoading } = useDocumento(id);
   const { data: compartilhamentos } = useCompartilhamentos(id);
   const { mutate: deletar } = useDeletarDocumento();
+
+  const toggleSection = (section: keyof typeof expandedSections) => {
+    setExpandedSections(prev => ({ ...prev, [section]: !prev[section] }));
+  };
+
+  const getCategoryConfig = (categorySlug?: string) => {
+    switch (categorySlug) {
+      case "receita":
+        return { icon: Pill, color: "text-blue-600 dark:text-blue-400", bg: "bg-blue-50 dark:bg-blue-950", label: "Receita Médica" };
+      case "exame":
+        return { icon: TestTube2, color: "text-green-600 dark:text-green-400", bg: "bg-green-50 dark:bg-green-950", label: "Exame Laboratorial" };
+      case "vacinacao":
+        return { icon: Syringe, color: "text-purple-600 dark:text-purple-400", bg: "bg-purple-50 dark:bg-purple-950", label: "Cartão de Vacina" };
+      case "consulta":
+        return { icon: Stethoscope, color: "text-orange-600 dark:text-orange-400", bg: "bg-orange-50 dark:bg-orange-950", label: "Consulta Médica" };
+      default:
+        return { icon: Calendar, color: "text-gray-600 dark:text-gray-400", bg: "bg-gray-50 dark:bg-gray-950", label: "Documento" };
+    }
+  };
 
   useEffect(() => {
     const loadUrl = async () => {
@@ -103,28 +134,34 @@ export default function CofreDocumento() {
     );
   }
 
+  const categoryConfig = getCategoryConfig(documento?.categorias_saude?.slug);
+  const CategoryIcon = categoryConfig.icon;
+  const meta = documento?.meta as any;
+
   return (
     <div className="min-h-screen bg-background pb-20">
       <Header />
-      <div className="container max-w-4xl mx-auto px-4 py-6">
+      <div className="container max-w-4xl mx-auto px-4 py-6 pt-24">
         <Button variant="ghost" onClick={() => navigate("/cofre")} className="mb-4">
           <ArrowLeft className="w-4 h-4 mr-2" />
           Voltar
         </Button>
 
+        {/* Header Card with Category */}
         <Card className="mb-6">
           <CardHeader>
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <CardTitle className="text-2xl mb-2">{documento.title || "Sem título"}</CardTitle>
-                <div className="flex flex-wrap gap-2">
-                  {documento.categorias_saude && (
-                    <Badge variant="outline">{documento.categorias_saude.label}</Badge>
-                  )}
-                  {documento.user_profiles && (
-                    <Badge variant="secondary">{documento.user_profiles.name}</Badge>
-                  )}
-                </div>
+            <div className="flex items-start gap-4">
+              <div className={`w-16 h-16 rounded-lg ${categoryConfig.bg} flex items-center justify-center flex-shrink-0`}>
+                <CategoryIcon className={`w-8 h-8 ${categoryConfig.color}`} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <Badge variant="outline" className="mb-2">{categoryConfig.label}</Badge>
+                <CardTitle className="text-2xl">{documento.title || "Sem título"}</CardTitle>
+                {documento.user_profiles && (
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Perfil: {documento.user_profiles.name}
+                  </p>
+                )}
               </div>
             </div>
           </CardHeader>
@@ -132,7 +169,7 @@ export default function CofreDocumento() {
             <div className="grid grid-cols-2 gap-4 text-sm">
               {documento.issued_at && (
                 <div>
-                  <p className="text-muted-foreground">Data de Emissão</p>
+                  <p className="text-muted-foreground">📅 Data de Emissão</p>
                   <p className="font-medium">
                     {format(new Date(documento.issued_at), "dd/MM/yyyy", { locale: ptBR })}
                   </p>
@@ -140,7 +177,7 @@ export default function CofreDocumento() {
               )}
               {documento.expires_at && (
                 <div>
-                  <p className="text-muted-foreground">Validade</p>
+                  <p className="text-muted-foreground">⏰ Validade</p>
                   <p className="font-medium">
                     {format(new Date(documento.expires_at), "dd/MM/yyyy", { locale: ptBR })}
                   </p>
@@ -148,30 +185,43 @@ export default function CofreDocumento() {
               )}
               {documento.provider && (
                 <div className="col-span-2">
-                  <p className="text-muted-foreground">Prestador</p>
+                  <p className="text-muted-foreground">🏥 Prestador</p>
                   <p className="font-medium">{documento.provider}</p>
+                </div>
+              )}
+              {meta?.doctor_name && (
+                <div className="col-span-2">
+                  <p className="text-muted-foreground">👨‍⚕️ Médico</p>
+                  <p className="font-medium">
+                    {meta.doctor_name}
+                    {meta.doctor_registration && ` • CRM ${meta.doctor_registration}`}
+                  </p>
                 </div>
               )}
             </div>
 
             {documento.notes && (
-              <div>
-                <p className="text-sm text-muted-foreground mb-1">Observações</p>
-                <p className="text-sm">{documento.notes}</p>
-              </div>
+              <>
+                <Separator />
+                <div>
+                  <p className="text-sm text-muted-foreground mb-1">📝 Observações</p>
+                  <p className="text-sm">{documento.notes}</p>
+                </div>
+              </>
             )}
 
-            <div className="flex flex-wrap gap-2 pt-4">
-              <Button onClick={() => navigate(`/cofre/${id}/editar`)} variant="outline">
+            <Separator />
+            <div className="flex flex-wrap gap-2">
+              <Button onClick={() => navigate(`/cofre/${id}/editar`)} variant="outline" size="sm">
                 <Edit className="w-4 h-4 mr-2" />
                 Editar
               </Button>
-              <Button onClick={handleCompartilhar} variant="outline">
+              <Button onClick={handleCompartilhar} variant="outline" size="sm">
                 <Share2 className="w-4 h-4 mr-2" />
                 Compartilhar
               </Button>
               {signedUrl && (
-                <Button asChild variant="outline">
+                <Button asChild variant="outline" size="sm">
                   <a href={signedUrl} download target="_blank" rel="noopener noreferrer">
                     <Download className="w-4 h-4 mr-2" />
                     Baixar
@@ -181,6 +231,7 @@ export default function CofreDocumento() {
               <Button
                 onClick={() => setShowDeleteDialog(true)}
                 variant="destructive"
+                size="sm"
                 className="ml-auto"
               >
                 <Trash2 className="w-4 h-4 mr-2" />
@@ -189,6 +240,143 @@ export default function CofreDocumento() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Extracted Data Sections */}
+        {meta?.prescriptions && meta.prescriptions.length > 0 && (
+          <Card className="mb-4">
+            <Collapsible open={expandedSections.prescriptions} onOpenChange={() => toggleSection('prescriptions')}>
+              <CardHeader className="cursor-pointer" onClick={() => toggleSection('prescriptions')}>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Pill className="w-5 h-5 text-blue-600" />
+                    <CardTitle className="text-lg">Medicamentos Prescritos</CardTitle>
+                    <Badge variant="secondary">{meta.prescriptions.length}</Badge>
+                  </div>
+                  <CollapsibleTrigger asChild>
+                    <Button variant="ghost" size="sm">
+                      {expandedSections.prescriptions ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                    </Button>
+                  </CollapsibleTrigger>
+                </div>
+              </CardHeader>
+              <CollapsibleContent>
+                <CardContent className="space-y-3">
+                  {meta.prescriptions.map((med: any, idx: number) => (
+                    <div key={idx} className="p-3 bg-blue-50 dark:bg-blue-950 rounded-lg">
+                      <p className="font-semibold text-blue-900 dark:text-blue-100">{med.drug_name}</p>
+                      <div className="text-sm text-blue-700 dark:text-blue-300 space-y-1 mt-1">
+                        {med.dose && <p>💊 Dose: {med.dose}</p>}
+                        {med.frequency && <p>⏰ Frequência: {med.frequency}</p>}
+                        {med.duration_days && <p>📅 Duração: {med.duration_days} dias</p>}
+                      </div>
+                    </div>
+                  ))}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full"
+                    onClick={() => navigate('/rotina')}
+                  >
+                    <ExternalLink className="w-4 h-4 mr-2" />
+                    Ver na Rotina de Medicamentos
+                  </Button>
+                </CardContent>
+              </CollapsibleContent>
+            </Collapsible>
+          </Card>
+        )}
+
+        {meta?.extracted_values && meta.extracted_values.length > 0 && (
+          <Card className="mb-4">
+            <Collapsible open={expandedSections.exam} onOpenChange={() => toggleSection('exam')}>
+              <CardHeader className="cursor-pointer" onClick={() => toggleSection('exam')}>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <TestTube2 className="w-5 h-5 text-green-600" />
+                    <CardTitle className="text-lg">Resultados do Exame</CardTitle>
+                    <Badge variant="secondary">{meta.extracted_values.length}</Badge>
+                  </div>
+                  <CollapsibleTrigger asChild>
+                    <Button variant="ghost" size="sm">
+                      {expandedSections.exam ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                    </Button>
+                  </CollapsibleTrigger>
+                </div>
+              </CardHeader>
+              <CollapsibleContent>
+                <CardContent className="space-y-2">
+                  {meta.extracted_values.map((val: any, idx: number) => (
+                    <div key={idx} className="p-3 bg-green-50 dark:bg-green-950 rounded-lg">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <p className="font-semibold text-green-900 dark:text-green-100">{val.parameter}</p>
+                          <p className="text-sm text-green-700 dark:text-green-300">
+                            {val.value} {val.unit}
+                          </p>
+                          {val.reference_range && (
+                            <p className="text-xs text-green-600 dark:text-green-400">
+                              Referência: {val.reference_range}
+                            </p>
+                          )}
+                        </div>
+                        {val.status && (
+                          <Badge
+                            variant={val.status === 'normal' ? 'outline' : 'destructive'}
+                            className="ml-2"
+                          >
+                            {val.status === 'normal' ? '✓ Normal' : '⚠️ Alterado'}
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </CardContent>
+              </CollapsibleContent>
+            </Collapsible>
+          </Card>
+        )}
+
+        {meta?.vaccine_name && (
+          <Card className="mb-4">
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <Syringe className="w-5 h-5 text-purple-600" />
+                <CardTitle className="text-lg">Informações da Vacina</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <div className="p-3 bg-purple-50 dark:bg-purple-950 rounded-lg">
+                <p className="font-semibold text-purple-900 dark:text-purple-100">{meta.vaccine_name}</p>
+                {meta.dose_number && <p className="text-sm text-purple-700 dark:text-purple-300">Dose: {meta.dose_number}</p>}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {(meta?.diagnosis || meta?.specialty) && (
+          <Card className="mb-4">
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <Stethoscope className="w-5 h-5 text-orange-600" />
+                <CardTitle className="text-lg">Detalhes da Consulta</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {meta.specialty && (
+                <div>
+                  <p className="text-sm text-muted-foreground">Especialidade</p>
+                  <p className="font-medium">{meta.specialty}</p>
+                </div>
+              )}
+              {meta.diagnosis && (
+                <div>
+                  <p className="text-sm text-muted-foreground">Diagnóstico/Avaliação</p>
+                  <p className="text-sm">{meta.diagnosis}</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
 
         {signedUrl && (
           <Card>
