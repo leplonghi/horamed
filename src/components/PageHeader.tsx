@@ -23,10 +23,10 @@ export default function PageHeader({ title, description, icon, actions }: PageHe
               {icon}
             </div>
           )}
-          <h1 className="text-3xl font-bold text-foreground">{title}</h1>
+          <h1 className="heading-page">{title}</h1>
         </div>
         {description && (
-          <p className="text-muted-foreground text-lg">{description}</p>
+          <p className="text-description">{description}</p>
         )}
       </div>
       {actions && <div className="flex gap-2">{actions}</div>}

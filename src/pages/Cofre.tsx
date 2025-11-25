@@ -119,18 +119,18 @@ export default function Cofre() {
                 <span className="text-2xl">{category.emoji}</span>
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-base truncate mb-1">{doc.title || "Sem título"}</h3>
+                <h3 className="heading-card truncate mb-2">{doc.title || "Sem título"}</h3>
                 <div className="flex flex-wrap gap-1.5 mb-2">
-                  <Badge variant="outline" className={`text-[10px] h-5 ${category.color}`}>
+                  <Badge variant="outline" className={`text-tiny h-5 ${category.color}`}>
                     {category.label}
                   </Badge>
                   {needsReview && (
-                    <Badge variant="secondary" className="text-[10px] h-5 bg-amber-500/20 text-amber-700 dark:text-amber-400 border-amber-500/30">
+                    <Badge variant="secondary" className="text-tiny h-5 bg-amber-500/20 text-amber-700 dark:text-amber-400 border-amber-500/30">
                       ⚠️ Revisar
                     </Badge>
                   )}
                   {isExpiringSoon && (
-                    <Badge variant="destructive" className="text-[10px] h-5">
+                    <Badge variant="destructive" className="text-tiny h-5">
                       ⏰ Vence em breve
                     </Badge>
                   )}
@@ -141,11 +141,11 @@ export default function Cofre() {
                       daysUntilExpiry={prescStatus.daysUntilExpiry}
                       isDuplicate={prescStatus.isDuplicate}
                       isPurchased={prescStatus.isPurchased}
-                      className="text-[10px] h-5"
+                      className="text-tiny h-5"
                     />
                   )}
                 </div>
-                <div className="text-xs text-muted-foreground space-y-1">
+                <div className="text-label space-y-1">
                   {doc.issued_at && (
                     <div className="flex items-center gap-1.5">
                       <span>📅</span>
@@ -178,9 +178,9 @@ export default function Cofre() {
       <Header />
       <div className="container max-w-6xl mx-auto px-4 pt-24 pb-6 space-y-6">
         <div className="flex items-start justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold">Cofre de Saúde 🔒</h1>
-            <p className="text-muted-foreground text-sm mt-1">
+          <div className="space-y-3">
+            <h1 className="heading-page">Cofre de Saúde 🔒</h1>
+            <p className="text-description">
               Seus documentos médicos organizados e seguros
             </p>
           </div>

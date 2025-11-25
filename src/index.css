@@ -88,6 +88,35 @@ All colors MUST be HSL.
 }
 
 @layer utilities {
+  /* Typography Hierarchy */
+  .heading-page {
+    @apply text-3xl font-bold text-foreground;
+  }
+  
+  .heading-section {
+    @apply text-xl font-semibold text-foreground;
+  }
+  
+  .heading-card {
+    @apply text-lg font-semibold text-foreground;
+  }
+  
+  .text-description {
+    @apply text-base text-muted-foreground leading-relaxed;
+  }
+  
+  .text-subtitle {
+    @apply text-sm text-muted-foreground;
+  }
+  
+  .text-label {
+    @apply text-xs text-muted-foreground font-medium;
+  }
+  
+  .text-tiny {
+    @apply text-[11px] text-muted-foreground;
+  }
+
   /* Smooth transitions */
   .transition-smooth {
     transition: var(--transition-smooth);

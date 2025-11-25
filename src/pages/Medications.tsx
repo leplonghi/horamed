@@ -197,9 +197,9 @@ export default function Medications() {
         <div className="max-w-4xl mx-auto space-y-4 overflow-x-hidden">
           {/* Header */}
           <div className="flex items-center justify-between gap-3">
-            <div className="min-w-0 flex-1">
-              <h1 className="text-2xl font-bold truncate">Meus Medicamentos</h1>
-              <p className="text-sm text-muted-foreground truncate">
+            <div className="min-w-0 flex-1 space-y-2">
+              <h1 className="heading-page truncate">Meus Medicamentos</h1>
+              <p className="text-subtitle truncate">
                 {items.length > 0 && `${items.length} medicamento${items.length > 1 ? 's' : ''} ativo${items.length > 1 ? 's' : ''}`}
               </p>
             </div>
@@ -218,8 +218,8 @@ export default function Medications() {
             >
               <Package className="h-4 w-4 mr-2" />
               <div className="text-left flex-1">
-                <div className="text-sm font-medium">Estoque</div>
-                <div className="text-xs text-muted-foreground">Gerenciar</div>
+                <div className="text-sm font-semibold">Estoque</div>
+                <div className="text-label">Gerenciar</div>
               </div>
             </Button>
             <Button 
@@ -229,8 +229,8 @@ export default function Medications() {
             >
               <TrendingUp className="h-4 w-4 mr-2" />
               <div className="text-left flex-1">
-                <div className="text-sm font-medium">Insights</div>
-                <div className="text-xs text-muted-foreground">Ver análises</div>
+                <div className="text-sm font-semibold">Insights</div>
+                <div className="text-label">Ver análises</div>
               </div>
             </Button>
           </div>

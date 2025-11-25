@@ -164,11 +164,11 @@ export default function StockManagement() {
       <main className="container max-w-4xl mx-auto p-6 space-y-8">
         {/* Header */}
         <div className="space-y-3">
-          <h1 className="text-3xl font-bold flex items-center gap-3">
+          <h1 className="heading-page flex items-center gap-3">
             <Package className="h-8 w-8 text-primary" />
             Gerenciar Estoque
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-description">
             Controle a quantidade disponível de cada medicamento e receba alertas de reposição
           </p>
         </div>
@@ -203,15 +203,15 @@ export default function StockManagement() {
                   {/* Header */}
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <h3 className="text-xl font-semibold mb-1">{item.item_name}</h3>
-                      <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                      <h3 className="heading-card mb-2">{item.item_name}</h3>
+                      <div className="flex items-center gap-3 text-subtitle">
                         <span>
                           <strong className={status.color}>
                             {item.units_left}
                           </strong>{" "}
                           de {item.units_total} {item.unit_label}
                         </span>
-                        <span className={`px-2 py-0.5 rounded text-xs font-medium ${status.bg} ${status.color}`}>
+                        <span className={`px-2 py-0.5 rounded text-tiny font-medium ${status.bg} ${status.color}`}>
                           {status.label}
                         </span>
                       </div>
