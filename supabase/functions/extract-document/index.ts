@@ -23,10 +23,17 @@ EXAME:
   * status deve ser "normal", "high", "low" ou "critical" baseado na faixa de referência
 
 RECEITA:
-- prescriptions: Array com TODOS os medicamentos:
-  [{"drug_name":"Amoxicilina","dose":"500mg","frequency":"8/8h","duration_days":7}]
+- prescriptions: Array com TODOS os medicamentos prescritos:
+  [{"drug_name":"Amoxicilina","dose":"500mg","frequency":"8/8h","duration":"7 dias","duration_days":7,"instructions":"Tomar com água","with_food":true}]
+  * duration_days deve ser o número de dias do tratamento
+  * with_food: true se deve tomar com alimentos, false ou null caso contrário
+  * instructions: instruções adicionais sobre como tomar
 - doctor_name: Nome completo do médico
 - doctor_registration: CRM ou registro profissional
+- specialty: Especialidade do médico (se informada)
+- diagnosis: Diagnóstico ou condição sendo tratada (se informada)
+- notes: Observações ou recomendações adicionais do médico
+- followup_date: Data de retorno/revisão (YYYY-MM-DD) ou null
 
 VACINAÇÃO:
 - vaccine_name: Nome da vacina

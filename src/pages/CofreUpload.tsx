@@ -222,6 +222,44 @@ export default function CofreUpload() {
         .eq('slug', extractedData.category)
         .maybeSingle();
 
+      // Build comprehensive metadata based on category
+      const metaData: any = {
+        doctor_name: extractedData.doctor_name,
+        doctor_registration: extractedData.doctor_registration,
+        specialty: extractedData.specialty,
+        diagnosis: extractedData.diagnosis,
+        notes: extractedData.notes,
+        followup_date: extractedData.followup_date,
+      };
+
+      // RECEITA: Store all prescription details
+      if (extractedData.category === 'receita' && extractedData.prescriptions?.length > 0) {
+        metaData.prescriptions = extractedData.prescriptions.map((med: any) => ({
+          drug_name: med.drug_name,
+          dose: med.dose,
+          frequency: med.frequency,
+          duration: med.duration,
+          duration_days: med.duration_days,
+          instructions: med.instructions,
+          with_food: med.with_food,
+        }));
+        metaData.prescription_count = extractedData.prescriptions.length;
+        metaData.prescription_date = extractedData.issued_at;
+      }
+
+      // EXAME: Store exam values
+      if (extractedData.category === 'exame' && extractedData.extracted_values?.length > 0) {
+        metaData.extracted_values = extractedData.extracted_values;
+        metaData.exam_type = extractedData.exam_type;
+      }
+
+      // VACINAÇÃO: Store vaccine details
+      if (extractedData.category === 'vacinacao') {
+        metaData.vaccine_name = extractedData.vaccine_name;
+        metaData.dose_number = extractedData.dose_number;
+        metaData.next_dose_date = extractedData.next_dose_date;
+      }
+
       const { data: newDoc, error: insertError } = await supabase
         .from('documentos_saude')
         .insert({
@@ -236,18 +274,7 @@ export default function CofreUpload() {
           provider: extractedData.provider || null,
           confidence_score: extractedData.confidence_score || 0,
           status_extraction: 'confirmed',
-          meta: {
-            extracted_values: extractedData.extracted_values,
-            prescriptions: extractedData.prescriptions,
-            vaccine_name: extractedData.vaccine_name,
-            dose_number: extractedData.dose_number,
-            doctor_name: extractedData.doctor_name,
-            doctor_registration: extractedData.doctor_registration,
-            specialty: extractedData.specialty,
-            diagnosis: extractedData.diagnosis,
-            notes: extractedData.notes,
-            followup_date: extractedData.followup_date,
-          },
+          meta: metaData,
           ocr_text: JSON.stringify(extractedData),
         })
         .select()

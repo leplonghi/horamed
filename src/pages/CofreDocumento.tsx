@@ -195,6 +195,29 @@ export default function CofreDocumento() {
                   <p className="font-medium">
                     {meta.doctor_name}
                     {meta.doctor_registration && ` • CRM ${meta.doctor_registration}`}
+                    {meta.specialty && ` • ${meta.specialty}`}
+                  </p>
+                </div>
+              )}
+              {meta?.diagnosis && (
+                <div className="col-span-2">
+                  <p className="text-muted-foreground">🔍 Diagnóstico</p>
+                  <p className="font-medium">{meta.diagnosis}</p>
+                </div>
+              )}
+              {meta?.prescription_date && (
+                <div className="col-span-2">
+                  <p className="text-muted-foreground">📋 Data da Prescrição</p>
+                  <p className="font-medium">
+                    {format(new Date(meta.prescription_date), "dd/MM/yyyy", { locale: ptBR })}
+                  </p>
+                </div>
+              )}
+              {meta?.followup_date && (
+                <div className="col-span-2">
+                  <p className="text-muted-foreground">📅 Data de Retorno</p>
+                  <p className="font-medium">
+                    {format(new Date(meta.followup_date), "dd/MM/yyyy", { locale: ptBR })}
                   </p>
                 </div>
               )}
@@ -262,19 +285,52 @@ export default function CofreDocumento() {
               <CollapsibleContent>
                 <CardContent className="space-y-3">
                   {meta.prescriptions.map((med: any, idx: number) => (
-                    <div key={idx} className="p-3 bg-blue-50 dark:bg-blue-950 rounded-lg">
-                      <p className="font-semibold text-blue-900 dark:text-blue-100">{med.drug_name}</p>
-                      <div className="text-sm text-blue-700 dark:text-blue-300 space-y-1 mt-1">
-                        {med.dose && <p>💊 Dose: {med.dose}</p>}
-                        {med.frequency && <p>⏰ Frequência: {med.frequency}</p>}
-                        {med.duration_days && <p>📅 Duração: {med.duration_days} dias</p>}
+                    <div key={idx} className="p-4 bg-blue-50 dark:bg-blue-950 rounded-lg border border-blue-200 dark:border-blue-900">
+                      <p className="font-semibold text-lg text-blue-900 dark:text-blue-100 mb-2">{med.drug_name}</p>
+                      <div className="text-sm text-blue-700 dark:text-blue-300 space-y-2">
+                        {med.dose && (
+                          <div className="flex items-start gap-2">
+                            <span className="font-medium">💊 Dose:</span>
+                            <span>{med.dose}</span>
+                          </div>
+                        )}
+                        {med.frequency && (
+                          <div className="flex items-start gap-2">
+                            <span className="font-medium">⏰ Frequência:</span>
+                            <span>{med.frequency}</span>
+                          </div>
+                        )}
+                        {med.duration_days && (
+                          <div className="flex items-start gap-2">
+                            <span className="font-medium">📅 Duração:</span>
+                            <span>{med.duration_days} dias {med.duration && `(${med.duration})`}</span>
+                          </div>
+                        )}
+                        {med.instructions && (
+                          <div className="flex items-start gap-2">
+                            <span className="font-medium">📝 Instruções:</span>
+                            <span>{med.instructions}</span>
+                          </div>
+                        )}
+                        {med.with_food !== undefined && (
+                          <div className="flex items-start gap-2">
+                            <span className="font-medium">🍽️ Alimentação:</span>
+                            <span>{med.with_food ? 'Tomar com alimento' : 'Pode tomar sem alimento'}</span>
+                          </div>
+                        )}
                       </div>
                     </div>
                   ))}
+                  {meta?.notes && (
+                    <div className="p-3 bg-amber-50 dark:bg-amber-950 rounded-lg border border-amber-200 dark:border-amber-900 mt-3">
+                      <p className="text-sm font-medium text-amber-900 dark:text-amber-100 mb-1">📋 Observações do Médico</p>
+                      <p className="text-sm text-amber-700 dark:text-amber-300">{meta.notes}</p>
+                    </div>
+                  )}
                   <Button
                     variant="outline"
                     size="sm"
-                    className="w-full"
+                    className="w-full mt-3"
                     onClick={() => navigate('/rotina')}
                   >
                     <ExternalLink className="w-4 h-4 mr-2" />
