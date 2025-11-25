@@ -56,6 +56,7 @@ export default function Today() {
   const [userName, setUserName] = useState("");
   const [todayStats, setTodayStats] = useState({ total: 0, taken: 0 });
   const [eventCounts, setEventCounts] = useState<Record<string, number>>({});
+  const [hasAnyItems, setHasAnyItems] = useState(true);
 
   const loadEventCounts = useCallback(async () => {
     try {
@@ -158,6 +159,18 @@ export default function Today() {
       if (profileData) {
         setUserName(profileData.nickname || profileData.full_name || "");
       }
+
+      // Check if user has any items at all (to control empty state)
+      let allItemsQuery = supabase
+        .from("items")
+        .select("id", { count: "exact", head: true });
+
+      if (activeProfile) {
+        allItemsQuery = allItemsQuery.eq("profile_id", activeProfile.id);
+      }
+
+      const { count: itemCount } = await allItemsQuery;
+      setHasAnyItems((itemCount || 0) > 0);
 
       const dayStart = startOfDay(date);
       const dayEnd = endOfDay(date);
@@ -494,21 +507,21 @@ export default function Today() {
             )}
           </div>
 
-          {/* Empty State */}
-          {timelineItems.length === 0 && (
+          {/* Empty State - only show when user has NO items at all */}
+          {!hasAnyItems && timelineItems.length === 0 && (
             <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
               <CardContent className="p-6 text-center space-y-4">
                 <div className="text-4xl mb-2">🌟</div>
-                <h3 className="text-lg font-semibold">Comece adicionando seu primeiro medicamento!</h3>
+                <h3 className="text-lg font-semibold">Comece a organizar seus tratamentos!</h3>
                 <p className="text-sm text-muted-foreground">
-                  É rápido e fácil. Configure seus horários e nunca mais esqueça de tomar seus remédios.
+                  Adicione remédios, suplementos e vitaminas. Configure horários e nunca mais esqueça.
                 </p>
                 <Button 
                   onClick={() => navigate("/adicionar-medicamento")} 
                   size="lg"
                   className="mt-4"
                 >
-                  + Adicionar Medicamento
+                  + Adicionar Primeiro Item
                 </Button>
                 <div className="pt-4 border-t mt-6">
                   <p className="text-sm text-muted-foreground mb-3">

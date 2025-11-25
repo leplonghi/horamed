@@ -46,7 +46,7 @@ export default function AddMedicationWizard() {
 
   const handleNext = () => {
     if (step === 1 && (!name || !dose)) {
-      toast.error("Preencha o nome e a dose do medicamento");
+      toast.error("Preencha o nome e a dose");
       return;
     }
     if (step < 3) setStep(step + 1);
@@ -109,11 +109,11 @@ export default function AddMedicationWizard() {
         if (stockError) throw stockError;
       }
 
-      toast.success("Medicamento adicionado com sucesso!");
-      navigate("/medicamentos");
+      toast.success("Item adicionado com sucesso!");
+      navigate("/hoje");
     } catch (error) {
-      console.error("Error saving medication:", error);
-      toast.error("Erro ao salvar medicamento");
+      console.error("Error saving item:", error);
+      toast.error("Erro ao salvar item");
     } finally {
       setSaving(false);
     }
@@ -157,12 +157,12 @@ export default function AddMedicationWizard() {
           <Card>
             <CardHeader>
               <CardTitle>
-                {step === 1 && "Informações Básicas"}
+                {step === 1 && "Informações do Item"}
                 {step === 2 && "Horários"}
                 {step === 3 && "Configurações Adicionais"}
               </CardTitle>
               <CardDescription>
-                {step === 1 && "Passo 1 de 3"}
+                {step === 1 && "Passo 1 de 3 - Remédio, suplemento ou vitamina"}
                 {step === 2 && "Passo 2 de 3"}
                 {step === 3 && "Passo 3 de 3"}
               </CardDescription>
@@ -172,10 +172,10 @@ export default function AddMedicationWizard() {
               {step === 1 && (
                 <>
                   <div className="space-y-2">
-                    <Label htmlFor="name">Nome do Medicamento</Label>
+                    <Label htmlFor="name">Nome</Label>
                     <Input
                       id="name"
-                      placeholder="Ex: Dipirona 500mg"
+                      placeholder="Ex: Dipirona 500mg, Vitamina D3, Ômega 3"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                     />
@@ -184,7 +184,7 @@ export default function AddMedicationWizard() {
                     <Label htmlFor="dose">Dose</Label>
                     <Input
                       id="dose"
-                      placeholder="Ex: 1 comprimido"
+                      placeholder="Ex: 1 comprimido, 2 cápsulas, 5ml"
                       value={dose}
                       onChange={(e) => setDose(e.target.value)}
                     />

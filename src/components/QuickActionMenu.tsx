@@ -24,7 +24,7 @@ export default function QuickActionMenu({ open, onOpenChange }: QuickActionMenuP
   const actions = [
     {
       icon: Pill,
-      label: "Medicamento",
+      label: "Remédio/Suplemento",
       color: "bg-primary/10 text-primary hover:bg-primary/20",
       onClick: () => {
         onOpenChange(false);
