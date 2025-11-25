@@ -64,12 +64,19 @@ OUTROS CAMPOS:
 - prescription_type: "simples"|"controlada"|"especial" baseado no tipo de receituário
 
 VACINAÇÃO:
-- vaccine_name: Nome da vacina
-- dose_number: Número da dose (1ª, 2ª, etc)
-- application_date: Data da aplicação (YYYY-MM-DD)
-- next_dose_date: Data da próxima dose (YYYY-MM-DD) ou null
-- vaccination_location: Local onde foi aplicada
-- batch_number: Número do lote
+- vaccines: Array com TODAS as vacinas encontradas no documento:
+  [{"vaccine_name":"BCG","disease_prevention":"Tuberculose","dose_description":"Dose única","application_date":"2024-01-15","next_dose_date":null,"vaccination_location":"UBS Centro","vaccinator_name":"João Silva","batch_number":"L123456","manufacturer":"Butantan","notes":"Sem reações"}]
+  * vaccine_name: nome completo da vacina (ex: BCG, Hepatite B, Tríplice Viral)
+  * disease_prevention: doença(s) que a vacina previne
+  * dose_description: descrição da dose (ex: "1ª dose", "2ª dose", "Reforço", "Dose única")
+  * application_date: data da aplicação (YYYY-MM-DD)
+  * next_dose_date: data da próxima dose se informada (YYYY-MM-DD) ou null
+  * vaccination_location: local onde foi aplicada (posto de saúde, clínica)
+  * vaccinator_name: nome do vacinador/profissional
+  * vaccinator_registration: registro profissional (COREN, etc)
+  * batch_number: número do lote da vacina
+  * manufacturer: fabricante da vacina (ex: Butantan, Fiocruz, Pfizer)
+  * notes: observações ou reações adversas relatadas
 
 CONSULTA:
 - doctor_name: Nome do médico

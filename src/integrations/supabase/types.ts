@@ -1633,6 +1633,106 @@ export type Database = {
         }
         Relationships: []
       }
+      vaccination_records: {
+        Row: {
+          adverse_reactions: string | null
+          application_date: string
+          batch_number: string | null
+          created_at: string | null
+          disease_prevention: string | null
+          document_id: string | null
+          dose_description: string | null
+          dose_number: number | null
+          expiry_date: string | null
+          id: string
+          manufacturer: string | null
+          next_dose_date: string | null
+          notes: string | null
+          official_source: string | null
+          profile_id: string | null
+          sus_card_number: string | null
+          updated_at: string | null
+          user_id: string
+          vaccination_location: string | null
+          vaccinator_name: string | null
+          vaccinator_registration: string | null
+          vaccine_name: string
+          vaccine_type: string | null
+        }
+        Insert: {
+          adverse_reactions?: string | null
+          application_date: string
+          batch_number?: string | null
+          created_at?: string | null
+          disease_prevention?: string | null
+          document_id?: string | null
+          dose_description?: string | null
+          dose_number?: number | null
+          expiry_date?: string | null
+          id?: string
+          manufacturer?: string | null
+          next_dose_date?: string | null
+          notes?: string | null
+          official_source?: string | null
+          profile_id?: string | null
+          sus_card_number?: string | null
+          updated_at?: string | null
+          user_id: string
+          vaccination_location?: string | null
+          vaccinator_name?: string | null
+          vaccinator_registration?: string | null
+          vaccine_name: string
+          vaccine_type?: string | null
+        }
+        Update: {
+          adverse_reactions?: string | null
+          application_date?: string
+          batch_number?: string | null
+          created_at?: string | null
+          disease_prevention?: string | null
+          document_id?: string | null
+          dose_description?: string | null
+          dose_number?: number | null
+          expiry_date?: string | null
+          id?: string
+          manufacturer?: string | null
+          next_dose_date?: string | null
+          notes?: string | null
+          official_source?: string | null
+          profile_id?: string | null
+          sus_card_number?: string | null
+          updated_at?: string | null
+          user_id?: string
+          vaccination_location?: string | null
+          vaccinator_name?: string | null
+          vaccinator_registration?: string | null
+          vaccine_name?: string
+          vaccine_type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vaccination_records_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documentos_saude"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vaccination_records_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "medical_exams_v"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vaccination_records_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       valores_exames: {
         Row: {
           created_at: string

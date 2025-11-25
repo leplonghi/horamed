@@ -60,6 +60,7 @@ import { SubscriptionProvider } from "./contexts/SubscriptionContext";
 import { ProfileCacheProvider } from "./contexts/ProfileCacheContext";
 import TravelMode from "./pages/TravelMode";
 import SideEffectsDiary from "./pages/SideEffectsDiary";
+import CarteiraVacina from "./pages/CarteiraVacina";
 
 function AppContent() {
   const location = useLocation();
@@ -99,6 +100,8 @@ function AppContent() {
         <Route path="/consultas" element={<ProtectedRoute><MedicalAppointments /></ProtectedRoute>} />
         <Route path="/viagem" element={<ProtectedRoute><TravelMode /></ProtectedRoute>} />
         <Route path="/diario-efeitos" element={<ProtectedRoute><SideEffectsDiary /></ProtectedRoute>} />
+        <Route path="/carteira-vacina" element={<ProtectedRoute><CarteiraVacina /></ProtectedRoute>} />
+        <Route path="/vacinas" element={<ProtectedRoute><CarteiraVacina /></ProtectedRoute>} />
         <Route path="/exames" element={<ProtectedRoute><MedicalReports /></ProtectedRoute>} />
         <Route path="/relatorios" element={<ProtectedRoute><MedicalReports /></ProtectedRoute>} />
         <Route path="/relatorios-medicos" element={<ProtectedRoute><MedicalReports /></ProtectedRoute>} />
