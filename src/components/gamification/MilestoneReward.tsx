@@ -57,6 +57,15 @@ export default function MilestoneReward({
           color: "from-cyan-500/20 to-blue-600/20",
           borderColor: "border-cyan-500/30",
         };
+      default:
+        return {
+          icon: <Star className="h-16 w-16 text-yellow-500" />,
+          title: "Conquista Especial",
+          subtitle: "Continue mantendo seu compromisso",
+          reward: "Você desbloqueou uma nova conquista!",
+          color: "from-primary/20 to-primary/30",
+          borderColor: "border-primary/30",
+        };
     }
   };
 
