@@ -8,6 +8,7 @@ import Header from "@/components/Header";
 import { useMedicationAlarm } from "@/hooks/useMedicationAlarm";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { useStreakCalculator } from "@/hooks/useStreakCalculator";
+import { useMilestoneDetector } from "@/hooks/useMilestoneDetector";
 import { useCriticalAlerts } from "@/hooks/useCriticalAlerts";
 import { PageSkeleton } from "@/components/LoadingSkeleton";
 import { useFeedbackToast } from "@/hooks/useFeedbackToast";
@@ -19,6 +20,9 @@ import StreakBadge from "@/components/StreakBadge";
 import CriticalAlertBanner from "@/components/CriticalAlertBanner";
 import InfoDialog from "@/components/InfoDialog";
 import HealthInsightsCard from "@/components/HealthInsightsCard";
+import MilestoneReward from "@/components/gamification/MilestoneReward";
+import AchievementShareDialog from "@/components/gamification/AchievementShareDialog";
+import { useAchievements } from "@/hooks/useAchievements";
 import { useUserProfiles } from "@/hooks/useUserProfiles";
 import QuickDoseWidget from "@/components/QuickDoseWidget";
 import { useSmartRedirect } from "@/hooks/useSmartRedirect";
@@ -42,6 +46,8 @@ export default function Today() {
   const { scheduleNotificationsForNextDay } = useMedicationAlarm();
   usePushNotifications();
   const streakData = useStreakCalculator();
+  const { milestone, isNewMilestone, markAsSeen } = useMilestoneDetector();
+  const { achievements } = useAchievements();
   const criticalAlerts = useCriticalAlerts();
   const { showFeedback } = useFeedbackToast();
   const { activeProfile } = useUserProfiles();
@@ -57,6 +63,41 @@ export default function Today() {
   const [todayStats, setTodayStats] = useState({ total: 0, taken: 0 });
   const [eventCounts, setEventCounts] = useState<Record<string, number>>({});
   const [hasAnyItems, setHasAnyItems] = useState(true);
+  const [showMilestoneReward, setShowMilestoneReward] = useState(false);
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
+  const [selectedAchievement, setSelectedAchievement] = useState<any>(null);
+
+  // Show milestone reward when detected
+  useEffect(() => {
+    if (isNewMilestone && milestone) {
+      setShowMilestoneReward(true);
+    }
+  }, [isNewMilestone, milestone]);
+
+  const handleMilestoneClose = () => {
+    setShowMilestoneReward(false);
+    markAsSeen();
+  };
+
+  const handleMilestoneShare = () => {
+    setShowMilestoneReward(false);
+    markAsSeen();
+    
+    // Find the achievement for this milestone
+    const milestoneAchievements: Record<number, string> = {
+      7: "week_streak",
+      30: "month_streak",
+      90: "quarter_streak",
+    };
+    
+    const achievementId = milestone ? milestoneAchievements[milestone] : null;
+    const achievement = achievements.find((a) => a.id === achievementId);
+    
+    if (achievement) {
+      setSelectedAchievement(achievement);
+      setShareDialogOpen(true);
+    }
+  };
 
   const loadEventCounts = useCallback(async () => {
     try {
@@ -621,6 +662,25 @@ export default function Today() {
       </div>
 
       <Navigation />
+
+      {/* Milestone Reward Modal */}
+      {milestone && (
+        <MilestoneReward
+          milestone={milestone}
+          visible={showMilestoneReward}
+          onClose={handleMilestoneClose}
+          onShare={handleMilestoneShare}
+        />
+      )}
+
+      {/* Achievement Share Dialog */}
+      {selectedAchievement && (
+        <AchievementShareDialog
+          achievement={selectedAchievement}
+          open={shareDialogOpen}
+          onOpenChange={setShareDialogOpen}
+        />
+      )}
     </>
   );
 }

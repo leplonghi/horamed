@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import Navigation from "@/components/Navigation";
 import PageHeader from "@/components/PageHeader";
@@ -9,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfileCacheContext } from "@/contexts/ProfileCacheContext";
 import StreakAnimation from "@/components/celebrations/StreakAnimation";
-import { Trophy, TrendingUp, Calendar, Target, Award, Zap } from "lucide-react";
+import { Trophy, TrendingUp, Calendar, Target, Award, Zap, Sparkles, ArrowRight } from "lucide-react";
 import { subDays } from "date-fns";
 import { motion } from "framer-motion";
 
@@ -17,6 +18,7 @@ export default function Progress() {
   const { user } = useAuth();
   const { getProfileCache } = useProfileCacheContext();
   const currentProfile = getProfileCache("current");
+  const navigate = useNavigate();
   const [selectedPeriod, setSelectedPeriod] = useState<"week" | "month" | "all">("week");
 
   // Get streak data
@@ -100,6 +102,74 @@ export default function Progress() {
           description="Acompanhe seu compromisso e conquistas"
           icon={<TrendingUp className="h-6 w-6 text-primary" />}
         />
+
+        {/* Conquistas Card - Promocional */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.05 }}
+        >
+          <Card 
+            className="relative overflow-hidden bg-gradient-to-br from-purple-500/10 via-pink-500/10 to-background border-2 border-purple-500/20 cursor-pointer group hover:border-purple-500/40 transition-all"
+            onClick={() => navigate("/conquistas")}
+          >
+            {/* Sparkle decorations */}
+            <motion.div
+              className="absolute top-4 right-4"
+              animate={{
+                rotate: [0, 360],
+                scale: [1, 1.2, 1],
+              }}
+              transition={{
+                duration: 3,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
+            >
+              <Sparkles className="h-6 w-6 text-yellow-500" />
+            </motion.div>
+
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-3 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl">
+                    <Trophy className="h-6 w-6 text-white" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-xl">Conquistas & XP</CardTitle>
+                    <CardDescription>
+                      Veja todos os seus badges e progresso
+                    </CardDescription>
+                  </div>
+                </div>
+                <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center gap-4">
+                <div className="text-center flex-1">
+                  <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+                    {/* This will be populated from the achievements hook */}
+                    ?
+                  </p>
+                  <p className="text-xs text-muted-foreground">Desbloqueadas</p>
+                </div>
+                <div className="text-center flex-1">
+                  <p className="text-2xl font-bold text-pink-600 dark:text-pink-400">
+                    ?
+                  </p>
+                  <p className="text-xs text-muted-foreground">Nível</p>
+                </div>
+                <div className="text-center flex-1">
+                  <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
+                    ?
+                  </p>
+                  <p className="text-xs text-muted-foreground">XP Total</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
 
         {/* Streak Card - Destaque */}
         <motion.div
