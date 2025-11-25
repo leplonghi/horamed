@@ -15,6 +15,7 @@ import { subDays } from "date-fns";
 import { motion } from "framer-motion";
 import TutorialHint from "@/components/TutorialHint";
 import HelpTooltip from "@/components/HelpTooltip";
+import WeightBMICard from "@/components/WeightBMICard";
 
 export default function Progress() {
   const { user } = useAuth();
@@ -112,11 +113,25 @@ export default function Progress() {
           message="Aqui você vê sua sequência de dias, taxa de compromisso, e conquistas. Cada dia tomando suas doses aumenta seu streak. Acima de 80% de compromisso é excelente! Ganhe XP e desbloqueie medalhas."
         />
 
+        {/* Weight & BMI Card */}
+        {user?.id && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.05 }}
+          >
+            <WeightBMICard 
+              userId={user.id}
+              profileId={currentProfile?.id}
+            />
+          </motion.div>
+        )}
+
         {/* Conquistas Card - Promocional */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.05 }}
+          transition={{ delay: 0.1 }}
         >
           <Card 
             className="relative overflow-hidden bg-gradient-to-br from-purple-500/10 via-pink-500/10 to-background border-2 border-purple-500/20 cursor-pointer group hover:border-purple-500/40 transition-all"
@@ -184,7 +199,7 @@ export default function Progress() {
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.1 }}
+          transition={{ delay: 0.15 }}
         >
           <Card className="overflow-hidden border-2 border-primary/20 bg-gradient-to-br from-primary/5 via-background to-background shadow-xl">
             <CardHeader className="pb-3">
@@ -228,7 +243,7 @@ export default function Progress() {
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
+          transition={{ delay: 0.25 }}
         >
           <Tabs value={selectedPeriod} onValueChange={(v) => setSelectedPeriod(v as any)} className="w-full">
             <TabsList className="grid w-full grid-cols-3 h-auto p-1">

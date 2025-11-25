@@ -21,6 +21,7 @@ import { useUserProfiles } from "@/hooks/useUserProfiles";
 import { useAuth } from "@/contexts/AuthContext";
 import logo from "@/assets/horamed-logo.png";
 import TutorialHint from "@/components/TutorialHint";
+import WeightTrackingCard from "@/components/WeightTrackingCard";
 
 export default function Profile() {
   const navigate = useNavigate();
@@ -51,7 +52,8 @@ export default function Profile() {
         .eq("user_id", user.id)
         .maybeSingle();
 
-      if (data) setProfile(data);
+      if (data) setProfile({ ...data, user_id: user.id });
+      else setProfile({ user_id: user.id });
     } catch (error) {
       console.error("Error loading profile:", error);
     }
@@ -168,11 +170,12 @@ export default function Profile() {
 
           {/* Conta Tab */}
           <TabsContent value="account" className="space-y-4">
+            {/* Dados básicos */}
             <Card>
               <CardHeader>
-                <CardTitle>Informações da Conta</CardTitle>
+                <CardTitle>Dados básicos</CardTitle>
                 <CardDescription>
-                  Gerencie suas informações pessoais e configurações
+                  Suas informações pessoais
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -214,6 +217,14 @@ export default function Profile() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Acompanhamento de peso */}
+            {profile.user_id && (
+              <WeightTrackingCard 
+                userId={profile.user_id}
+                profileId={activeProfile?.id}
+              />
+            )}
           </TabsContent>
 
           {/* Perfis Tab */}

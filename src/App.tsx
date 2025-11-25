@@ -62,6 +62,7 @@ import { ProfileCacheProvider } from "./contexts/ProfileCacheContext";
 import TravelMode from "./pages/TravelMode";
 import SideEffectsDiary from "./pages/SideEffectsDiary";
 import CarteiraVacina from "./pages/CarteiraVacina";
+import WeightHistory from "./pages/WeightHistory";
 
 function AppContent() {
   const location = useLocation();
@@ -117,6 +118,7 @@ function AppContent() {
         <Route path="/perfis/novo" element={<ProtectedRoute><ProfileCreate /></ProtectedRoute>} />
         <Route path="/perfil/editar/:id" element={<ProtectedRoute><ProfileEdit /></ProtectedRoute>} />
         <Route path="/profile/edit" element={<ProtectedRoute><ProfileEdit /></ProtectedRoute>} />
+        <Route path="/peso/historico" element={<ProtectedRoute><WeightHistory /></ProtectedRoute>} />
         <Route path="/assinatura" element={<ProtectedRoute><SubscriptionManagement /></ProtectedRoute>} />
         <Route path="/notificacoes-config" element={<ProtectedRoute><NotificationSettings /></ProtectedRoute>} />
         <Route path="/notificacoes" element={<ProtectedRoute><NotificationSettings /></ProtectedRoute>} />
