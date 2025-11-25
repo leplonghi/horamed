@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import Header from '@/components/Header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Loader2, Download, FileText, Shield, Database, ArrowLeft, FileDown } from 'lucide-react';
 import { toast } from 'sonner';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -17,6 +18,31 @@ import logoImage from '@/assets/horamed-logo.png';
 export default function DataExport() {
   const navigate = useNavigate();
   const [exporting, setExporting] = useState(false);
+  const [selectedSections, setSelectedSections] = useState({
+    profile: true,
+    profiles: true,
+    medications: true,
+    doses: true,
+    documents: true,
+    insights: true,
+  });
+
+  const toggleSection = (section: keyof typeof selectedSections) => {
+    setSelectedSections(prev => ({ ...prev, [section]: !prev[section] }));
+  };
+
+  const toggleAll = () => {
+    const allSelected = Object.values(selectedSections).every(v => v);
+    const newState = !allSelected;
+    setSelectedSections({
+      profile: newState,
+      profiles: newState,
+      medications: newState,
+      doses: newState,
+      documents: newState,
+      insights: newState,
+    });
+  };
 
   const exportData = async () => {
     setExporting(true);
@@ -43,8 +69,9 @@ export default function DataExport() {
       );
 
       // User info section
-      yPos = addSectionHeader(doc, '📋 Informações do Usuário', yPos);
-      if (data.profile) {
+      if (selectedSections.profile) {
+        yPos = addSectionHeader(doc, '📋 Informações do Usuário', yPos);
+        if (data.profile) {
         const profileData = [
           ['Nome', data.profile.full_name || '-'],
           ['Data de Nascimento', data.profile.birth_date ? format(new Date(data.profile.birth_date), 'dd/MM/yyyy', { locale: ptBR }) : '-'],
@@ -59,10 +86,11 @@ export default function DataExport() {
           headStyles: { fillColor: [82, 109, 255] },
         });
         yPos = (doc as any).lastAutoTable.finalY + 15;
+        }
       }
 
       // Profiles section
-      if (data.user_profiles && data.user_profiles.length > 0) {
+      if (selectedSections.profiles && data.user_profiles && data.user_profiles.length > 0) {
         yPos = checkPageBreak(doc, yPos, 60);
         yPos = addSectionHeader(doc, '👥 Perfis de Família', yPos);
         const profilesData = data.user_profiles.map((p: any) => [
@@ -81,7 +109,7 @@ export default function DataExport() {
       }
 
       // Medications section
-      if (data.items && data.items.length > 0) {
+      if (selectedSections.medications && data.items && data.items.length > 0) {
         yPos = checkPageBreak(doc, yPos, 60);
         yPos = addSectionHeader(doc, '💊 Medicamentos', yPos);
         const medsData = data.items.map((item: any) => [
@@ -101,7 +129,7 @@ export default function DataExport() {
       }
 
       // Doses section - summary
-      if (data.dose_instances && data.dose_instances.length > 0) {
+      if (selectedSections.doses && data.dose_instances && data.dose_instances.length > 0) {
         yPos = checkPageBreak(doc, yPos, 60);
         yPos = addSectionHeader(doc, '📊 Histórico de Doses (Resumo)', yPos);
         const taken = data.dose_instances.filter((d: any) => d.status === 'taken').length;
@@ -125,7 +153,7 @@ export default function DataExport() {
       }
 
       // Documents section
-      if (data.documentos_saude && data.documentos_saude.length > 0) {
+      if (selectedSections.documents && data.documentos_saude && data.documentos_saude.length > 0) {
         yPos = checkPageBreak(doc, yPos, 60);
         yPos = addSectionHeader(doc, '📄 Documentos de Saúde', yPos);
         const docsData = data.documentos_saude.slice(0, 20).map((doc: any) => [
@@ -144,7 +172,7 @@ export default function DataExport() {
       }
 
       // Health insights section
-      if (data.health_insights && data.health_insights.length > 0) {
+      if (selectedSections.insights && data.health_insights && data.health_insights.length > 0) {
         yPos = checkPageBreak(doc, yPos, 60);
         yPos = addSectionHeader(doc, '💡 Insights de Saúde', yPos);
         const insightsData = data.health_insights.slice(0, 10).map((insight: any) => [
@@ -234,31 +262,93 @@ export default function DataExport() {
               O arquivo PDF conterá as seguintes informações organizadas de forma clara:
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="grid gap-2">
-              {[
-                'Perfil principal e perfis adicionais',
-                'Informações de saúde (peso, altura, histórico)',
-                'Lista de medicamentos e suplementos',
-                'Histórico completo de doses',
-                'Horários e lembretes configurados',
-                'Documentos de saúde e exames',
-                'Insights e análises geradas',
-                'Consentimentos fornecidos',
-                'Configurações de notificações',
-                'Métricas de adesão e conquistas'
-              ].map((item, index) => (
-                <div key={index} className="flex items-center gap-2 text-sm">
-                  <FileText className="h-4 w-4 text-muted-foreground" />
-                  <span>{item}</span>
+          <CardContent className="space-y-4">
+            <div className="space-y-3">
+              <div className="flex items-center justify-between pb-2 border-b">
+                <p className="text-sm font-semibold">Selecione os dados para exportar:</p>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={toggleAll}
+                  className="h-8 text-xs"
+                >
+                  {Object.values(selectedSections).every(v => v) ? 'Desmarcar todos' : 'Selecionar todos'}
+                </Button>
+              </div>
+              
+              <div className="grid gap-3">
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="profile" 
+                    checked={selectedSections.profile}
+                    onCheckedChange={() => toggleSection('profile')}
+                  />
+                  <label htmlFor="profile" className="text-sm cursor-pointer flex-1">
+                    Perfil principal e informações pessoais
+                  </label>
                 </div>
-              ))}
+
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="profiles" 
+                    checked={selectedSections.profiles}
+                    onCheckedChange={() => toggleSection('profiles')}
+                  />
+                  <label htmlFor="profiles" className="text-sm cursor-pointer flex-1">
+                    Perfis adicionais (família)
+                  </label>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="medications" 
+                    checked={selectedSections.medications}
+                    onCheckedChange={() => toggleSection('medications')}
+                  />
+                  <label htmlFor="medications" className="text-sm cursor-pointer flex-1">
+                    Medicamentos e suplementos
+                  </label>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="doses" 
+                    checked={selectedSections.doses}
+                    onCheckedChange={() => toggleSection('doses')}
+                  />
+                  <label htmlFor="doses" className="text-sm cursor-pointer flex-1">
+                    Histórico de doses e horários
+                  </label>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="documents" 
+                    checked={selectedSections.documents}
+                    onCheckedChange={() => toggleSection('documents')}
+                  />
+                  <label htmlFor="documents" className="text-sm cursor-pointer flex-1">
+                    Documentos de saúde e exames
+                  </label>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="insights" 
+                    checked={selectedSections.insights}
+                    onCheckedChange={() => toggleSection('insights')}
+                  />
+                  <label htmlFor="insights" className="text-sm cursor-pointer flex-1">
+                    Insights e análises de saúde
+                  </label>
+                </div>
+              </div>
             </div>
 
             <div className="pt-6 border-t">
               <Button 
                 onClick={exportData} 
-                disabled={exporting}
+                disabled={exporting || !Object.values(selectedSections).some(v => v)}
                 size="lg"
                 className="w-full"
               >
@@ -274,6 +364,11 @@ export default function DataExport() {
                   </>
                 )}
               </Button>
+              {!Object.values(selectedSections).some(v => v) && (
+                <p className="text-xs text-destructive text-center mt-2">
+                  Selecione ao menos uma seção para exportar
+                </p>
+              )}
               <p className="text-xs text-muted-foreground text-center mt-2">
                 O arquivo será baixado em formato PDF com design profissional
               </p>
