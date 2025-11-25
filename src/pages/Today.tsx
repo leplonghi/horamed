@@ -31,6 +31,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { SideEffectQuickLog } from "@/components/SideEffectQuickLog";
 import { VaccineRemindersWidget } from "@/components/VaccineRemindersWidget";
 import { CaregiverVaccineReminders } from "@/components/CaregiverVaccineReminders";
+import { ExpiredPrescriptionsAlert } from "@/components/ExpiredPrescriptionsAlert";
 
 interface TimelineItem {
   id: string;
@@ -605,6 +606,9 @@ export default function Today() {
 
           {/* Health Insights Card */}
           <HealthInsightsCard />
+
+          {/* Expired Prescriptions Alert */}
+          <ExpiredPrescriptionsAlert />
 
           {/* Vaccine Reminders Widget */}
           <VaccineRemindersWidget />

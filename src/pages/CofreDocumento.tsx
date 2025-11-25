@@ -4,16 +4,19 @@ import { ArrowLeft, Share2, Download, Trash2, Calendar, Edit, Pill, Stethoscope,
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { useDocumento, useCompartilhamentos, useDeletarDocumento } from "@/hooks/useCofre";
 import { supabase } from "@/integrations/supabase/client";
-import { format } from "date-fns";
+import { format, isBefore, differenceInDays, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
 import Header from "@/components/Header";
 import Navigation from "@/components/Navigation";
 import UpgradeModal from "@/components/UpgradeModal";
+import { PrescriptionStatusBadge } from "@/components/PrescriptionStatusBadge";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -36,6 +39,7 @@ export default function CofreDocumento() {
   const [signedUrl, setSignedUrl] = useState<string>("");
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showUpgrade, setShowUpgrade] = useState(false);
+  const [isPurchased, setIsPurchased] = useState(false);
   const [expandedSections, setExpandedSections] = useState({
     prescriptions: true,
     exam: true,
@@ -76,6 +80,11 @@ export default function CofreDocumento() {
       }
     };
     loadUrl();
+
+    // Carregar status de compra
+    if (documento?.meta) {
+      setIsPurchased((documento.meta as any)?.is_purchased === true);
+    }
   }, [documento]);
 
   const handleCompartilhar = async () => {
@@ -97,6 +106,28 @@ export default function CofreDocumento() {
       }
     } catch (error: any) {
       toast.error("Erro ao gerar link de compartilhamento");
+    }
+  };
+
+  const handleTogglePurchased = async (checked: boolean) => {
+    if (!id) return;
+    
+    try {
+      const currentMeta = documento?.meta || {};
+      const updatedMeta = { ...currentMeta, is_purchased: checked };
+
+      const { error } = await supabase
+        .from("documentos_saude")
+        .update({ meta: updatedMeta })
+        .eq("id", id);
+
+      if (error) throw error;
+
+      setIsPurchased(checked);
+      toast.success(checked ? "Receita marcada como utilizada" : "Status atualizado");
+    } catch (error) {
+      console.error("Error updating prescription status:", error);
+      toast.error("Erro ao atualizar status da receita");
     }
   };
 
@@ -334,6 +365,52 @@ export default function CofreDocumento() {
                   </div>
                 )}
               </div>
+
+              {/* Status da Receita (somente para receitas) */}
+              {categoryConfig.label === "Receita Médica" && (
+                <>
+                  <Separator />
+                  <div className="space-y-4">
+                    <PrescriptionStatusBadge
+                      status={
+                        !documento.expires_at ? 'valid' :
+                        isBefore(parseISO(documento.expires_at), new Date()) ? 'expired' :
+                        differenceInDays(parseISO(documento.expires_at), new Date()) <= 7 ? 'expiring_soon' :
+                        'valid'
+                      }
+                      daysUntilExpiry={documento.expires_at ? differenceInDays(parseISO(documento.expires_at), new Date()) : undefined}
+                      isPurchased={isPurchased}
+                    />
+
+                    <div className="flex items-center justify-between p-3 bg-secondary/30 rounded-lg">
+                      <div className="space-y-1">
+                        <Label htmlFor="purchased-switch" className="cursor-pointer">
+                          Receita Utilizada
+                        </Label>
+                        <p className="text-xs text-muted-foreground">
+                          Marque se já comprou os medicamentos
+                        </p>
+                      </div>
+                      <Switch
+                        id="purchased-switch"
+                        checked={isPurchased}
+                        onCheckedChange={handleTogglePurchased}
+                      />
+                    </div>
+
+                    {!isPurchased && documento.expires_at && isBefore(parseISO(documento.expires_at), new Date()) && (
+                      <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
+                        <p className="text-sm text-destructive font-medium mb-1">
+                          ⚠️ Receita Vencida
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          Esta receita está vencida e não pode mais ser utilizada. Solicite uma nova receita ao seu médico.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
             </div>
 
             {documento.notes && (

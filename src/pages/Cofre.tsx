@@ -9,8 +9,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useDocumentos, DocumentoSaude } from "@/hooks/useCofre";
 import { useUserProfiles } from "@/hooks/useUserProfiles";
+import { usePrescriptionControl } from "@/hooks/usePrescriptionControl";
+import { PrescriptionStatusBadge } from "@/components/PrescriptionStatusBadge";
 import { supabase } from "@/integrations/supabase/client";
-import { format } from "date-fns";
+import { format, isBefore, differenceInDays, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import Navigation from "@/components/Navigation";
 import Header from "@/components/Header";
@@ -33,6 +35,8 @@ export default function Cofre() {
     q: busca,
     exp: filtroExp,
   });
+
+  const { data: prescriptionStatus } = usePrescriptionControl(activeProfile?.id);
 
   const stats = useMemo(() => {
     if (!allDocumentos) return null;
@@ -72,6 +76,10 @@ export default function Cofre() {
   const renderDocumentoCard = (doc: DocumentoSaude) => {
     const isExpiringSoon = doc.expires_at && new Date(doc.expires_at) <= new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
     const needsReview = doc.status_extraction === "pending_review";
+    
+    // Buscar status da receita
+    const prescStatus = prescriptionStatus?.find(ps => ps.id === doc.id);
+    const isPrescription = doc.categorias_saude?.slug === "receita";
     
     const getCategoryIcon = (categorySlug?: string) => {
       switch (categorySlug) {
@@ -125,6 +133,16 @@ export default function Cofre() {
                     <Badge variant="destructive" className="text-[10px] h-5">
                       ⏰ Vence em breve
                     </Badge>
+                  )}
+                  {/* Badges de status de receita */}
+                  {isPrescription && prescStatus && (
+                    <PrescriptionStatusBadge
+                      status={prescStatus.status}
+                      daysUntilExpiry={prescStatus.daysUntilExpiry}
+                      isDuplicate={prescStatus.isDuplicate}
+                      isPurchased={prescStatus.isPurchased}
+                      className="text-[10px] h-5"
+                    />
                   )}
                 </div>
                 <div className="text-xs text-muted-foreground space-y-1">
