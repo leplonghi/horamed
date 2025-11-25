@@ -1,17 +1,19 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-interface DoseActionRequest {
-  doseId: string;
-  action: 'taken' | 'snooze' | 'skip';
-  userId?: string;
-  timestamp?: string;
-}
+const requestSchema = z.object({
+  doseId: z.string().uuid({ message: 'ID da dose inválido' }),
+  action: z.enum(['taken', 'snooze', 'skip'], { 
+    invalid_type_error: 'Ação inválida. Use: taken, snooze ou skip' 
+  }),
+  timestamp: z.string().datetime().optional()
+});
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -19,17 +21,51 @@ serve(async (req) => {
   }
 
   try {
+    // Authenticate user
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: 'Não autenticado' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      { global: { headers: { Authorization: authHeader } } }
+    );
+
+    const { data: { user } } = await supabaseClient.auth.getUser();
+    if (!user) {
+      return new Response(
+        JSON.stringify({ error: 'Não autenticado' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Validate input
+    const body = await req.json();
+    const parsed = requestSchema.safeParse(body);
+    
+    if (!parsed.success) {
+      return new Response(
+        JSON.stringify({ error: parsed.error.issues[0].message }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const { doseId, action, timestamp } = parsed.data;
+
+    // Use service role for internal operations but verify ownership
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    const body: DoseActionRequest = await req.json();
-    const { doseId, action, userId, timestamp } = body;
+    console.log('Processing dose action:', { doseId, action, userId: user.id, timestamp });
 
-    console.log('Processing dose action:', { doseId, action, userId, timestamp });
-
-    // Get dose details
+    // Get dose details and verify ownership
     const { data: dose, error: doseError } = await supabaseAdmin
       .from('dose_instances')
       .select(`
@@ -49,12 +85,21 @@ serve(async (req) => {
     if (doseError || !dose) {
       console.error('Dose not found:', doseError);
       return new Response(
-        JSON.stringify({ error: 'Dose not found' }),
+        JSON.stringify({ error: 'Dose não encontrada' }),
         { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
     const itemData = Array.isArray(dose.items) ? dose.items[0] : dose.items;
+
+    // Critical security check: verify dose belongs to authenticated user
+    if (itemData.user_id !== user.id) {
+      console.warn('Unauthorized dose access attempt:', { userId: user.id, doseOwnerId: itemData.user_id });
+      return new Response(
+        JSON.stringify({ error: 'Dose não encontrada' }), // Use 404 to prevent enumeration
+        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     if (action === 'taken') {
       // Mark dose as taken

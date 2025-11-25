@@ -10,7 +10,7 @@ verify_jwt = true
 verify_jwt = false
 
 [functions.handle-dose-action]
-verify_jwt = false
+verify_jwt = true
 
 [functions.extract-medication]
 verify_jwt = true
