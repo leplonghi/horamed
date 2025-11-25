@@ -5,8 +5,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { Mail, Chrome, Fingerprint } from "lucide-react";
 import logo from "@/assets/horamed-logo.png";
 import { z } from "zod";
@@ -25,6 +26,7 @@ export default function Auth() {
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
   const { isAvailable, isLoading: biometricLoading, loginWithBiometric, isBiometricEnabled, setupBiometricLogin } = useBiometricAuth();
 
   useEffect(() => {
@@ -71,6 +73,11 @@ export default function Auth() {
     e.preventDefault();
     if (!email || !password) {
       toast.error("Preencha todos os campos");
+      return;
+    }
+
+    if (!acceptedTerms) {
+      toast.error("Você precisa aceitar os Termos de Uso e Política de Privacidade para criar uma conta");
       return;
     }
 
@@ -272,9 +279,32 @@ export default function Auth() {
                 </p>
               </div>
 
+              <div className="flex items-start space-x-3 py-3">
+                <Checkbox
+                  id="terms"
+                  checked={acceptedTerms}
+                  onCheckedChange={(checked) => setAcceptedTerms(checked === true)}
+                  className="mt-0.5"
+                />
+                <label
+                  htmlFor="terms"
+                  className="text-sm text-muted-foreground leading-tight cursor-pointer"
+                >
+                  Li e aceito os{" "}
+                  <Link 
+                    to="/termos" 
+                    target="_blank"
+                    className="text-primary hover:underline font-medium"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    Termos de Uso e Política de Privacidade
+                  </Link>
+                </label>
+              </div>
+
               <Button
                 type="submit"
-                disabled={loading}
+                disabled={loading || !acceptedTerms}
                 className="w-full"
               >
                 <Mail className="h-4 w-4 mr-2" />

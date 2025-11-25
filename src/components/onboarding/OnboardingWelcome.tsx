@@ -1,6 +1,10 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { Heart, Bell, FileText, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Link } from "react-router-dom";
+import { toast } from "sonner";
 import logo from "@/assets/horamed-logo.png";
 
 interface Props {
@@ -15,6 +19,16 @@ const benefits = [
 ];
 
 export default function OnboardingWelcome({ onStart, onSkip }: Props) {
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+
+  const handleStart = () => {
+    if (!acceptedTerms) {
+      toast.error("Você precisa aceitar os Termos de Uso para continuar");
+      return;
+    }
+    onStart();
+  };
+
   return (
     <div className="space-y-12">
       <motion.div
@@ -74,10 +88,34 @@ export default function OnboardingWelcome({ onStart, onSkip }: Props) {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.9 }}
       >
+        <div className="flex items-start space-x-3 p-4 bg-muted/30 rounded-lg border border-border">
+          <Checkbox
+            id="onboarding-terms"
+            checked={acceptedTerms}
+            onCheckedChange={(checked) => setAcceptedTerms(checked === true)}
+            className="mt-0.5"
+          />
+          <label
+            htmlFor="onboarding-terms"
+            className="text-sm text-muted-foreground leading-tight cursor-pointer"
+          >
+            Li e aceito os{" "}
+            <Link 
+              to="/termos" 
+              target="_blank"
+              className="text-primary hover:underline font-medium"
+              onClick={(e) => e.stopPropagation()}
+            >
+              Termos de Uso e Política de Privacidade
+            </Link>
+          </label>
+        </div>
+
         <Button
           size="lg"
-          onClick={onStart}
-          className="w-full text-lg h-14 shadow-lg hover:shadow-xl transition-all"
+          onClick={handleStart}
+          disabled={!acceptedTerms}
+          className="w-full text-lg h-14 shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <Heart className="h-5 w-5 mr-2" />
           Vamos começar!
