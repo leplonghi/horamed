@@ -130,14 +130,19 @@ export default function StockManagement() {
       
       <main className="container max-w-4xl mx-auto p-6 space-y-8">
         {/* Header */}
-        <div className="space-y-3">
-          <h1 className="heading-page flex items-center gap-3">
-            <Package className="h-8 w-8 text-primary" />
-            Controle Inteligente de Estoque
-          </h1>
-          <p className="text-description">
-            Acompanhe consumo real, projeções automáticas e receba alertas personalizados
-          </p>
+        <div className="space-y-6">
+          <div className="space-y-3">
+            <h1 className="heading-page flex items-center gap-3">
+              <Package className="h-8 w-8 text-primary" />
+              Estoque de Remédios
+            </h1>
+            <p className="text-lg text-muted-foreground">
+              Veja quanto tem de cada remédio, quanto você toma por dia e quando vai acabar.
+            </p>
+            <p className="text-sm text-muted-foreground">
+              O HoraMed calcula automaticamente baseado nas doses que você marca como tomadas.
+            </p>
+          </div>
         </div>
 
         {/* Tutorial Hint */}
