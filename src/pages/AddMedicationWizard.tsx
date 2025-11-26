@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronLeft, ChevronRight, Camera } from "lucide-react";
+import { ChevronLeft, ChevronRight, Camera, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,10 +9,14 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import Header from "@/components/Header";
 import { useUserProfiles } from "@/hooks/useUserProfiles";
+import { medicamentosBrasileiros } from "@/data/medicamentos-brasileiros";
+import { cn } from "@/lib/utils";
 
 type SchedulePreset = "1x" | "2x" | "3x" | "custom";
 
@@ -25,6 +29,16 @@ export default function AddMedicationWizard() {
   // Step 1 - Basic info
   const [name, setName] = useState("");
   const [dose, setDose] = useState("");
+  const [openCombobox, setOpenCombobox] = useState(false);
+  
+  // Filter medications based on search
+  const filteredMedicamentos = useMemo(() => {
+    if (!name) return medicamentosBrasileiros.slice(0, 50);
+    const search = name.toLowerCase();
+    return medicamentosBrasileiros
+      .filter(med => med.nome.toLowerCase().includes(search))
+      .slice(0, 50);
+  }, [name]);
 
   // Step 2 - Schedule
   const [schedulePreset, setSchedulePreset] = useState<SchedulePreset>("1x");
@@ -172,13 +186,75 @@ export default function AddMedicationWizard() {
               {step === 1 && (
                 <>
                   <div className="space-y-2">
-                    <Label htmlFor="name">Nome</Label>
-                    <Input
-                      id="name"
-                      placeholder="Ex: Dipirona 500mg, Vitamina D3, Ômega 3"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                    />
+                    <Label htmlFor="name">Nome do Medicamento</Label>
+                    <Popover open={openCombobox} onOpenChange={setOpenCombobox}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          aria-expanded={openCombobox}
+                          className="w-full justify-between h-auto min-h-[40px] text-left font-normal"
+                        >
+                          <span className={cn("truncate", !name && "text-muted-foreground")}>
+                            {name || "Digite ou selecione um medicamento..."}
+                          </span>
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-full p-0" align="start">
+                        <Command shouldFilter={false}>
+                          <CommandInput 
+                            placeholder="Buscar medicamento..." 
+                            value={name}
+                            onValueChange={setName}
+                          />
+                          <CommandList>
+                            <CommandEmpty>
+                              <div className="p-4 text-sm">
+                                <p className="font-medium mb-2">Não encontrou?</p>
+                                <p className="text-muted-foreground mb-3">Digite o nome do seu medicamento</p>
+                                <Button 
+                                  size="sm" 
+                                  onClick={() => setOpenCombobox(false)}
+                                  className="w-full"
+                                >
+                                  Continuar com "{name}"
+                                </Button>
+                              </div>
+                            </CommandEmpty>
+                            <CommandGroup>
+                              {filteredMedicamentos.map((med) => (
+                                <CommandItem
+                                  key={med.nome}
+                                  value={med.nome}
+                                  onSelect={(currentValue) => {
+                                    setName(currentValue);
+                                    setOpenCombobox(false);
+                                  }}
+                                >
+                                  <Check
+                                    className={cn(
+                                      "mr-2 h-4 w-4",
+                                      name === med.nome ? "opacity-100" : "opacity-0"
+                                    )}
+                                  />
+                                  <div className="flex-1 min-w-0">
+                                    <div className="font-medium truncate">{med.nome}</div>
+                                    {med.principioAtivo && (
+                                      <div className="text-xs text-muted-foreground truncate">
+                                        {med.principioAtivo}
+                                      </div>
+                                    )}
+                                  </div>
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
+                    <p className="text-xs text-muted-foreground">
+                      💊 Selecione da lista ou digite o nome do seu medicamento
+                    </p>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="dose">Dose</Label>
