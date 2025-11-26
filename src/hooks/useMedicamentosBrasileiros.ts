@@ -26,16 +26,15 @@ export function useMedicamentosBrasileiros() {
           const line = lines[i];
           if (!line.trim()) continue;
           
-          // Split considerando aspas
+          // Split por ponto e vírgula
           const parts = line.split(';');
-          if (parts.length < 11) continue;
+          if (parts.length < 2) continue;
           
-          const tipo = parts[0]?.replace(/"/g, '').trim();
-          const nome = parts[1]?.replace(/"/g, '').trim();
-          const principioAtivo = parts[10]?.replace(/"/g, '').trim();
+          const nome = parts[0]?.replace(/"/g, '').trim();
+          const situacao = parts[1]?.replace(/"/g, '').trim();
           
-          // Filtrar apenas medicamentos
-          if (tipo !== 'MEDICAMENTO') continue;
+          // Filtrar apenas medicamentos com registro válido
+          if (situacao !== 'VÁLIDO') continue;
           if (!nome || nome.length < 3) continue;
           
           // Normalizar nome
@@ -45,7 +44,7 @@ export function useMedicamentosBrasileiros() {
           if (!medicamentosMap.has(nomeKey)) {
             medicamentosMap.set(nomeKey, {
               nome: nome,
-              principioAtivo: principioAtivo || undefined,
+              principioAtivo: undefined,
               tipo: 'MEDICAMENTO'
             });
           }
