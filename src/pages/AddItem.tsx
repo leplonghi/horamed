@@ -26,7 +26,7 @@ import HealthProfileSetup from "@/components/HealthProfileSetup";
 import HelpTooltip from "@/components/HelpTooltip";
 import logo from "@/assets/horamed-logo.png";
 import { useUserProfiles } from "@/hooks/useUserProfiles";
-import { medicamentosBrasileiros } from "@/data/medicamentos-brasileiros";
+import { useFilteredMedicamentos } from "@/hooks/useMedicamentosBrasileiros";
 import { cn } from "@/lib/utils";
 
 export default function AddItem() {
@@ -56,14 +56,8 @@ export default function AddItem() {
     dose_unit: "comprimidos",
   });
   
-  // Filter medications based on search
-  const filteredMedicamentos = useMemo(() => {
-    if (!formData.name) return medicamentosBrasileiros.slice(0, 50);
-    const search = formData.name.toLowerCase();
-    return medicamentosBrasileiros
-      .filter(med => med.nome.toLowerCase().includes(search))
-      .slice(0, 50);
-  }, [formData.name]);
+  // Load and filter medications from CSV
+  const { medicamentos: filteredMedicamentos, loading: loadingMeds } = useFilteredMedicamentos(formData.name, 100);
 
   const [schedules, setSchedules] = useState([
     {

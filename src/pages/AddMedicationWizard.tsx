@@ -15,7 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import Header from "@/components/Header";
 import { useUserProfiles } from "@/hooks/useUserProfiles";
-import { medicamentosBrasileiros } from "@/data/medicamentos-brasileiros";
+import { useFilteredMedicamentos } from "@/hooks/useMedicamentosBrasileiros";
 import { cn } from "@/lib/utils";
 
 type SchedulePreset = "1x" | "2x" | "3x" | "custom";
@@ -31,14 +31,8 @@ export default function AddMedicationWizard() {
   const [dose, setDose] = useState("");
   const [openCombobox, setOpenCombobox] = useState(false);
   
-  // Filter medications based on search
-  const filteredMedicamentos = useMemo(() => {
-    if (!name) return medicamentosBrasileiros.slice(0, 50);
-    const search = name.toLowerCase();
-    return medicamentosBrasileiros
-      .filter(med => med.nome.toLowerCase().includes(search))
-      .slice(0, 50);
-  }, [name]);
+  // Load and filter medications from CSV
+  const { medicamentos: filteredMedicamentos, loading: loadingMeds } = useFilteredMedicamentos(name, 100);
 
   // Step 2 - Schedule
   const [schedulePreset, setSchedulePreset] = useState<SchedulePreset>("1x");
