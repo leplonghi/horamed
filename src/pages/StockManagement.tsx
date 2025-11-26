@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Package, AlertTriangle, Plus, Minus, Edit, Info, ExternalLink } from "lucide-react";
+import { Package, AlertTriangle, Plus, Minus, Edit, Info, ExternalLink, FileText } from "lucide-react";
 import { toast } from "sonner";
 import Header from "@/components/Header";
 import Navigation from "@/components/Navigation";
@@ -168,32 +168,124 @@ export default function StockManagement() {
             const percentage = (item.units_left / item.units_total) * 100;
             const status = getStockStatus(item.units_left, item.units_total);
             const isExpanded = expandedItems.has(item.id);
+            
+            // Calcular data estimada de fim do estoque
+            const estimatedEndDate = item.days_remaining 
+              ? new Date(Date.now() + item.days_remaining * 24 * 60 * 60 * 1000).toLocaleDateString('pt-BR')
+              : null;
 
             return (
-              <Card key={item.id} className={`transition-all hover:shadow-md ${status.bg}`}>
+              <Card key={item.id} className={`transition-all hover:shadow-md border-l-4 ${
+                percentage <= 10 ? 'border-l-destructive' :
+                percentage <= 20 ? 'border-l-warning' :
+                'border-l-primary'
+              }`}>
                 <div className="p-6 space-y-4">
                   {/* Header */}
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1 space-y-2">
-                      <h3 className="heading-card">{item.item_name}</h3>
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-xl font-bold text-foreground">{item.item_name}</h3>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => window.location.href = `/estoque/${item.item_id}`}
+                          className="text-xs"
+                        >
+                          Ver detalhes completos →
+                        </Button>
+                      </div>
                       
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className="text-subtitle">
-                          <strong className={status.color}>
+                      {/* Informações de origem da receita */}
+                      {item.created_from_prescription_id && item.prescription_title && (
+                        <div className="flex items-center gap-2 p-2 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                          <FileText className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                          <div className="flex-1">
+                            <p className="text-xs text-muted-foreground">Origem da receita:</p>
+                            <button
+                              onClick={() => window.location.href = `/cofre/${item.created_from_prescription_id}`}
+                              className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline"
+                            >
+                              {item.prescription_title}
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Cards de métricas principais */}
+                      <div className="grid grid-cols-3 gap-3">
+                        <div className="bg-background border rounded-lg p-3">
+                          <p className="text-xs text-muted-foreground mb-1">Estoque Atual</p>
+                          <p className="text-2xl font-bold text-foreground">
                             {item.units_left}
-                          </strong>{" "}
-                          de {item.units_total} unidades
-                        </span>
-                        <span className={`px-2 py-0.5 rounded text-tiny font-medium ${status.bg} ${status.color}`}>
-                          {status.label}
-                        </span>
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            de {item.units_total} unidades
+                          </p>
+                        </div>
+
+                        <div className="bg-background border rounded-lg p-3">
+                          <p className="text-xs text-muted-foreground mb-1">Consumo médio</p>
+                          <p className="text-2xl font-bold text-foreground">
+                            {item.daily_consumption_avg.toFixed(1)}
+                          </p>
+                          <p className="text-xs text-muted-foreground">por dia</p>
+                        </div>
+
+                        <div className="bg-background border rounded-lg p-3">
+                          <p className="text-xs text-muted-foreground mb-1">Acabará em</p>
+                          <p className="text-2xl font-bold text-foreground">
+                            {item.days_remaining || '?'}
+                          </p>
+                          <p className="text-xs text-muted-foreground">dias</p>
+                        </div>
                       </div>
 
-                      <StockOriginBadge
-                        prescriptionId={item.created_from_prescription_id}
-                        prescriptionTitle={item.prescription_title}
-                        lastRefillAt={item.last_refill_at}
-                      />
+                      {/* Resumo de doses tomadas */}
+                      <div className="bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-lg p-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                            <p className="text-sm font-medium text-foreground">Doses tomadas nos últimos 7 dias</p>
+                          </div>
+                          <p className="text-lg font-bold text-green-600 dark:text-green-400">
+                            {item.taken_count_7d} de {item.scheduled_count_7d}
+                          </p>
+                        </div>
+                        {item.adherence_7d !== null && (
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Adesão: {Math.round(item.adherence_7d)}%
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Data estimada de fim */}
+                      {estimatedEndDate && item.days_remaining && item.days_remaining > 0 && (
+                        <div className={`p-3 rounded-lg border ${
+                          item.days_remaining <= 7 
+                            ? 'bg-destructive/10 border-destructive/30 text-destructive' 
+                            : item.days_remaining <= 14
+                            ? 'bg-warning/10 border-warning/30 text-warning-foreground'
+                            : 'bg-muted border-border'
+                        }`}>
+                          <p className="text-xs font-medium mb-1">
+                            {item.days_remaining <= 7 
+                              ? '🚨 Previsão de fim de estoque:'
+                              : item.days_remaining <= 14
+                              ? '⚠️ Previsão de fim de estoque:'
+                              : '📅 Previsão de fim de estoque:'
+                            }
+                          </p>
+                          <p className="text-sm font-bold">
+                            {estimatedEndDate} ({item.days_remaining} dias)
+                          </p>
+                          {item.days_remaining <= 14 && (
+                            <p className="text-xs mt-1 opacity-90">
+                              Considere comprar em breve para não interromper o tratamento
+                            </p>
+                          )}
+                        </div>
+                      )}
                     </div>
 
                     <Dialog>
