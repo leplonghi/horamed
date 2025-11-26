@@ -65,6 +65,9 @@ import CarteiraVacina from "./pages/CarteiraVacina";
 import WeightHistory from "./pages/WeightHistory";
 import StockDetails from "./pages/StockDetails";
 import AnalyticsDetails from "./pages/AnalyticsDetails";
+import HowItWorks from "./pages/HowItWorks";
+import MonthlyReportGenerator from "./pages/MonthlyReportGenerator";
+import OnboardingFlow from "./pages/OnboardingFlow";
 
 function AppContent() {
   const location = useLocation();
@@ -97,6 +100,9 @@ function AppContent() {
         <Route path="/edit/:id" element={<ProtectedRoute><AddItem /></ProtectedRoute>} />
         <Route path="/estoque" element={<ProtectedRoute><StockManagement /></ProtectedRoute>} />
         <Route path="/estoque/:itemId" element={<ProtectedRoute><StockDetails /></ProtectedRoute>} />
+        <Route path="/como-funciona" element={<ProtectedRoute><HowItWorks /></ProtectedRoute>} />
+        <Route path="/relatorio-mensal" element={<ProtectedRoute><MonthlyReportGenerator /></ProtectedRoute>} />
+        <Route path="/iniciar" element={<ProtectedRoute><OnboardingFlow /></ProtectedRoute>} />
         <Route path="/historico-medicamentos" element={<ProtectedRoute><MedicationHistory /></ProtectedRoute>} />
         <Route path="/medicamentos/:id/historico" element={<ProtectedRoute><MedicationHistory /></ProtectedRoute>} />
         
