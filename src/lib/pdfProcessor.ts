@@ -1,10 +1,15 @@
 import * as pdfjsLib from 'pdfjs-dist';
 
-// Configure worker usando URL relativo que funciona com Vite
-pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
-  'pdfjs-dist/build/pdf.worker.mjs',
-  import.meta.url
-).toString();
+// Configura worker dedicado para PDF.js usando Vite
+if (typeof window !== 'undefined' && 'Worker' in window) {
+  const worker = new Worker(
+    new URL('pdfjs-dist/build/pdf.worker.mjs', import.meta.url),
+    { type: 'module' }
+  );
+  // Usa workerPort em vez de depender do CDN
+  (pdfjsLib as any).GlobalWorkerOptions.workerPort = worker;
+}
+
 
 export interface PDFPageData {
   pageNumber: number;
