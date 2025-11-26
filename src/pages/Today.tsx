@@ -16,6 +16,7 @@ import DayTimeline from "@/components/DayTimeline";
 import ImprovedCalendar from "@/components/ImprovedCalendar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import StreakBadge from "@/components/StreakBadge";
 import CriticalAlertBanner from "@/components/CriticalAlertBanner";
 import InfoDialog from "@/components/InfoDialog";
@@ -27,7 +28,6 @@ import { useUserProfiles } from "@/hooks/useUserProfiles";
 import QuickDoseWidget from "@/components/QuickDoseWidget";
 import { useSmartRedirect } from "@/hooks/useSmartRedirect";
 import { useAdaptiveSuggestions } from "@/hooks/useAdaptiveSuggestions";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { SideEffectQuickLog } from "@/components/SideEffectQuickLog";
 import { VaccineRemindersWidget } from "@/components/VaccineRemindersWidget";
 import { CaregiverVaccineReminders } from "@/components/CaregiverVaccineReminders";
@@ -36,6 +36,10 @@ import { SmartActionCards } from "@/components/SmartActionCards";
 import TutorialHint from "@/components/TutorialHint";
 import HelpTooltip from "@/components/HelpTooltip";
 import { FileDown, ArrowRight } from "lucide-react";
+import AIAssistantInput from "@/components/AIAssistantInput";
+import EssentialShortcuts from "@/components/EssentialShortcuts";
+import SimpleDoseCard from "@/components/SimpleDoseCard";
+import SimpleAdherenceSummary from "@/components/SimpleAdherenceSummary";
 
 interface TimelineItem {
   id: string;

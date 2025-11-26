@@ -63,6 +63,8 @@ import TravelMode from "./pages/TravelMode";
 import SideEffectsDiary from "./pages/SideEffectsDiary";
 import CarteiraVacina from "./pages/CarteiraVacina";
 import WeightHistory from "./pages/WeightHistory";
+import StockDetails from "./pages/StockDetails";
+import AnalyticsDetails from "./pages/AnalyticsDetails";
 
 function AppContent() {
   const location = useLocation();
@@ -94,9 +96,14 @@ function AppContent() {
         <Route path="/add" element={<ProtectedRoute><AddItem /></ProtectedRoute>} />
         <Route path="/edit/:id" element={<ProtectedRoute><AddItem /></ProtectedRoute>} />
         <Route path="/estoque" element={<ProtectedRoute><StockManagement /></ProtectedRoute>} />
+        <Route path="/estoque/:itemId" element={<ProtectedRoute><StockDetails /></ProtectedRoute>} />
         <Route path="/historico-medicamentos" element={<ProtectedRoute><MedicationHistory /></ProtectedRoute>} />
         <Route path="/medicamentos/:id/historico" element={<ProtectedRoute><MedicationHistory /></ProtectedRoute>} />
         
+        {/* Progresso/Analytics detail routes */}
+        <Route path="/progresso/detalhes" element={<ProtectedRoute><AnalyticsDetails /></ProtectedRoute>} />
+        <Route path="/analise-detalhada" element={<ProtectedRoute><AnalyticsDetails /></ProtectedRoute>} />
+
         {/* Saúde subroutes */}
         <Route path="/saude/agenda" element={<ProtectedRoute><Agenda /></ProtectedRoute>} />
         <Route path="/consultas" element={<ProtectedRoute><MedicalAppointments /></ProtectedRoute>} />
