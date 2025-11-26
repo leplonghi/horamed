@@ -4,8 +4,6 @@ export interface MedicamentoBrasileiro {
   nome: string;
   principioAtivo?: string;
   tipo: string;
-  empresa?: string;
-  categoria?: string;
 }
 
 export function useMedicamentosBrasileiros() {
@@ -34,26 +32,11 @@ export function useMedicamentosBrasileiros() {
           
           const tipo = parts[0]?.replace(/"/g, '').trim();
           const nome = parts[1]?.replace(/"/g, '').trim();
-          const classeTerapeutica = parts[7]?.replace(/"/g, '').trim();
-          const empresaDetentora = parts[8]?.replace(/"/g, '').trim();
-          const situacaoRegistro = parts[9]?.replace(/"/g, '').trim();
           const principioAtivo = parts[10]?.replace(/"/g, '').trim();
           
-          // Filtrar apenas medicamentos VÁLIDOS
+          // Filtrar apenas medicamentos
           if (tipo !== 'MEDICAMENTO') continue;
-          if (situacaoRegistro !== 'VÁLIDO') continue;
           if (!nome || nome.length < 3) continue;
-          
-          // Mapear categoria baseado na classe terapêutica
-          let categoria = 'medicamento';
-          const classeUpper = classeTerapeutica?.toUpperCase() || '';
-          if (classeUpper.includes('VITAMINA') || classeUpper.includes('SUPLEMENTO')) {
-            categoria = 'vitamina';
-          } else if (classeUpper.includes('ANTIBIOTICO') || classeUpper.includes('ANTIMICROBIANO')) {
-            categoria = 'antibiotico';
-          } else if (classeUpper.includes('ANTIINFLAMATORIO') || classeUpper.includes('ANALGESICO')) {
-            categoria = 'analgesico';
-          }
           
           // Normalizar nome
           const nomeKey = nome.toLowerCase();
@@ -63,9 +46,7 @@ export function useMedicamentosBrasileiros() {
             medicamentosMap.set(nomeKey, {
               nome: nome,
               principioAtivo: principioAtivo || undefined,
-              tipo: 'MEDICAMENTO',
-              empresa: empresaDetentora || undefined,
-              categoria: categoria
+              tipo: 'MEDICAMENTO'
             });
           }
         }

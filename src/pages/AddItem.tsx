@@ -721,12 +721,7 @@ export default function AddItem() {
                                 key={med.nome}
                                 value={med.nome}
                                 onSelect={(currentValue) => {
-                                  setFormData({ 
-                                    ...formData, 
-                                    name: currentValue,
-                                    // Auto-selecionar categoria baseado no medicamento
-                                    category: med.categoria || formData.category
-                                  });
+                                  setFormData({ ...formData, name: currentValue });
                                   setOpenNameCombobox(false);
                                 }}
                               >
