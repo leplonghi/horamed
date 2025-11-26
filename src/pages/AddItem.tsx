@@ -721,7 +721,7 @@ export default function AddItem() {
                                 key={med.nome}
                                 value={med.nome}
                                 onSelect={(currentValue) => {
-                                  setFormData({ ...formData, name: currentValue });
+                                  setFormData({ ...formData, name: currentValue, category: med.categoria });
                                   setOpenNameCombobox(false);
                                 }}
                               >
@@ -736,6 +736,11 @@ export default function AddItem() {
                                   {med.principioAtivo && (
                                     <div className="text-xs text-muted-foreground truncate">
                                       {med.principioAtivo}
+                                    </div>
+                                  )}
+                                  {med.empresa && (
+                                    <div className="text-xs text-muted-foreground/70 truncate">
+                                      {med.empresa}
                                     </div>
                                   )}
                                 </div>

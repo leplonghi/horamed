@@ -29,6 +29,7 @@ export default function AddMedicationWizard() {
   // Step 1 - Basic info
   const [name, setName] = useState("");
   const [dose, setDose] = useState("");
+  const [category, setCategory] = useState("medicamento");
   const [openCombobox, setOpenCombobox] = useState(false);
   
   // Load and filter medications from CSV
@@ -84,6 +85,7 @@ export default function AddMedicationWizard() {
           profile_id: activeProfile?.id || null,
           name,
           dose_text: dose,
+          category,
           with_food: withFood,
           notes: notes || null,
           treatment_duration_days: treatmentDays ? parseInt(treatmentDays) : null,
@@ -216,12 +218,13 @@ export default function AddMedicationWizard() {
                               </div>
                             </CommandEmpty>
                             <CommandGroup>
-                              {filteredMedicamentos.map((med) => (
+                               {filteredMedicamentos.map((med) => (
                                 <CommandItem
                                   key={med.nome}
                                   value={med.nome}
                                   onSelect={(currentValue) => {
                                     setName(currentValue);
+                                    setCategory(med.categoria);
                                     setOpenCombobox(false);
                                   }}
                                 >
@@ -236,6 +239,11 @@ export default function AddMedicationWizard() {
                                     {med.principioAtivo && (
                                       <div className="text-xs text-muted-foreground truncate">
                                         {med.principioAtivo}
+                                      </div>
+                                    )}
+                                    {med.empresa && (
+                                      <div className="text-xs text-muted-foreground/70 truncate">
+                                        {med.empresa}
                                       </div>
                                     )}
                                   </div>
