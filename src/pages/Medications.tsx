@@ -24,6 +24,7 @@ interface Item {
   dose_text: string | null;
   category: string;
   is_active: boolean;
+  treatment_end_date: string | null;
   schedules: Array<{
     id: string;
     times: any;
@@ -91,6 +92,7 @@ export default function Medications() {
           dose_text,
           category,
           is_active,
+          treatment_end_date,
           profile_id,
           schedules (
             id,
@@ -166,6 +168,13 @@ export default function Medications() {
     if (unitsLeft <= 5) return { label: `${unitsLeft} ${unitLabel} - Crítico`, color: "destructive" };
     if (unitsLeft <= 15) return { label: `${unitsLeft} ${unitLabel} - Baixo`, color: "warning" };
     return { label: `${unitsLeft} ${unitLabel}`, color: "default" };
+  };
+
+  const isMedicationFinished = (endDate: string | null) => {
+    if (!endDate) return false;
+    const today = new Date();
+    const end = new Date(endDate);
+    return end < today;
   };
 
   const handleAddClick = () => {
@@ -284,15 +293,31 @@ export default function Medications() {
               {filteredItems.map((item) => {
                 const stockStatus = getStockStatus(item.stock);
                 const colorClass = getColorForMedication(item.id);
+                const isFinished = isMedicationFinished(item.treatment_end_date);
                 
                 return (
-                  <Card key={item.id} className={cn("hover:shadow-md transition-shadow overflow-hidden border-l-4", colorClass)}>
+                  <Card 
+                    key={item.id} 
+                    className={cn(
+                      "hover:shadow-md transition-shadow overflow-hidden border-l-4",
+                      isFinished 
+                        ? "bg-muted/50 border-l-muted-foreground/30 opacity-60" 
+                        : colorClass
+                    )}
+                  >
                     <CardContent className="p-3 overflow-x-hidden">
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1.5">
-                            <span className="text-xl shrink-0">{CATEGORY_ICONS[item.category] || "📦"}</span>
-                            <h3 className="font-semibold text-base truncate">{item.name}</h3>
+                            <span className={cn("text-xl shrink-0", isFinished && "grayscale opacity-60")}>
+                              {CATEGORY_ICONS[item.category] || "📦"}
+                            </span>
+                            <h3 className={cn(
+                              "font-semibold text-base truncate",
+                              isFinished && "text-muted-foreground"
+                            )}>
+                              {item.name}
+                            </h3>
                           </div>
                           
                           {item.dose_text && (
@@ -302,18 +327,26 @@ export default function Medications() {
                           )}
                           
                           <div className="flex flex-wrap gap-1.5">
-                            <Badge variant="outline" className="shrink-0 text-[10px] h-5">
-                              {getScheduleSummary(item.schedules)}
-                            </Badge>
-                            
-                            {stockStatus && (
-                              <Badge 
-                                variant={stockStatus.color === "destructive" ? "destructive" : "secondary"}
-                                className={`shrink-0 text-[10px] h-5 ${stockStatus.color === "warning" ? "bg-amber-100 text-amber-700" : ""}`}
-                              >
-                                <Package className="h-2.5 w-2.5 mr-0.5" />
-                                {stockStatus.label}
+                            {isFinished ? (
+                              <Badge variant="secondary" className="shrink-0 text-[10px] h-5 bg-muted text-muted-foreground">
+                                ✓ Tratamento concluído
                               </Badge>
+                            ) : (
+                              <>
+                                <Badge variant="outline" className="shrink-0 text-[10px] h-5">
+                                  {getScheduleSummary(item.schedules)}
+                                </Badge>
+                                
+                                {stockStatus && (
+                                  <Badge 
+                                    variant={stockStatus.color === "destructive" ? "destructive" : "secondary"}
+                                    className={`shrink-0 text-[10px] h-5 ${stockStatus.color === "warning" ? "bg-amber-100 text-amber-700" : ""}`}
+                                  >
+                                    <Package className="h-2.5 w-2.5 mr-0.5" />
+                                    {stockStatus.label}
+                                  </Badge>
+                                )}
+                              </>
                             )}
                           </div>
                         </div>

@@ -19,6 +19,7 @@ export interface StockProjection {
   taken_count_7d: number;
   scheduled_count_7d: number;
   adherence_7d: number;
+  treatment_end_date: string | null;
 }
 
 export interface ConsumptionEntry {
@@ -51,7 +52,8 @@ export function useStockProjection(profileId?: string) {
             name,
             user_id,
             profile_id,
-            is_active
+            is_active,
+            treatment_end_date
           ),
           documentos_saude (
             id,
@@ -131,6 +133,7 @@ export function useStockProjection(profileId?: string) {
           taken_count_7d: takenDoses.length,
           scheduled_count_7d: scheduledDoses.length,
           adherence_7d: Math.round(adherence),
+          treatment_end_date: item.treatment_end_date || null,
         };
       });
 

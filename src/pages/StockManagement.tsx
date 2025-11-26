@@ -17,6 +17,7 @@ import { StockOriginBadge } from "@/components/StockOriginBadge";
 import { StockConsumptionChart } from "@/components/StockConsumptionChart";
 import TutorialHint from "@/components/TutorialHint";
 import HelpTooltip from "@/components/HelpTooltip";
+import { cn } from "@/lib/utils";
 import {
   Dialog,
   DialogContent,
@@ -178,28 +179,55 @@ export default function StockManagement() {
             const estimatedEndDate = item.days_remaining 
               ? new Date(Date.now() + item.days_remaining * 24 * 60 * 60 * 1000).toLocaleDateString('pt-BR')
               : null;
+            
+            // Verificar se o medicamento está concluído
+            const isFinished = item.treatment_end_date 
+              ? new Date(item.treatment_end_date) < new Date() 
+              : false;
 
             return (
-              <Card key={item.id} className={`transition-all hover:shadow-md border-l-4 ${
-                percentage <= 10 ? 'border-l-destructive' :
-                percentage <= 20 ? 'border-l-warning' :
-                'border-l-primary'
-              }`}>
+              <Card key={item.id} className={cn(
+                "transition-all hover:shadow-md border-l-4",
+                isFinished
+                  ? "bg-muted/50 border-l-muted-foreground/30 opacity-60"
+                  : percentage <= 10 ? 'border-l-destructive' :
+                    percentage <= 20 ? 'border-l-warning' :
+                    'border-l-primary'
+              )}>
                 <div className="p-6 space-y-4">
                   {/* Header */}
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 space-y-3">
                       <div className="flex items-center justify-between">
-                        <h3 className="text-xl font-bold text-foreground">{item.item_name}</h3>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => window.location.href = `/estoque/${item.item_id}`}
-                          className="text-xs"
-                        >
-                          Ver detalhes completos →
-                        </Button>
+                        <h3 className={cn(
+                          "text-xl font-bold",
+                          isFinished ? "text-muted-foreground" : "text-foreground"
+                        )}>
+                          {item.item_name}
+                        </h3>
+                        {!isFinished && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => window.location.href = `/estoque/${item.item_id}`}
+                            className="text-xs"
+                          >
+                            Ver detalhes completos →
+                          </Button>
+                        )}
                       </div>
+                      
+                      {isFinished && (
+                        <div className="p-3 bg-muted border border-muted-foreground/20 rounded-lg">
+                          <p className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                            <span className="text-lg">✓</span>
+                            Tratamento concluído
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Este medicamento finalizou o período de tratamento.
+                          </p>
+                        </div>
+                      )}
                       
                       {/* Informações de origem da receita */}
                       {item.created_from_prescription_id && item.prescription_title && (
