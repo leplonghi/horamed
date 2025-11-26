@@ -200,7 +200,7 @@ export default function AddMedicationWizard() {
                           </span>
                         </Button>
                       </PopoverTrigger>
-                      <PopoverContent className="w-full p-0" align="start">
+                      <PopoverContent className="w-full p-0 bg-background z-50" align="start">
                         <Command shouldFilter={false}>
                           <CommandInput 
                             placeholder="Buscar medicamento..." 

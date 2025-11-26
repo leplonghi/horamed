@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useFeedbackToast } from "@/hooks/useFeedbackToast";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,15 +15,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 import { toast } from "sonner";
-import { ArrowLeft, Plus, Trash2, Pill, Package } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Pill, Package, Check } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import MedicationOCRWrapper from "@/components/MedicationOCRWrapper";
 import HealthProfileSetup from "@/components/HealthProfileSetup";
 import HelpTooltip from "@/components/HelpTooltip";
 import logo from "@/assets/horamed-logo.png";
 import { useUserProfiles } from "@/hooks/useUserProfiles";
+import { medicamentosBrasileiros } from "@/data/medicamentos-brasileiros";
+import { cn } from "@/lib/utils";
 
 export default function AddItem() {
   const navigate = useNavigate();
@@ -36,6 +40,7 @@ export default function AddItem() {
   const [hasHealthProfile, setHasHealthProfile] = useState(false);
   const { showFeedback } = useFeedbackToast();
   const { activeProfile } = useUserProfiles();
+  const [openNameCombobox, setOpenNameCombobox] = useState(false);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -50,6 +55,15 @@ export default function AddItem() {
     dose_quantity: 1,
     dose_unit: "comprimidos",
   });
+  
+  // Filter medications based on search
+  const filteredMedicamentos = useMemo(() => {
+    if (!formData.name) return medicamentosBrasileiros.slice(0, 50);
+    const search = formData.name.toLowerCase();
+    return medicamentosBrasileiros
+      .filter(med => med.nome.toLowerCase().includes(search))
+      .slice(0, 50);
+  }, [formData.name]);
 
   const [schedules, setSchedules] = useState([
     {
@@ -673,15 +687,74 @@ export default function AddItem() {
               <div className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="name">Nome do item *</Label>
-                  <Input
-                    id="name"
-                    placeholder="Ex: Paracetamol, Vitamina D"
-                    value={formData.name}
-                    onChange={(e) =>
-                      setFormData({ ...formData, name: e.target.value })
-                    }
-                    required
-                  />
+                  <Popover open={openNameCombobox} onOpenChange={setOpenNameCombobox}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        aria-expanded={openNameCombobox}
+                        className="w-full justify-between h-auto min-h-[40px] text-left font-normal"
+                      >
+                        <span className={cn("truncate", !formData.name && "text-muted-foreground")}>
+                          {formData.name || "Digite ou selecione um medicamento..."}
+                        </span>
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-full p-0 bg-background z-50" align="start">
+                      <Command shouldFilter={false}>
+                        <CommandInput 
+                          placeholder="Buscar medicamento..." 
+                          value={formData.name}
+                          onValueChange={(value) => setFormData({ ...formData, name: value })}
+                        />
+                        <CommandList>
+                          <CommandEmpty>
+                            <div className="p-4 text-sm">
+                              <p className="font-medium mb-2">Não encontrou?</p>
+                              <p className="text-muted-foreground mb-3">Digite o nome do seu medicamento</p>
+                              <Button 
+                                size="sm" 
+                                onClick={() => setOpenNameCombobox(false)}
+                                className="w-full"
+                              >
+                                Continuar com "{formData.name}"
+                              </Button>
+                            </div>
+                          </CommandEmpty>
+                          <CommandGroup>
+                            {filteredMedicamentos.map((med) => (
+                              <CommandItem
+                                key={med.nome}
+                                value={med.nome}
+                                onSelect={(currentValue) => {
+                                  setFormData({ ...formData, name: currentValue });
+                                  setOpenNameCombobox(false);
+                                }}
+                              >
+                                <Check
+                                  className={cn(
+                                    "mr-2 h-4 w-4",
+                                    formData.name === med.nome ? "opacity-100" : "opacity-0"
+                                  )}
+                                />
+                                <div className="flex-1 min-w-0">
+                                  <div className="font-medium truncate">{med.nome}</div>
+                                  {med.principioAtivo && (
+                                    <div className="text-xs text-muted-foreground truncate">
+                                      {med.principioAtivo}
+                                    </div>
+                                  )}
+                                </div>
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
+                  <p className="text-xs text-muted-foreground">
+                    💊 Selecione da lista ou digite o nome do seu medicamento
+                  </p>
                 </div>
 
                 <div className="space-y-2">
