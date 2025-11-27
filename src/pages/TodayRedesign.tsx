@@ -403,7 +403,7 @@ export default function TodayRedesign() {
   return <div className="min-h-screen bg-background">
       <Header />
       
-      <main className="container mx-auto px-3 pt-24 pb-20 max-w-6xl">
+      <main className="container mx-auto pt-24 pb-20 max-w-6xl px-[10px]">
         {/* Dismissable Alerts with Swipe - Compact */}
         {criticalAlerts.alerts.length > 0 && <motion.div drag="x" dragConstraints={{
         left: 0,
@@ -433,14 +433,14 @@ export default function TodayRedesign() {
         </div>
 
         {/* Compact Grid: Stats and Quick Actions - Equal Height Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-4 gap-2 mb-2 items-stretch pl-0 pt-0 my-0 mx-0">
+        <div className="grid grid-cols-3 md:grid-cols-1 lg:grid-cols-4 gap-2 mb-2 items-stretch pl-0 pt-0 my-0 mx-0">
           {/* Streak Badge */}
           {streakData.currentStreak > 0 && <div className="transition-transform hover:scale-105 h-full">
               <StreakBadge streak={streakData.currentStreak} type="current" />
             </div>}
           
           {/* Adherence Summary */}
-          <div className="transition-transform hover:scale-105 h-full">
+          <div className="transition-transform hover:scale-105 h-full my-0">
             <SimpleAdherenceSummary taken={todayStats.taken} total={todayStats.total} period="Hoje" />
           </div>
           
