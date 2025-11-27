@@ -441,9 +441,9 @@ export default function TodayRedesign() {
                 criticalAlerts.dismissAll();
               }
             }}
-            className="mb-3"
+            className="mb-2"
           >
-            <CriticalAlertBanner 
+            <CriticalAlertBanner
               alerts={criticalAlerts.alerts} 
               onDismiss={(id) => criticalAlerts.dismissAlert(id)}
               onDismissAll={() => criticalAlerts.dismissAll()}
@@ -451,21 +451,21 @@ export default function TodayRedesign() {
           </motion.div>
         )}
 
-        <div className="space-y-3">
+        <div className="space-y-2 mb-2">
           <ExpiredPrescriptionsAlert />
           <VaccineRemindersWidget />
         </div>
 
         {/* Header with greeting - Visible and Styled */}
-        <div className="mb-6 mt-2">
-          <h1 className="text-3xl md:text-4xl font-bold mb-2 bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
+        <div className="mb-3">
+          <h1 className="text-3xl md:text-4xl font-bold mb-1 bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
             {greeting}{userName && `, ${userName}`}!
           </h1>
           <p className="text-muted-foreground text-base">{motivationalQuote}</p>
         </div>
 
         {/* Compact Grid: Stats and Quick Actions - Equal Height Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 mb-4 items-stretch">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 mb-2 items-stretch">
           {/* Streak Badge */}
           {streakData.currentStreak > 0 && (
             <div className="transition-transform hover:scale-105 h-full">
@@ -494,12 +494,12 @@ export default function TodayRedesign() {
         </div>
 
         {/* Essential Shortcuts - Compact */}
-        <div className="mb-4">
+        <div className="mb-2">
           <EssentialShortcuts />
         </div>
 
         {/* Two Column Layout: Calendar + Timeline */}
-        <div className="grid md:grid-cols-2 gap-3 mb-4">
+        <div className="grid md:grid-cols-2 gap-2">
           {/* Calendar - Compact */}
           <div className="transition-transform hover:scale-[1.02]">
             <ImprovedCalendar
