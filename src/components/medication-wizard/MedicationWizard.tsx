@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, ArrowRight, Check } from "lucide-react";
@@ -40,8 +40,13 @@ interface MedicationWizardProps {
 
 export default function MedicationWizard({ open, onOpenChange }: MedicationWizardProps) {
   const navigate = useNavigate();
+  const location = useLocation();
   const { activeProfile } = useUserProfiles();
   const { subscription, loading: subLoading } = useSubscription();
+  
+  // Extract prefill data from navigation state (from OCR)
+  const prefillData = location.state?.prefillData;
+  const remainingMedications = location.state?.remainingMedications || [];
   
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -58,6 +63,18 @@ export default function MedicationWizard({ open, onOpenChange }: MedicationWizar
     unitLabel: "comprimidos",
     lowStockThreshold: 5,
   });
+
+  // Update form data when prefill data changes
+  useEffect(() => {
+    if (prefillData) {
+      setMedicationData(prev => ({
+        ...prev,
+        name: prefillData.name || prev.name,
+        category: prefillData.category || prev.category,
+        notes: prefillData.notes || prev.notes,
+      }));
+    }
+  }, [prefillData]);
 
   const updateData = (partialData: Partial<MedicationData>) => {
     setMedicationData(prev => ({ ...prev, ...partialData }));
