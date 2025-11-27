@@ -1,16 +1,17 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Copy, Share2, Gift, Crown, Users, Sparkles } from "lucide-react";
+import { Copy, Share2, Gift, Crown, Users, Sparkles, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
-import PageHeader from "@/components/PageHeader";
 import { getReferralDiscountForUser, getFreeExtraSlotsForUser } from "@/lib/referrals";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 
 export default function IndiqueGanhe() {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { isPremium } = useSubscription();
   const [referralCode, setReferralCode] = useState<string>("");
@@ -91,10 +92,18 @@ export default function IndiqueGanhe() {
 
   return (
     <div className="min-h-screen bg-background pb-20">
-      <PageHeader 
-        title="Indique e Ganhe" 
-        description="Compartilhe o HoraMed e ganhe benefícios" 
-      />
+      <div className="container max-w-2xl mx-auto px-4">
+        <div className="flex items-center gap-3 mb-6 pt-6">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate("/perfil")}
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <h1 className="text-xl font-bold text-foreground">Indique e Ganhe</h1>
+        </div>
+      </div>
 
       <div className="container max-w-2xl mx-auto px-4 py-6 space-y-6">
         {/* Referral Code Card */}

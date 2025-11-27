@@ -1,15 +1,15 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { ArrowLeft, CheckCircle2, Crown, Shield, Sparkles, Coffee, Candy, Star, TrendingUp, Users, Gift } from "lucide-react";
 import { useSubscription } from "@/hooks/useSubscription";
 import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { activateReferralOnUpgrade } from "@/lib/referralProcessor";
+import { getReferralDiscountForUser } from "@/lib/referrals";
 
 const testimonials = [
   {
@@ -39,8 +39,26 @@ export default function Plans() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [billingCycle, setBillingCycle] = useState<"monthly" | "annual">("monthly");
-  const [referralCode, setReferralCode] = useState("");
+  const [referralDiscount, setReferralDiscount] = useState(0);
   const { isPremium, subscription } = useSubscription();
+
+  useEffect(() => {
+    loadReferralDiscount();
+  }, []);
+
+  const loadReferralDiscount = async () => {
+    if (!isPremium) return; // Só usuários premium tem desconto
+    
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const discount = await getReferralDiscountForUser(user.id);
+      setReferralDiscount(discount);
+    } catch (error) {
+      console.error('Error loading referral discount:', error);
+    }
+  };
 
   const handleUpgrade = async () => {
     setLoading(true);
@@ -48,26 +66,7 @@ export default function Plans() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
-      // Processar referral code se fornecido
-      if (referralCode.trim()) {
-        const { error: referralError } = await supabase
-          .from('referrals')
-          .insert({
-            referrer_user_id: user.id,
-            referral_code_used: referralCode.trim().toUpperCase(),
-            plan_type: billingCycle === "monthly" ? "premium_monthly" : "premium_annual",
-            status: "pending"
-          });
-        
-        if (referralError) {
-          console.error('Referral error:', referralError);
-          toast.error("Código de indicação inválido");
-          setLoading(false);
-          return;
-        }
-      }
-
-      // Processar referral se houver pendente
+      // Processar referral se houver pendente (ativar referral de quem indicou)
       const planType = billingCycle === "monthly" ? "premium_monthly" : "premium_annual";
       await activateReferralOnUpgrade(user.id, planType);
 
@@ -119,8 +118,14 @@ export default function Plans() {
 
   const monthlyPrice = 19.90;
   const annualPrice = 199.90;
-  const annualMonthlyEquivalent = (annualPrice / 12).toFixed(2);
-  const annualSavings = (monthlyPrice * 12 - annualPrice).toFixed(2);
+  
+  // Aplicar desconto de referrals para usuários premium
+  const discountMultiplier = isPremium ? (1 - referralDiscount / 100) : 1;
+  const discountedMonthlyPrice = monthlyPrice * discountMultiplier;
+  const discountedAnnualPrice = annualPrice * discountMultiplier;
+  
+  const annualMonthlyEquivalent = (discountedAnnualPrice / 12).toFixed(2);
+  const annualSavings = (discountedMonthlyPrice * 12 - discountedAnnualPrice).toFixed(2);
 
   return (
     <div className="min-h-screen bg-background p-4 pb-24 max-w-4xl mx-auto">
@@ -268,11 +273,25 @@ export default function Plans() {
 
               {/* Price Highlight */}
               <div className="pt-2 space-y-3">
+                {isPremium && referralDiscount > 0 && (
+                  <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-3 mb-2">
+                    <p className="text-sm font-medium text-green-600 dark:text-green-400 flex items-center gap-2">
+                      <Gift className="h-4 w-4" />
+                      Desconto de {referralDiscount}% por indicações ativo!
+                    </p>
+                  </div>
+                )}
+                
                 <div>
                   {billingCycle === "monthly" ? (
                     <>
+                      {isPremium && referralDiscount > 0 && (
+                        <p className="text-lg line-through text-muted-foreground">
+                          R$ {monthlyPrice.toFixed(2).replace('.', ',')}
+                        </p>
+                      )}
                       <p className="text-3xl font-bold text-foreground">
-                        R$ {monthlyPrice.toFixed(2).replace('.', ',')}
+                        R$ {discountedMonthlyPrice.toFixed(2).replace('.', ',')}
                         <span className="text-base font-normal text-muted-foreground">/mês</span>
                       </p>
                       <p className="text-sm text-muted-foreground">Cobrado mensalmente</p>
@@ -280,12 +299,17 @@ export default function Plans() {
                   ) : (
                     <>
                       <div className="space-y-1">
+                        {isPremium && referralDiscount > 0 && (
+                          <p className="text-lg line-through text-muted-foreground">
+                            R$ {(annualPrice / 12).toFixed(2).replace('.', ',')}/mês
+                          </p>
+                        )}
                         <p className="text-3xl font-bold text-foreground">
                           R$ {annualMonthlyEquivalent.replace('.', ',')}
                           <span className="text-base font-normal text-muted-foreground">/mês</span>
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          R$ {annualPrice.toFixed(2).replace('.', ',')} cobrados anualmente
+                          R$ {discountedAnnualPrice.toFixed(2).replace('.', ',')} cobrados anualmente
                         </p>
                         <Badge variant="secondary" className="gap-1">
                           ✨ Melhor valor - Economize R$ {annualSavings}
@@ -325,24 +349,6 @@ export default function Plans() {
                 </Button>
               ) : (
                 <div className="space-y-3">
-                  {/* Referral Code Input */}
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-foreground flex items-center gap-2">
-                      <Gift className="h-4 w-4 text-primary" />
-                      Tem um código de indicação?
-                    </label>
-                    <Input
-                      placeholder="Ex: HR-ABC123"
-                      value={referralCode}
-                      onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
-                      className="text-center font-mono"
-                      maxLength={10}
-                    />
-                    <p className="text-xs text-muted-foreground text-center">
-                      Ganhe benefícios extras com código de amigos
-                    </p>
-                  </div>
-
                   <Button 
                     className="w-full bg-primary hover:bg-primary/90 text-lg py-6"
                     onClick={handleUpgrade}
@@ -353,6 +359,11 @@ export default function Plans() {
                   <p className="text-xs text-center text-muted-foreground">
                     Sem compromisso • Cancele quando quiser
                   </p>
+                  <div className="bg-muted/50 rounded-lg p-3 text-center">
+                    <p className="text-xs text-muted-foreground">
+                      💡 Tem um código de indicação? Use-o durante o cadastro para ganhar benefícios
+                    </p>
+                  </div>
                 </div>
               )}
             </div>
