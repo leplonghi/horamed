@@ -32,6 +32,10 @@ import { ExpiredPrescriptionsAlert } from "@/components/ExpiredPrescriptionsAler
 import EssentialShortcuts from "@/components/EssentialShortcuts";
 import SimpleAdherenceSummary from "@/components/SimpleAdherenceSummary";
 import { X } from "lucide-react";
+import HydrationWidget from "@/components/fitness/HydrationWidget";
+import EnergyHintWidget from "@/components/fitness/EnergyHintWidget";
+import SupplementConsistencyWidget from "@/components/fitness/SupplementConsistencyWidget";
+import { useFitnessPreferences } from "@/hooks/useFitnessPreferences";
 
 interface TimelineItem {
   id: string;
@@ -70,6 +74,32 @@ export default function TodayRedesign() {
   const [showMilestoneReward, setShowMilestoneReward] = useState(false);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [selectedAchievement, setSelectedAchievement] = useState<any>(null);
+  const [hasSupplements, setHasSupplements] = useState(false);
+  const { preferences } = useFitnessPreferences();
+
+  // Check if user has supplements
+  useEffect(() => {
+    const checkSupplements = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      let query = supabase
+        .from("items")
+        .select("id", { count: "exact", head: true })
+        .in("category", ["suplemento", "vitamina"])
+        .eq("is_active", true)
+        .eq("user_id", user.id);
+
+      if (activeProfile?.id) {
+        query = query.eq("profile_id", activeProfile.id);
+      }
+
+      const { count } = await query;
+      setHasSupplements((count || 0) > 0);
+    };
+
+    checkSupplements();
+  }, [activeProfile]);
 
   useEffect(() => {
     if (isNewMilestone && milestone) {
@@ -497,6 +527,15 @@ export default function TodayRedesign() {
         <div className="mb-2">
           <EssentialShortcuts />
         </div>
+
+        {/* Fitness Widgets - Conditional */}
+        {hasSupplements && preferences.showFitnessWidgets && (
+          <div className="space-y-2 mb-2">
+            <HydrationWidget />
+            <SupplementConsistencyWidget last7Days={[80, 85, 90, 75, 95, 88, 92]} />
+            <EnergyHintWidget />
+          </div>
+        )}
 
         {/* Two Column Layout: Calendar + Timeline */}
         <div className="grid md:grid-cols-2 gap-2">

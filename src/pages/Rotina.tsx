@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Pencil, Trash2, Camera, Search, Plus, Pill, Calendar, UtensilsCrossed, Package } from "lucide-react";
+import { Pencil, Trash2, Camera, Search, Plus, Pill, Calendar, UtensilsCrossed, Package, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import Navigation from "@/components/Navigation";
@@ -19,6 +19,10 @@ import { ListSkeleton } from "@/components/LoadingSkeleton";
 import logo from "@/assets/horamed-logo.png";
 import TutorialHint from "@/components/TutorialHint";
 import MedicationWizard from "@/components/medication-wizard/MedicationWizard";
+import { isSupplement, getSupplementTags } from "@/utils/supplementHelpers";
+import SupplementTag from "@/components/fitness/SupplementTag";
+import { AffiliateCard } from "@/components/fitness/AffiliateCard";
+import { getRecommendations, dismissRecommendation } from "@/lib/affiliateEngine";
 
 interface Item {
   id: string;
@@ -69,6 +73,26 @@ export default function Rotina() {
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [wizardOpen, setWizardOpen] = useState(false);
   const { hasFeature, canAddMedication, isExpired } = useSubscription();
+  const [affiliateProduct, setAffiliateProduct] = useState<any>(null);
+  const [showAffiliateCard, setShowAffiliateCard] = useState(false);
+
+  // Check for affiliate recommendations
+  useEffect(() => {
+    const hasSupplements = items.some(item => 
+      item.category === 'vitamina' || item.category === 'suplemento'
+    );
+    
+    if (hasSupplements) {
+      const product = getRecommendations({ 
+        type: "MEDICATION_LIST", 
+        hasSupplements: true 
+      });
+      if (product) {
+        setAffiliateProduct(product);
+        setShowAffiliateCard(true);
+      }
+    }
+  }, [items]);
 
   useEffect(() => {
     fetchItems();
@@ -379,11 +403,119 @@ export default function Rotina() {
                   {filteredItems.filter(item => item.category === 'vitamina' || item.category === 'suplemento').length > 0 && (
                     <div className="space-y-3 mt-6">
                       <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide pl-2">Suplementos & Vitaminas</h3>
-                      {filteredItems.filter(item => item.category === 'vitamina' || item.category === 'suplemento').map((item, index) => (
+                      {filteredItems.filter(item => item.category === 'vitamina' || item.category === 'suplemento').map((item, index) => {
+                        const supplementTags = isSupplement(item.category, item.name) 
+                          ? getSupplementTags(item.name)
+                          : [];
+                        
+                        return (
+                          <Card 
+                            key={item.id} 
+                            style={{ animationDelay: `${index * 50}ms` }}
+                            className="p-5 hover:shadow-xl transition-all duration-300 hover:scale-[1.02] border-l-4 border-l-performance animate-fade-in-scale card-interactive"
+                          >
+                            <div className="space-y-3">
+                              <div className="flex items-start justify-between">
+                                <div className="flex-1 space-y-2">
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    <h3 className="text-lg font-semibold text-foreground">
+                                      {item.name}
+                                    </h3>
+                                    <Badge variant="outline" className={`${CATEGORY_COLORS[item.category]} text-xs px-2 py-0.5 rounded-md`}>
+                                      ⚡ {CATEGORY_LABELS[item.category]}
+                                    </Badge>
+                                    {supplementTags.map((tag, idx) => (
+                                      <SupplementTag key={idx} type={tag.toLowerCase() as any} />
+                                    ))}
+                                  </div>
+                                  {item.dose_text && (
+                                    <p className="text-sm text-foreground">
+                                      {item.dose_text}
+                                    </p>
+                                  )}
+                                </div>
+
+                              <div className="flex gap-1 flex-shrink-0">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8"
+                                  onClick={() => navigate(`/adicionar?edit=${item.id}`)}
+                                >
+                                  <Pencil className="h-4 w-4 text-muted-foreground" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8"
+                                  onClick={() => deleteItem(item.id)}
+                                >
+                                  <Trash2 className="h-4 w-4 text-muted-foreground" />
+                                </Button>
+                              </div>
+                            </div>
+
+                            <div className="flex flex-col gap-1 text-sm text-muted-foreground">
+                              {item.schedules && item.schedules.length > 0 && (
+                                <div className="flex items-center gap-2">
+                                  <Calendar className="h-4 w-4" />
+                                  <span>Diariamente às {getScheduleSummary(item.schedules[0])}</span>
+                                </div>
+                              )}
+                              {item.with_food && (
+                                <div className="flex items-center gap-2">
+                                  <UtensilsCrossed className="h-4 w-4" />
+                                  <span>Tomar com alimento</span>
+                                </div>
+                              )}
+                              {item.stock && item.stock.length > 0 && (
+                                <div className="flex items-center gap-2">
+                                  <Package className="h-4 w-4" />
+                                  <span>{item.stock[0].units_left} {item.stock[0].unit_label} restantes</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </Card>
+                        );
+                      })}
+
+                      {/* Affiliate Footer Card - Only if user has supplements */}
+                      {showAffiliateCard && affiliateProduct && (
+                        <div className="mt-6">
+                          <Card className="p-4 border-amber-200 dark:border-amber-800 bg-gradient-to-br from-amber-50/50 to-lime-50/50 dark:from-amber-950/20 dark:to-lime-950/20">
+                            <div className="space-y-3">
+                              <div className="flex items-center gap-2">
+                                <Sparkles className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                                <h4 className="font-semibold text-sm text-foreground">Dicas para seu dia</h4>
+                              </div>
+                              <p className="text-xs text-muted-foreground">
+                                Sugestões rápidas com base na sua rotina
+                              </p>
+                              <AffiliateCard 
+                                product={affiliateProduct}
+                                context="MEDICATION_LIST"
+                                onDismiss={() => {
+                                  dismissRecommendation("MEDICATION_LIST");
+                                  setShowAffiliateCard(false);
+                                }}
+                              />
+                            </div>
+                          </Card>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Other items (if any) */}
+                  {filteredItems.filter(item => item.category === 'outro').length > 0 && (
+                    <div className="space-y-3 mt-6">
+                      <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide pl-2">Outros</h3>
+                      {filteredItems.filter(item => item.category === 'outro').map((item, index) => (
                         <Card 
                           key={item.id} 
                           style={{ animationDelay: `${index * 50}ms` }}
-                          className="p-5 hover:shadow-xl transition-all duration-300 hover:scale-[1.02] border-l-4 border-l-performance animate-fade-in-scale card-interactive"
+                          className="p-5 hover:shadow-xl transition-all duration-300 hover:scale-[1.02] border-l-4 border-l-primary animate-fade-in-scale card-interactive"
                         >
                           <div className="space-y-3">
                             <div className="flex items-start justify-between">
@@ -448,76 +580,6 @@ export default function Rotina() {
                       ))}
                     </div>
                   )}
-
-                  {/* Show all items if "todos" tab or if no grouping needed */}
-                  {(activeTab === 'todos' && filteredItems.filter(item => item.category !== 'medicamento' && item.category !== 'vitamina' && item.category !== 'suplemento').length === 0) || 
-                   (activeTab !== 'todos' && filteredItems.map((item, index) => (
-                  <Card 
-                    key={item.id} 
-                    style={{ animationDelay: `${index * 50}ms` }}
-                    className="p-5 hover:shadow-xl transition-all duration-300 hover:scale-[1.02] border-l-4 border-l-primary animate-fade-in-scale card-interactive"
-                  >
-                    <div className="space-y-3">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1 space-y-2">
-                          <div className="flex items-center gap-2">
-                            <h3 className="text-lg font-semibold text-foreground">
-                              {item.name}
-                            </h3>
-                            <Badge variant="outline" className={`${CATEGORY_COLORS[item.category]} text-xs px-2 py-0.5 rounded-md`}>
-                              {CATEGORY_ICONS[item.category]} {CATEGORY_LABELS[item.category]}
-                            </Badge>
-                          </div>
-                          {item.dose_text && (
-                            <p className="text-sm text-foreground">
-                              {item.dose_text}
-                            </p>
-                          )}
-                        </div>
-
-                        <div className="flex gap-1 flex-shrink-0">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8"
-                            onClick={() => navigate(`/adicionar?edit=${item.id}`)}
-                          >
-                            <Pencil className="h-4 w-4 text-muted-foreground" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8"
-                            onClick={() => deleteItem(item.id)}
-                          >
-                            <Trash2 className="h-4 w-4 text-muted-foreground" />
-                          </Button>
-                        </div>
-                      </div>
-
-                      <div className="flex flex-col gap-1 text-sm text-muted-foreground">
-                        {item.schedules && item.schedules.length > 0 && (
-                          <div className="flex items-center gap-2">
-                            <Calendar className="h-4 w-4" />
-                            <span>Diariamente às {getScheduleSummary(item.schedules[0])}</span>
-                          </div>
-                        )}
-                        {item.with_food && (
-                          <div className="flex items-center gap-2">
-                            <UtensilsCrossed className="h-4 w-4" />
-                            <span>Tomar com alimento</span>
-                          </div>
-                        )}
-                        {item.stock && item.stock.length > 0 && (
-                          <div className="flex items-center gap-2">
-                            <Package className="h-4 w-4" />
-                            <span>{item.stock[0].units_left} {item.stock[0].unit_label} restantes</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </Card>
-                )))}
                 </>
               )}
             </TabsContent>

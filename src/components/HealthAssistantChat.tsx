@@ -10,6 +10,9 @@ import { toast } from "sonner";
 import { useAILimits } from "@/hooks/useAILimits";
 import PaywallDialog from "./PaywallDialog";
 import { Alert, AlertDescription } from "./ui/alert";
+import { AffiliateCard } from "./fitness/AffiliateCard";
+import { getRecommendations, dismissRecommendation } from "@/lib/affiliateEngine";
+import { Badge } from "./ui/badge";
 
 interface Message {
   role: "user" | "assistant";
@@ -29,6 +32,15 @@ export default function HealthAssistantChat() {
   const [showPaywall, setShowPaywall] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const aiLimits = useAILimits();
+  const [affiliateProduct, setAffiliateProduct] = useState<any>(null);
+  const [showAffiliate, setShowAffiliate] = useState(false);
+
+  const quickChips = [
+    "Criar rotina de suplemento",
+    "Ajustar horários",
+    "Ver estoque",
+    "Ajuda com vitaminas"
+  ];
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -130,6 +142,18 @@ export default function HealthAssistantChat() {
         message_length: userMessage.length,
         response_length: assistantContent.length,
       });
+
+      // Check for fitness-related queries and show affiliate recommendation
+      const fitnessKeywords = ["treino", "academia", "performance", "energia", "sono", "glp-1", "ozempic", "mounjaro", "bariátrica"];
+      const isFitnessQuery = fitnessKeywords.some(keyword => userMessage.toLowerCase().includes(keyword));
+      
+      if (isFitnessQuery) {
+        const product = getRecommendations({ type: "AI_QUERY", text: userMessage });
+        if (product) {
+          setAffiliateProduct(product);
+          setShowAffiliate(true);
+        }
+      }
 
     } catch (error) {
       console.error("Chat error:", error);
@@ -243,8 +267,37 @@ export default function HealthAssistantChat() {
               </div>
             </div>
           )}
+          {/* Affiliate Recommendation */}
+          {showAffiliate && affiliateProduct && (
+            <div className="px-4">
+              <AffiliateCard 
+                product={affiliateProduct}
+                context="AI_QUERY"
+                onDismiss={() => {
+                  dismissRecommendation("AI_QUERY");
+                  setShowAffiliate(false);
+                }}
+              />
+            </div>
+          )}
         </div>
       </ScrollArea>
+
+      {/* Quick Chips */}
+      <div className="px-4 py-2 border-t">
+        <div className="flex gap-2 flex-wrap">
+          {quickChips.map((chip, idx) => (
+            <Badge 
+              key={idx}
+              variant="outline"
+              className="cursor-pointer hover:bg-primary/10 transition-colors text-xs"
+              onClick={() => setInput(chip)}
+            >
+              {chip}
+            </Badge>
+          ))}
+        </div>
+      </div>
 
       {/* Input */}
       <div className="p-4 border-t">
