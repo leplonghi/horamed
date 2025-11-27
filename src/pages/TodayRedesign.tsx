@@ -477,17 +477,23 @@ export default function TodayRedesign() {
         {/* Essential Shortcuts */}
         <EssentialShortcuts />
 
-        {/* Calendar */}
-        <div className="mb-6">
-          <ImprovedCalendar
-            selectedDate={selectedDate}
-            onDateSelect={setSelectedDate}
-            eventCounts={eventCounts}
-          />
-        </div>
+        {/* Calendar and Side Content - Two columns on larger screens */}
+        <div className="grid md:grid-cols-[2fr_1fr] gap-4 mb-6">
+          {/* Calendar - Compact */}
+          <div>
+            <ImprovedCalendar
+              selectedDate={selectedDate}
+              onDateSelect={setSelectedDate}
+              eventCounts={eventCounts}
+            />
+          </div>
 
-        {/* Quick Dose Widget */}
-        <QuickDoseWidget />
+          {/* Side Column - Insights and Quick Actions */}
+          <div className="space-y-4">
+            <HealthInsightsCard />
+            <QuickDoseWidget />
+          </div>
+        </div>
 
         {/* Timeline */}
         <div className="mb-6">
@@ -497,9 +503,6 @@ export default function TodayRedesign() {
             onDateChange={setSelectedDate}
           />
         </div>
-
-        {/* Health Insights */}
-        <HealthInsightsCard />
 
         {/* Milestone Reward Modal */}
         {milestone && (
