@@ -464,17 +464,17 @@ export default function TodayRedesign() {
           <p className="text-muted-foreground text-xs">{motivationalQuote}</p>
         </div>
 
-        {/* Compact Grid: Stats and Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 mb-4">
+        {/* Compact Grid: Stats and Quick Actions - Equal Height Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 mb-4 items-stretch">
           {/* Streak Badge */}
           {streakData.currentStreak > 0 && (
-            <div className="transition-transform hover:scale-105">
+            <div className="transition-transform hover:scale-105 h-full">
               <StreakBadge streak={streakData.currentStreak} type="current" />
             </div>
           )}
           
           {/* Adherence Summary */}
-          <div className="transition-transform hover:scale-105">
+          <div className="transition-transform hover:scale-105 h-full">
             <SimpleAdherenceSummary 
               taken={todayStats.taken} 
               total={todayStats.total}
@@ -483,12 +483,12 @@ export default function TodayRedesign() {
           </div>
           
           {/* Health Insights - Compact */}
-          <div className="transition-transform hover:scale-105">
+          <div className="transition-transform hover:scale-105 h-full">
             <HealthInsightsCard />
           </div>
           
           {/* Quick Dose Widget - Compact */}
-          <div className="transition-transform hover:scale-105">
+          <div className="transition-transform hover:scale-105 h-full">
             <QuickDoseWidget />
           </div>
         </div>
