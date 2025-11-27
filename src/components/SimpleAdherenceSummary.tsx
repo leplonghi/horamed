@@ -29,23 +29,23 @@ export default function SimpleAdherenceSummary({
     opacity: 1,
     y: 0
   }}>
-      <Card className="bg-gradient-to-br from-primary/5 to-background border-2 border-primary/20 mr-0 px-[10px]">
-        <CardContent className="p-5 px-0 py-0">
-          <div className="flex items-center justify-between">
-            <div className="flex-1 mt-px">
-              <p className="text-muted-foreground mb-1 text-lg font-bold">{period}</p>
-              <p className="text-2xl font-bold text-foreground py-[5px]">
+      <Card className="h-full bg-gradient-to-br from-primary/5 to-background border-2 border-primary/20">
+        <CardContent className="h-full p-6 flex items-center">
+          <div className="flex items-center justify-between w-full">
+            <div className="flex-1">
+              <p className="text-muted-foreground mb-1 text-base font-medium">{period}</p>
+              <p className="text-xl font-bold text-foreground">
                 Você tomou {taken} de {total} doses
               </p>
               <p className={`text-sm font-medium mt-1 ${getColor()}`}>
                 {getMessage()}
               </p>
             </div>
-            <div className="items-center justify-start flex flex-row">
+            <div className="flex items-center gap-1">
               <div className={`text-4xl font-bold ${getColor()}`}>
                 {percentage}%
               </div>
-              <TrendingUp className={`h-5 w-5 mt-1 ${getColor()}`} />
+              <TrendingUp className={`h-5 w-5 ${getColor()}`} />
             </div>
           </div>
         </CardContent>

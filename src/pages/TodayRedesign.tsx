@@ -470,7 +470,7 @@ export default function TodayRedesign() {
         </div>
 
         {/* Header with greeting - Visible and Styled */}
-        <div className="mb-3">
+        <div className="mb-2">
           <div className="flex items-center justify-between">
             <div className="flex-1">
               <h1 className="text-3xl md:text-4xl font-bold mb-1 bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
@@ -503,26 +503,26 @@ export default function TodayRedesign() {
         )}
 
         {/* Compact Grid: Stats and Quick Actions - Equal Height Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-2">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mb-2">
           {/* Streak Badge */}
           {streakData.currentStreak > 0 && (
-            <div className="transition-transform hover:scale-105">
+            <div className="transition-transform hover:scale-105 h-full">
               <StreakBadge streak={streakData.currentStreak} type="current" />
             </div>
           )}
           
           {/* Adherence Summary */}
-          <div className="transition-transform hover:scale-105">
+          <div className="transition-transform hover:scale-105 h-full">
             <SimpleAdherenceSummary taken={todayStats.taken} total={todayStats.total} period="Hoje" />
           </div>
           
           {/* Health Insights - Compact */}
-          <div className="transition-transform hover:scale-105">
+          <div className="transition-transform hover:scale-105 h-full">
             <HealthInsightsCard />
           </div>
           
           {/* Quick Dose Widget - Compact */}
-          <div className="transition-transform hover:scale-105">
+          <div className="transition-transform hover:scale-105 h-full">
             <QuickDoseWidget />
           </div>
         </div>

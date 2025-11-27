@@ -99,13 +99,13 @@ export default function QuickDoseWidget({
     }
   };
   if (loading) {
-    return <Card className={cn("p-4 animate-pulse", className)}>
+    return <Card className={cn("h-full p-4 animate-pulse", className)}>
         <div className="h-16 bg-muted rounded" />
       </Card>;
   }
   if (!nextDose) {
-    return <Card className={cn("p-6 bg-gradient-to-br from-primary/5 to-primary/10", className)}>
-        <div className="text-center space-y-1 ">
+    return <Card className={cn("h-full p-6 bg-gradient-to-br from-primary/5 to-primary/10 flex items-center justify-center", className)}>
+        <div className="text-center space-y-1">
           <CheckCircle2 className="h-12 w-12 mx-auto text-primary" />
           <h3 className="font-semibold text-lg">Sem doses pendentes</h3>
           <p className="text-sm text-muted-foreground">Você está em dia! 🎉</p>
@@ -116,7 +116,7 @@ export default function QuickDoseWidget({
   const dueTime = new Date(nextDose.due_at);
   const minutesUntil = Math.round((dueTime.getTime() - new Date().getTime()) / 60000);
   const isNow = minutesUntil <= 5 && minutesUntil >= -5;
-  return <Card className={cn("p-6 transition-all", isNow ? "bg-gradient-to-br from-primary/10 to-primary/5 border-primary/50 shadow-lg" : "", className)}>
+  return <Card className={cn("h-full p-6 transition-all flex flex-col justify-between", isNow ? "bg-gradient-to-br from-primary/10 to-primary/5 border-primary/50 shadow-lg" : "", className)}>
       <div className="space-y-4">
         <div className="flex items-start justify-between">
           <div className="space-y-1 flex-1">
