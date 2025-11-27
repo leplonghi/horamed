@@ -7,6 +7,7 @@ interface PaywallDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   feature?: 'ai_agent' | 'active_items' | 'documents' | 'report';
+  triggerReason?: string; // Legacy support
 }
 
 export default function PaywallDialog({ open, onOpenChange, feature }: PaywallDialogProps) {

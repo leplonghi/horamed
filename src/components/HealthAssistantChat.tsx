@@ -3,10 +3,13 @@ import { Card } from "./ui/card";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { ScrollArea } from "./ui/scroll-area";
-import { MessageCircle, Send, X, Loader2 } from "lucide-react";
+import { MessageCircle, Send, X, Loader2, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useAILimits } from "@/hooks/useAILimits";
+import PaywallDialog from "./PaywallDialog";
+import { Alert, AlertDescription } from "./ui/alert";
 
 interface Message {
   role: "user" | "assistant";
@@ -23,7 +26,9 @@ export default function HealthAssistantChat() {
   ]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [showPaywall, setShowPaywall] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const aiLimits = useAILimits();
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -119,6 +124,13 @@ export default function HealthAssistantChat() {
           }
         }
       }
+
+      // Record successful AI usage
+      await aiLimits.recordAIUsage({
+        message_length: userMessage.length,
+        response_length: assistantContent.length,
+      });
+
     } catch (error) {
       console.error("Chat error:", error);
       toast.error("Erro ao processar mensagem. Tente novamente.");
@@ -130,6 +142,12 @@ export default function HealthAssistantChat() {
 
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
+
+    // Check AI limits for Free users
+    if (!aiLimits.canUseAI) {
+      setShowPaywall(true);
+      return;
+    }
 
     const userMessage = input.trim();
     setInput("");
@@ -145,33 +163,55 @@ export default function HealthAssistantChat() {
 
   if (!isOpen) {
     return (
-      <Button
-        onClick={() => setIsOpen(true)}
-        className="fixed bottom-24 right-6 h-14 w-14 rounded-full shadow-lg z-50 animate-scale-in"
-        size="icon"
-      >
-        <MessageCircle className="h-6 w-6" />
-      </Button>
+      <>
+        <Button
+          onClick={() => setIsOpen(true)}
+          className="fixed bottom-24 right-6 h-14 w-14 rounded-full shadow-lg z-50 animate-scale-in"
+          size="icon"
+        >
+          <MessageCircle className="h-6 w-6" />
+        </Button>
+        <PaywallDialog open={showPaywall} onOpenChange={setShowPaywall} feature="ai_agent" />
+      </>
     );
   }
 
   return (
-    <Card className="fixed bottom-24 right-6 w-96 h-[500px] shadow-2xl z-50 flex flex-col animate-scale-in">
-      {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b bg-primary text-primary-foreground rounded-t-lg">
-        <div className="flex items-center gap-2">
-          <MessageCircle className="h-5 w-5" />
-          <h3 className="font-semibold">Assistente de Saúde</h3>
+    <>
+      <Card className="fixed bottom-24 right-6 w-96 h-[500px] shadow-2xl z-50 flex flex-col animate-scale-in">
+        {/* Header */}
+        <div className="flex items-center justify-between p-4 border-b bg-primary text-primary-foreground rounded-t-lg">
+          <div className="flex items-center gap-2">
+            <MessageCircle className="h-5 w-5" />
+            <h3 className="font-semibold">Assistente de Saúde</h3>
+          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setIsOpen(false)}
+            className="h-8 w-8 text-primary-foreground hover:bg-primary/90"
+          >
+            <X className="h-4 w-4" />
+          </Button>
         </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setIsOpen(false)}
-          className="h-8 w-8 text-primary-foreground hover:bg-primary/90"
-        >
-          <X className="h-4 w-4" />
-        </Button>
-      </div>
+
+        {/* AI Limit Warning (Free users) */}
+        {!aiLimits.isPremium && !aiLimits.isLoading && (
+          <Alert className="m-2 border-yellow-500/50 bg-yellow-50 dark:bg-yellow-950/20">
+            <Sparkles className="h-4 w-4 text-yellow-600" />
+            <AlertDescription className="text-xs">
+              {aiLimits.canUseAI ? (
+                <span>
+                  Você tem <strong>{aiLimits.remainingToday}</strong> de {aiLimits.dailyLimit} consultas restantes hoje
+                </span>
+              ) : (
+                <span className="text-red-600 font-medium">
+                  Limite diário atingido. Assine Premium para IA ilimitada!
+                </span>
+              )}
+            </AlertDescription>
+          </Alert>
+        )}
 
       {/* Messages */}
       <ScrollArea className="flex-1 p-4" ref={scrollRef}>
@@ -213,13 +253,13 @@ export default function HealthAssistantChat() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyPress={handleKeyPress}
-            placeholder="Digite sua pergunta..."
-            disabled={isLoading}
+            placeholder={aiLimits.canUseAI ? "Digite sua pergunta..." : "Limite diário atingido"}
+            disabled={isLoading || !aiLimits.canUseAI}
             className="flex-1"
           />
           <Button
             onClick={handleSend}
-            disabled={!input.trim() || isLoading}
+            disabled={!input.trim() || isLoading || !aiLimits.canUseAI}
             size="icon"
           >
             <Send className="h-4 w-4" />
@@ -227,5 +267,8 @@ export default function HealthAssistantChat() {
         </div>
       </div>
     </Card>
+
+    <PaywallDialog open={showPaywall} onOpenChange={setShowPaywall} feature="ai_agent" />
+    </>
   );
 }

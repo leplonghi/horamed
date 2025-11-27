@@ -18,6 +18,7 @@ import UpgradeModal from "@/components/UpgradeModal";
 import { ListSkeleton } from "@/components/LoadingSkeleton";
 import logo from "@/assets/horamed-logo.png";
 import TutorialHint from "@/components/TutorialHint";
+import MedicationWizard from "@/components/medication-wizard/MedicationWizard";
 
 interface Item {
   id: string;
@@ -66,6 +67,7 @@ export default function Rotina() {
   const [searchTerm, setSearchTerm] = useState("");
   const [showOCR, setShowOCR] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [wizardOpen, setWizardOpen] = useState(false);
   const { hasFeature, canAddMedication, isExpired } = useSubscription();
 
   useEffect(() => {
@@ -229,18 +231,7 @@ export default function Rotina() {
               <Button
                 size="icon"
                 className="rounded-full hover-lift shadow-lg hover:shadow-primary/30 transition-all"
-                onClick={() => {
-                  if (isExpired) {
-                    toast.error("Seu período de teste expirou. Faça upgrade para continuar!", {
-                      action: {
-                        label: "Ver Planos",
-                        onClick: () => navigate('/planos'),
-                      },
-                    });
-                  } else {
-                    navigate("/adicionar");
-                  }
-                }}
+                onClick={() => setWizardOpen(true)}
               >
                 <Plus className="h-5 w-5" />
               </Button>
@@ -403,6 +394,14 @@ export default function Rotina() {
         open={showUpgradeModal} 
         onOpenChange={setShowUpgradeModal}
         feature="OCR de receitas"
+      />
+
+      <MedicationWizard 
+        open={wizardOpen} 
+        onOpenChange={(open) => {
+          setWizardOpen(open);
+          if (!open) fetchItems(); // Refresh list when wizard closes
+        }} 
       />
 
       <Navigation />
