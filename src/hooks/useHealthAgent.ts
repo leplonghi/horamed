@@ -169,7 +169,19 @@ DOCUMENTOS: ${context.documents.length} documentos na Carteira de Saúde`;
         intentGuidance = `\n\nTAREFA: Ajudar a navegar no app
 - Explicar onde encontrar cada recurso
 - Guiar passo a passo
-- Páginas disponíveis: Hoje (/hoje), Rotina (/rotina), Progresso (/progresso), Carteira de Saúde (/carteira-saude), Perfil (/perfil)`;
+- Oferecer abrir a página diretamente quando apropriado
+- Páginas principais:
+  • Hoje (/hoje) - doses do dia e timeline
+  • Rotina (/rotina) - medicamentos e suplementos
+  • Progresso (/progresso) - métricas e relatórios
+  • Carteira de Saúde (/carteira-saude) - documentos organizados
+  • Perfil (/perfil) - conta e configurações
+- Para ações específicas:
+  • Ver estoque: "Vá em Rotina e toque no medicamento"
+  • Adicionar medicamento: "Use o botão + na aba Rotina"
+  • Ver documentos: "Abra a aba Carteira de Saúde"
+  • Indicar amigos: "Vá em Perfil > Indique e Ganhe"
+- Sempre ofereça ajuda adicional após guiar`;
         break;
 
       case 'INSIGHT_INTENT':
@@ -194,8 +206,8 @@ DOCUMENTOS: ${context.documents.length} documentos na Carteira de Saúde`;
   };
 
   // Check AI usage limit
-  const checkUsageLimit = async (): Promise<boolean> => {
-    if (!user) return false;
+  const checkUsageLimit = async (): Promise<{ allowed: boolean; usageCount: number }> => {
+    if (!user) return { allowed: false, usageCount: 0 };
 
     // Get subscription
     const { data: subscription } = await supabase
@@ -206,7 +218,7 @@ DOCUMENTOS: ${context.documents.length} documentos na Carteira de Saúde`;
 
     // Premium has unlimited usage
     if (subscription?.plan_type === 'premium' && subscription?.status === 'active') {
-      return true;
+      return { allowed: true, usageCount: 0 };
     }
 
     // Free users: check daily limit (2/day)
@@ -220,18 +232,13 @@ DOCUMENTOS: ${context.documents.length} documentos na Carteira de Saúde`;
       .eq('event_name', 'ai_agent_query')
       .gte('created_at', today.toISOString());
 
-    if ((count || 0) >= 2) {
-      toast.error('Você usou as 2 consultas diárias do plano grátis. No Premium, a IA é liberada.', {
-        duration: 5000,
-        action: {
-          label: 'Ver Premium',
-          onClick: () => window.location.href = '/planos'
-        }
-      });
-      return false;
+    const usageCount = count || 0;
+
+    if (usageCount >= 2) {
+      return { allowed: false, usageCount };
     }
 
-    return true;
+    return { allowed: true, usageCount };
   };
 
   // Log AI usage
@@ -339,7 +346,7 @@ DOCUMENTOS: ${context.documents.length} documentos na Carteira de Saúde`;
   };
 
   // Process query
-  const processQuery = async (message: string): Promise<string> => {
+  const processQuery = async (message: string): Promise<string | { limitReached: true }> => {
     if (!user) {
       return 'Por favor, faça login para usar o assistente.';
     }
@@ -348,10 +355,10 @@ DOCUMENTOS: ${context.documents.length} documentos na Carteira de Saúde`;
 
     try {
       // Check usage limit
-      const canUse = await checkUsageLimit();
-      if (!canUse) {
+      const { allowed, usageCount } = await checkUsageLimit();
+      if (!allowed) {
         setIsProcessing(false);
-        return '';
+        return { limitReached: true };
       }
 
       // Get context
@@ -379,7 +386,11 @@ DOCUMENTOS: ${context.documents.length} documentos na Carteira de Saúde`;
       await logUsage();
 
       setIsProcessing(false);
-      return data?.response || 'Desculpe, não consegui processar sua solicitação.';
+      
+      // Check for navigation commands in response
+      const response = data?.response || 'Desculpe, não consegui processar sua solicitação.';
+      
+      return response;
 
     } catch (error) {
       console.error('Health agent error:', error);
