@@ -89,7 +89,7 @@ export default function Tutorial() {
     },
     {
       id: "cofre",
-      title: "Cofre de Saúde",
+      title: "Carteira",
       icon: FolderHeart,
       sections: [
         {
