@@ -101,7 +101,7 @@ export default function Profile() {
     <div className="min-h-screen bg-background pb-20">
       <Header />
       
-      <main className="container max-w-2xl mx-auto px-4 py-6 space-y-6">
+      <main className="container max-w-2xl mx-auto px-4 py-6 pt-24 space-y-6">
         <TutorialHint
           id="profile-overview"
           title="Seu Perfil"

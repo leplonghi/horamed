@@ -38,7 +38,7 @@ const Pharmacy = () => {
     return (
       <div className="min-h-screen bg-background pb-20">
         <Header />
-        <main className="container mx-auto px-4 py-6">
+        <main className="container mx-auto px-4 py-6 pt-24">
           <div className="max-w-md mx-auto text-center pt-20 space-y-6">
             <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center mx-auto">
               <Lock className="h-8 w-8 text-muted-foreground" />
