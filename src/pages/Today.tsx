@@ -642,7 +642,7 @@ export default function Today() {
           )}
 
           {/* Smart Actions & Quick Access */}
-          <div className="space-y-5 animate-fade-in" style={{ animationDelay: '0.1s' }}>
+          <div className="grid grid-cols-1 gap-5 animate-fade-in" style={{ animationDelay: '0.1s' }}>
             <SmartActionCards />
             <EssentialShortcuts />
           </div>
@@ -661,13 +661,13 @@ export default function Today() {
             <AIChatUI />
           </div>
 
-          {/* Health Monitoring Section */}
-          <div className="space-y-6 animate-fade-in" style={{ animationDelay: '0.25s' }}>
+          {/* Health Monitoring Section - Responsive Grid */}
+          <div className="animate-fade-in" style={{ animationDelay: '0.25s' }}>
             {/* Fitness Widgets - Only show if user has supplements AND preference is enabled */}
             {hasSupplements && preferences.showFitnessWidgets && (
-              <div className="space-y-4">
+              <div className="space-y-4 mb-6">
                 <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Acompanhamento Fitness</h2>
-                <div className="space-y-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   <HydrationWidget />
                   <SupplementConsistencyWidget last7Days={[75, 80, 90, 85, 100, 95, 85]} />
                   <EnergyHintWidget />
@@ -675,25 +675,27 @@ export default function Today() {
               </div>
             )}
 
-            {/* Health Insights */}
-            <div className="max-w-md">
-              <HealthInsightsCard />
+            {/* Health Insights & Quick Dose - Side by Side on Desktop */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="w-full">
+                <HealthInsightsCard />
+              </div>
+              <div className="w-full">
+                <QuickDoseWidget />
+              </div>
             </div>
-
-            {/* Quick Dose Widget */}
-            <QuickDoseWidget />
           </div>
 
-          {/* Alerts & Reminders Section */}
-          <div className="space-y-4 animate-fade-in" style={{ animationDelay: '0.3s' }}>
+          {/* Alerts & Reminders Section - Responsive Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 animate-fade-in" style={{ animationDelay: '0.3s' }}>
             <ExpiredPrescriptionsAlert />
             <VaccineRemindersWidget />
             <CaregiverVaccineReminders />
           </div>
 
-          {/* Adaptive Suggestions */}
+          {/* Adaptive Suggestions - Responsive Grid */}
           {suggestions.length > 0 && (
-            <div className="space-y-3 animate-fade-in" style={{ animationDelay: '0.35s' }}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 animate-fade-in" style={{ animationDelay: '0.35s' }}>
               {suggestions.map((suggestion, idx) => (
                 <Alert key={idx} className="border-primary/20 bg-primary/5 animate-scale-in" style={{ animationDelay: `${idx * 0.1}s` }}>
                   <AlertDescription className="text-sm">{suggestion.message}</AlertDescription>
@@ -702,11 +704,11 @@ export default function Today() {
             </div>
           )}
 
-          {/* Today Summary & Progress */}
+          {/* Today Summary & Progress - Responsive Layout */}
           {format(selectedDate, "yyyy-MM-dd") === format(new Date(), "yyyy-MM-dd") && todayStats.total > 0 && (
             <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20 animate-scale-in" style={{ animationDelay: '0.4s' }}>
               <CardContent className="py-6">
-                <div className="flex items-center justify-between gap-8">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 sm:gap-8">
                   <div className="flex-1 space-y-2">
                     <div className="flex items-center gap-2">
                       <p className="text-sm font-semibold text-muted-foreground">Progresso de Hoje</p>
@@ -724,7 +726,7 @@ export default function Today() {
                       {adherencePercentage < 50 && todayStats.total > 0 && "💫 Vamos lá!"}
                     </p>
                   </div>
-                  <div className="text-right shrink-0">
+                  <div className="text-left sm:text-right shrink-0">
                     <div className="text-5xl font-bold text-primary">{adherencePercentage}%</div>
                     <p className="text-xs text-muted-foreground mt-1">completo</p>
                   </div>
@@ -733,7 +735,7 @@ export default function Today() {
             </Card>
           )}
 
-          {/* Schedule & Timeline Section */}
+          {/* Schedule & Timeline Section - Responsive Grid */}
           <div className="space-y-5 animate-fade-in" style={{ animationDelay: '0.45s' }}>
             <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Agenda & Calendário</h2>
             
@@ -760,28 +762,35 @@ export default function Today() {
               </CardContent>
             </Card>
 
-            {/* Calendário Melhorado */}
-            <ImprovedCalendar
-              selectedDate={selectedDate}
-              onDateSelect={(newDate) => {
-                setSelectedDate(newDate);
-                setLoading(true);
-                loadData(newDate);
-              }}
-              eventCounts={eventCounts}
-              profileId={activeProfile?.id}
-            />
+            {/* Calendar & Timeline - Responsive Grid Layout */}
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
+              {/* Calendário Melhorado */}
+              <div className="w-full">
+                <ImprovedCalendar
+                  selectedDate={selectedDate}
+                  onDateSelect={(newDate) => {
+                    setSelectedDate(newDate);
+                    setLoading(true);
+                    loadData(newDate);
+                  }}
+                  eventCounts={eventCounts}
+                  profileId={activeProfile?.id}
+                />
+              </div>
 
-            {/* Timeline do Dia */}
-            <DayTimeline
-              date={selectedDate}
-              items={timelineItems}
-              onDateChange={(newDate) => {
-                setSelectedDate(newDate);
-                setLoading(true);
-                loadData(newDate);
-              }}
-            />
+              {/* Timeline do Dia */}
+              <div className="w-full">
+                <DayTimeline
+                  date={selectedDate}
+                  items={timelineItems}
+                  onDateChange={(newDate) => {
+                    setSelectedDate(newDate);
+                    setLoading(true);
+                    loadData(newDate);
+                  }}
+                />
+              </div>
+            </div>
           </div>
         </div>
       </div>
