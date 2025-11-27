@@ -1,5 +1,5 @@
 import * as pdfjsLib from 'pdfjs-dist';
-import pdfjsWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.js?url';
+import pdfjsWorkerSrc from 'pdfjs-dist/build/pdf.worker.mjs?url';
 
 // Configure worker using bundled worker file (Vite will serve this from the same origin)
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorkerSrc as any;
