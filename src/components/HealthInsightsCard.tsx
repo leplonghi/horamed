@@ -8,43 +8,43 @@ export default function HealthInsightsCard() {
 
   return (
     <Card className="bg-gradient-to-br from-primary/5 to-accent/5 border-primary/20">
-      <CardContent className="p-4 space-y-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-              <TrendingUp className="h-5 w-5 text-primary" />
+      <CardContent className="p-6 space-y-4">
+        <div className="flex items-start justify-between">
+          <div className="flex items-center gap-3">
+            <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center">
+              <TrendingUp className="h-6 w-6 text-primary" />
             </div>
             <div>
-              <h3 className="font-semibold">Dados & Insights</h3>
-              <p className="text-xs text-muted-foreground">
+              <h3 className="font-semibold text-lg">Dados & Insights</h3>
+              <p className="text-sm text-muted-foreground">
                 Análise da sua evolução
               </p>
             </div>
           </div>
         </div>
         
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-2 gap-3">
           <Button
             variant="outline"
-            size="sm"
-            className="w-full h-auto py-2"
+            size="default"
+            className="w-full h-auto py-3"
             onClick={() => navigate('/evolucao')}
           >
-            <Activity className="h-3.5 w-3.5 mr-1.5" />
-            <span className="text-xs">Dashboard</span>
+            <Activity className="h-4 w-4 mr-2" />
+            <span className="text-sm">Dashboard</span>
           </Button>
           <Button
             variant="outline"
-            size="sm"
-            className="w-full h-auto py-2"
+            size="default"
+            className="w-full h-auto py-3"
             onClick={() => navigate('/timeline')}
           >
-            <LineChart className="h-3.5 w-3.5 mr-1.5" />
-            <span className="text-xs">Linha do Tempo</span>
+            <LineChart className="h-4 w-4 mr-2" />
+            <span className="text-sm">Linha do Tempo</span>
           </Button>
         </div>
 
-        <p className="text-xs text-muted-foreground">
+        <p className="text-sm text-muted-foreground leading-relaxed">
           Veja como seu compromisso com os medicamentos impacta sua saúde ao longo do tempo
         </p>
       </CardContent>

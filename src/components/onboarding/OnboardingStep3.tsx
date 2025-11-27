@@ -10,7 +10,7 @@ interface Props {
 
 const options = [
   { value: "reminders", label: "Esquecer horários", icon: Bell, description: "Nunca mais esquecer uma dose" },
-  { value: "documents", label: "Organizar documentos", icon: FileText, description: "Cofre digital de saúde" },
+  { value: "documents", label: "Organizar documentos", icon: FileText, description: "Carteira digital de saúde" },
   { value: "family", label: "Saúde da família", icon: Users, description: "Cuidar de quem amo" },
   { value: "all", label: "Tudo isso", icon: Sparkles, description: "Experiência completa" },
 ];

@@ -95,7 +95,7 @@ export function ExpiredPrescriptionsAlert() {
             className="flex-1"
           >
             <FileText className="h-4 w-4 mr-2" />
-            Ver no Cofre
+            Ver na Carteira
           </Button>
           <Button
             variant="default"
