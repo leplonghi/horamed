@@ -10,6 +10,12 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 export function CaregiverVaccineReminders() {
   const { data: reminders, isLoading } = useCaregiverVaccineReminders();
 
+  // Don't show skeleton if no data exists
+  if (!isLoading && (!reminders || reminders.length === 0)) {
+    return null;
+  }
+
+  // Only show skeleton when actively loading
   if (isLoading) {
     return (
       <Card>
@@ -24,10 +30,6 @@ export function CaregiverVaccineReminders() {
         </CardContent>
       </Card>
     );
-  }
-
-  if (!reminders || reminders.length === 0) {
-    return null;
   }
 
   return (

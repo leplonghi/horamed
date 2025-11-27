@@ -11,6 +11,17 @@ export function VaccineRemindersWidget() {
   const { activeProfile } = useUserProfiles();
   const { data: reminders, isLoading } = useVaccineReminders(activeProfile?.id);
 
+  // Don't show anything if no active profile yet
+  if (!activeProfile) {
+    return null;
+  }
+
+  // Don't show skeleton if no data exists
+  if (!isLoading && (!reminders || reminders.length === 0)) {
+    return null;
+  }
+
+  // Only show skeleton when actively loading and profile exists
   if (isLoading) {
     return (
       <Card>
@@ -25,10 +36,6 @@ export function VaccineRemindersWidget() {
         </CardContent>
       </Card>
     );
-  }
-
-  if (!reminders || reminders.length === 0) {
-    return null;
   }
 
   return (
