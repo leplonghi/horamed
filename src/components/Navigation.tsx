@@ -1,4 +1,4 @@
-import { Home, User, FileText, TrendingUp, CalendarDays } from "lucide-react";
+import { Home, User, FileText, Pill } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -14,7 +14,7 @@ export default function Navigation() {
 
   const navItems = [
     { path: "/hoje", icon: Home, label: "Hoje" },
-    { path: "/medicamentos", icon: TrendingUp, label: "Rotina" },
+    { path: "/medicamentos", icon: Pill, label: "Saúde" },
     { path: "/cofre", icon: FileText, label: "Carteira", badge: expiringCount > 0 ? expiringCount : undefined },
     { path: "/perfil", icon: User, label: "Perfil" },
   ];
