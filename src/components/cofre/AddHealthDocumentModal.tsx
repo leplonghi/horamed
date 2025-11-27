@@ -1,12 +1,15 @@
 import { useState, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { FileText, FlaskConical, Syringe, FolderOpen, Camera, Upload, X, Loader2 } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { FileText, FlaskConical, Syringe, FolderOpen, Camera, Upload, X, Loader2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { isPDF, convertPDFToImages } from "@/lib/pdfProcessor";
 import { useUserProfiles } from "@/hooks/useUserProfiles";
+import { useDocumentLimits } from "@/hooks/useDocumentLimits";
+import PaywallDialog from "@/components/PaywallDialog";
+import PrescriptionBulkAddWizard from "./PrescriptionBulkAddWizard";
 
 type DocumentType = "receita" | "exame" | "vacina" | "outro";
 
@@ -23,10 +26,15 @@ export default function AddHealthDocumentModal({ open, onOpenChange, onSuccess }
   const [currentFile, setCurrentFile] = useState<File | null>(null);
   const [processing, setProcessing] = useState(false);
   const [progress, setProgress] = useState({ current: 0, total: 0, message: "" });
+  const [showPaywall, setShowPaywall] = useState(false);
+  const [extractedMedications, setExtractedMedications] = useState<any[]>([]);
+  const [showMedicationsWizard, setShowMedicationsWizard] = useState(false);
+  const [currentPrescriptionId, setCurrentPrescriptionId] = useState<string>();
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const { activeProfile } = useUserProfiles();
+  const { canAddDocument, remaining, isPremium, isLoading: limitsLoading } = useDocumentLimits();
 
   const documentTypes = [
     {
@@ -120,6 +128,12 @@ export default function AddHealthDocumentModal({ open, onOpenChange, onSuccess }
   const handleProcess = async () => {
     if (!currentFile || !selectedType) return;
 
+    // Check document limits for Free users
+    if (!isPremium && !canAddDocument) {
+      setShowPaywall(true);
+      return;
+    }
+
     setStep("processing");
     setProcessing(true);
     setProgress({ current: 0, total: 1, message: "Lendo documento..." });
@@ -210,7 +224,19 @@ export default function AddHealthDocumentModal({ open, onOpenChange, onSuccess }
 
       setProgress({ current: 3, total: 3, message: "Pronto!" });
       
-      toast.success("Documento salvo! Agora vamos revisar os dados.");
+      // If it's a prescription with medications, show wizard
+      if (selectedType === "receita" && extractedData.prescriptions && extractedData.prescriptions.length > 0) {
+        setExtractedMedications(extractedData.prescriptions);
+        setCurrentPrescriptionId(newDoc.id);
+        setShowMedicationsWizard(true);
+        
+        toast.success(
+          `📄 Receita salva! ${extractedData.prescriptions.length} medicamento(s) detectado(s).`,
+          { duration: 5000 }
+        );
+      } else {
+        toast.success("Documento salvo! Agora vamos revisar os dados.");
+      }
       
       // Reset and close
       setTimeout(() => {
@@ -244,15 +270,30 @@ export default function AddHealthDocumentModal({ open, onOpenChange, onSuccess }
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
-          <DialogTitle className="text-2xl">
-            {step === "select-type" && "O que você quer adicionar?"}
-            {step === "upload" && `Adicionar ${documentTypes.find(t => t.id === selectedType)?.label}`}
-            {step === "processing" && "Processando documento..."}
-          </DialogTitle>
-        </DialogHeader>
+    <>
+      <Dialog open={open} onOpenChange={handleClose}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-2xl">
+              {step === "select-type" && "O que você quer adicionar?"}
+              {step === "upload" && `Adicionar ${documentTypes.find(t => t.id === selectedType)?.label}`}
+              {step === "processing" && "Processando documento..."}
+            </DialogTitle>
+          </DialogHeader>
+
+          {/* Document limit warning for Free users */}
+          {!isPremium && step === "select-type" && (
+            <Card className="bg-primary/5 border-primary/20">
+              <CardContent className="p-3">
+                <div className="flex items-center gap-2 text-sm">
+                  <AlertCircle className="h-4 w-4 shrink-0" />
+                  <p className="text-muted-foreground">
+                    Documentos: {5 - remaining}/5 usados no plano gratuito
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
         {/* Step 1: Select Document Type */}
         {step === "select-type" && (
@@ -377,5 +418,25 @@ export default function AddHealthDocumentModal({ open, onOpenChange, onSuccess }
         )}
       </DialogContent>
     </Dialog>
+
+    {/* Paywall Dialog */}
+    <PaywallDialog
+      open={showPaywall}
+      onOpenChange={setShowPaywall}
+      feature="documents"
+    />
+
+    {/* Prescription Medications Wizard */}
+    <PrescriptionBulkAddWizard
+      open={showMedicationsWizard}
+      onOpenChange={setShowMedicationsWizard}
+      medications={extractedMedications}
+      prescriptionId={currentPrescriptionId}
+      onComplete={() => {
+        setExtractedMedications([]);
+        setCurrentPrescriptionId(undefined);
+      }}
+    />
+    </>
   );
 }
