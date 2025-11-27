@@ -430,7 +430,7 @@ export default function TodayRedesign() {
     <div className="min-h-screen bg-background">
       <Header />
       
-      <main className="container mx-auto px-3 pt-16 pb-20 max-w-6xl">
+      <main className="container mx-auto px-3 pt-24 pb-20 max-w-6xl">
         {/* Dismissable Alerts with Swipe - Compact */}
         {criticalAlerts.alerts.length > 0 && (
           <motion.div
@@ -456,12 +456,12 @@ export default function TodayRedesign() {
           <VaccineRemindersWidget />
         </div>
 
-        {/* Header with greeting - Compact */}
-        <div className="mb-4">
-          <h1 className="text-xl font-bold mb-0.5">
+        {/* Header with greeting - Visible and Styled */}
+        <div className="mb-6 mt-2">
+          <h1 className="text-3xl md:text-4xl font-bold mb-2 bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
             {greeting}{userName && `, ${userName}`}!
           </h1>
-          <p className="text-muted-foreground text-xs">{motivationalQuote}</p>
+          <p className="text-muted-foreground text-base">{motivationalQuote}</p>
         </div>
 
         {/* Compact Grid: Stats and Quick Actions - Equal Height Cards */}
