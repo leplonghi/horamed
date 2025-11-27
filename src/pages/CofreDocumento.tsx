@@ -693,7 +693,6 @@ export default function CofreDocumento() {
                        </div>
                      </div>
                    ))}
-                   </div>
                  </CardContent>
               </CollapsibleContent>
             </Collapsible>
