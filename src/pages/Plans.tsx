@@ -3,8 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { ArrowLeft, CheckCircle2, Crown, Shield, Sparkles, Coffee, Candy, Star, TrendingUp, Users } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Crown, Shield, Sparkles, Coffee, Candy, Star, TrendingUp, Users, Gift } from "lucide-react";
 import { useSubscription } from "@/hooks/useSubscription";
 import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -38,6 +39,7 @@ export default function Plans() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [billingCycle, setBillingCycle] = useState<"monthly" | "annual">("monthly");
+  const [referralCode, setReferralCode] = useState("");
   const { isPremium, subscription } = useSubscription();
 
   const handleUpgrade = async () => {
@@ -45,6 +47,25 @@ export default function Plans() {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
+
+      // Processar referral code se fornecido
+      if (referralCode.trim()) {
+        const { error: referralError } = await supabase
+          .from('referrals')
+          .insert({
+            referrer_user_id: user.id,
+            referral_code_used: referralCode.trim().toUpperCase(),
+            plan_type: billingCycle === "monthly" ? "premium_monthly" : "premium_annual",
+            status: "pending"
+          });
+        
+        if (referralError) {
+          console.error('Referral error:', referralError);
+          toast.error("Código de indicação inválido");
+          setLoading(false);
+          return;
+        }
+      }
 
       // Processar referral se houver pendente
       const planType = billingCycle === "monthly" ? "premium_monthly" : "premium_annual";
@@ -96,8 +117,8 @@ export default function Plans() {
     "⚡ Suporte prioritário"
   ];
 
-  const monthlyPrice = 9.90;
-  const annualPrice = 89.90;
+  const monthlyPrice = 19.90;
+  const annualPrice = 199.90;
   const annualMonthlyEquivalent = (annualPrice / 12).toFixed(2);
   const annualSavings = (monthlyPrice * 12 - annualPrice).toFixed(2);
 
@@ -279,7 +300,7 @@ export default function Plans() {
                   <div className="flex items-center gap-2">
                     <Candy className="h-4 w-4 text-primary" />
                     <p className="text-sm font-medium text-foreground">
-                      Apenas R$ {billingCycle === "monthly" ? "0,33" : "0,25"} por dia
+                      Apenas R$ {billingCycle === "monthly" ? "0,66" : "0,55"} por dia
                     </p>
                   </div>
                   <p className="text-xs text-muted-foreground pl-6">
@@ -303,7 +324,25 @@ export default function Plans() {
                   Gerenciar Assinatura
                 </Button>
               ) : (
-                <div className="space-y-2">
+                <div className="space-y-3">
+                  {/* Referral Code Input */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-foreground flex items-center gap-2">
+                      <Gift className="h-4 w-4 text-primary" />
+                      Tem um código de indicação?
+                    </label>
+                    <Input
+                      placeholder="Ex: HR-ABC123"
+                      value={referralCode}
+                      onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
+                      className="text-center font-mono"
+                      maxLength={10}
+                    />
+                    <p className="text-xs text-muted-foreground text-center">
+                      Ganhe benefícios extras com código de amigos
+                    </p>
+                  </div>
+
                   <Button 
                     className="w-full bg-primary hover:bg-primary/90 text-lg py-6"
                     onClick={handleUpgrade}
