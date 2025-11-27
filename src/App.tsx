@@ -65,6 +65,7 @@ import CarteiraVacina from "./pages/CarteiraVacina";
 import WeightHistory from "./pages/WeightHistory";
 import StockDetails from "./pages/StockDetails";
 import AnalyticsDetails from "./pages/AnalyticsDetails";
+import HealthAIButton from "./components/HealthAIButton";
 
 function AppContent() {
   const location = useLocation();
@@ -174,6 +175,7 @@ function AppContent() {
         <Route path="*" element={<NotFound />} />
           </Routes>
       {showNavigation && <Navigation />}
+      <HealthAIButton />
     </>
   );
 }
