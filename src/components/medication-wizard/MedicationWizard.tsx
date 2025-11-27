@@ -162,10 +162,28 @@ export default function MedicationWizard({ open, onOpenChange }: MedicationWizar
   };
   
   const handleOCRResult = (result: any) => {
+    // Auto-detect category if not provided by OCR
+    const detectCategory = (medName: string): string => {
+      const nameLower = medName.toLowerCase();
+      
+      if (nameLower.includes('vitamina') || nameLower.includes('vit.') || nameLower.match(/\bvit\s*[abcdek]/)) {
+        return 'vitamina';
+      }
+      
+      if (nameLower.includes('suplemento') || nameLower.includes('whey') || 
+          nameLower.includes('creatina') || nameLower.includes('omega')) {
+        return 'suplemento';
+      }
+      
+      return 'medicamento';
+    };
+    
+    const category = result.category || detectCategory(result.name || "");
+    
     // Populate form with OCR data
     updateData({
       name: result.name || "",
-      category: result.category || "medicamento",
+      category: category,
     });
     
     // Auto-advance to next step

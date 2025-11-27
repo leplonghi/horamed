@@ -72,11 +72,23 @@ export function useFilteredMedicamentos(searchTerm: string, limit: number = 100)
   const { medicamentos, loading } = useMedicamentosBrasileiros();
 
   const filtered = useMemo(() => {
-    if (!searchTerm) return medicamentos.slice(0, limit);
+    if (!searchTerm || searchTerm.length < 3) return [];
     
-    const search = searchTerm.toLowerCase();
+    const search = searchTerm.toLowerCase().trim();
     return medicamentos
-      .filter(med => med.nome.toLowerCase().includes(search))
+      .filter(med => {
+        const nomeLower = med.nome.toLowerCase();
+        // Match if starts with search term or contains it
+        return nomeLower.startsWith(search) || nomeLower.includes(search);
+      })
+      .sort((a, b) => {
+        // Prioritize results that start with the search term
+        const aStarts = a.nome.toLowerCase().startsWith(search);
+        const bStarts = b.nome.toLowerCase().startsWith(search);
+        if (aStarts && !bStarts) return -1;
+        if (!aStarts && bStarts) return 1;
+        return a.nome.localeCompare(b.nome, 'pt-BR');
+      })
       .slice(0, limit);
   }, [medicamentos, searchTerm, limit]);
 

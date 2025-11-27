@@ -22,6 +22,7 @@ interface WizardStepIdentityProps {
 export function WizardStepIdentity({ data, updateData }: WizardStepIdentityProps) {
   const [open, setOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [manualEntry, setManualEntry] = useState(false);
   
   const categories = [
     { value: "medicamento", label: "Medicamento", icon: Pill, color: "text-blue-500" },
@@ -31,7 +32,49 @@ export function WizardStepIdentity({ data, updateData }: WizardStepIdentityProps
   ];
 
   // Get filtered medications from CSV (only VÁLIDO)
-  const { medicamentos, loading } = useFilteredMedicamentos(searchTerm, 50);
+  const { medicamentos, loading } = useFilteredMedicamentos(searchTerm, 100);
+  
+  // Auto-detect category based on medication name
+  const detectCategory = (medName: string): string => {
+    const nameLower = medName.toLowerCase();
+    
+    // Vitaminas
+    if (nameLower.includes('vitamina') || 
+        nameLower.includes('vit.') ||
+        nameLower.includes('complexo b') ||
+        nameLower.match(/\bvit\s*[abcdek]/)) {
+      return 'vitamina';
+    }
+    
+    // Suplementos
+    if (nameLower.includes('suplemento') ||
+        nameLower.includes('whey') ||
+        nameLower.includes('creatina') ||
+        nameLower.includes('omega') ||
+        nameLower.includes('colageno') ||
+        nameLower.includes('probiotico')) {
+      return 'suplemento';
+    }
+    
+    // Default: medicamento
+    return 'medicamento';
+  };
+  
+  const handleSelectMedication = (selectedName: string) => {
+    const category = detectCategory(selectedName);
+    updateData({ 
+      name: selectedName,
+      category: category 
+    });
+    setOpen(false);
+    setSearchTerm("");
+    setManualEntry(false);
+  };
+  
+  const handleManualChange = (value: string) => {
+    setManualEntry(true);
+    updateData({ name: value });
+  };
 
   return (
     <div className="space-y-6">
@@ -48,62 +91,62 @@ export function WizardStepIdentity({ data, updateData }: WizardStepIdentityProps
               aria-expanded={open}
               className="w-full h-14 justify-between text-lg font-normal"
             >
-              {data.name || "Buscar medicamento..."}
+              {data.name || "Buscar na lista de medicamentos..."}
               <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-full p-0" align="start">
+          <PopoverContent className="w-[600px] p-0" align="start">
             <Command shouldFilter={false}>
               <CommandInput 
-                placeholder="Buscar medicamento..." 
+                placeholder="Digite para buscar..." 
                 value={searchTerm}
                 onValueChange={setSearchTerm}
               />
-              <CommandList>
+              <CommandList className="max-h-[300px]">
                 <CommandEmpty>
-                  {loading ? "Carregando..." : "Nenhum medicamento encontrado."}
+                  {loading ? "Carregando..." : searchTerm.length < 3 ? "Digite ao menos 3 caracteres para buscar" : "Nenhum medicamento encontrado"}
                 </CommandEmpty>
-                <CommandGroup>
-                  {medicamentos.map((med) => (
-                    <CommandItem
-                      key={med.nome}
-                      value={med.nome}
-                      onSelect={(currentValue) => {
-                        updateData({ name: currentValue });
-                        setOpen(false);
-                        setSearchTerm("");
-                      }}
-                    >
-                      <Check
-                        className={cn(
-                          "mr-2 h-4 w-4",
-                          data.name === med.nome ? "opacity-100" : "opacity-0"
-                        )}
-                      />
-                      {med.nome}
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
+                {searchTerm.length >= 3 && (
+                  <CommandGroup>
+                    {medicamentos.map((med) => (
+                      <CommandItem
+                        key={med.nome}
+                        value={med.nome}
+                        onSelect={() => handleSelectMedication(med.nome)}
+                      >
+                        <Check
+                          className={cn(
+                            "mr-2 h-4 w-4",
+                            data.name === med.nome ? "opacity-100" : "opacity-0"
+                          )}
+                        />
+                        {med.nome}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                )}
               </CommandList>
             </Command>
           </PopoverContent>
         </Popover>
         
-        <p className="text-sm text-muted-foreground">
-          Busque na lista de medicamentos registrados ou digite manualmente
-        </p>
-        
-        {/* Manual input option */}
-        <Input
-          placeholder="Ou digite manualmente"
-          value={data.name}
-          onChange={(e) => updateData({ name: e.target.value })}
-          className="text-base"
-        />
+        <div className="relative">
+          <p className="text-sm text-muted-foreground mb-2">
+            Ou digite o nome manualmente:
+          </p>
+          <Input
+            placeholder="Ex: Losartana 50mg"
+            value={data.name}
+            onChange={(e) => handleManualChange(e.target.value)}
+            className="text-base h-12"
+          />
+        </div>
       </div>
 
       <div className="space-y-3">
-        <Label className="text-lg font-semibold">Categoria</Label>
+        <Label className="text-lg font-semibold">
+          Categoria {!manualEntry && <span className="text-sm text-muted-foreground font-normal">(detectada automaticamente)</span>}
+        </Label>
         <RadioGroup
           value={data.category}
           onValueChange={(value) => updateData({ category: value })}
@@ -129,6 +172,11 @@ export function WizardStepIdentity({ data, updateData }: WizardStepIdentityProps
             );
           })}
         </RadioGroup>
+        {!manualEntry && (
+          <p className="text-xs text-muted-foreground">
+            A categoria foi detectada automaticamente. Você pode alterá-la se necessário.
+          </p>
+        )}
       </div>
 
       <div className="space-y-2">
