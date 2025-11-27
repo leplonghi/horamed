@@ -7,8 +7,8 @@ export default function HealthInsightsCard() {
   const navigate = useNavigate();
 
   return (
-    <Card className="bg-gradient-to-br from-primary/5 to-accent/5 border-primary/20">
-      <CardContent className="p-6 space-y-4">
+    <Card className="h-full bg-gradient-to-br from-primary/5 to-accent/5 border-primary/20">
+      <CardContent className="h-full p-6 flex flex-col justify-between space-y-4">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
             <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center">
