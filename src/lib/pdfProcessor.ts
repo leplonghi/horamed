@@ -1,7 +1,8 @@
 import * as pdfjsLib from 'pdfjs-dist';
+import pdfjsWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.js?url';
 
-// Configure worker - using unpkg as a more reliable CDN
-pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.js`;
+// Configure worker using bundled worker file (Vite will serve this from the same origin)
+pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorkerSrc as any;
 
 export interface PDFPageData {
   pageNumber: number;
