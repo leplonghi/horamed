@@ -39,10 +39,18 @@ export function WizardStepSchedule({ data, updateData }: WizardStepScheduleProps
   ];
 
   const addTime = () => {
-    if (!data.times.includes(newTime)) {
-      updateData({ times: [...data.times, newTime].sort() });
-      setNewTime("08:00");
+    console.log("🕐 addTime chamado:", { newTime, currentTimes: data.times });
+    if (!newTime) {
+      console.log("❌ newTime está vazio");
+      return;
     }
+    if (data.times.includes(newTime)) {
+      console.log("❌ Horário já existe");
+      return;
+    }
+    console.log("✅ Adicionando horário");
+    updateData({ times: [...data.times, newTime].sort() });
+    setNewTime("08:00");
   };
 
   const removeTime = (time: string) => {
