@@ -1335,36 +1335,92 @@ export type Database = {
         }
         Relationships: []
       }
+      referral_rewards: {
+        Row: {
+          created_at: string | null
+          expires_at: string | null
+          granted_at: string | null
+          id: string
+          metadata: Json | null
+          redeemed_at: string | null
+          referral_id: string
+          reward_type: string
+          reward_value: number | null
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          expires_at?: string | null
+          granted_at?: string | null
+          id?: string
+          metadata?: Json | null
+          redeemed_at?: string | null
+          referral_id: string
+          reward_type: string
+          reward_value?: number | null
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          expires_at?: string | null
+          granted_at?: string | null
+          id?: string
+          metadata?: Json | null
+          redeemed_at?: string | null
+          referral_id?: string
+          reward_type?: string
+          reward_value?: number | null
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referral_rewards_referral_id_fkey"
+            columns: ["referral_id"]
+            isOneToOne: false
+            referencedRelation: "referrals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       referrals: {
         Row: {
           activated_at: string | null
           created_at: string
           id: string
+          metadata: Json | null
           plan_type: string
           referral_code_used: string
           referred_user_id: string | null
           referrer_user_id: string
           status: string
+          updated_at: string | null
         }
         Insert: {
           activated_at?: string | null
           created_at?: string
           id?: string
+          metadata?: Json | null
           plan_type: string
           referral_code_used: string
           referred_user_id?: string | null
           referrer_user_id: string
           status?: string
+          updated_at?: string | null
         }
         Update: {
           activated_at?: string | null
           created_at?: string
           id?: string
+          metadata?: Json | null
           plan_type?: string
           referral_code_used?: string
           referred_user_id?: string | null
           referrer_user_id?: string
           status?: string
+          updated_at?: string | null
         }
         Relationships: [
           {
