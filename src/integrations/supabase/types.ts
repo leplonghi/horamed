@@ -1297,6 +1297,7 @@ export type Database = {
           id: string
           nickname: string | null
           onboarding_completed: boolean | null
+          referral_code: string | null
           tutorial_flags: Json | null
           updated_at: string | null
           user_id: string
@@ -1311,6 +1312,7 @@ export type Database = {
           id?: string
           nickname?: string | null
           onboarding_completed?: boolean | null
+          referral_code?: string | null
           tutorial_flags?: Json | null
           updated_at?: string | null
           user_id: string
@@ -1325,12 +1327,54 @@ export type Database = {
           id?: string
           nickname?: string | null
           onboarding_completed?: boolean | null
+          referral_code?: string | null
           tutorial_flags?: Json | null
           updated_at?: string | null
           user_id?: string
           weight_kg?: number | null
         }
         Relationships: []
+      }
+      referrals: {
+        Row: {
+          activated_at: string | null
+          created_at: string
+          id: string
+          plan_type: string
+          referral_code_used: string
+          referred_user_id: string | null
+          referrer_user_id: string
+          status: string
+        }
+        Insert: {
+          activated_at?: string | null
+          created_at?: string
+          id?: string
+          plan_type: string
+          referral_code_used: string
+          referred_user_id?: string | null
+          referrer_user_id: string
+          status?: string
+        }
+        Update: {
+          activated_at?: string | null
+          created_at?: string
+          id?: string
+          plan_type?: string
+          referral_code_used?: string
+          referred_user_id?: string | null
+          referrer_user_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_referral_code"
+            columns: ["referral_code_used"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["referral_code"]
+          },
+        ]
       }
       schedules: {
         Row: {
@@ -1874,6 +1918,7 @@ export type Database = {
         Args: { p_stock_id: string }
         Returns: string
       }
+      generate_referral_code: { Args: never; Returns: string }
       has_consent: {
         Args: {
           p_purpose: Database["public"]["Enums"]["consent_purpose"]
