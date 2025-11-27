@@ -734,11 +734,6 @@ export default function AddItem() {
                                 />
                                 <div className="flex-1 min-w-0">
                                   <div className="font-medium truncate">{med.nome}</div>
-                                  {med.principioAtivo && (
-                                    <div className="text-xs text-muted-foreground truncate">
-                                      {med.principioAtivo}
-                                    </div>
-                                  )}
                                 </div>
                               </CommandItem>
                             ))}

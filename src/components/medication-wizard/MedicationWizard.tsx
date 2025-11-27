@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { WizardStepIdentity } from "./WizardStepIdentity";
 import { WizardStepSchedule } from "./WizardStepSchedule";
 import { WizardStepStock } from "./WizardStepStock";
+import MedicationOCRWrapper from "@/components/MedicationOCRWrapper";
 import { useUserProfiles } from "@/hooks/useUserProfiles";
 import { useSubscription } from "@/hooks/useSubscription";
 import { supabase } from "@/integrations/supabase/client";
@@ -48,7 +49,7 @@ export default function MedicationWizard({ open, onOpenChange }: MedicationWizar
   const prefillData = location.state?.prefillData;
   const remainingMedications = location.state?.remainingMedications || [];
   
-  const [currentStep, setCurrentStep] = useState(1);
+  const [currentStep, setCurrentStep] = useState(0); // Start at 0 for OCR step
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPaywall, setShowPaywall] = useState(false);
   
@@ -118,6 +119,12 @@ export default function MedicationWizard({ open, onOpenChange }: MedicationWizar
   };
 
   const handleNext = async () => {
+    // Step 0: OCR - no validation, just proceed
+    if (currentStep === 0) {
+      setCurrentStep(1);
+      return;
+    }
+    
     // Step 1: Basic validation
     if (currentStep === 1) {
       if (!medicationData.name.trim()) {
@@ -149,9 +156,21 @@ export default function MedicationWizard({ open, onOpenChange }: MedicationWizar
   };
 
   const handleBack = () => {
-    if (currentStep > 1) {
+    if (currentStep > 0) {
       setCurrentStep(currentStep - 1);
     }
+  };
+  
+  const handleOCRResult = (result: any) => {
+    // Populate form with OCR data
+    updateData({
+      name: result.name || "",
+      category: result.category || "medicamento",
+    });
+    
+    // Auto-advance to next step
+    setCurrentStep(1);
+    toast.success("Medicamento identificado! Complete os outros dados.");
   };
 
   const handleSubmit = async () => {
@@ -217,7 +236,7 @@ export default function MedicationWizard({ open, onOpenChange }: MedicationWizar
       navigate('/rotina');
       
       // Reset wizard state
-      setCurrentStep(1);
+      setCurrentStep(0);
       setMedicationData({
         name: "",
         category: "medicamento",
@@ -239,6 +258,7 @@ export default function MedicationWizard({ open, onOpenChange }: MedicationWizar
   };
 
   const steps = [
+    { number: 0, title: "OCR", subtitle: "Escanear receita (opcional)" },
     { number: 1, title: "Identificação", subtitle: "Nome e categoria" },
     { number: 2, title: "Horários", subtitle: "Quando tomar" },
     { number: 3, title: "Estoque", subtitle: "Quantidade disponível" },
@@ -297,6 +317,14 @@ export default function MedicationWizard({ open, onOpenChange }: MedicationWizar
               transition={{ duration: 0.2 }}
               className="min-h-[300px]"
             >
+              {currentStep === 0 && (
+                <div className="space-y-4">
+                  <MedicationOCRWrapper onResult={handleOCRResult} />
+                  <p className="text-sm text-muted-foreground text-center">
+                    Ou pule esta etapa para adicionar manualmente
+                  </p>
+                </div>
+              )}
               {currentStep === 1 && (
                 <WizardStepIdentity data={medicationData} updateData={updateData} />
               )}
@@ -314,7 +342,7 @@ export default function MedicationWizard({ open, onOpenChange }: MedicationWizar
             <Button
               variant="outline"
               onClick={handleBack}
-              disabled={currentStep === 1 || isSubmitting}
+              disabled={currentStep === 0 || isSubmitting}
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
               Voltar
@@ -322,7 +350,7 @@ export default function MedicationWizard({ open, onOpenChange }: MedicationWizar
 
             {currentStep < 3 ? (
               <Button onClick={handleNext} disabled={isSubmitting}>
-                Próximo
+                {currentStep === 0 ? "Pular OCR" : "Próximo"}
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
             ) : (

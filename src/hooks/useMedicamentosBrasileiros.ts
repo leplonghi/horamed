@@ -2,8 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 
 export interface MedicamentoBrasileiro {
   nome: string;
-  principioAtivo?: string;
-  tipo: string;
+  situacao: string;
 }
 
 export function useMedicamentosBrasileiros() {
@@ -33,19 +32,18 @@ export function useMedicamentosBrasileiros() {
           const nome = parts[0]?.replace(/"/g, '').trim();
           const situacao = parts[1]?.replace(/"/g, '').trim();
           
-          // Filtrar apenas medicamentos com registro válido
+          // Filtrar apenas medicamentos com registro VÁLIDO
           if (situacao !== 'VÁLIDO') continue;
           if (!nome || nome.length < 3) continue;
           
-          // Normalizar nome
+          // Normalizar nome para evitar duplicatas
           const nomeKey = nome.toLowerCase();
           
-          // Adicionar ao mapa (sobrescreve se já existe)
+          // Adicionar ao mapa (evita duplicatas)
           if (!medicamentosMap.has(nomeKey)) {
             medicamentosMap.set(nomeKey, {
               nome: nome,
-              principioAtivo: undefined,
-              tipo: 'MEDICAMENTO'
+              situacao: situacao
             });
           }
         }
