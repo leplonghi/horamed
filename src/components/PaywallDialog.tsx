@@ -86,12 +86,13 @@ export default function PaywallDialog({ open, onOpenChange, feature }: PaywallDi
           <div className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20 rounded-lg p-4 text-center">
             <div className="text-3xl font-bold text-foreground mb-1">R$ 19,90</div>
             <div className="text-sm text-muted-foreground">por mês</div>
+            <div className="text-xs text-accent-foreground font-medium mt-2">🎁 7 dias grátis</div>
           </div>
 
           <div className="space-y-2 text-center text-xs text-muted-foreground">
             <p className="flex items-center justify-center gap-1">
               <Sparkles className="h-3 w-3" />
-              Menos de R$ 0,70/dia para organizar sua rotina
+              Menos de R$ 0,67/dia para organizar sua rotina
             </p>
             <p>Você está a 1 clique de transformar sua saúde</p>
           </div>

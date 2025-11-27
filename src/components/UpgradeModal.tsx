@@ -84,7 +84,8 @@ export default function UpgradeModal({ open, onOpenChange, feature }: UpgradeMod
           <div className="space-y-2">
             <div className="text-center py-2">
               <p className="text-2xl font-bold text-primary">R$ 19,90/mês</p>
-              <p className="text-xs text-muted-foreground">Menos de R$ 0,70/dia para organizar sua rotina</p>
+              <p className="text-xs text-muted-foreground">Menos de R$ 0,67/dia</p>
+              <p className="text-xs text-accent-foreground font-medium mt-1">🎁 7 dias grátis</p>
             </div>
             
             <Button 

@@ -8,7 +8,6 @@ import { ArrowLeft, CheckCircle2, Crown, Shield, Sparkles, Coffee, Candy, Star, 
 import { useSubscription } from "@/hooks/useSubscription";
 import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { activateReferralOnUpgrade } from "@/lib/referralProcessor";
 import { getReferralDiscountForUser } from "@/lib/referrals";
 
 const testimonials = [
@@ -63,34 +62,41 @@ export default function Plans() {
   const handleUpgrade = async () => {
     setLoading(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
-
-      // Processar referral se houver pendente (ativar referral de quem indicou)
-      const planType = billingCycle === "monthly" ? "premium_monthly" : "premium_annual";
-      await activateReferralOnUpgrade(user.id, planType);
-
+      const planType = billingCycle === 'annual' ? 'annual' : 'monthly';
+      
       const { data, error } = await supabase.functions.invoke('create-checkout', {
-        body: { 
-          userId: user.id,
-          planType: billingCycle
-        }
+        body: { planType }
       });
-
+      
       if (error) throw error;
+      
       if (data?.url) {
-        window.location.href = data.url;
+        window.open(data.url, '_blank');
       }
     } catch (error: any) {
       console.error('Checkout error:', error);
-      toast.error("Erro ao processar pagamento");
+      toast.error("Erro ao iniciar checkout");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleManageSubscription = () => {
-    toast.info("Gerenciamento de assinatura em desenvolvimento");
+  const handleManageSubscription = async () => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('customer-portal');
+      
+      if (error) throw error;
+      
+      if (data?.url) {
+        window.open(data.url, '_blank');
+      }
+    } catch (error: any) {
+      console.error('Portal error:', error);
+      toast.error("Erro ao abrir portal de gerenciamento");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const freePlanFeatures = [
@@ -116,8 +122,9 @@ export default function Plans() {
     "⚡ Suporte prioritário"
   ];
 
-  const monthlyPrice = 19.90;
-  const annualPrice = 199.90;
+  // Pricing - aligned with Stripe products
+  const monthlyPrice = 19.90; // price_1SYEVNAY2hnWxlHujMBQSYTt
+  const annualPrice = 199.90; // price_1SYEWmAY2hnWxlHuNegLluyC
   
   // Aplicar desconto de referrals para usuários premium
   const discountMultiplier = isPremium ? (1 - referralDiscount / 100) : 1;
