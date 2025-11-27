@@ -2,13 +2,10 @@ import { Card, CardContent } from "./ui/card";
 import { Button } from "./ui/button";
 import { TrendingUp, Activity, LineChart } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-
 export default function HealthInsightsCard() {
   const navigate = useNavigate();
-
-  return (
-    <Card className="h-full bg-gradient-to-br from-primary/5 to-accent/5 border-primary/20">
-      <CardContent className="h-full p-6 flex flex-col justify-between space-y-4">
+  return <Card className="h-full bg-gradient-to-br from-primary/5 to-accent/5 border-primary/20">
+      <CardContent className="h-full p-6 justify-between space-y-4 px-[24px] flex flex-col gap-0 mx-0 my-0 pb-[15px] pr-[5px] pt-0 pl-[5px] shadow-sm">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
             <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center">
@@ -24,21 +21,11 @@ export default function HealthInsightsCard() {
         </div>
         
         <div className="grid grid-cols-2 gap-3">
-          <Button
-            variant="outline"
-            size="default"
-            className="w-full h-auto py-3"
-            onClick={() => navigate('/evolucao')}
-          >
+          <Button variant="outline" size="default" className="w-full h-auto py-3" onClick={() => navigate('/evolucao')}>
             <Activity className="h-4 w-4 mr-2" />
             <span className="text-sm">Dashboard</span>
           </Button>
-          <Button
-            variant="outline"
-            size="default"
-            className="w-full h-auto py-3"
-            onClick={() => navigate('/timeline')}
-          >
+          <Button variant="outline" size="default" className="w-full h-auto py-3" onClick={() => navigate('/timeline')}>
             <LineChart className="h-4 w-4 mr-2" />
             <span className="text-sm">Linha do Tempo</span>
           </Button>
@@ -48,6 +35,5 @@ export default function HealthInsightsCard() {
           Veja como seu compromisso com os medicamentos impacta sua saúde ao longo do tempo
         </p>
       </CardContent>
-    </Card>
-  );
+    </Card>;
 }
