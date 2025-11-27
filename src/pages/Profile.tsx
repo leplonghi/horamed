@@ -8,9 +8,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { 
-  User, Bell, Shield, CreditCard, HelpCircle, LogOut, FileDown, 
-  Crown, Users, Plus, Trash2, Settings, BookOpen, Mail,
-  Download, FileText, AlertCircle, Smartphone, Gift, Activity
+  User, Bell, Shield, HelpCircle, LogOut, FileDown, 
+  Crown, Users, Plus, Trash2, Settings, BookOpen,
+  Download, FileText, AlertCircle, Smartphone, Gift, Activity, Check
 } from "lucide-react";
 import CaregiverManager from "@/components/CaregiverManager";
 import { useNavigate } from "react-router-dom";
@@ -98,131 +98,96 @@ export default function Profile() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
+    <div className="min-h-screen bg-background pb-20">
       <Header />
       
-      <main className="container mx-auto px-4 py-6 pb-24 max-w-4xl pt-24">{/* pt-24 para compensar o header fixo */}
-        {/* Header Section */}
-        <div className="mb-8">
-          <div className="flex items-center gap-4 mb-6">
-            <Avatar className="h-20 w-20">
-              <AvatarImage src={activeProfile?.avatar_url || undefined} />
-              <AvatarFallback className="text-2xl bg-primary/10">
-                {activeProfile ? getInitials(activeProfile.name) : <User className="h-10 w-10" />}
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex-1">
-              <h1 className="text-3xl font-bold mb-1">
-                {activeProfile?.name || profile.full_name || "Perfil"}
-              </h1>
-              <p className="text-muted-foreground">{userEmail}</p>
-              <div className="flex gap-2 mt-2">
-                {isPremium ? (
-                  <Badge className="gap-1">
-                    <Crown className="h-3 w-3" />
-                    Premium
-                  </Badge>
-                ) : (
-                  <Badge variant="outline">
-                    {daysLeft !== null ? `${daysLeft} dias restantes` : 'Gratuito'}
-                  </Badge>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Tutorial Hint */}
+      <main className="container max-w-2xl mx-auto px-4 py-6 space-y-6">
         <TutorialHint
-          id="profile_page"
-          title="Gerencie sua conta e perfis 👤"
-          message="Configure sua conta, adicione perfis de família (filhos, pais, cônjuges), gerencie cuidadores, e personalize suas preferências de notificações. Explore também o plano Premium para recursos avançados!"
+          id="profile-overview"
+          title="Seu Perfil"
+          message="Aqui você gerencia suas informações, perfis familiares, assinatura e configurações."
+          placement="bottom"
         />
 
-        {/* Tabs Section */}
+        {/* Profile Header Card */}
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex flex-col sm:flex-row items-center gap-4">
+              <Avatar className="h-20 w-20 sm:h-16 sm:w-16">
+                {activeProfile?.avatar_url ? (
+                  <AvatarImage src={activeProfile.avatar_url} alt={activeProfile.name} />
+                ) : (
+                  <AvatarFallback className="text-lg">
+                    {getInitials(activeProfile?.name || '')}
+                  </AvatarFallback>
+                )}
+              </Avatar>
+              
+              <div className="flex-1 min-w-0 text-center sm:text-left">
+                <h1 className="text-2xl font-bold truncate">{activeProfile?.name}</h1>
+                <p className="text-sm text-muted-foreground truncate">{userEmail}</p>
+                <div className="mt-2 flex justify-center sm:justify-start">
+                  {isPremium ? (
+                    <Badge className="gap-1">
+                      <Crown className="h-3 w-3" />
+                      Premium
+                    </Badge>
+                  ) : (
+                    <Badge variant="outline">
+                      {daysLeft !== null ? `${daysLeft} dias restantes` : 'Gratuito'}
+                    </Badge>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-6">
+              <Button 
+                variant="outline" 
+                size="lg"
+                className="w-full"
+                onClick={() => navigate('/profile/edit')}
+              >
+                <Settings className="h-4 w-4 mr-2" />
+                Editar perfil
+              </Button>
+              <Button 
+                variant="outline" 
+                size="lg"
+                className="w-full"
+                onClick={handleLogout}
+              >
+                <LogOut className="h-4 w-4 mr-2" />
+                Sair da conta
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Tabs */}
         <Tabs defaultValue="account" className="w-full">
-          <TabsList className="grid w-full grid-cols-4 lg:grid-cols-7 mb-6">
-            <TabsTrigger value="account" className="text-xs">
-              <User className="h-4 w-4 mr-1" />
-              <span className="hidden sm:inline">Conta</span>
+          <TabsList className="w-full grid grid-cols-4 h-auto">
+            <TabsTrigger value="account" className="flex-col gap-1 py-3">
+              <User className="h-5 w-5" />
+              <span className="text-xs">Conta</span>
             </TabsTrigger>
-            <TabsTrigger value="profiles" className="text-xs">
-              <Users className="h-4 w-4 mr-1" />
-              <span className="hidden sm:inline">Perfis</span>
+            <TabsTrigger value="profiles" className="flex-col gap-1 py-3">
+              <Users className="h-5 w-5" />
+              <span className="text-xs">Perfis</span>
             </TabsTrigger>
-            <TabsTrigger value="caregivers" className="text-xs">
-              <Shield className="h-4 w-4 mr-1" />
-              <span className="hidden sm:inline">Cuidadores</span>
+            <TabsTrigger value="subscription" className="flex-col gap-1 py-3">
+              <Crown className="h-5 w-5" />
+              <span className="text-xs">Plano</span>
             </TabsTrigger>
-            <TabsTrigger value="subscription" className="text-xs">
-              <CreditCard className="h-4 w-4 mr-1" />
-              <span className="hidden sm:inline">Assinatura</span>
-            </TabsTrigger>
-            <TabsTrigger value="notifications" className="text-xs">
-              <Bell className="h-4 w-4 mr-1" />
-              <span className="hidden sm:inline">Notificações</span>
-            </TabsTrigger>
-            <TabsTrigger value="data" className="text-xs">
-              <FileDown className="h-4 w-4 mr-1" />
-              <span className="hidden sm:inline">Dados</span>
-            </TabsTrigger>
-            <TabsTrigger value="help" className="text-xs">
-              <HelpCircle className="h-4 w-4 mr-1" />
-              <span className="hidden sm:inline">Ajuda</span>
+            <TabsTrigger value="settings" className="flex-col gap-1 py-3">
+              <Settings className="h-5 w-5" />
+              <span className="text-xs">Ajustes</span>
             </TabsTrigger>
           </TabsList>
 
-          {/* Conta Tab */}
-          <TabsContent value="account" className="space-y-4">
-            {/* Dados básicos */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Dados básicos</CardTitle>
-                <CardDescription>
-                  Suas informações pessoais
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium flex items-center gap-2">
-                    <Mail className="h-4 w-4" />
-                    E-mail
-                  </label>
-                  <p className="text-sm text-muted-foreground">{userEmail}</p>
-                </div>
-                
-                <Separator />
-                
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Nome Completo</label>
-                  <p className="text-sm text-muted-foreground">
-                    {profile.full_name || "Não informado"}
-                  </p>
-                </div>
-
-                <Separator />
-
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    className="flex-1"
-                    onClick={() => navigate('/profile/edit')}
-                  >
-                    <Settings className="h-4 w-4 mr-2" />
-                    Editar Perfil
-                  </Button>
-                  <Button
-                    variant="destructive"
-                    onClick={handleLogout}
-                  >
-                    <LogOut className="h-4 w-4 mr-2" />
-                    Sair
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Acompanhamento de peso */}
+          {/* Account Tab */}
+          <TabsContent value="account" className="space-y-6">
+            {/* Weight Tracking */}
             {profile.user_id && (
               <WeightTrackingCard 
                 userId={profile.user_id}
@@ -245,7 +210,7 @@ export default function Profile() {
                       Exibir widgets de bem-estar
                     </Label>
                     <p className="text-sm text-muted-foreground">
-                      Mostre métricas de hidratação, consistência e energia na tela Hoje e Progresso
+                      Mostre métricas de hidratação, consistência e energia
                     </p>
                   </div>
                   <Switch
@@ -258,8 +223,8 @@ export default function Profile() {
             </Card>
           </TabsContent>
 
-          {/* Perfis Tab */}
-          <TabsContent value="profiles" className="space-y-4">
+          {/* Profiles Tab */}
+          <TabsContent value="profiles" className="space-y-6">
             <Card>
               <CardHeader>
                 <div className="flex items-center justify-between">
@@ -293,7 +258,8 @@ export default function Profile() {
                           Crie perfis para toda família e gerencie medicamentos de cada um separadamente.
                         </p>
                         <Button
-                          size="sm"
+                          size="lg"
+                          className="w-full"
                           onClick={() => navigate('/planos')}
                         >
                           Fazer Upgrade
@@ -363,15 +329,15 @@ export default function Profile() {
                 </div>
               </CardContent>
             </Card>
-          </TabsContent>
 
-          {/* Cuidadores Tab */}
-          <TabsContent value="caregivers" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle>Cuidadores</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <Shield className="h-5 w-5" />
+                  Cuidadores
+                </CardTitle>
                 <CardDescription>
-                  Compartilhe acesso com familiares e profissionais de saúde
+                  Compartilhe acesso com familiares e profissionais
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -380,305 +346,300 @@ export default function Profile() {
             </Card>
           </TabsContent>
 
-          {/* Assinatura Tab */}
-          <TabsContent value="subscription" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Assinatura</CardTitle>
-                <CardDescription>
-                  Gerencie seu plano e benefícios
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="bg-gradient-to-br from-primary/10 to-primary/5 rounded-lg p-6 border-2 border-primary/20">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center gap-3">
-                      <div className="h-12 w-12 rounded-lg bg-primary/20 flex items-center justify-center">
-                        <Crown className="h-6 w-6 text-primary" />
-                      </div>
-                      <div>
-                        <h3 className="font-bold text-lg">
-                          {subscription?.plan_type === 'premium' ? 'Plano Premium' : 'Plano Gratuito'}
-                        </h3>
-                        <p className="text-sm text-muted-foreground">
-                          {isPremium 
-                            ? 'Acesso ilimitado a todos os recursos' 
-                            : `${daysLeft} dias restantes no período gratuito`
-                          }
-                        </p>
+          {/* Subscription Tab */}
+          <TabsContent value="subscription" className="space-y-6">
+            {/* Premium Upgrade CTA - Only for Free Users */}
+            {!isPremium && (
+              <Card className="border-2 border-primary bg-gradient-to-br from-primary/5 to-primary/10">
+                <CardContent className="pt-6">
+                  <div className="text-center space-y-4">
+                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/20 mb-2">
+                      <Crown className="h-8 w-8 text-primary" />
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-bold mb-2">Assine o Premium</h3>
+                      <p className="text-muted-foreground mb-4">
+                        Medicamentos ilimitados, IA sem limites e muito mais
+                      </p>
+                      <div className="inline-block px-4 py-2 bg-primary/20 rounded-full mb-4">
+                        <p className="text-2xl font-bold text-primary">R$ 19,90<span className="text-sm font-normal">/mês</span></p>
                       </div>
                     </div>
-                  </div>
-
-                  {isPremium ? (
-                    <div className="space-y-2 mb-4">
-                      <p className="text-sm font-medium">Recursos incluídos:</p>
-                      <ul className="space-y-1 text-sm text-muted-foreground">
-                        <li className="flex items-center gap-2">
-                          <div className="h-1.5 w-1.5 rounded-full bg-primary" />
-                          Medicamentos ilimitados
-                        </li>
-                        <li className="flex items-center gap-2">
-                          <div className="h-1.5 w-1.5 rounded-full bg-primary" />
-                          Múltiplos perfis familiares
-                        </li>
-                        <li className="flex items-center gap-2">
-                          <div className="h-1.5 w-1.5 rounded-full bg-primary" />
-                          OCR de receitas médicas
-                        </li>
-                        <li className="flex items-center gap-2">
-                          <div className="h-1.5 w-1.5 rounded-full bg-primary" />
-                          Exportação de dados em PDF
-                        </li>
-                        <li className="flex items-center gap-2">
-                          <div className="h-1.5 w-1.5 rounded-full bg-primary" />
-                          Análise de saúde com IA
-                        </li>
-                      </ul>
-                    </div>
-                  ) : (
-                    <div className="space-y-2 mb-4">
-                      <p className="text-sm font-medium">Limitações do plano gratuito:</p>
-                      <ul className="space-y-1 text-sm text-muted-foreground">
-                        <li className="flex items-center gap-2">
-                          <AlertCircle className="h-4 w-4" />
-                          Apenas 1 medicamento ativo
-                        </li>
-                        <li className="flex items-center gap-2">
-                          <AlertCircle className="h-4 w-4" />
-                          Sem perfis familiares
-                        </li>
-                        <li className="flex items-center gap-2">
-                          <AlertCircle className="h-4 w-4" />
-                          Recursos limitados
-                        </li>
-                      </ul>
-                    </div>
-                  )}
-
-                  <div className="flex gap-2">
-                    {!isPremium && (
-                      <Button
-                        className="flex-1"
-                        onClick={() => navigate('/planos')}
-                      >
-                        <Crown className="h-4 w-4 mr-2" />
-                        Fazer Upgrade
-                      </Button>
-                    )}
-                    <Button
-                      variant="outline"
-                      onClick={() => navigate('/assinatura')}
+                    <Button 
+                      size="lg"
+                      className="w-full h-12 text-base font-semibold"
+                      onClick={() => navigate('/planos')}
                     >
-                      <Settings className="h-4 w-4 mr-2" />
-                      Gerenciar
+                      <Crown className="h-5 w-5 mr-2" />
+                      Assinar agora
                     </Button>
                   </div>
+                </CardContent>
+              </Card>
+            )}
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Crown className="h-5 w-5" />
+                  Plano Atual
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="p-4 bg-muted rounded-lg">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-semibold text-lg">
+                      {isPremium ? 'Premium' : 'Gratuito'}
+                    </span>
+                    {isPremium ? (
+                      <Badge className="gap-1">
+                        <Crown className="h-3 w-3" />
+                        Premium
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline">
+                        {daysLeft !== null ? `${daysLeft} dias restantes` : 'Gratuito'}
+                      </Badge>
+                    )}
+                  </div>
+                  {!isPremium && daysLeft !== null && (
+                    <p className="text-sm text-muted-foreground">
+                      {daysLeft > 0 
+                        ? `${daysLeft} dias restantes do período gratuito` 
+                        : 'Período gratuito expirado'}
+                    </p>
+                  )}
                 </div>
+
+                {isPremium ? (
+                  <div className="space-y-4">
+                    <div className="space-y-3">
+                      <div className="flex items-start gap-3">
+                        <div className="mt-0.5 p-1 rounded-full bg-primary/10">
+                          <Check className="h-4 w-4 text-primary" />
+                        </div>
+                        <div>
+                          <p className="font-medium">Medicamentos ilimitados</p>
+                          <p className="text-sm text-muted-foreground">Adicione quantos medicamentos precisar</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <div className="mt-0.5 p-1 rounded-full bg-primary/10">
+                          <Check className="h-4 w-4 text-primary" />
+                        </div>
+                        <div>
+                          <p className="font-medium">IA sem limites</p>
+                          <p className="text-sm text-muted-foreground">Use a assistente de saúde sempre que precisar</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <div className="mt-0.5 p-1 rounded-full bg-primary/10">
+                          <Check className="h-4 w-4 text-primary" />
+                        </div>
+                        <div>
+                          <p className="font-medium">Documentos ilimitados</p>
+                          <p className="text-sm text-muted-foreground">Guarde todas suas receitas e exames</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <div className="mt-0.5 p-1 rounded-full bg-primary/10">
+                          <Check className="h-4 w-4 text-primary" />
+                        </div>
+                        <div>
+                          <p className="font-medium">Relatório mensal em PDF</p>
+                          <p className="text-sm text-muted-foreground">Compartilhe com seu médico</p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <Button 
+                      variant="outline" 
+                      size="lg"
+                      className="w-full"
+                      onClick={() => navigate('/assinatura')}
+                    >
+                      Gerenciar assinatura
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="space-y-3">
+                      <div className="flex items-start gap-3">
+                        <div className="mt-0.5 p-1 rounded-full bg-muted">
+                          <AlertCircle className="h-4 w-4 text-muted-foreground" />
+                        </div>
+                        <div>
+                          <p className="font-medium">1 medicamento ativo</p>
+                          <p className="text-sm text-muted-foreground">Limite do plano gratuito</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <div className="mt-0.5 p-1 rounded-full bg-muted">
+                          <AlertCircle className="h-4 w-4 text-muted-foreground" />
+                        </div>
+                        <div>
+                          <p className="font-medium">2 consultas IA por dia</p>
+                          <p className="text-sm text-muted-foreground">Redefine todo dia</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <div className="mt-0.5 p-1 rounded-full bg-muted">
+                          <AlertCircle className="h-4 w-4 text-muted-foreground" />
+                        </div>
+                        <div>
+                          <p className="font-medium">Até 5 documentos</p>
+                          <p className="text-sm text-muted-foreground">Na Carteira de Saúde</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <Button 
+                      variant="outline"
+                      size="lg"
+                      className="w-full"
+                      onClick={() => navigate('/planos')}
+                    >
+                      Ver todos os benefícios Premium
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
-            {/* Indique e Ganhe Card */}
-            <Card className="border-primary/30 bg-gradient-to-br from-primary/5 to-primary/10">
+            {/* Indique e Ganhe */}
+            <Card>
               <CardHeader>
-                <div className="flex items-center gap-2">
-                  <Gift className="h-5 w-5 text-primary" />
-                  <CardTitle>Indique e Ganhe</CardTitle>
-                </div>
+                <CardTitle className="flex items-center gap-2">
+                  <Gift className="h-5 w-5" />
+                  Indique e Ganhe
+                </CardTitle>
                 <CardDescription>
-                  Compartilhe o HoraMed e ganhe benefícios exclusivos
+                  {isPremium 
+                    ? 'Ganhe descontos acumulativos na sua mensalidade'
+                    : 'Libere mais 1 medicamento ativo para cada indicação Premium'}
                 </CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="bg-background/50 rounded-lg p-4 space-y-2">
-                    <p className="text-sm font-medium">
-                      {isPremium ? '💎 Descontos na sua assinatura' : '🎁 Medicamentos extras grátis'}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {isPremium 
-                        ? 'Cada amigo que assinar o Premium reduz sua mensalidade. Você pode chegar a 100% de desconto!'
-                        : 'Cada amigo que assinar o Premium libera mais 1 medicamento ativo para você (máx. 3/mês).'}
-                    </p>
-                  </div>
-                  <Button
-                    className="w-full"
-                    variant="default"
-                    onClick={() => navigate('/perfil/indique-e-ganhe')}
-                  >
-                    <Gift className="h-4 w-4 mr-2" />
-                    Ver Meu Código e Benefícios
-                  </Button>
-                </div>
+              <CardContent className="space-y-4">
+                <Button 
+                  variant="outline" 
+                  size="lg"
+                  className="w-full"
+                  onClick={() => navigate('/indique-ganhe')}
+                >
+                  <Gift className="h-4 w-4 mr-2" />
+                  Ver programa de indicação
+                </Button>
               </CardContent>
             </Card>
           </TabsContent>
 
-          {/* Notificações Tab */}
-          <TabsContent value="notifications" className="space-y-4">
+          {/* Settings Tab */}
+          <TabsContent value="settings" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Notificações</CardTitle>
-                <CardDescription>
-                  Configure como e quando deseja receber lembretes
-                </CardDescription>
+                <CardTitle className="flex items-center gap-2">
+                  <Bell className="h-5 w-5" />
+                  Notificações e Alarmes
+                </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <Button
-                  variant="outline"
-                  className="w-full"
+              <CardContent className="space-y-2">
+                <Button 
+                  variant="outline" 
+                  size="lg"
+                  className="w-full justify-start"
                   onClick={() => navigate('/notificacoes-config')}
                 >
                   <Bell className="h-4 w-4 mr-2" />
-                  Configurar Notificações
+                  Configurar notificações
                 </Button>
-
-                <Separator />
-
-                <Button
+                <Button 
                   variant="outline"
-                  className="w-full"
+                  size="lg" 
+                  className="w-full justify-start"
                   onClick={() => navigate('/alarmes')}
                 >
                   <Smartphone className="h-4 w-4 mr-2" />
-                  Configurar Alarmes
+                  Configurar alarmes
                 </Button>
-
-                <div className="bg-muted/50 rounded-lg p-4">
-                  <p className="text-sm text-muted-foreground">
-                    Mantenha seus lembretes ativos para nunca esquecer suas medicações.
-                  </p>
-                </div>
               </CardContent>
             </Card>
-          </TabsContent>
 
-          {/* Dados Tab */}
-          <TabsContent value="data" className="space-y-4">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <FileDown className="h-5 w-5" />
-                  Exportação de Dados
+                  Dados e Privacidade
                 </CardTitle>
                 <CardDescription>
-                  Baixe todos os seus dados de saúde (direito garantido pela LGPD)
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 space-y-3">
-                  <div className="flex items-start gap-3">
-                    <Shield className="h-5 w-5 text-primary shrink-0 mt-0.5" />
-                    <div>
-                      <p className="text-sm font-semibold mb-2">Direito LGPD</p>
-                      <p className="text-xs text-muted-foreground">
-                        Você tem o direito legal de acessar e baixar todos os seus dados pessoais e de saúde armazenados no HoraMed.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <p className="text-sm font-medium">📦 Dados incluídos na exportação:</p>
-                  <div className="grid gap-2">
-                    {[
-                      'Perfis e informações pessoais',
-                      'Medicamentos e horários',
-                      'Histórico completo de doses',
-                      'Documentos e exames do cofre',
-                      'Receitas e vacinas',
-                      'Consultas e eventos de saúde',
-                      'Métricas de adesão e progresso'
-                    ].map((item, index) => (
-                      <div key={index} className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <div className="h-1.5 w-1.5 rounded-full bg-primary" />
-                        {item}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <Button
-                  size="lg"
-                  className="w-full"
-                  onClick={() => navigate('/exportar')}
-                >
-                  <Download className="h-4 w-4 mr-2" />
-                  Exportar Todos os Dados (JSON)
-                </Button>
-
-                <p className="text-xs text-center text-muted-foreground">
-                  Arquivo em formato JSON com todos os seus dados
-                </p>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Ajuda Tab */}
-          <TabsContent value="help" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Ajuda e Suporte</CardTitle>
-                <CardDescription>
-                  Recursos para aproveitar melhor o HoraMed
+                  Seus dados são protegidos conforme a LGPD
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-2">
-                <Button
+                <Button 
                   variant="outline"
+                  size="lg" 
                   className="w-full justify-start"
-                  onClick={() => navigate('/tutorial')}
+                  onClick={() => navigate('/exportar')}
                 >
-                  <BookOpen className="h-4 w-4 mr-2" />
-                  Tutorial do App
+                  <Download className="h-4 w-4 mr-2" />
+                  Exportar meus dados
                 </Button>
-
-                <Button
+                <Button 
                   variant="outline"
-                  className="w-full justify-start"
-                  onClick={() => navigate('/ajuda')}
-                >
-                  <HelpCircle className="h-4 w-4 mr-2" />
-                  Central de Ajuda
-                </Button>
-
-                <Button
-                  variant="outline"
-                  className="w-full justify-start"
-                  onClick={() => navigate('/emergencia')}
-                >
-                  <AlertCircle className="h-4 w-4 mr-2" />
-                  Contatos de Emergência
-                </Button>
-
-                <Separator className="my-4" />
-
-                <Button
-                  variant="outline"
+                  size="lg" 
                   className="w-full justify-start"
                   onClick={() => navigate('/privacidade')}
                 >
                   <Shield className="h-4 w-4 mr-2" />
-                  Política de Privacidade
+                  Política de privacidade
                 </Button>
-
-                <Button
+                <Button 
                   variant="outline"
+                  size="lg" 
                   className="w-full justify-start"
                   onClick={() => navigate('/termos')}
                 >
                   <FileText className="h-4 w-4 mr-2" />
-                  Termos de Uso
+                  Termos de uso
                 </Button>
+              </CardContent>
+            </Card>
 
-                <Separator className="my-4" />
-
-                <div className="flex items-center justify-center py-4">
-                  <img src={logo} alt="HoraMed" className="h-12 opacity-50" />
-                </div>
-                <p className="text-center text-xs text-muted-foreground">
-                  HoraMed 2.0 - Seu Assistente de Saúde Pessoal
-                </p>
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <HelpCircle className="h-5 w-5" />
+                  Ajuda e Suporte
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <Button 
+                  variant="outline"
+                  size="lg" 
+                  className="w-full justify-start"
+                  onClick={() => navigate('/tutorial')}
+                >
+                  <BookOpen className="h-4 w-4 mr-2" />
+                  Tutorial do app
+                </Button>
+                <Button 
+                  variant="outline"
+                  size="lg" 
+                  className="w-full justify-start"
+                  onClick={() => navigate('/ajuda')}
+                >
+                  <HelpCircle className="h-4 w-4 mr-2" />
+                  Central de ajuda
+                </Button>
+                <Button 
+                  variant="outline"
+                  size="lg" 
+                  className="w-full justify-start"
+                  onClick={() => navigate('/emergencia')}
+                >
+                  <AlertCircle className="h-4 w-4 mr-2" />
+                  Contatos de emergência
+                </Button>
               </CardContent>
             </Card>
           </TabsContent>
