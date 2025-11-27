@@ -17,6 +17,7 @@ import TutorialHint from "@/components/TutorialHint";
 import HelpTooltip from "@/components/HelpTooltip";
 import WeightBMICard from "@/components/WeightBMICard";
 import FitnessProgressWidgets from "@/components/fitness/FitnessProgressWidgets";
+import { useFitnessPreferences } from "@/hooks/useFitnessPreferences";
 
 export default function Progress() {
   const { user } = useAuth();
@@ -25,6 +26,7 @@ export default function Progress() {
   const navigate = useNavigate();
   const [selectedPeriod, setSelectedPeriod] = useState<"week" | "month" | "all">("week");
   const [hasSupplements, setHasSupplements] = useState(false);
+  const { preferences } = useFitnessPreferences();
 
   // Get streak data
   const { data: streakData } = useQuery({
@@ -403,8 +405,8 @@ export default function Progress() {
           </Card>
         </motion.div>
 
-        {/* Fitness Widgets - Only show if user has supplements */}
-        {hasSupplements && (
+        {/* Fitness Widgets - Only show if user has supplements AND preference is enabled */}
+        {hasSupplements && preferences.showFitnessWidgets && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}

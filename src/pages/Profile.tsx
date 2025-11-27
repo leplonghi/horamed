@@ -10,7 +10,7 @@ import { toast } from "sonner";
 import { 
   User, Bell, Shield, CreditCard, HelpCircle, LogOut, FileDown, 
   Crown, Users, Plus, Trash2, Settings, BookOpen, Mail,
-  Download, FileText, AlertCircle, Smartphone, Gift
+  Download, FileText, AlertCircle, Smartphone, Gift, Activity
 } from "lucide-react";
 import CaregiverManager from "@/components/CaregiverManager";
 import { useNavigate } from "react-router-dom";
@@ -22,6 +22,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import logo from "@/assets/horamed-logo.png";
 import TutorialHint from "@/components/TutorialHint";
 import WeightTrackingCard from "@/components/WeightTrackingCard";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { useFitnessPreferences } from "@/hooks/useFitnessPreferences";
 
 export default function Profile() {
   const navigate = useNavigate();
@@ -34,6 +37,7 @@ export default function Profile() {
   });
   const { subscription, isPremium, daysLeft, refresh } = useSubscription();
   const { profiles, activeProfile, deleteProfile, switchProfile } = useUserProfiles();
+  const { preferences, toggleFitnessWidgets } = useFitnessPreferences();
 
   useEffect(() => {
     loadProfile();
@@ -225,6 +229,33 @@ export default function Profile() {
                 profileId={activeProfile?.id}
               />
             )}
+
+            {/* Fitness Widgets Preferences */}
+            <Card>
+              <CardHeader>
+                <div className="flex items-center gap-2">
+                  <Activity className="h-5 w-5 text-performance" />
+                  <CardTitle>Preferências de Bem-estar</CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-1">
+                    <Label htmlFor="fitness-widgets" className="cursor-pointer font-medium">
+                      Exibir widgets de bem-estar
+                    </Label>
+                    <p className="text-sm text-muted-foreground">
+                      Mostre métricas de hidratação, consistência e energia na tela Hoje e Progresso
+                    </p>
+                  </div>
+                  <Switch
+                    id="fitness-widgets"
+                    checked={preferences.showFitnessWidgets}
+                    onCheckedChange={toggleFitnessWidgets}
+                  />
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           {/* Perfis Tab */}

@@ -43,6 +43,7 @@ import SimpleAdherenceSummary from "@/components/SimpleAdherenceSummary";
 import HydrationWidget from "@/components/fitness/HydrationWidget";
 import SupplementConsistencyWidget from "@/components/fitness/SupplementConsistencyWidget";
 import EnergyHintWidget from "@/components/fitness/EnergyHintWidget";
+import { useFitnessPreferences } from "@/hooks/useFitnessPreferences";
 
 interface TimelineItem {
   id: string;
@@ -68,6 +69,7 @@ export default function Today() {
   const { activeProfile } = useUserProfiles();
   useSmartRedirect();
   const { suggestions } = useAdaptiveSuggestions();
+  const { preferences } = useFitnessPreferences();
   
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [timelineItems, setTimelineItems] = useState<TimelineItem[]>([]);
@@ -643,8 +645,8 @@ export default function Today() {
           {/* AI Health Assistant */}
           <AIChatUI />
 
-          {/* Fitness Widgets - Only show if user has supplements */}
-          {hasSupplements && (
+          {/* Fitness Widgets - Only show if user has supplements AND preference is enabled */}
+          {hasSupplements && preferences.showFitnessWidgets && (
             <div className="space-y-3">
               <HydrationWidget />
               <SupplementConsistencyWidget last7Days={[75, 80, 90, 85, 100, 95, 85]} />
