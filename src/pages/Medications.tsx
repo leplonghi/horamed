@@ -198,47 +198,47 @@ export default function Medications() {
           {/* Header */}
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0 flex-1 space-y-2">
-              <h1 className="heading-page truncate">Meus Medicamentos</h1>
-              <p className="text-subtitle truncate">
-                {items.length > 0 && `${items.length} medicamento${items.length > 1 ? 's' : ''} ativo${items.length > 1 ? 's' : ''}`}
+              <h1 className="text-3xl font-bold">💊 Minha Saúde</h1>
+              <p className="text-muted-foreground">
+                {items.length > 0 ? `${items.length} ${items.length === 1 ? 'item ativo' : 'itens ativos'}` : 'Nenhum item cadastrado'}
               </p>
             </div>
-            <Button onClick={handleAddClick} size="sm" className="shrink-0 h-9">
-              <Plus className="h-4 w-4 mr-1.5" />
-              Adicionar
+            <Button onClick={handleAddClick} size="lg" className="h-12 gap-2 shadow-lg">
+              <Plus className="h-5 w-5" />
+              <span className="hidden sm:inline">Adicionar</span>
             </Button>
           </div>
 
           {/* Quick Actions */}
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-2 gap-3">
             <Button 
               variant="outline" 
               onClick={() => navigate('/estoque')}
-              className="h-auto py-3"
+              className="h-auto py-4 flex flex-col gap-2 hover:bg-accent/50 transition-all"
             >
-              <Package className="h-4 w-4 mr-2" />
-              <div className="text-left flex-1">
-                <div className="text-sm font-semibold">Estoque</div>
-                <div className="text-label">Gerenciar</div>
+              <Package className="h-6 w-6 text-primary" />
+              <div className="text-center">
+                <div className="font-semibold">Estoque</div>
+                <div className="text-xs text-muted-foreground">Gerenciar quantidades</div>
               </div>
             </Button>
             <Button 
               variant="outline" 
               onClick={() => navigate('/evolucao')}
-              className="h-auto py-3"
+              className="h-auto py-4 flex flex-col gap-2 hover:bg-accent/50 transition-all"
             >
-              <TrendingUp className="h-4 w-4 mr-2" />
-              <div className="text-left flex-1">
-                <div className="text-sm font-semibold">Insights</div>
-                <div className="text-label">Ver análises</div>
+              <TrendingUp className="h-6 w-6 text-primary" />
+              <div className="text-center">
+                <div className="font-semibold">Progresso</div>
+                <div className="text-xs text-muted-foreground">Ver estatísticas</div>
               </div>
             </Button>
           </div>
 
           <TutorialHint
             id="medications_page"
-            title="Gerencie seus medicamentos 💊"
-            message="Aqui você cadastra seus remédios, vitaminas e suplementos. Clique em 'Adicionar' para começar. Nome + horários já são suficientes!"
+            title="Gerencie seus medicamentos e suplementos 💊"
+            message="Aqui você organiza todos os seus remédios, vitaminas e suplementos. Adicione novos itens, configure horários e acompanhe seu estoque. É simples e rápido!"
           />
 
           {/* Search */}
@@ -254,18 +254,18 @@ export default function Medications() {
 
           {/* Medications List */}
           {filteredItems.length === 0 && searchTerm === "" ? (
-            <Card className="border-dashed border-2">
-              <CardContent className="py-16 text-center">
-                <div className="mb-4 bg-primary/10 rounded-full w-20 h-20 mx-auto flex items-center justify-center">
-                  <Pill className="h-10 w-10 text-primary" />
+            <Card className="border-dashed border-2 bg-gradient-to-br from-primary/5 to-primary/10">
+              <CardContent className="py-20 text-center">
+                <div className="mb-6 bg-primary/10 rounded-full w-24 h-24 mx-auto flex items-center justify-center">
+                  <Pill className="h-12 w-12 text-primary" />
                 </div>
-                <p className="text-xl font-semibold mb-2">Nenhum medicamento cadastrado</p>
-                <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-                  Adicione medicamentos, vitaminas e suplementos para organizar sua rotina de saúde
+                <p className="text-2xl font-bold mb-3">Nenhum medicamento cadastrado</p>
+                <p className="text-muted-foreground mb-8 max-w-md mx-auto text-base">
+                  Comece adicionando seus medicamentos, vitaminas ou suplementos para organizar sua rotina de saúde
                 </p>
-                <Button onClick={handleAddClick} size="lg">
+                <Button onClick={handleAddClick} size="lg" className="h-12 px-8">
                   <Plus className="h-5 w-5 mr-2" />
-                  Adicionar Primeiro Medicamento
+                  Adicionar Primeiro Item
                 </Button>
               </CardContent>
             </Card>
@@ -286,54 +286,65 @@ export default function Medications() {
                 const colorClass = getColorForMedication(item.id);
                 
                 return (
-                  <Card key={item.id} className={cn("hover:shadow-md transition-shadow overflow-hidden border-l-4", colorClass)}>
-                    <CardContent className="p-3 overflow-x-hidden">
+                  <Card key={item.id} className={cn("hover:shadow-lg transition-all overflow-hidden border-l-4 cursor-pointer", colorClass)}
+                    onClick={() => navigate(`/adicionar?edit=${item.id}`)}
+                  >
+                    <CardContent className="p-4 overflow-x-hidden">
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1.5">
-                            <span className="text-xl shrink-0">{CATEGORY_ICONS[item.category] || "📦"}</span>
-                            <h3 className="font-semibold text-base truncate">{item.name}</h3>
+                          <div className="flex items-center gap-3 mb-2">
+                            <div className="flex items-center justify-center h-12 w-12 rounded-xl bg-primary/10 flex-shrink-0">
+                              <span className="text-2xl">{CATEGORY_ICONS[item.category] || "📦"}</span>
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <h3 className="font-bold text-lg truncate">{item.name}</h3>
+                              {item.dose_text && (
+                                <p className="text-sm text-muted-foreground truncate">
+                                  {item.dose_text}
+                                </p>
+                              )}
+                            </div>
                           </div>
                           
-                          {item.dose_text && (
-                            <p className="text-xs text-muted-foreground mb-1.5 truncate">
-                              {item.dose_text}
-                            </p>
-                          )}
-                          
-                          <div className="flex flex-wrap gap-1.5">
-                            <Badge variant="outline" className="shrink-0 text-[10px] h-5">
+                          <div className="flex flex-wrap gap-2 mt-3">
+                            <Badge variant="outline" className="text-xs font-medium">
                               {getScheduleSummary(item.schedules)}
                             </Badge>
                             
                             {stockStatus && (
                               <Badge 
                                 variant={stockStatus.color === "destructive" ? "destructive" : "secondary"}
-                                className={`shrink-0 text-[10px] h-5 ${stockStatus.color === "warning" ? "bg-amber-100 text-amber-700" : ""}`}
+                                className={`text-xs font-medium ${stockStatus.color === "warning" ? "bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-400" : ""}`}
                               >
-                                <Package className="h-2.5 w-2.5 mr-0.5" />
+                                <Package className="h-3 w-3 mr-1" />
                                 {stockStatus.label}
                               </Badge>
                             )}
                           </div>
                         </div>
 
-                        <div className="flex gap-1.5 shrink-0">
+                        <div className="flex gap-2 shrink-0">
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8"
-                            onClick={() => navigate(`/adicionar?edit=${item.id}`)}
+                            className="h-10 w-10 hover:bg-primary/10"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigate(`/adicionar?edit=${item.id}`);
+                            }}
                           >
-                            <Pencil className="h-3.5 w-3.5" />
+                            <Pencil className="h-4 w-4" />
                           </Button>
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8"
-                            onClick={() => deleteItem(item.id)}
+                            className="h-10 w-10 hover:bg-destructive/10"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              deleteItem(item.id);
+                            }}
                           >
-                            <Trash2 className="h-3.5 w-3.5" />
+                            <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
                       </div>

@@ -8,7 +8,7 @@ import { ThemeProvider } from "next-themes";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { lazy } from "react";
 import Index from "./pages/Index";
-import Today from "./pages/Today";
+import TodayRedesign from "./pages/TodayRedesign";
 import Medications from "./pages/Medications";
 import Saude from "./pages/Saude";
 import Agenda from "./pages/Agenda";
@@ -79,7 +79,7 @@ function AppContent() {
         <Route path="/" element={<Index />} />
         
         {/* Main navigation routes - HoraMed 2.0 */}
-        <Route path="/hoje" element={<ProtectedRoute><Today /></ProtectedRoute>} />
+        <Route path="/hoje" element={<ProtectedRoute><TodayRedesign /></ProtectedRoute>} />
         <Route path="/rotina" element={<ProtectedRoute><Medications /></ProtectedRoute>} />
         <Route path="/progresso" element={<ProtectedRoute><Progress /></ProtectedRoute>} />
         <Route path="/conquistas" element={<ProtectedRoute><Achievements /></ProtectedRoute>} />
