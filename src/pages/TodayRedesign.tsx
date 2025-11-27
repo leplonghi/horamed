@@ -462,37 +462,37 @@ export default function TodayRedesign() {
           <p className="text-muted-foreground text-sm">{motivationalQuote}</p>
         </div>
 
-        {/* Streak and Adherence - Side by side */}
-        <div className="grid grid-cols-2 gap-3 mb-6">
+        {/* Top Section: Streak, Adherence and Insights - Three columns on larger screens */}
+        <div className="grid md:grid-cols-3 gap-3 mb-6">
+          {/* Column 1: Streak */}
           {streakData.currentStreak > 0 && (
             <StreakBadge streak={streakData.currentStreak} type="current" />
           )}
+          
+          {/* Column 2: Adherence */}
           <SimpleAdherenceSummary 
             taken={todayStats.taken} 
             total={todayStats.total}
             period="Hoje"
           />
+          
+          {/* Column 3: Insights and Quick Actions */}
+          <div className="space-y-3 md:col-span-1 col-span-2">
+            <HealthInsightsCard />
+            <QuickDoseWidget />
+          </div>
         </div>
 
         {/* Essential Shortcuts */}
         <EssentialShortcuts />
 
-        {/* Calendar and Side Content - Two columns on larger screens */}
-        <div className="grid md:grid-cols-[2fr_1fr] gap-4 mb-6">
-          {/* Calendar - Compact */}
-          <div>
-            <ImprovedCalendar
-              selectedDate={selectedDate}
-              onDateSelect={setSelectedDate}
-              eventCounts={eventCounts}
-            />
-          </div>
-
-          {/* Side Column - Insights and Quick Actions */}
-          <div className="space-y-4">
-            <HealthInsightsCard />
-            <QuickDoseWidget />
-          </div>
+        {/* Calendar - Full width */}
+        <div className="mb-6">
+          <ImprovedCalendar
+            selectedDate={selectedDate}
+            onDateSelect={setSelectedDate}
+            eventCounts={eventCounts}
+          />
         </div>
 
         {/* Timeline */}
