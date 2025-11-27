@@ -62,3 +62,6 @@ verify_jwt = true
 
 [functions.generate-monthly-report]
 verify_jwt = true
+
+[functions.customer-portal]
+verify_jwt = true

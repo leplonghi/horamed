@@ -18,32 +18,19 @@ export default function SubscriptionManagement() {
   const { subscription, isPremium, isFree, isExpired, daysLeft, loading, refresh } = useSubscription();
   const [canceling, setCanceling] = useState(false);
 
-  const handleCancelSubscription = async () => {
-    if (!confirm("Tem certeza que deseja cancelar sua assinatura? Você perderá acesso aos recursos Premium.")) {
-      return;
-    }
-
+  const handleManageSubscription = async () => {
     setCanceling(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Usuário não autenticado");
-
-      // Update subscription to cancelled
-      const { error } = await supabase
-        .from("subscriptions")
-        .update({ 
-          status: 'cancelled',
-          updated_at: new Date().toISOString()
-        })
-        .eq("user_id", user.id);
-
+      const { data, error } = await supabase.functions.invoke('customer-portal');
+      
       if (error) throw error;
-
-      toast.success("Assinatura cancelada com sucesso");
-      refresh();
-    } catch (error) {
-      console.error("Error canceling subscription:", error);
-      toast.error("Erro ao cancelar assinatura");
+      
+      if (data?.url) {
+        window.open(data.url, '_blank');
+      }
+    } catch (error: any) {
+      console.error('Portal error:', error);
+      toast.error("Erro ao abrir portal de gerenciamento");
     } finally {
       setCanceling(false);
     }
@@ -195,20 +182,16 @@ export default function SubscriptionManagement() {
           {isPremium ? (
             <>
               <Button 
-                variant="outline" 
+                variant="default" 
                 className="w-full"
-                onClick={() => navigate("/planos")}
-              >
-                Ver outros planos
-              </Button>
-              <Button 
-                variant="destructive" 
-                className="w-full"
-                onClick={handleCancelSubscription}
+                onClick={handleManageSubscription}
                 disabled={canceling}
               >
-                {canceling ? "Cancelando..." : "Cancelar Assinatura"}
+                {canceling ? "Abrindo..." : "Gerenciar Assinatura no Stripe"}
               </Button>
+              <p className="text-xs text-center text-muted-foreground">
+                Altere plano, forma de pagamento ou cancele sua assinatura
+              </p>
             </>
           ) : (
             <>

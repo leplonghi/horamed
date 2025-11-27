@@ -37,10 +37,13 @@ serve(async (req) => {
       case 'checkout.session.completed': {
         const session = event.data.object as Stripe.Checkout.Session;
         const userId = session.metadata?.supabase_user_id;
+        const planType = session.metadata?.plan_type || 'monthly';
         
         if (!userId) {
           throw new Error('No user ID in session metadata');
         }
+
+        console.log(`Processing checkout completion for user ${userId}, plan: ${planType}`);
 
         // Update subscription to premium
         await supabaseAdmin
@@ -49,9 +52,26 @@ serve(async (req) => {
             plan_type: 'premium',
             status: 'active',
             stripe_subscription_id: session.subscription as string,
-            expires_at: null, // Premium doesn't expire until cancelled
+            expires_at: null,
           })
           .eq('user_id', userId);
+
+        // Activate referrals after successful payment
+        const referralPlanType = planType === 'annual' ? 'premium_annual' : 'premium_monthly';
+        const { data: activatedReferrals } = await supabaseAdmin
+          .from('referrals')
+          .update({
+            status: 'active',
+            plan_type: referralPlanType,
+            activated_at: new Date().toISOString(),
+          })
+          .eq('referred_user_id', userId)
+          .eq('status', 'pending')
+          .select();
+
+        if (activatedReferrals && activatedReferrals.length > 0) {
+          console.log(`Activated ${activatedReferrals.length} referral(s) for user ${userId}`);
+        }
 
         console.log(`Upgraded user ${userId} to premium`);
         break;

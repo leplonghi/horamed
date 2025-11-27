@@ -13,6 +13,9 @@ serve(async (req) => {
   }
 
   try {
+    const { planType = 'monthly' } = await req.json();
+    console.log(`[CREATE-CHECKOUT] Creating checkout for plan: ${planType}`);
+    
     const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
       apiVersion: '2025-08-27.basil',
     });
@@ -35,6 +38,8 @@ serve(async (req) => {
       throw new Error('User not authenticated');
     }
 
+    console.log(`[CREATE-CHECKOUT] User authenticated: ${user.id}`);
+
     // Get or create Stripe customer
     const { data: subscription } = await supabaseClient
       .from('subscriptions')
@@ -52,39 +57,48 @@ serve(async (req) => {
         },
       });
       customerId = customer.id;
+      console.log(`[CREATE-CHECKOUT] Created new customer: ${customerId}`);
 
       await supabaseClient
         .from('subscriptions')
         .update({ stripe_customer_id: customerId })
         .eq('user_id', user.id);
+    } else {
+      console.log(`[CREATE-CHECKOUT] Using existing customer: ${customerId}`);
     }
 
-    // Create checkout session
+    // Use actual Stripe price IDs
+    const priceId = planType === 'annual' 
+      ? 'price_1SYEWmAY2hnWxlHuNegLluyC' // Annual: R$ 199,90/ano
+      : 'price_1SYEVNAY2hnWxlHujMBQSYTt'; // Monthly: R$ 19,90/mês
+    
+    console.log(`[CREATE-CHECKOUT] Using price ID: ${priceId}`);
+
+    // Create checkout session with 7-day trial
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       line_items: [
         {
-          price_data: {
-            currency: 'brl',
-            product_data: {
-              name: 'HoraMed Premium',
-              description: 'Medicamentos ilimitados, sem anúncios, gráficos avançados e OCR',
-            },
-            unit_amount: 990, // R$ 9,90
-            recurring: {
-              interval: 'month',
-            },
-          },
+          price: priceId,
           quantity: 1,
         },
       ],
       mode: 'subscription',
+      subscription_data: {
+        trial_period_days: 7,
+        metadata: {
+          plan_type: planType,
+        },
+      },
       success_url: `${req.headers.get('origin')}/perfil?success=true`,
       cancel_url: `${req.headers.get('origin')}/planos?canceled=true`,
       metadata: {
         supabase_user_id: user.id,
+        plan_type: planType,
       },
     });
+
+    console.log(`[CREATE-CHECKOUT] Session created: ${session.id}`);
 
     return new Response(
       JSON.stringify({ url: session.url }),
