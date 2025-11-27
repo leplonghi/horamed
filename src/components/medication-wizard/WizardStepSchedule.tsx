@@ -20,7 +20,7 @@ interface WizardStepScheduleProps {
 }
 
 export function WizardStepSchedule({ data, updateData }: WizardStepScheduleProps) {
-  const [newTime, setNewTime] = useState("08:00");
+  const [newTime, setNewTime] = useState("");
 
   const frequencyOptions = [
     { value: "daily", label: "Todos os dias", description: "Tomar diariamente" },
@@ -50,7 +50,7 @@ export function WizardStepSchedule({ data, updateData }: WizardStepScheduleProps
     }
     console.log("✅ Adicionando horário");
     updateData({ times: [...data.times, newTime].sort() });
-    setNewTime("08:00");
+    setNewTime("");
   };
 
   const removeTime = (time: string) => {
