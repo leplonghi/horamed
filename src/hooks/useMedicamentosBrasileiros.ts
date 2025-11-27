@@ -1,8 +1,10 @@
 import { useState, useEffect, useMemo } from 'react';
+import { medicamentosBrasileiros } from '@/data/medicamentos-brasileiros';
 
 export interface MedicamentoBrasileiro {
   nome: string;
-  situacao: string;
+  principioAtivo?: string;
+  tipo: string;
 }
 
 export function useMedicamentosBrasileiros() {
@@ -10,72 +12,40 @@ export function useMedicamentosBrasileiros() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const loadMedicamentos = async () => {
-      try {
-        // Carregar o CSV
-        const response = await fetch('/src/data/medicamentos-brasileiros.csv');
-        const text = await response.text();
-        
-        console.log('CSV carregado, tamanho:', text.length);
-        
-        // Processar linhas
-        const lines = text.split('\n');
-        const medicamentosMap = new Map<string, MedicamentoBrasileiro>();
-        
-        console.log('Total de linhas no CSV:', lines.length);
-        
-        let validCount = 0;
-        
-        // Processar cada linha (pular header)
-        for (let i = 1; i < lines.length; i++) {
-          const line = lines[i];
-          if (!line.trim()) continue;
-          
-          // Split por ponto e vírgula
-          const parts = line.split(';');
-          if (parts.length < 2) continue;
-          
-          const nome = parts[0]?.replace(/"/g, '').trim();
-          const situacao = parts[1]?.replace(/"/g, '').trim();
-          
-          // Filtrar apenas medicamentos com registro VÁLIDO
-          if (situacao !== 'VÁLIDO') continue;
-          if (!nome || nome.length < 3) continue;
-          
-          validCount++;
-          
-          // Normalizar nome para evitar duplicatas
-          const nomeKey = nome.toLowerCase();
-          
-          // Adicionar ao mapa (evita duplicatas)
-          if (!medicamentosMap.has(nomeKey)) {
-            medicamentosMap.set(nomeKey, {
-              nome: nome,
-              situacao: situacao
-            });
-          }
-        }
-        
-        console.log('Medicamentos válidos encontrados:', validCount);
-        console.log('Medicamentos únicos após deduplicação:', medicamentosMap.size);
-        
-        // Converter para array e ordenar alfabeticamente
-        const sorted = Array.from(medicamentosMap.values())
-          .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
-        
-        console.log('Primeiros 10 medicamentos:', sorted.slice(0, 10).map(m => m.nome));
-        
-        setMedicamentos(sorted);
-      } catch (error) {
-        console.error('Erro ao carregar medicamentos:', error);
-        // Fallback para lista vazia em caso de erro
-        setMedicamentos([]);
-      } finally {
-        setLoading(false);
-      }
-    };
+    try {
+      console.log('Carregando medicamentos da lista estática. Total disponível:', medicamentosBrasileiros.length);
 
-    loadMedicamentos();
+      const medicamentosMap = new Map<string, MedicamentoBrasileiro>();
+
+      medicamentosBrasileiros.forEach((med) => {
+        const nome = med.nome?.trim();
+        if (!nome || nome.length < 3) return;
+
+        const nomeKey = nome.toLowerCase();
+
+        if (!medicamentosMap.has(nomeKey)) {
+          medicamentosMap.set(nomeKey, {
+            nome,
+            principioAtivo: med.principioAtivo,
+            tipo: med.tipo,
+          });
+        }
+      });
+
+      const sorted = Array.from(medicamentosMap.values()).sort((a, b) =>
+        a.nome.localeCompare(b.nome, 'pt-BR')
+      );
+
+      console.log('Medicamentos únicos após deduplicação (lista estática):', sorted.length);
+      console.log('Primeiros 10 medicamentos (lista estática):', sorted.slice(0, 10).map((m) => m.nome));
+
+      setMedicamentos(sorted);
+    } catch (error) {
+      console.error('Erro ao carregar medicamentos estáticos:', error);
+      setMedicamentos([]);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   return { medicamentos, loading };
