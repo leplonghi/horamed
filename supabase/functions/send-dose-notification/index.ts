@@ -110,31 +110,101 @@ serve(async (req) => {
       },
     });
 
-    // TODO: Integrate with FCM/APNs
-    // Example FCM integration (requires FIREBASE_SERVER_KEY secret):
-    /*
-    const fcmResponse = await fetch('https://fcm.googleapis.com/fcm/send', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `key=${Deno.env.get('FIREBASE_SERVER_KEY')}`,
-      },
-      body: JSON.stringify({
-        to: preferences.push_token,
-        notification: {
-          title: body.title,
-          body: body.body,
-          sound: 'default',
-          badge: 1,
+    // Send push notification via Firebase Cloud Messaging
+    try {
+      const fcmResponse = await fetch('https://fcm.googleapis.com/fcm/send', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `key=${Deno.env.get('FIREBASE_SERVER_KEY')}`,
         },
-        data: {
-          doseId: body.doseId,
-          type: 'dose_reminder',
-        },
-        priority: 'high',
-      }),
-    });
-    */
+        body: JSON.stringify({
+          to: preferences.push_token,
+          notification: {
+            title: body.title,
+            body: body.body,
+            sound: 'default',
+            badge: 1,
+          },
+          data: {
+            doseId: body.doseId,
+            type: 'dose_reminder',
+          },
+          priority: 'high',
+          // Android-specific settings
+          android: {
+            priority: 'high',
+            notification: {
+              sound: 'default',
+              click_action: 'FLUTTER_NOTIFICATION_CLICK',
+            },
+          },
+          // iOS-specific settings
+          apns: {
+            payload: {
+              aps: {
+                sound: 'default',
+                'content-available': 1,
+              },
+            },
+            headers: {
+              'apns-priority': '10',
+            },
+          },
+        }),
+      });
+
+      const fcmResult = await fcmResponse.json();
+      
+      if (!fcmResponse.ok) {
+        console.error('FCM error:', fcmResult);
+        
+        // Update log with error
+        await supabaseAdmin.from('notification_logs').update({
+          delivery_status: 'failed',
+          error_message: JSON.stringify(fcmResult),
+        }).eq('user_id', body.userId).eq('dose_id', body.doseId);
+        
+        return new Response(
+          JSON.stringify({ 
+            success: false,
+            error: 'FCM delivery failed',
+            details: fcmResult
+          }),
+          { 
+            status: fcmResponse.status,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          }
+        );
+      }
+
+      console.log('Push notification sent successfully via FCM:', fcmResult);
+      
+      // Update log with success
+      await supabaseAdmin.from('notification_logs').update({
+        delivery_status: 'delivered',
+        sent_at: new Date().toISOString(),
+      }).eq('user_id', body.userId).eq('dose_id', body.doseId);
+
+    } catch (error) {
+      console.error('Error sending FCM notification:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      
+      // Update log with error
+      await supabaseAdmin.from('notification_logs').update({
+        delivery_status: 'failed',
+        error_message: errorMessage,
+      }).eq('user_id', body.userId).eq('dose_id', body.doseId);
+      
+      return new Response(
+        JSON.stringify({ 
+          success: false,
+          error: 'Failed to send push notification',
+          message: errorMessage 
+        }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     return new Response(
       JSON.stringify({ 
