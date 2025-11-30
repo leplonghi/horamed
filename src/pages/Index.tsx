@@ -49,7 +49,15 @@ const Index = () => {
       <Card className="w-full max-w-lg p-8 space-y-8 shadow-2xl animate-fade-in-scale">
         <div className="text-center space-y-6">
           <div className="flex justify-center animate-bounce-subtle">
-            <img src={logo} alt="HoraMed" className="h-40 w-auto" />
+            <img 
+              src={logo} 
+              alt="HoraMed" 
+              className="h-40 w-auto" 
+              width="170" 
+              height="160"
+              fetchPriority="high"
+              decoding="async"
+            />
           </div>
           <div className="animate-slide-up">
             <p className="text-lg text-muted-foreground">
