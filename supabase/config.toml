@@ -3,6 +3,9 @@ project_id = "zmsuqdwleyqpdthaqvbi"
 [functions.audit-log]
 verify_jwt = true
 
+[functions.send-whatsapp-evolution]
+verify_jwt = true
+
 [functions.send-dose-notification]
 verify_jwt = true
 
