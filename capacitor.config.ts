@@ -1,14 +1,36 @@
-import { CapacitorConfig } from '@capacitor/cli';
+import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'app.lovable.281a43144cea4c939b25b97f8d39e706',
-  appName: 'horamed',
+  appId: 'dev.horamed.app',
+  appName: 'HoraMed',
   webDir: 'dist',
-  // Comentado para produção web - descomentar apenas para desenvolvimento mobile
-  // server: {
-  //   url: 'https://horamed.lovable.app?forceHideBadge=true',
-  //   cleartext: true
-  // }
+  plugins: {
+    LocalNotifications: {
+      smallIcon: 'ic_stat_icon',
+      iconColor: '#3B82F6',
+      sound: 'notification.wav'
+    },
+    PushNotifications: {
+      presentationOptions: ['badge', 'sound', 'alert']
+    },
+    SplashScreen: {
+      launchShowDuration: 2000,
+      backgroundColor: '#3B82F6',
+      showSpinner: false,
+      androidScaleType: 'CENTER_CROP',
+      splashFullScreen: true,
+      splashImmersive: true
+    }
+  },
+  android: {
+    allowMixedContent: false,
+    captureInput: true,
+    webContentsDebuggingEnabled: false
+  },
+  ios: {
+    contentInset: 'automatic',
+    scrollEnabled: true
+  }
 };
 
 export default config;
