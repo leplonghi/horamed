@@ -155,9 +155,9 @@ export default function StockManagement() {
             <p className="text-subtitle mb-6">
               Configure o controle de estoque ao adicionar medicamentos da receita
             </p>
-            <Button onClick={() => window.location.href = "/cofre"}>
+            <Button onClick={() => window.location.href = "/carteira"}>
               <Plus className="h-4 w-4 mr-2" />
-              Ir para Cofre
+              Ir para Carteira
             </Button>
           </Card>
         )}

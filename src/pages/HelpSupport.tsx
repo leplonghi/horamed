@@ -118,7 +118,7 @@ export default function HelpSupport() {
                   <div className="bg-primary/5 p-3 rounded-lg">
                     <h4 className="font-semibold text-sm mb-1">Histórico de Saúde</h4>
                     <p className="text-xs text-muted-foreground">
-                      Armazene exames, consultas e documentos médicos no "Cofre de Saúde".
+                      Armazene exames, consultas e documentos médicos na "Carteira de Saúde".
                     </p>
                   </div>
 
@@ -167,7 +167,7 @@ export default function HelpSupport() {
                       <ul className="list-disc list-inside ml-2 text-sm space-y-1">
                         <li>Separe medicamentos contínuos dos temporários</li>
                         <li>Adicione notas sobre efeitos colaterais observados</li>
-                        <li>Mantenha o Cofre de Saúde atualizado com exames recentes</li>
+                        <li>Mantenha a Carteira de Saúde atualizada com exames recentes</li>
                       </ul>
                     </AccordionContent>
                   </AccordionItem>
@@ -289,7 +289,7 @@ export default function HelpSupport() {
                   <AccordionItem value="faq-8">
                     <AccordionTrigger>Como compartilhar meu histórico com o médico?</AccordionTrigger>
                     <AccordionContent>
-                      Vá em "Cofre de Saúde", selecione documentos e clique em "Compartilhar". Você pode 
+                      Vá em "Carteira de Saúde", selecione documentos e clique em "Compartilhar". Você pode 
                       gerar um link temporário ou exportar como PDF.
                     </AccordionContent>
                   </AccordionItem>

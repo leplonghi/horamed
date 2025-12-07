@@ -80,7 +80,7 @@ export default function ExamReviewScreen({ documentId, extractedData, onComplete
       toast.dismiss("save-exam");
       toast.success("✓ Exame salvo na Carteira de Saúde!");
 
-      navigate(`/cofre/${documentId}`);
+      navigate(`/carteira/${documentId}`);
 
     } catch (error: any) {
       console.error('Erro ao salvar exame:', error);

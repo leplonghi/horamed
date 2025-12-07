@@ -89,7 +89,7 @@ export default function CofreManualCreate() {
       if (error) throw error;
 
       toast.success("Documento criado com sucesso!");
-      navigate(`/cofre/${data.id}`);
+      navigate(`/carteira/${data.id}`);
     } catch (error) {
       console.error("Erro ao salvar documento:", error);
       toast.error("Erro ao criar documento");

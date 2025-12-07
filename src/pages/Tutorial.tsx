@@ -97,7 +97,7 @@ export default function Tutorial() {
       ],
     },
     {
-      id: "cofre",
+      id: "carteira",
       title: "Carteira",
       icon: FolderHeart,
       sections: [

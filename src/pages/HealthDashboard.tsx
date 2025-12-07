@@ -556,7 +556,7 @@ export default function HealthDashboard() {
               </CardContent>
             </Card>
 
-            <Card className="cursor-pointer hover:shadow-lg transition-all" onClick={() => navigate('/cofre')}>
+            <Card className="cursor-pointer hover:shadow-lg transition-all" onClick={() => navigate('/carteira')}>
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
                   <div className={`h-10 w-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
@@ -610,9 +610,9 @@ export default function HealthDashboard() {
                     <p className="text-sm text-orange-700 dark:text-orange-200 mb-3">
                       Verifique seus documentos que estão próximos do vencimento.
                     </p>
-                    <Button size="sm" className="bg-orange-600 hover:bg-orange-700" onClick={() => navigate('/cofre')}>
+                    <Button size="sm" className="bg-orange-600 hover:bg-orange-700" onClick={() => navigate('/carteira')}>
                       <FileText className="h-4 w-4 mr-1.5" />
-                      Abrir Cofre
+                      Abrir Carteira
                     </Button>
                   </div>
                 </div>

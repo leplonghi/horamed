@@ -10,7 +10,7 @@ export default function CofreDocumentReview() {
   const { type, extractedData } = location.state || {};
 
   if (!id || !type || !extractedData) {
-    return <Navigate to="/cofre" replace />;
+    return <Navigate to="/carteira" replace />;
   }
 
   const handleComplete = () => {
@@ -51,6 +51,6 @@ export default function CofreDocumentReview() {
         />
       );
     default:
-      return <Navigate to="/cofre" replace />;
+      return <Navigate to="/carteira" replace />;
   }
 }

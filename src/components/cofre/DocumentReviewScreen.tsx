@@ -49,7 +49,7 @@ export default function DocumentReviewScreen({ documentId, extractedData, onComp
       toast.dismiss("save-doc");
       toast.success("✓ Documento salvo na Carteira de Saúde!");
 
-      navigate(`/cofre/${documentId}`);
+      navigate(`/carteira/${documentId}`);
 
     } catch (error: any) {
       console.error('Erro ao salvar documento:', error);

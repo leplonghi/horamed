@@ -167,7 +167,7 @@ export default function CofreDocumento() {
   const handleDeletar = async () => {
     try {
       deletar(id!);
-      navigate("/cofre");
+      navigate("/carteira");
     } catch (error) {
       toast.error("Erro ao deletar documento");
     }
@@ -220,7 +220,7 @@ export default function CofreDocumento() {
     <div className="min-h-screen bg-background pb-20">
       <Header />
       <div className="container max-w-4xl mx-auto px-4 py-6 pt-24">
-        <Button variant="ghost" onClick={() => navigate("/cofre")} className="mb-4">
+        <Button variant="ghost" onClick={() => navigate("/carteira")} className="mb-4">
           <ArrowLeft className="w-4 h-4 mr-2" />
           Voltar
         </Button>
@@ -458,7 +458,7 @@ export default function CofreDocumento() {
 
             <Separator />
             <div className="flex flex-wrap gap-2">
-              <Button onClick={() => navigate(`/cofre/${id}/editar`)} variant="outline" size="sm">
+              <Button onClick={() => navigate(`/carteira/${id}/editar`)} variant="outline" size="sm">
                 <Edit className="w-4 h-4 mr-2" />
                 Editar
               </Button>

@@ -78,10 +78,10 @@ export default function More() {
       badge: <Badge variant="secondary" className="ml-2">Novo</Badge>,
     },
     {
-      title: "Cofre de Saúde",
+      title: "Carteira de Saúde",
       description: "Documentos e exames",
       icon: FolderHeart,
-      path: "/cofre",
+      path: "/carteira",
       badge: null,
     },
     {

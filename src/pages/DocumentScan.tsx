@@ -321,9 +321,9 @@ export default function DocumentScan() {
               {activeTab === 'exam' && (
                 <Button 
                   className="w-full mt-4"
-                  onClick={() => navigate('/cofre/upload', { state: { ocrData: scanResult } })}
+                  onClick={() => navigate('/carteira/upload', { state: { ocrData: scanResult } })}
                 >
-                  Salvar no Cofre de Saúde
+                  Salvar na Carteira de Saúde
                 </Button>
               )}
             </CardContent>

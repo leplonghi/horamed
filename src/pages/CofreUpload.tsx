@@ -348,7 +348,7 @@ export default function CofreUpload() {
         setExtractedMedications(extractedData.prescriptions);
         setShowMedicationModal(true);
       } else {
-        navigate(`/cofre/${newDoc.id}`);
+        navigate(`/carteira/${newDoc.id}`);
       }
     } catch (error: any) {
       console.error("Erro ao salvar:", error);
@@ -535,7 +535,7 @@ export default function CofreUpload() {
     <div className="min-h-screen bg-background pb-20">
       <Header />
       <div className="container max-w-2xl mx-auto px-4 py-6 pt-24">{/* pt-24 para compensar o header fixo */}
-        <Button variant="ghost" onClick={() => navigate("/cofre")} className="mb-4">
+        <Button variant="ghost" onClick={() => navigate("/carteira")} className="mb-4">
           <ArrowLeft className="w-4 h-4 mr-2" />
           Voltar
         </Button>
@@ -642,7 +642,7 @@ export default function CofreUpload() {
                   size="lg"
                   variant="outline"
                   className="w-full h-auto py-8"
-                  onClick={() => navigate('/cofre/criar-manual')}
+                  onClick={() => navigate('/carteira/criar-manual')}
                   disabled={isExtracting}
                 >
                   <div className="flex flex-col items-center gap-3">
@@ -693,7 +693,7 @@ export default function CofreUpload() {
         </div>
       </div>
 
-      <UpgradeModal open={showUpgrade} onOpenChange={setShowUpgrade} feature="Cofre de documentos" />
+      <UpgradeModal open={showUpgrade} onOpenChange={setShowUpgrade} feature="Carteira de documentos" />
       
       {/* Medication suggestion modal */}
       {showMedicationModal && (
@@ -764,7 +764,7 @@ export default function CofreUpload() {
                     className="flex-1"
                     onClick={() => {
                       setShowMedicationModal(false);
-                      navigate('/cofre');
+                      navigate('/carteira');
                     }}
                   >
                     Agora Não
