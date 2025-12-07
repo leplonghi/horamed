@@ -6,8 +6,9 @@ import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { ThemeProvider } from "next-themes";
 import { AuthProvider } from "@/contexts/AuthContext";
-import { lazy } from "react";
+import { lazy, useState, useEffect } from "react";
 import Index from "./pages/Index";
+import SplashScreen from "./components/SplashScreen";
 import TodayRedesign from "./pages/TodayRedesign";
 import Medications from "./pages/Medications";
 import Saude from "./pages/Saude";
@@ -187,11 +188,26 @@ function AppContent() {
 const queryClient = new QueryClient();
 
 const App = () => {
+  const [showSplash, setShowSplash] = useState(true);
+  
   console.log('App initializing', {
     hasSupabaseUrl: !!import.meta.env.VITE_SUPABASE_URL,
     hasSupabaseKey: !!import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
     mode: import.meta.env.MODE
   });
+
+  // Only show splash on first load (not on page refresh during session)
+  useEffect(() => {
+    const hasSeenSplash = sessionStorage.getItem('horamed_splash_shown');
+    if (hasSeenSplash) {
+      setShowSplash(false);
+    }
+  }, []);
+
+  const handleSplashComplete = () => {
+    sessionStorage.setItem('horamed_splash_shown', 'true');
+    setShowSplash(false);
+  };
 
   return (
     <ErrorBoundary>
@@ -202,6 +218,7 @@ const App = () => {
               <SubscriptionProvider>
                 <BrowserRouter>
                   <AuthProvider>
+                    {showSplash && <SplashScreen onComplete={handleSplashComplete} />}
                     <AppContent />
                   </AuthProvider>
                 </BrowserRouter>
