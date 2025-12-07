@@ -326,20 +326,22 @@ export default function AddHealthDocumentModal({ open, onOpenChange, onSuccess }
               <div className="grid grid-cols-2 gap-4">
                 <Button
                   variant="outline"
-                  className="h-32 flex-col gap-3 text-base"
+                  className="h-32 flex-col gap-2 text-base"
                   onClick={() => cameraInputRef.current?.click()}
                 >
                   <Camera className="h-8 w-8" />
-                  <span>Câmera</span>
+                  <span>Tirar Foto</span>
+                  <span className="text-xs text-muted-foreground">Digitalizar documento</span>
                 </Button>
 
                 <Button
                   variant="outline"
-                  className="h-32 flex-col gap-3 text-base"
+                  className="h-32 flex-col gap-2 text-base"
                   onClick={() => fileInputRef.current?.click()}
                 >
                   <Upload className="h-8 w-8" />
-                  <span>Galeria</span>
+                  <span>Arquivo</span>
+                  <span className="text-xs text-muted-foreground">Galeria ou PDF</span>
                 </Button>
 
                 <input
