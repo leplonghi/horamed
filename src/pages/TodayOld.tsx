@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { decrementStockWithProjection } from "@/lib/stockHelpers";
 import HealthInsights from "@/components/HealthInsights";
 import ProfileSelector from "@/components/ProfileSelector";
 import CriticalAlertBanner from "@/components/CriticalAlertBanner";
@@ -341,13 +342,8 @@ export default function Today() {
 
       if (error) throw error;
 
-      // Decrement stock
-      if (stockData && stockData.units_left > 0) {
-        await supabase
-          .from("stock")
-          .update({ units_left: stockData.units_left - 1 })
-          .eq("item_id", itemId);
-      }
+      // Decrement stock with projection recalculation
+      await decrementStockWithProjection(itemId);
 
       showMotivationalMessage();
       fetchTodayData();

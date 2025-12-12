@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { decrementStockWithProjection } from "@/lib/stockHelpers";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -185,18 +186,8 @@ export default function Rotina() {
           .update({ status: "taken", taken_at: now.toISOString() })
           .eq("id", doses[0].id);
 
-        const { data: stockData } = await supabase
-          .from("stock")
-          .select("units_left")
-          .eq("item_id", itemId)
-          .single();
-
-        if (stockData && stockData.units_left > 0) {
-          await supabase
-            .from("stock")
-            .update({ units_left: stockData.units_left - 1 })
-            .eq("item_id", itemId);
-        }
+        // Decrement stock with projection recalculation
+        await decrementStockWithProjection(itemId);
 
         toast.success("Dose marcada como tomada! 💚");
         fetchItems();

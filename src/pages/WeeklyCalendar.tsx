@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { decrementStockWithProjection } from "@/lib/stockHelpers";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -122,18 +123,8 @@ export default function WeeklyCalendar() {
       if (newStatus === 'taken') {
         updateData.taken_at = new Date().toISOString();
         
-        const { data: stockData } = await supabase
-          .from("stock")
-          .select("units_left")
-          .eq("item_id", dose.item_id)
-          .single();
-
-        if (stockData && stockData.units_left > 0) {
-          await supabase
-            .from("stock")
-            .update({ units_left: stockData.units_left - 1 })
-            .eq("item_id", dose.item_id);
-        }
+        // Decrement stock with projection recalculation
+        await decrementStockWithProjection(dose.item_id);
       } else {
         updateData.taken_at = null;
       }
