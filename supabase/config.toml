@@ -77,3 +77,9 @@ verify_jwt = false
 
 [functions.send-multi-channel-notification]
 verify_jwt = false
+
+[functions.caregiver-invite]
+verify_jwt = true
+
+[functions.medication-info]
+verify_jwt = false
