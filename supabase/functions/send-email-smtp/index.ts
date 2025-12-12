@@ -1,17 +1,19 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { SmtpClient } from "https://deno.land/x/smtp@v0.7.0/mod.ts";
+import { z } from "https://deno.land/x/zod@v3.23.8/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-interface EmailRequest {
-  to: string;
-  subject: string;
-  html: string;
-  text?: string;
-}
+// Input validation schema
+const emailSchema = z.object({
+  to: z.string().email().max(255),
+  subject: z.string().min(1).max(500),
+  html: z.string().min(1).max(50000),
+  text: z.string().max(50000).optional(),
+});
 
 const handler = async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") {
@@ -22,14 +24,19 @@ const handler = async (req: Request): Promise<Response> => {
   console.log("[SMTP] Starting email send...");
 
   try {
-    const { to, subject, html, text }: EmailRequest = await req.json();
-
-    if (!to || !subject || !html) {
+    // Validate input
+    const rawBody = await req.json().catch(() => ({}));
+    const parseResult = emailSchema.safeParse(rawBody);
+    
+    if (!parseResult.success) {
+      console.error("[SMTP] Validation error:", parseResult.error.message);
       return new Response(
-        JSON.stringify({ error: "Missing required fields: to, subject, html" }),
+        JSON.stringify({ error: "Invalid request data", details: parseResult.error.issues }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+
+    const { to, subject, html, text } = parseResult.data;
 
     const smtpHost = Deno.env.get("SMTP_HOST");
     const smtpPort = parseInt(Deno.env.get("SMTP_PORT") || "465");

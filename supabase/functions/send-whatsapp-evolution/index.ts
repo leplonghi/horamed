@@ -1,10 +1,18 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
+import { z } from "https://deno.land/x/zod@v3.23.8/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Input validation schema
+const whatsappSchema = z.object({
+  phoneNumber: z.string().min(10).max(20).regex(/^[\d+\-\s()]+$/, "Invalid phone number format"),
+  message: z.string().min(1).max(4096),
+  instanceName: z.string().min(1).max(100),
+});
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -27,11 +35,19 @@ serve(async (req) => {
       throw new Error('Unauthorized');
     }
 
-    const { phoneNumber, message, instanceName } = await req.json();
-
-    if (!phoneNumber || !message || !instanceName) {
-      throw new Error('Missing required fields: phoneNumber, message, instanceName');
+    // Validate input
+    const rawBody = await req.json().catch(() => ({}));
+    const parseResult = whatsappSchema.safeParse(rawBody);
+    
+    if (!parseResult.success) {
+      console.error('[SEND-WHATSAPP] Validation error:', parseResult.error.message);
+      return new Response(
+        JSON.stringify({ error: 'Invalid request data', details: parseResult.error.issues }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
+
+    const { phoneNumber, message, instanceName } = parseResult.data;
 
     const evolutionApiUrl = Deno.env.get('EVOLUTION_API_URL');
     const evolutionApiKey = Deno.env.get('EVOLUTION_API_KEY');

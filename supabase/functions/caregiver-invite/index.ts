@@ -1,10 +1,39 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { z } from "https://deno.land/x/zod@v3.23.8/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Input validation schemas
+const createSchema = z.object({
+  action: z.literal('create'),
+  email_or_phone: z.string().min(3).max(255),
+  role: z.enum(['viewer', 'helper']).optional().default('viewer'),
+});
+
+const acceptSchema = z.object({
+  action: z.literal('accept'),
+  token: z.string().uuid(),
+});
+
+const listSchema = z.object({
+  action: z.literal('list'),
+});
+
+const revokeSchema = z.object({
+  action: z.literal('revoke'),
+  caregiver_id: z.string().uuid(),
+});
+
+const requestSchema = z.discriminatedUnion('action', [
+  createSchema,
+  acceptSchema,
+  listSchema,
+  revokeSchema,
+]);
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -24,9 +53,21 @@ serve(async (req) => {
     const { data: { user }, error: userError } = await supabase.auth.getUser();
     if (userError || !user) throw new Error('Unauthorized');
 
-    const { action, email_or_phone, role, token } = await req.json();
+    // Validate input
+    const rawBody = await req.json().catch(() => ({}));
+    const parseResult = requestSchema.safeParse(rawBody);
+    
+    if (!parseResult.success) {
+      console.error('[CAREGIVER-INVITE] Validation error:', parseResult.error.message);
+      return new Response(
+        JSON.stringify({ error: 'Invalid request data', details: parseResult.error.issues }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
-    if (action === 'create') {
+    const body = parseResult.data;
+
+    if (body.action === 'create') {
       // Criar convite
       const inviteToken = crypto.randomUUID();
       const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 dias
@@ -35,8 +76,8 @@ serve(async (req) => {
         .from('caregivers')
         .insert({
           user_id_owner: user.id,
-          email_or_phone,
-          role: role || 'viewer'
+          email_or_phone: body.email_or_phone,
+          role: body.role
         })
         .select()
         .single();
@@ -67,12 +108,12 @@ serve(async (req) => {
       });
     }
 
-    if (action === 'accept') {
+    if (body.action === 'accept') {
       // Aceitar convite
       const { data: link, error: linkError } = await supabase
         .from('caregiver_links')
         .select('*')
-        .eq('token', token)
+        .eq('token', body.token)
         .is('revoked_at', null)
         .single();
 
@@ -103,7 +144,7 @@ serve(async (req) => {
       });
     }
 
-    if (action === 'list') {
+    if (body.action === 'list') {
       // Listar cuidadores
       const { data: caregivers, error } = await supabase
         .from('caregivers')
@@ -118,13 +159,11 @@ serve(async (req) => {
       });
     }
 
-    if (action === 'revoke') {
-      const { caregiver_id } = await req.json();
-      
+    if (body.action === 'revoke') {
       const { error } = await supabase
         .from('caregivers')
         .delete()
-        .eq('id', caregiver_id)
+        .eq('id', body.caregiver_id)
         .eq('user_id_owner', user.id);
 
       if (error) throw error;
