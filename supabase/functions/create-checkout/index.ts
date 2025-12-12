@@ -74,6 +74,9 @@ serve(async (req) => {
     
     console.log(`[CREATE-CHECKOUT] Using price ID: ${priceId}`);
 
+    // Production domain configuration
+    const appDomain = Deno.env.get('APP_DOMAIN') || req.headers.get('origin') || 'https://app.horamed.net';
+    
     // Create checkout session with 7-day trial
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
@@ -90,8 +93,8 @@ serve(async (req) => {
           plan_type: planType,
         },
       },
-      success_url: `${req.headers.get('origin')}/perfil?success=true`,
-      cancel_url: `${req.headers.get('origin')}/planos?canceled=true`,
+      success_url: `${appDomain}/assinatura/sucesso?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${appDomain}/assinatura/cancelado`,
       metadata: {
         supabase_user_id: user.id,
         plan_type: planType,

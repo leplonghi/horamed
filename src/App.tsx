@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { ThemeProvider } from "next-themes";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { HelmetProvider } from "react-helmet-async";
 import { lazy, useState, useEffect } from "react";
 import Index from "./pages/Index";
 import SplashScreen from "./components/SplashScreen";
@@ -73,6 +74,8 @@ import Welcome from "./pages/Welcome";
 import QuickOnboarding from "./components/onboarding/QuickOnboarding";
 import { OverdueDosesBanner } from "./components/OverdueDosesBanner";
 import { trackAppOpened } from "./hooks/useAppMetrics";
+import SubscriptionSuccess from "./pages/SubscriptionSuccess";
+import SubscriptionCanceled from "./pages/SubscriptionCanceled";
 
 function AppContent() {
   // Track app opened
@@ -143,6 +146,8 @@ function AppContent() {
         <Route path="/indique-ganhe" element={<ProtectedRoute><IndiqueGanhe /></ProtectedRoute>} />
         <Route path="/peso/historico" element={<ProtectedRoute><WeightHistory /></ProtectedRoute>} />
         <Route path="/assinatura" element={<ProtectedRoute><SubscriptionManagement /></ProtectedRoute>} />
+        <Route path="/assinatura/sucesso" element={<ProtectedRoute><SubscriptionSuccess /></ProtectedRoute>} />
+        <Route path="/assinatura/cancelado" element={<ProtectedRoute><SubscriptionCanceled /></ProtectedRoute>} />
         <Route path="/notificacoes-config" element={<ProtectedRoute><NotificationSettings /></ProtectedRoute>} />
         <Route path="/notificacoes" element={<ProtectedRoute><NotificationSettings /></ProtectedRoute>} />
         <Route path="/exportar" element={<ProtectedRoute><DataExport /></ProtectedRoute>} />
@@ -223,22 +228,24 @@ const App = () => {
 
   return (
     <ErrorBoundary>
-      <QueryClientProvider client={queryClient}>
-        <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
-          <TooltipProvider>
-            <ProfileCacheProvider>
-              <SubscriptionProvider>
-                <BrowserRouter>
-                  <AuthProvider>
-                    {showSplash && <SplashScreen onComplete={handleSplashComplete} />}
-                    <AppContent />
-                  </AuthProvider>
-                </BrowserRouter>
-              </SubscriptionProvider>
-            </ProfileCacheProvider>
-          </TooltipProvider>
-        </ThemeProvider>
-      </QueryClientProvider>
+      <HelmetProvider>
+        <QueryClientProvider client={queryClient}>
+          <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
+            <TooltipProvider>
+              <ProfileCacheProvider>
+                <SubscriptionProvider>
+                  <BrowserRouter>
+                    <AuthProvider>
+                      {showSplash && <SplashScreen onComplete={handleSplashComplete} />}
+                      <AppContent />
+                    </AuthProvider>
+                  </BrowserRouter>
+                </SubscriptionProvider>
+              </ProfileCacheProvider>
+            </TooltipProvider>
+          </ThemeProvider>
+        </QueryClientProvider>
+      </HelmetProvider>
     </ErrorBoundary>
   );
 };

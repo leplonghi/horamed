@@ -1,4 +1,3 @@
-import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -25,9 +24,11 @@ import {
   X
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { getAuthRedirectUrl } from "@/lib/domainConfig";
+import SEOHead from "@/components/SEOHead";
 
 const Landing = () => {
-  const navigate = useNavigate();
+  const authUrl = getAuthRedirectUrl();
   const [liveSignups, setLiveSignups] = useState(47);
   const [showUrgencyBanner, setShowUrgencyBanner] = useState(true);
   const [recentActivity, setRecentActivity] = useState<string | null>(null);
@@ -117,6 +118,10 @@ const Landing = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEOHead 
+        title="HoraMed - Sua Saúde no Horário Certo" 
+        description="Lembretes de medicamentos inteligentes, carteira de saúde digital e gestão familiar. Nunca mais esqueça uma dose. Cadastre-se grátis."
+      />
       {/* Urgency Banner */}
       <AnimatePresence>
         {showUrgencyBanner && (
@@ -167,10 +172,10 @@ const Landing = () => {
             <img src={logo} alt="HoraMed" className="h-10 w-auto" />
           </div>
           <div className="flex items-center gap-3">
-            <Button variant="ghost" onClick={() => navigate("/auth")}>
+            <Button variant="ghost" onClick={() => window.location.href = authUrl}>
               Entrar
             </Button>
-            <Button onClick={() => navigate("/auth")} className="bg-primary hover:bg-primary/90 animate-pulse">
+            <Button onClick={() => window.location.href = authUrl} className="bg-primary hover:bg-primary/90 animate-pulse">
               Começar Grátis
             </Button>
           </div>
@@ -222,7 +227,7 @@ const Landing = () => {
             <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
               <Button 
                 size="lg" 
-                onClick={() => navigate("/auth")}
+                onClick={() => window.location.href = authUrl}
                 className="h-14 px-8 text-lg font-semibold bg-primary hover:bg-primary/90 shadow-lg hover:shadow-xl transition-all group"
               >
                 Começar Grátis Agora
@@ -231,7 +236,7 @@ const Landing = () => {
               <Button 
                 size="lg" 
                 variant="outline"
-                onClick={() => navigate("/auth")}
+                onClick={() => window.location.href = authUrl}
                 className="h-14 px-8 text-lg"
               >
                 <Smartphone className="mr-2 w-5 h-5" />
@@ -492,7 +497,7 @@ const Landing = () => {
                 </p>
               </div>
 
-              <Button variant="outline" className="w-full" onClick={() => navigate("/auth")}>
+              <Button variant="outline" className="w-full" onClick={() => window.location.href = authUrl}>
                 Começar Grátis
               </Button>
             </Card>
@@ -543,7 +548,7 @@ const Landing = () => {
 
               <Button 
                 className="w-full h-12 bg-primary hover:bg-primary/90 text-lg font-semibold animate-pulse" 
-                onClick={() => navigate("/auth")}
+                onClick={() => window.location.href = authUrl}
               >
                 Começar 7 Dias Grátis
                 <ArrowRight className="ml-2 w-5 h-5" />
@@ -579,7 +584,7 @@ const Landing = () => {
           <Button 
             size="lg" 
             variant="secondary"
-            onClick={() => navigate("/auth")}
+            onClick={() => window.location.href = authUrl}
             className="h-14 px-8 text-lg font-semibold"
           >
             Criar Minha Conta Grátis
@@ -599,13 +604,13 @@ const Landing = () => {
               <img src={logo} alt="HoraMed" className="h-8 w-auto" />
             </div>
             <div className="flex gap-6 text-sm text-muted-foreground">
-              <button onClick={() => navigate("/termos")} className="hover:text-foreground transition-colors">
+              <a href="/termos" className="hover:text-foreground transition-colors">
                 Termos de Uso
-              </button>
-              <button onClick={() => navigate("/privacidade")} className="hover:text-foreground transition-colors">
+              </a>
+              <a href="/privacidade" className="hover:text-foreground transition-colors">
                 Privacidade
-              </button>
-              <button onClick={() => navigate("/auth")} className="hover:text-foreground transition-colors">
+              </a>
+              <button onClick={() => window.location.href = authUrl} className="hover:text-foreground transition-colors">
                 Entrar
               </button>
             </div>

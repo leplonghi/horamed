@@ -1,3 +1,7 @@
+# HoraMed Robots.txt
+# Landing page (horamed.net) - Allow indexing for SEO
+# App (app.horamed.net) - Protected app routes
+
 User-agent: Googlebot
 Allow: /
 
@@ -12,3 +16,21 @@ Allow: /
 
 User-agent: *
 Allow: /
+
+# Sitemap (landing domain only)
+Sitemap: https://horamed.net/sitemap.xml
+
+# Disallow internal app routes from indexing
+Disallow: /hoje
+Disallow: /rotina
+Disallow: /progresso
+Disallow: /carteira
+Disallow: /perfil
+Disallow: /assinatura
+Disallow: /auth
+Disallow: /onboarding
+Disallow: /admin
+Disallow: /medicamentos
+Disallow: /consultas
+Disallow: /vacinas
+Disallow: /exames

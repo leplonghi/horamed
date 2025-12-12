@@ -52,10 +52,13 @@ serve(async (req) => {
 
     console.log(`[CUSTOMER-PORTAL] Found customer: ${subscription.stripe_customer_id}`);
 
+    // Production domain configuration
+    const appDomain = Deno.env.get('APP_DOMAIN') || req.headers.get('origin') || 'https://app.horamed.net';
+
     // Create portal session
     const session = await stripe.billingPortal.sessions.create({
       customer: subscription.stripe_customer_id,
-      return_url: `${req.headers.get('origin')}/perfil`,
+      return_url: `${appDomain}/assinatura`,
     });
 
     console.log(`[CUSTOMER-PORTAL] Portal session created: ${session.id}`);
