@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { decrementStockWithProjection } from "@/lib/stockHelpers";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format, startOfDay, endOfDay } from "date-fns";
@@ -478,7 +479,7 @@ export default function Today() {
         .from("stock")
         .select("units_left")
         .eq("item_id", itemId)
-        .single();
+        .maybeSingle();
 
       if (stockData && stockData.units_left === 0) {
         toast.error("Estoque zerado! Reabasteça antes de registrar dose.");
@@ -494,13 +495,8 @@ export default function Today() {
         })
         .eq("id", doseId);
 
-      // Decrement stock
-      if (stockData && stockData.units_left > 0) {
-        await supabase
-          .from("stock")
-          .update({ units_left: stockData.units_left - 1 })
-          .eq("item_id", itemId);
-      }
+      // Decrement stock with projection recalculation
+      await decrementStockWithProjection(itemId);
 
       showFeedback("dose-taken", { medicationName: itemName });
       loadData(selectedDate);

@@ -124,7 +124,7 @@ serve(async (req) => {
         );
       }
 
-      // AUTOMATIC STOCK DEDUCTION
+      // AUTOMATIC STOCK DEDUCTION WITH PROJECTION RECALCULATION
       // Get stock for this item
       const { data: stockData, error: stockError } = await supabaseAdmin
         .from('stock')
@@ -143,16 +143,41 @@ serve(async (req) => {
           reason: 'taken'
         });
 
-        // Update stock with new values
+        // Calculate projected end date based on consumption
+        let projectedEndAt: string | null = null;
+        if (newUnitsLeft > 0) {
+          // Get daily consumption from last 7 days
+          const sevenDaysAgo = new Date();
+          sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+          const { count: takenDoses } = await supabaseAdmin
+            .from('dose_instances')
+            .select('*', { count: 'exact', head: true })
+            .eq('item_id', dose.item_id)
+            .eq('status', 'taken')
+            .gte('taken_at', sevenDaysAgo.toISOString());
+
+          const dailyConsumption = Math.max((takenDoses || 1) / 7, 0.1);
+          const daysRemaining = newUnitsLeft / dailyConsumption;
+          const projectedEnd = new Date();
+          projectedEnd.setDate(projectedEnd.getDate() + daysRemaining);
+          projectedEndAt = projectedEnd.toISOString();
+        } else {
+          projectedEndAt = new Date().toISOString();
+        }
+
+        // Update stock with new values and projected end
         await supabaseAdmin
           .from('stock')
           .update({
             units_left: newUnitsLeft,
             consumption_history: consumptionHistory,
+            projected_end_at: projectedEndAt,
+            updated_at: new Date().toISOString()
           })
           .eq('id', stockData.id);
 
-        console.log(`Stock updated: ${stockData.units_left} -> ${newUnitsLeft}`);
+        console.log(`Stock updated: ${stockData.units_left} -> ${newUnitsLeft}, projected end: ${projectedEndAt}`);
       }
 
       // Calculate streak
