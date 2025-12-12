@@ -38,6 +38,8 @@ export default function MyDoses() {
   const [selectedDose, setSelectedDose] = useState<DoseInstance | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [streak, setStreak] = useState<number>(0);
+  const [customTimeModalOpen, setCustomTimeModalOpen] = useState(false);
+  const [customTime, setCustomTime] = useState<string>('');
   const { showFeedback } = useFeedbackToast();
 
   useEffect(() => {
@@ -188,7 +190,17 @@ export default function MyDoses() {
 
     try {
       if (action === 'custom-time') {
-        // TODO: Implementar seleção de horário customizado
+        // Use current time as custom time for now
+        const customTakenAt = new Date().toISOString();
+        const { error } = await supabase
+          .from('dose_instances')
+          .update({ status: 'taken', taken_at: customTakenAt })
+          .eq('id', selectedDose.id);
+        
+        if (error) throw error;
+        showFeedback('dose-taken', { medicationName: selectedDose.items.name });
+        loadDoses();
+        loadStreak();
         return;
       }
 

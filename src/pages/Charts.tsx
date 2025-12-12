@@ -215,11 +215,32 @@ export default function Charts() {
           .sort((a, b) => b.count - a.count)
           .slice(0, 3);
 
+        // Calculate streak from consecutive days with all doses taken
+        const calculateStreak = () => {
+          let streak = 0;
+          const today = new Date();
+          
+          for (let i = 0; i < 30; i++) {
+            const checkDate = format(subDays(today, i), 'yyyy-MM-dd');
+            const dayDoses = doses.filter(d => format(new Date(d.due_at), 'yyyy-MM-dd') === checkDate);
+            
+            if (dayDoses.length === 0) continue;
+            
+            const allTaken = dayDoses.every(d => d.status === 'taken');
+            if (allTaken) {
+              streak++;
+            } else {
+              break;
+            }
+          }
+          return streak;
+        };
+        
         setStats({
           weeklyAdherence: adherence,
           totalDoses: total,
           takenDoses: taken,
-          streak: 0, // TODO: Calculate streak
+          streak: calculateStreak(),
         });
         setTimeSlotStats(timeSlots);
         setMissedItems(missedArray);
