@@ -1,18 +1,20 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { z } from "https://deno.land/x/zod@v3.23.8/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-interface NotificationRequest {
-  doseId: string;
-  userId: string;
-  title: string;
-  body: string;
-  scheduledAt: string;
-}
+// Input validation schema
+const notificationSchema = z.object({
+  doseId: z.string().uuid(),
+  userId: z.string().uuid(),
+  title: z.string().min(1).max(200),
+  body: z.string().min(1).max(500),
+  scheduledAt: z.string().datetime(),
+});
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -42,7 +44,19 @@ serve(async (req) => {
       );
     }
 
-    const body: NotificationRequest = await req.json();
+    // Validate input
+    const rawBody = await req.json().catch(() => ({}));
+    const parseResult = notificationSchema.safeParse(rawBody);
+    
+    if (!parseResult.success) {
+      console.error('[SEND-DOSE-NOTIFICATION] Validation error:', parseResult.error.message);
+      return new Response(
+        JSON.stringify({ error: 'Invalid request data', details: parseResult.error.issues }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const body = parseResult.data;
 
     // Get user's push token from notification_preferences
     const supabaseAdmin = createClient(
