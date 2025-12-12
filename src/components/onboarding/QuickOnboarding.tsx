@@ -1,0 +1,242 @@
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { supabase } from "@/integrations/supabase/client";
+import { 
+  Pill, 
+  FileText, 
+  Users, 
+  Sparkles,
+  ArrowRight,
+  Check
+} from "lucide-react";
+import logo from "@/assets/horamed-logo.png";
+import { useHapticFeedback } from "@/hooks/useHapticFeedback";
+
+interface QuickOnboardingProps {
+  onComplete?: () => void;
+}
+
+export default function QuickOnboarding({ onComplete }: QuickOnboardingProps) {
+  const navigate = useNavigate();
+  const { triggerLight, triggerSuccess } = useHapticFeedback();
+  const [step, setStep] = useState(0);
+  const [selectedGoal, setSelectedGoal] = useState<string | null>(null);
+
+  const goals = [
+    { 
+      id: "medications", 
+      icon: Pill, 
+      title: "Lembrar medicamentos", 
+      desc: "Nunca mais esquecer uma dose",
+      color: "bg-blue-500/10 text-blue-500"
+    },
+    { 
+      id: "documents", 
+      icon: FileText, 
+      title: "Organizar documentos", 
+      desc: "Receitas, exames e vacinas",
+      color: "bg-green-500/10 text-green-500"
+    },
+    { 
+      id: "family", 
+      icon: Users, 
+      title: "Cuidar da família", 
+      desc: "Gerenciar saúde de todos",
+      color: "bg-purple-500/10 text-purple-500"
+    },
+    { 
+      id: "all", 
+      icon: Sparkles, 
+      title: "Tudo isso!", 
+      desc: "Quero o pacote completo",
+      color: "bg-primary/10 text-primary"
+    },
+  ];
+
+  const handleGoalSelect = (goalId: string) => {
+    triggerLight();
+    setSelectedGoal(goalId);
+    
+    // Auto-advance after selection
+    setTimeout(() => {
+      setStep(1);
+    }, 300);
+  };
+
+  const handleComplete = async () => {
+    try {
+      triggerSuccess();
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (user) {
+        await supabase
+          .from("profiles")
+          .update({
+            tutorial_flags: {
+              quickOnboarding: true,
+              selectedGoal,
+              completedAt: new Date().toISOString(),
+            },
+            onboarding_completed: true,
+          })
+          .eq("user_id", user.id);
+      }
+
+      if (onComplete) {
+        onComplete();
+      } else {
+        // Route based on goal
+        if (selectedGoal === "medications" || selectedGoal === "all") {
+          navigate("/adicionar");
+        } else if (selectedGoal === "documents") {
+          navigate("/cofre/upload");
+        } else {
+          navigate("/hoje");
+        }
+      }
+    } catch (error) {
+      console.error("Error completing onboarding:", error);
+      navigate("/hoje");
+    }
+  };
+
+  const handleSkip = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        await supabase
+          .from("profiles")
+          .update({ onboarding_completed: true })
+          .eq("user_id", user.id);
+      }
+      navigate("/hoje");
+    } catch (error) {
+      navigate("/hoje");
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-background flex items-center justify-center p-6">
+      <div className="w-full max-w-md">
+        <AnimatePresence mode="wait">
+          {step === 0 && (
+            <motion.div
+              key="step0"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="space-y-6"
+            >
+              {/* Header */}
+              <div className="text-center space-y-3">
+                <img src={logo} alt="HoraMed" className="h-16 w-auto mx-auto" />
+                <h1 className="text-2xl font-bold text-foreground">
+                  O que você quer fazer primeiro?
+                </h1>
+                <p className="text-muted-foreground">
+                  Escolha uma opção para personalizarmos sua experiência
+                </p>
+              </div>
+
+              {/* Goals Grid */}
+              <div className="grid grid-cols-2 gap-3">
+                {goals.map((goal) => (
+                  <motion.button
+                    key={goal.id}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => handleGoalSelect(goal.id)}
+                    className={`p-4 rounded-xl border-2 text-left transition-all ${
+                      selectedGoal === goal.id
+                        ? "border-primary bg-primary/5"
+                        : "border-border hover:border-primary/50"
+                    }`}
+                  >
+                    <div className={`w-10 h-10 rounded-lg ${goal.color} flex items-center justify-center mb-3`}>
+                      <goal.icon className="w-5 h-5" />
+                    </div>
+                    <h3 className="font-semibold text-foreground text-sm">{goal.title}</h3>
+                    <p className="text-xs text-muted-foreground mt-1">{goal.desc}</p>
+                  </motion.button>
+                ))}
+              </div>
+
+              {/* Skip */}
+              <button
+                onClick={handleSkip}
+                className="w-full text-center text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Pular e explorar sozinho
+              </button>
+            </motion.div>
+          )}
+
+          {step === 1 && (
+            <motion.div
+              key="step1"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="space-y-6"
+            >
+              <Card className="p-8 text-center space-y-6">
+                {/* Success Icon */}
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: "spring", stiffness: 200 }}
+                  className="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto"
+                >
+                  <Check className="w-8 h-8 text-primary-foreground" />
+                </motion.div>
+
+                <div className="space-y-2">
+                  <h2 className="text-2xl font-bold text-foreground">
+                    Tudo pronto! 🎉
+                  </h2>
+                  <p className="text-muted-foreground">
+                    Sua conta está configurada. Agora vamos adicionar seu primeiro item.
+                  </p>
+                </div>
+
+                {/* Features List */}
+                <div className="text-left space-y-3">
+                  {[
+                    "7 dias de Premium grátis",
+                    "Lembretes ilimitados",
+                    "Carteira de saúde digital",
+                  ].map((feature, i) => (
+                    <div key={i} className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+                      <Check className="w-5 h-5 text-primary flex-shrink-0" />
+                      <span className="text-sm text-foreground">{feature}</span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* CTA */}
+                <Button
+                  size="lg"
+                  onClick={handleComplete}
+                  className="w-full h-14 text-lg font-semibold"
+                >
+                  {selectedGoal === "documents" ? "Enviar documento" : "Adicionar medicamento"}
+                  <ArrowRight className="w-5 h-5 ml-2" />
+                </Button>
+
+                <button
+                  onClick={() => navigate("/hoje")}
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Explorar o app primeiro
+                </button>
+              </Card>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </div>
+  );
+}

@@ -69,6 +69,8 @@ import StockDetails from "./pages/StockDetails";
 import AnalyticsDetails from "./pages/AnalyticsDetails";
 import IndiqueGanhe from "./pages/IndiqueGanhe";
 import HealthAIButton from "./components/HealthAIButton";
+import Welcome from "./pages/Welcome";
+import QuickOnboarding from "./components/onboarding/QuickOnboarding";
 
 function AppContent() {
   const location = useLocation();
@@ -144,6 +146,8 @@ function AppContent() {
         <Route path="/tutorial" element={<ProtectedRoute><Tutorial /></ProtectedRoute>} />
         <Route path="/progresso" element={<ProtectedRoute><Progress /></ProtectedRoute>} />
         <Route path="/onboarding" element={<SmartOnboarding />} />
+        <Route path="/onboarding-rapido" element={<QuickOnboarding />} />
+        <Route path="/bem-vindo" element={<Welcome />} />
         <Route path="/ajuda" element={<ProtectedRoute><HelpSupport /></ProtectedRoute>} />
         <Route path="/help-support" element={<ProtectedRoute><HelpSupport /></ProtectedRoute>} />
         <Route path="/alarmes" element={<ProtectedRoute><AlarmSettings /></ProtectedRoute>} />
