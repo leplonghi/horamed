@@ -30,8 +30,32 @@ export const useResilientReminders = () => {
   const { logAction } = useAuditLog();
   const retryTimeoutRef = useRef<NodeJS.Timeout>();
 
+  // Cleanup old localStorage reminders to prevent QuotaExceededError
+  const cleanupLocalStorageReminders = () => {
+    try {
+      const backupData = localStorage.getItem(STORAGE_KEY);
+      if (backupData) {
+        const reminders = JSON.parse(backupData);
+        if (reminders.length > 100) {
+          // Keep only the 50 most recent reminders
+          const sorted = reminders.sort((a: any, b: any) => 
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          );
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(sorted.slice(0, 50)));
+          console.log(`[Reminders] Cleaned up ${reminders.length - 50} old localStorage reminders`);
+        }
+      }
+    } catch (e) {
+      console.error('[Reminders] Error cleaning localStorage:', e);
+      // If corrupted, reset entirely
+      localStorage.removeItem(STORAGE_KEY);
+    }
+  };
+
   // Initialize local storage sync
   useEffect(() => {
+    cleanupLocalStorageReminders();
+    cleanupOldReminders(); // Clean database too
     syncLocalRemindersWithBackend();
     
     // Check for pending retries every minute
