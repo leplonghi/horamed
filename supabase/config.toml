@@ -71,3 +71,9 @@ verify_jwt = true
 
 [functions.process-scheduled-notifications]
 verify_jwt = false
+
+[functions.send-email-smtp]
+verify_jwt = false
+
+[functions.send-multi-channel-notification]
+verify_jwt = false
