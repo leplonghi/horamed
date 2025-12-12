@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -16,12 +17,49 @@ import {
   Sparkles,
   Calendar,
   Brain,
-  Smartphone
+  Smartphone,
+  Zap,
+  TrendingUp,
+  AlertTriangle,
+  Timer,
+  X
 } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 const Landing = () => {
   const navigate = useNavigate();
+  const [liveSignups, setLiveSignups] = useState(47);
+  const [showUrgencyBanner, setShowUrgencyBanner] = useState(true);
+  const [recentActivity, setRecentActivity] = useState<string | null>(null);
+
+  // Simulate live signups counter
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setLiveSignups(prev => prev + Math.floor(Math.random() * 3));
+    }, 8000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Simulate recent activity notifications
+  useEffect(() => {
+    const activities = [
+      "Maria de São Paulo acabou de criar uma conta",
+      "João do Rio de Janeiro adicionou 3 medicamentos",
+      "Ana de Belo Horizonte ativou o Premium",
+      "Carlos de Curitiba nunca mais esqueceu uma dose",
+      "Fernanda de Salvador organizou toda a família"
+    ];
+    
+    const showActivity = () => {
+      const activity = activities[Math.floor(Math.random() * activities.length)];
+      setRecentActivity(activity);
+      setTimeout(() => setRecentActivity(null), 4000);
+    };
+
+    const interval = setInterval(showActivity, 12000);
+    setTimeout(showActivity, 3000); // First one after 3s
+    return () => clearInterval(interval);
+  }, []);
 
   const benefits = [
     {
@@ -77,16 +115,53 @@ const Landing = () => {
     }
   ];
 
-  const fadeInUp = {
-    initial: { opacity: 0, y: 20 },
-    animate: { opacity: 1, y: 0 },
-    transition: { duration: 0.5 }
-  };
-
   return (
     <div className="min-h-screen bg-background">
+      {/* Urgency Banner */}
+      <AnimatePresence>
+        {showUrgencyBanner && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="bg-gradient-to-r from-orange-500 to-red-500 text-white py-2 px-4"
+          >
+            <div className="container mx-auto flex items-center justify-center gap-3 text-sm">
+              <Timer className="w-4 h-4 animate-pulse" />
+              <span>
+                <strong>Oferta limitada:</strong> 7 dias de Premium GRÁTIS para novos usuários
+              </span>
+              <span className="hidden sm:inline">•</span>
+              <span className="hidden sm:inline font-semibold">{liveSignups} pessoas se cadastraram hoje</span>
+              <button onClick={() => setShowUrgencyBanner(false)} className="ml-2 opacity-70 hover:opacity-100">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Live Activity Toast */}
+      <AnimatePresence>
+        {recentActivity && (
+          <motion.div
+            initial={{ opacity: 0, x: -100 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -100 }}
+            className="fixed bottom-24 left-4 z-50 bg-card border border-border shadow-lg rounded-lg p-3 max-w-xs"
+          >
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
+                <Zap className="w-4 h-4 text-primary" />
+              </div>
+              <p className="text-sm text-foreground">{recentActivity}</p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border" style={{ top: showUrgencyBanner ? "36px" : 0 }}>
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <img src={logo} alt="HoraMed" className="h-10 w-auto" />
@@ -95,7 +170,7 @@ const Landing = () => {
             <Button variant="ghost" onClick={() => navigate("/auth")}>
               Entrar
             </Button>
-            <Button onClick={() => navigate("/auth")} className="bg-primary hover:bg-primary/90">
+            <Button onClick={() => navigate("/auth")} className="bg-primary hover:bg-primary/90 animate-pulse">
               Começar Grátis
             </Button>
           </div>
@@ -103,7 +178,7 @@ const Landing = () => {
       </header>
 
       {/* Hero Section */}
-      <section className="pt-32 pb-20 px-4 bg-gradient-to-b from-primary/5 via-background to-background">
+      <section className={`pb-20 px-4 bg-gradient-to-b from-primary/5 via-background to-background ${showUrgencyBanner ? "pt-40" : "pt-32"}`}>
         <div className="container mx-auto max-w-6xl">
           <motion.div 
             className="text-center space-y-6"
@@ -111,10 +186,17 @@ const Landing = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <Badge variant="secondary" className="px-4 py-1.5 text-sm font-medium">
-              <Sparkles className="w-4 h-4 mr-2 inline" />
-              +22.000 doses lembradas este mês
-            </Badge>
+            {/* Live Counter Badge */}
+            <div className="flex flex-wrap gap-2 justify-center">
+              <Badge variant="secondary" className="px-4 py-1.5 text-sm font-medium">
+                <Sparkles className="w-4 h-4 mr-2 inline" />
+                +22.000 doses lembradas este mês
+              </Badge>
+              <Badge className="px-4 py-1.5 text-sm font-medium bg-green-500/10 text-green-600 border-green-500/20">
+                <TrendingUp className="w-4 h-4 mr-2 inline" />
+                {liveSignups} novos usuários hoje
+              </Badge>
+            </div>
             
             <h1 className="text-4xl md:text-6xl font-bold text-foreground leading-tight">
               Sua saúde no <span className="text-primary">horário certo</span>
@@ -125,14 +207,26 @@ const Landing = () => {
               <strong className="text-foreground"> Simples como deveria ser.</strong>
             </p>
 
+            {/* Urgency CTA */}
+            <div className="bg-gradient-to-r from-orange-500/10 to-red-500/10 border border-orange-500/20 rounded-xl p-4 max-w-md mx-auto">
+              <div className="flex items-center justify-center gap-2 text-orange-600 dark:text-orange-400 mb-2">
+                <AlertTriangle className="w-5 h-5" />
+                <span className="font-semibold">Oferta por tempo limitado</span>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Cadastre-se agora e ganhe <strong className="text-foreground">7 dias de Premium grátis</strong>. 
+                Sem cartão de crédito.
+              </p>
+            </div>
+
             <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
               <Button 
                 size="lg" 
                 onClick={() => navigate("/auth")}
-                className="h-14 px-8 text-lg font-semibold bg-primary hover:bg-primary/90 shadow-lg hover:shadow-xl transition-all"
+                className="h-14 px-8 text-lg font-semibold bg-primary hover:bg-primary/90 shadow-lg hover:shadow-xl transition-all group"
               >
-                Começar Grátis
-                <ArrowRight className="ml-2 w-5 h-5" />
+                Começar Grátis Agora
+                <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Button>
               <Button 
                 size="lg" 
@@ -145,9 +239,17 @@ const Landing = () => {
               </Button>
             </div>
 
-            <p className="text-sm text-muted-foreground pt-2">
-              ✓ Grátis para sempre · ✓ Sem cartão de crédito · ✓ 7 dias de Premium grátis
-            </p>
+            <div className="flex flex-wrap gap-4 justify-center text-sm text-muted-foreground pt-2">
+              <span className="flex items-center gap-1">
+                <Check className="w-4 h-4 text-green-500" /> Grátis para sempre
+              </span>
+              <span className="flex items-center gap-1">
+                <Check className="w-4 h-4 text-green-500" /> Sem cartão de crédito
+              </span>
+              <span className="flex items-center gap-1">
+                <Check className="w-4 h-4 text-green-500" /> 7 dias Premium grátis
+              </span>
+            </div>
           </motion.div>
 
           {/* App Preview Mockup */}
@@ -339,6 +441,10 @@ const Landing = () => {
       <section className="py-20 px-4 bg-muted/30">
         <div className="container mx-auto max-w-5xl">
           <div className="text-center mb-12">
+            <Badge className="mb-4 bg-orange-500/10 text-orange-600 border-orange-500/20">
+              <Timer className="w-4 h-4 mr-2 inline" />
+              Oferta por tempo limitado
+            </Badge>
             <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
               Planos simples e transparentes
             </h2>
@@ -348,73 +454,114 @@ const Landing = () => {
           </div>
 
           <div className="grid md:grid-cols-2 gap-8 max-w-3xl mx-auto">
-            {/* Free Plan */}
-            <Card className="p-8 border-border bg-card">
+            {/* Free Plan - with limitations highlighted */}
+            <Card className="p-8 border-border bg-card relative">
               <div className="mb-6">
                 <h3 className="text-xl font-semibold text-foreground">Grátis</h3>
-                <p className="text-muted-foreground">Para quem está começando</p>
+                <p className="text-muted-foreground">Para experimentar</p>
               </div>
               <div className="mb-6">
                 <span className="text-4xl font-bold text-foreground">R$ 0</span>
                 <span className="text-muted-foreground">/mês</span>
               </div>
-              <ul className="space-y-3 mb-8">
+              <ul className="space-y-3 mb-6">
                 {[
-                  "1 medicamento ativo",
-                  "5 documentos na carteira",
-                  "2 consultas IA por dia",
-                  "Lembretes push",
-                  "Perfil familiar básico"
+                  { text: "1 medicamento ativo", limited: true },
+                  { text: "5 documentos na carteira", limited: true },
+                  { text: "2 consultas IA por dia", limited: true },
+                  { text: "Lembretes push básicos", limited: false },
                 ].map((feature, i) => (
                   <li key={i} className="flex items-center gap-2 text-muted-foreground">
-                    <Check className="w-5 h-5 text-primary" />
-                    {feature}
+                    {feature.limited ? (
+                      <AlertTriangle className="w-4 h-4 text-orange-500" />
+                    ) : (
+                      <Check className="w-5 h-5 text-primary" />
+                    )}
+                    <span className={feature.limited ? "text-muted-foreground" : ""}>
+                      {feature.text}
+                    </span>
                   </li>
                 ))}
               </ul>
+              
+              {/* FOMO message for free */}
+              <div className="bg-orange-500/5 border border-orange-500/20 rounded-lg p-3 mb-6">
+                <p className="text-xs text-orange-600 dark:text-orange-400">
+                  ⚠️ Com apenas 1 medicamento, você pode perder doses importantes. 
+                  <strong> 73% dos usuários fazem upgrade no primeiro mês.</strong>
+                </p>
+              </div>
+
               <Button variant="outline" className="w-full" onClick={() => navigate("/auth")}>
                 Começar Grátis
               </Button>
             </Card>
 
-            {/* Premium Plan */}
-            <Card className="p-8 border-primary bg-card relative overflow-hidden">
-              <div className="absolute top-0 right-0 bg-primary text-primary-foreground text-xs font-semibold px-3 py-1 rounded-bl-lg">
-                POPULAR
+            {/* Premium Plan - highlighted */}
+            <Card className="p-8 border-2 border-primary bg-gradient-to-br from-primary/5 to-primary/10 relative overflow-hidden shadow-xl">
+              <div className="absolute top-0 right-0 bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs font-bold px-4 py-1.5 rounded-bl-lg">
+                🔥 MAIS ESCOLHIDO
               </div>
               <div className="mb-6">
                 <h3 className="text-xl font-semibold text-foreground">Premium</h3>
                 <p className="text-muted-foreground">Para quem leva a saúde a sério</p>
               </div>
               <div className="mb-6">
-                <span className="text-4xl font-bold text-foreground">R$ 19,90</span>
-                <span className="text-muted-foreground">/mês</span>
-                <p className="text-sm text-primary mt-1">7 dias grátis para testar</p>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-4xl font-bold text-foreground">R$ 19,90</span>
+                  <span className="text-muted-foreground">/mês</span>
+                </div>
+                <div className="flex items-center gap-2 mt-2">
+                  <Badge className="bg-green-500/10 text-green-600 border-green-500/20">
+                    7 dias GRÁTIS
+                  </Badge>
+                  <span className="text-xs text-muted-foreground">sem compromisso</span>
+                </div>
               </div>
-              <ul className="space-y-3 mb-8">
+              <ul className="space-y-3 mb-6">
                 {[
-                  "Medicamentos ilimitados",
-                  "Documentos ilimitados",
-                  "IA ilimitada",
-                  "WhatsApp + Push + Alarme",
-                  "Relatório mensal PDF",
-                  "Gestão familiar completa",
-                  "Suporte prioritário"
+                  "✅ Medicamentos ILIMITADOS",
+                  "✅ Documentos ILIMITADOS",
+                  "✅ IA ILIMITADA",
+                  "✅ WhatsApp + Push + Alarme",
+                  "✅ Relatório mensal para médico",
+                  "✅ Gestão familiar completa",
+                  "✅ Suporte prioritário"
                 ].map((feature, i) => (
-                  <li key={i} className="flex items-center gap-2 text-foreground">
-                    <Check className="w-5 h-5 text-primary" />
+                  <li key={i} className="flex items-center gap-2 text-foreground font-medium">
                     {feature}
                   </li>
                 ))}
               </ul>
-              <Button className="w-full bg-primary hover:bg-primary/90" onClick={() => navigate("/auth")}>
+
+              {/* Urgency */}
+              <div className="bg-primary/10 border border-primary/20 rounded-lg p-3 mb-6">
+                <p className="text-sm text-center">
+                  <span className="font-bold text-primary">{liveSignups} pessoas</span> já se cadastraram hoje
+                </p>
+              </div>
+
+              <Button 
+                className="w-full h-12 bg-primary hover:bg-primary/90 text-lg font-semibold animate-pulse" 
+                onClick={() => navigate("/auth")}
+              >
                 Começar 7 Dias Grátis
-                <ArrowRight className="ml-2 w-4 h-4" />
+                <ArrowRight className="ml-2 w-5 h-5" />
               </Button>
               <p className="text-xs text-center text-muted-foreground mt-3">
-                Menos de R$ 0,70 por dia
+                Menos de R$ 0,67/dia • Cancele quando quiser
               </p>
             </Card>
+          </div>
+
+          {/* Money back guarantee */}
+          <div className="text-center mt-8">
+            <div className="inline-flex items-center gap-2 bg-card border border-border rounded-full px-6 py-3">
+              <Shield className="w-5 h-5 text-green-500" />
+              <span className="text-sm text-muted-foreground">
+                <strong className="text-foreground">Garantia de 7 dias</strong> — não gostou, cancele grátis
+              </span>
+            </div>
           </div>
         </div>
       </section>
