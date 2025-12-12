@@ -74,7 +74,8 @@ import QuickOnboarding from "./components/onboarding/QuickOnboarding";
 
 function AppContent() {
   const location = useLocation();
-  const showNavigation = location.pathname !== "/auth";
+  const hideNavigationPaths = ["/auth", "/onboarding", "/onboarding-rapido", "/bem-vindo", "/"];
+  const showNavigation = !hideNavigationPaths.includes(location.pathname);
 
   return (
     <>
