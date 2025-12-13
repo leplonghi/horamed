@@ -9,7 +9,7 @@ const Index = () => {
   
   // Direct hostname check - more reliable than import.meta.env.PROD
   const hostname = window.location.hostname;
-  const isOnLandingHost = hostname === 'horamed.net' || hostname === 'www.horamed.net';
+  const isOnLandingHost = hostname === 'horamed.net' || hostname === 'www.horamed.net' || hostname === 'horamed.me';
 
   useEffect(() => {
     // On landing domain: only redirect authenticated users to app
