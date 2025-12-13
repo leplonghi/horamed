@@ -1,38 +1,37 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { isLandingDomain, isAppDomain } from "@/lib/domainConfig";
 import Landing from "./Landing";
 
 const Index = () => {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
+  
+  // Direct hostname check - more reliable than import.meta.env.PROD
+  const hostname = window.location.hostname;
+  const isOnLandingHost = hostname === 'horamed.net' || hostname === 'www.horamed.net';
 
   useEffect(() => {
-    // On landing domain (horamed.net or www.horamed.net): always show landing
-    if (isLandingDomain()) {
+    // On landing domain: only redirect authenticated users to app
+    if (isOnLandingHost) {
       if (!loading && user) {
-        // Authenticated user on landing → redirect to app domain
         window.location.href = "https://app.horamed.net/hoje";
       }
-      // Otherwise, do nothing - just show landing page
       return;
     }
 
-    // On app domain (app.horamed.net): redirect based on auth state
-    if (isAppDomain()) {
-      if (!loading) {
-        if (user) {
-          navigate("/hoje");
-        } else {
-          navigate("/auth");
-        }
+    // On app domain: redirect based on auth state
+    if (!loading) {
+      if (user) {
+        navigate("/hoje");
+      } else {
+        navigate("/auth");
       }
     }
-  }, [user, loading, navigate]);
+  }, [user, loading, navigate, isOnLandingHost]);
 
-  // On landing domain: always show landing page (don't wait for auth)
-  if (isLandingDomain()) {
+  // CRITICAL: Show landing page immediately on landing domain
+  if (isOnLandingHost) {
     return <Landing />;
   }
 
