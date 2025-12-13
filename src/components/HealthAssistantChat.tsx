@@ -3,7 +3,7 @@ import { Card } from "./ui/card";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { ScrollArea } from "./ui/scroll-area";
-import { MessageCircle, Send, X, Loader2, Sparkles } from "lucide-react";
+import { Heart, Send, X, Loader2, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -24,7 +24,7 @@ export default function HealthAssistantChat() {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
-      content: "Olá! 👋 Sou seu assistente de saúde. Posso te ajudar com dúvidas sobre seus medicamentos, interações medicamentosas e dicas para melhorar seu compromisso com o tratamento. Como posso ajudar?",
+      content: "Olá, sou a Clara. Estou aqui para ajudar você a organizar sua rotina de saúde. Como posso ajudar?",
     },
   ]);
   const [input, setInput] = useState("");
@@ -36,10 +36,10 @@ export default function HealthAssistantChat() {
   const [showAffiliate, setShowAffiliate] = useState(false);
 
   const quickChips = [
-    "Criar rotina de suplemento",
-    "Ajustar horários",
+    "Organizar rotina",
     "Ver estoque",
-    "Ajuda com vitaminas"
+    "Dúvida sobre dose",
+    "Ajustar horários"
   ];
 
   useEffect(() => {
@@ -87,55 +87,10 @@ export default function HealthAssistantChat() {
         throw new Error("Erro ao processar resposta");
       }
 
-      if (!response.body) throw new Error("No response body");
-
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      let textBuffer = "";
-      let assistantContent = "";
-
-      // Add assistant message placeholder
-      setMessages((prev) => [...prev, { role: "assistant", content: "" }]);
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        textBuffer += decoder.decode(value, { stream: true });
-
-        let newlineIndex: number;
-        while ((newlineIndex = textBuffer.indexOf("\n")) !== -1) {
-          let line = textBuffer.slice(0, newlineIndex);
-          textBuffer = textBuffer.slice(newlineIndex + 1);
-
-          if (line.endsWith("\r")) line = line.slice(0, -1);
-          if (line.startsWith(":") || line.trim() === "") continue;
-          if (!line.startsWith("data: ")) continue;
-
-          const jsonStr = line.slice(6).trim();
-          if (jsonStr === "[DONE]") break;
-
-          try {
-            const parsed = JSON.parse(jsonStr);
-            const content = parsed.choices?.[0]?.delta?.content;
-            if (content) {
-              assistantContent += content;
-              setMessages((prev) => {
-                const newMessages = [...prev];
-                newMessages[newMessages.length - 1] = {
-                  role: "assistant",
-                  content: assistantContent,
-                };
-                return newMessages;
-              });
-            }
-          } catch {
-            // Incomplete JSON, will be completed in next chunk
-            textBuffer = line + "\n" + textBuffer;
-            break;
-          }
-        }
-      }
+      const data = await response.json();
+      const assistantContent = data.response || "Desculpe, não consegui processar sua pergunta.";
+      
+      setMessages((prev) => [...prev, { role: "assistant", content: assistantContent }]);
 
       // Record successful AI usage
       await aiLimits.recordAIUsage({
@@ -158,7 +113,6 @@ export default function HealthAssistantChat() {
     } catch (error) {
       console.error("Chat error:", error);
       toast.error("Erro ao processar mensagem. Tente novamente.");
-      setMessages((prev) => prev.slice(0, -1)); // Remove the assistant placeholder
     } finally {
       setIsLoading(false);
     }
@@ -193,7 +147,7 @@ export default function HealthAssistantChat() {
           className="fixed bottom-24 right-6 h-14 w-14 rounded-full shadow-lg z-50 animate-scale-in"
           size="icon"
         >
-          <MessageCircle className="h-6 w-6" />
+          <Heart className="h-6 w-6" />
         </Button>
         <PaywallDialog open={showPaywall} onOpenChange={setShowPaywall} feature="ai_agent" />
       </>
@@ -202,18 +156,23 @@ export default function HealthAssistantChat() {
 
   return (
     <>
-      <Card className="fixed bottom-24 right-6 w-96 h-[500px] shadow-2xl z-50 flex flex-col animate-scale-in">
+      <Card className="fixed bottom-24 right-6 w-96 h-[500px] shadow-xl z-50 flex flex-col animate-scale-in">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b bg-primary text-primary-foreground rounded-t-lg">
-          <div className="flex items-center gap-2">
-            <MessageCircle className="h-5 w-5" />
-            <h3 className="font-semibold">Assistente de Saúde</h3>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-primary-foreground/20 flex items-center justify-center">
+              <Heart className="h-5 w-5" />
+            </div>
+            <div>
+              <h3 className="font-semibold">Clara</h3>
+              <p className="text-xs opacity-80">Assistente HoraMed</p>
+            </div>
           </div>
           <Button
             variant="ghost"
             size="icon"
             onClick={() => setIsOpen(false)}
-            className="h-8 w-8 text-primary-foreground hover:bg-primary/90"
+            className="h-8 w-8 text-primary-foreground hover:bg-primary-foreground/20"
           >
             <X className="h-4 w-4" />
           </Button>
@@ -230,98 +189,98 @@ export default function HealthAssistantChat() {
                 </span>
               ) : (
                 <span className="text-red-600 font-medium">
-                  Limite diário atingido. Assine Premium para IA ilimitada!
+                  Limite diário atingido. Assine Premium para consultas ilimitadas.
                 </span>
               )}
             </AlertDescription>
           </Alert>
         )}
 
-      {/* Messages */}
-      <ScrollArea className="flex-1 p-4" ref={scrollRef}>
-        <div className="space-y-4">
-          {messages.map((message, index) => (
-            <div
-              key={index}
-              className={cn(
-                "flex",
-                message.role === "user" ? "justify-end" : "justify-start"
-              )}
-            >
+        {/* Messages */}
+        <ScrollArea className="flex-1 p-4" ref={scrollRef}>
+          <div className="space-y-4">
+            {messages.map((message, index) => (
               <div
+                key={index}
                 className={cn(
-                  "max-w-[80%] rounded-lg px-4 py-2 text-sm",
-                  message.role === "user"
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-muted text-foreground"
+                  "flex",
+                  message.role === "user" ? "justify-end" : "justify-start"
                 )}
               >
-                {message.content}
+                <div
+                  className={cn(
+                    "max-w-[85%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed",
+                    message.role === "user"
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-muted text-foreground"
+                  )}
+                >
+                  {message.content}
+                </div>
               </div>
-            </div>
-          ))}
-          {isLoading && (
-            <div className="flex justify-start">
-              <div className="bg-muted rounded-lg px-4 py-2">
-                <Loader2 className="h-4 w-4 animate-spin" />
+            ))}
+            {isLoading && (
+              <div className="flex justify-start">
+                <div className="bg-muted rounded-2xl px-4 py-2.5">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                </div>
               </div>
-            </div>
-          )}
-          {/* Affiliate Recommendation */}
-          {showAffiliate && affiliateProduct && (
-            <div className="px-4">
-              <AffiliateCard 
-                product={affiliateProduct}
-                context="AI_QUERY"
-                onDismiss={() => {
-                  dismissRecommendation("AI_QUERY");
-                  setShowAffiliate(false);
-                }}
-              />
-            </div>
-          )}
-        </div>
-      </ScrollArea>
+            )}
+            {/* Affiliate Recommendation */}
+            {showAffiliate && affiliateProduct && (
+              <div className="px-4">
+                <AffiliateCard 
+                  product={affiliateProduct}
+                  context="AI_QUERY"
+                  onDismiss={() => {
+                    dismissRecommendation("AI_QUERY");
+                    setShowAffiliate(false);
+                  }}
+                />
+              </div>
+            )}
+          </div>
+        </ScrollArea>
 
-      {/* Quick Chips */}
-      <div className="px-4 py-2 border-t">
-        <div className="flex gap-2 flex-wrap">
-          {quickChips.map((chip, idx) => (
-            <Badge 
-              key={idx}
-              variant="outline"
-              className="cursor-pointer hover:bg-primary/10 transition-colors text-xs"
-              onClick={() => setInput(chip)}
+        {/* Quick Chips */}
+        <div className="px-4 py-2 border-t">
+          <div className="flex gap-2 flex-wrap">
+            {quickChips.map((chip, idx) => (
+              <Badge 
+                key={idx}
+                variant="outline"
+                className="cursor-pointer hover:bg-primary/10 transition-colors text-xs"
+                onClick={() => setInput(chip)}
+              >
+                {chip}
+              </Badge>
+            ))}
+          </div>
+        </div>
+
+        {/* Input */}
+        <div className="p-4 border-t">
+          <div className="flex gap-2">
+            <Input
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder={aiLimits.canUseAI ? "Digite sua mensagem..." : "Limite diário atingido"}
+              disabled={isLoading || !aiLimits.canUseAI}
+              className="flex-1"
+            />
+            <Button
+              onClick={handleSend}
+              disabled={!input.trim() || isLoading || !aiLimits.canUseAI}
+              size="icon"
             >
-              {chip}
-            </Badge>
-          ))}
+              <Send className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
-      </div>
+      </Card>
 
-      {/* Input */}
-      <div className="p-4 border-t">
-        <div className="flex gap-2">
-          <Input
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyPress={handleKeyPress}
-            placeholder={aiLimits.canUseAI ? "Digite sua pergunta..." : "Limite diário atingido"}
-            disabled={isLoading || !aiLimits.canUseAI}
-            className="flex-1"
-          />
-          <Button
-            onClick={handleSend}
-            disabled={!input.trim() || isLoading || !aiLimits.canUseAI}
-            size="icon"
-          >
-            <Send className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
-    </Card>
-
-    <PaywallDialog open={showPaywall} onOpenChange={setShowPaywall} feature="ai_agent" />
+      <PaywallDialog open={showPaywall} onOpenChange={setShowPaywall} feature="ai_agent" />
     </>
   );
 }
