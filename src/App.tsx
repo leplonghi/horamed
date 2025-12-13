@@ -8,6 +8,7 @@ import { ThemeProvider } from "next-themes";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { HelmetProvider } from "react-helmet-async";
 import { lazy, useState, useEffect } from "react";
+import { isLandingDomain } from "@/lib/domainConfig";
 import Index from "./pages/Index";
 import SplashScreen from "./components/SplashScreen";
 import TodayRedesign from "./pages/TodayRedesign";
@@ -213,8 +214,15 @@ const App = () => {
     mode: import.meta.env.MODE
   });
 
-  // Only show splash on first load (not on page refresh during session)
+  // Only show splash on app domain, never on landing domain
   useEffect(() => {
+    // Never show splash on landing domain - landing page should load instantly
+    if (isLandingDomain()) {
+      setShowSplash(false);
+      return;
+    }
+    
+    // On app domain, only show splash on first load
     const hasSeenSplash = sessionStorage.getItem('horamed_splash_shown');
     if (hasSeenSplash) {
       setShowSplash(false);
