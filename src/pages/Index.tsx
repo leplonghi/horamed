@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { isLandingDomain, isAppDomain, AUTH_URL } from "@/lib/domainConfig";
+import { isLandingDomain, isAppDomain } from "@/lib/domainConfig";
 import Landing from "./Landing";
 
 const Index = () => {
@@ -9,12 +9,13 @@ const Index = () => {
   const { user, loading } = useAuth();
 
   useEffect(() => {
-    // On landing domain (horamed.net): always show landing, redirect authenticated users to app
+    // On landing domain (horamed.net or www.horamed.net): always show landing
     if (isLandingDomain()) {
       if (!loading && user) {
         // Authenticated user on landing → redirect to app domain
         window.location.href = "https://app.horamed.net/hoje";
       }
+      // Otherwise, do nothing - just show landing page
       return;
     }
 
@@ -30,7 +31,7 @@ const Index = () => {
     }
   }, [user, loading, navigate]);
 
-  // On landing domain: always show landing page
+  // On landing domain: always show landing page (don't wait for auth)
   if (isLandingDomain()) {
     return <Landing />;
   }
