@@ -2,7 +2,8 @@ import { useState, useEffect, useCallback } from "react";
 import { decrementStockWithProjection } from "@/lib/stockHelpers";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { format, startOfDay, endOfDay } from "date-fns";
+import { format, startOfDay, endOfDay, isToday } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import { useNavigate } from "react-router-dom";
 import Navigation from "@/components/Navigation";
 import Header from "@/components/Header";
@@ -13,49 +14,30 @@ import { useMilestoneDetector } from "@/hooks/useMilestoneDetector";
 import { useCriticalAlerts } from "@/hooks/useCriticalAlerts";
 import { PageSkeleton } from "@/components/LoadingSkeleton";
 import { useFeedbackToast } from "@/hooks/useFeedbackToast";
-import DayTimeline from "@/components/DayTimeline";
-import ImprovedCalendar from "@/components/ImprovedCalendar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Progress } from "@/components/ui/progress";
 import StreakBadge from "@/components/StreakBadge";
 import CriticalAlertBanner from "@/components/CriticalAlertBanner";
-import InfoDialog from "@/components/InfoDialog";
-import HealthInsightsCard from "@/components/HealthInsightsCard";
 import MilestoneReward from "@/components/gamification/MilestoneReward";
 import AchievementShareDialog from "@/components/gamification/AchievementShareDialog";
 import { useAchievements } from "@/hooks/useAchievements";
 import { useUserProfiles } from "@/hooks/useUserProfiles";
-import QuickDoseWidget from "@/components/QuickDoseWidget";
 import { useSmartRedirect } from "@/hooks/useSmartRedirect";
-import { useAdaptiveSuggestions } from "@/hooks/useAdaptiveSuggestions";
 import { SideEffectQuickLog } from "@/components/SideEffectQuickLog";
-import { VaccineRemindersWidget } from "@/components/VaccineRemindersWidget";
-import { CaregiverVaccineReminders } from "@/components/CaregiverVaccineReminders";
-import { ExpiredPrescriptionsAlert } from "@/components/ExpiredPrescriptionsAlert";
-import { SmartActionCards } from "@/components/SmartActionCards";
-import TutorialHint from "@/components/TutorialHint";
-import HelpTooltip from "@/components/HelpTooltip";
-import { FileDown, ArrowRight } from "lucide-react";
-import AIChatUI from "@/components/AIChatUI";
-import EssentialShortcuts from "@/components/EssentialShortcuts";
-import SimpleDoseCard from "@/components/SimpleDoseCard";
-import SimpleAdherenceSummary from "@/components/SimpleAdherenceSummary";
-import HydrationWidget from "@/components/fitness/HydrationWidget";
-import SupplementConsistencyWidget from "@/components/fitness/SupplementConsistencyWidget";
-import EnergyHintWidget from "@/components/fitness/EnergyHintWidget";
-import { useFitnessPreferences } from "@/hooks/useFitnessPreferences";
+import { Check, Clock, AlertCircle, Pill, ChevronRight, Plus, Calendar } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
-interface TimelineItem {
+interface DoseItem {
   id: string;
-  time: string;
-  type: "medication" | "appointment" | "exam";
-  title: string;
-  subtitle?: string;
-  status: "pending" | "done" | "missed";
-  onMarkDone?: () => void;
-  onSnooze?: () => void;
-  itemId?: string;
+  due_at: string;
+  status: string;
+  item_id: string;
+  items: {
+    name: string;
+    dose_text: string | null;
+    with_food: boolean | null;
+  };
 }
 
 export default function Today() {
@@ -69,19 +51,12 @@ export default function Today() {
   const { showFeedback } = useFeedbackToast();
   const { activeProfile } = useUserProfiles();
   useSmartRedirect();
-  const { suggestions } = useAdaptiveSuggestions();
-  const { preferences } = useFitnessPreferences();
   
-  const [selectedDate, setSelectedDate] = useState(new Date());
-  const [timelineItems, setTimelineItems] = useState<TimelineItem[]>([]);
+  const [doses, setDoses] = useState<DoseItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [greeting, setGreeting] = useState("");
-  const [motivationalQuote, setMotivationalQuote] = useState("");
   const [userName, setUserName] = useState("");
-  const [todayStats, setTodayStats] = useState({ total: 0, taken: 0 });
-  const [eventCounts, setEventCounts] = useState<Record<string, number>>({});
   const [hasAnyItems, setHasAnyItems] = useState(true);
-  const [hasSupplements, setHasSupplements] = useState(false);
   const [showMilestoneReward, setShowMilestoneReward] = useState(false);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [selectedAchievement, setSelectedAchievement] = useState<any>(null);
@@ -107,110 +82,20 @@ export default function Today() {
   const handleMilestoneShare = () => {
     setShowMilestoneReward(false);
     markAsSeen();
-    
-    // Find the achievement for this milestone
     const milestoneAchievements: Record<number, string> = {
       7: "week_streak",
       30: "month_streak",
       90: "quarter_streak",
     };
-    
     const achievementId = milestone ? milestoneAchievements[milestone] : null;
     const achievement = achievements.find((a) => a.id === achievementId);
-    
     if (achievement) {
       setSelectedAchievement(achievement);
       setShareDialogOpen(true);
     }
   };
 
-  const loadEventCounts = useCallback(async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      // Get counts for the current month
-      const monthStart = startOfDay(new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1));
-      const monthEnd = endOfDay(new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1, 0));
-
-      // First get items for the active profile
-      let itemsQuery = supabase
-        .from("items")
-        .select("id");
-
-      if (activeProfile) {
-        itemsQuery = itemsQuery.eq("profile_id", activeProfile.id);
-      }
-
-      const { data: profileItems } = await itemsQuery;
-      const itemIds = profileItems?.map(item => item.id) || [];
-
-      // Prepare queries
-      let dosesPromise;
-      if (itemIds.length > 0) {
-        dosesPromise = supabase
-          .from("dose_instances")
-          .select("due_at")
-          .in("item_id", itemIds)
-          .gte("due_at", monthStart.toISOString())
-          .lte("due_at", monthEnd.toISOString());
-      } else {
-        dosesPromise = Promise.resolve({ data: [] });
-      }
-
-      let appointmentsQuery = supabase
-        .from("consultas_medicas")
-        .select("data_consulta")
-        .eq("user_id", user.id)
-        .gte("data_consulta", monthStart.toISOString())
-        .lte("data_consulta", monthEnd.toISOString());
-
-      if (activeProfile) {
-        appointmentsQuery = appointmentsQuery.eq("profile_id", activeProfile.id);
-      }
-
-      let eventsQuery = supabase
-        .from("eventos_saude")
-        .select("due_date")
-        .eq("user_id", user.id)
-        .eq("type", "renovacao_exame")
-        .gte("due_date", format(monthStart, "yyyy-MM-dd"))
-        .lte("due_date", format(monthEnd, "yyyy-MM-dd"));
-
-      if (activeProfile) {
-        eventsQuery = eventsQuery.eq("profile_id", activeProfile.id);
-      }
-
-      const [dosesData, appointmentsData, eventsData] = await Promise.all([
-        dosesPromise,
-        appointmentsQuery,
-        eventsQuery
-      ]);
-
-      const counts: Record<string, number> = {};
-      
-      dosesData.data?.forEach((dose: any) => {
-        const key = format(new Date(dose.due_at), "yyyy-MM-dd");
-        counts[key] = (counts[key] || 0) + 1;
-      });
-
-      appointmentsData.data?.forEach((apt: any) => {
-        const key = format(new Date(apt.data_consulta), "yyyy-MM-dd");
-        counts[key] = (counts[key] || 0) + 1;
-      });
-
-      eventsData.data?.forEach((event: any) => {
-        const key = event.due_date;
-        counts[key] = (counts[key] || 0) + 1;
-      });
-
-      setEventCounts(counts);
-    } catch (error) {
-      console.error("Error loading event counts:", error);
-    }
-  }, [selectedDate, activeProfile]);
-
-  const loadData = useCallback(async (date: Date) => {
+  const loadData = useCallback(async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
@@ -226,7 +111,7 @@ export default function Today() {
         setUserName(profileData.nickname || profileData.full_name || "");
       }
 
-      // Check if user has any items at all (to control empty state)
+      // Check if user has any items
       let allItemsQuery = supabase
         .from("items")
         .select("id", { count: "exact", head: true });
@@ -238,28 +123,8 @@ export default function Today() {
       const { count: itemCount } = await allItemsQuery;
       setHasAnyItems((itemCount || 0) > 0);
 
-      // Check if user has supplements or vitamins
-      let supplementsQuery = supabase
-        .from("items")
-        .select("id", { count: "exact", head: true })
-        .in("category", ["suplemento", "vitamina"])
-        .eq("is_active", true);
-
-      if (activeProfile) {
-        supplementsQuery = supplementsQuery.eq("profile_id", activeProfile.id);
-      }
-
-      const { count: supplementCount } = await supplementsQuery;
-      setHasSupplements((supplementCount || 0) > 0);
-
-      const dayStart = startOfDay(date);
-      const dayEnd = endOfDay(date);
-
-      // First get items for the active profile
-      let itemsQuery = supabase
-        .from("items")
-        .select("id");
-
+      // Get items for the active profile
+      let itemsQuery = supabase.from("items").select("id");
       if (activeProfile) {
         itemsQuery = itemsQuery.eq("profile_id", activeProfile.id);
       }
@@ -267,8 +132,10 @@ export default function Today() {
       const { data: profileItems } = await itemsQuery;
       const itemIds = profileItems?.map(item => item.id) || [];
 
-      // Load medications for the day
-      let doses = null;
+      // Load today's doses
+      const dayStart = startOfDay(new Date());
+      const dayEnd = endOfDay(new Date());
+
       if (itemIds.length > 0) {
         const { data: dosesData } = await supabase
           .from("dose_instances")
@@ -284,94 +151,9 @@ export default function Today() {
           .lte("due_at", dayEnd.toISOString())
           .order("due_at", { ascending: true });
         
-        doses = dosesData;
+        setDoses(dosesData || []);
       } else {
-        // No items for this profile, so no doses
-        doses = [];
-      }
-
-      // Load appointments for the day
-      let appointmentsQuery = supabase
-        .from("consultas_medicas")
-        .select("*")
-        .eq("user_id", user.id)
-        .gte("data_consulta", dayStart.toISOString())
-        .lte("data_consulta", dayEnd.toISOString());
-
-      if (activeProfile) {
-        appointmentsQuery = appointmentsQuery.eq("profile_id", activeProfile.id);
-      }
-
-      const { data: appointments } = await appointmentsQuery.order("data_consulta", { ascending: true });
-
-      // Load health events (exams) for the day
-      let eventsQuery = supabase
-        .from("eventos_saude")
-        .select("*")
-        .eq("user_id", user.id)
-        .eq("type", "renovacao_exame")
-        .gte("due_date", format(dayStart, "yyyy-MM-dd"))
-        .lte("due_date", format(dayEnd, "yyyy-MM-dd"));
-
-      if (activeProfile) {
-        eventsQuery = eventsQuery.eq("profile_id", activeProfile.id);
-      }
-
-      const { data: events } = await eventsQuery.order("due_date", { ascending: true });
-
-      // Transform to timeline items
-      const items: TimelineItem[] = [];
-
-      // Add medications
-      doses?.forEach((dose: any) => {
-        items.push({
-          id: dose.id,
-          time: format(new Date(dose.due_at), "HH:mm"),
-          type: "medication",
-          title: dose.items.name,
-          subtitle: dose.items.dose_text || undefined,
-          status: dose.status === "taken" ? "done" : dose.status === "missed" ? "missed" : "pending",
-          itemId: dose.item_id,
-          onMarkDone: () => markAsTaken(dose.id, dose.item_id, dose.items.name),
-          onSnooze: () => snoozeDose(dose.id, dose.items.name),
-        });
-      });
-
-      // Add appointments
-      appointments?.forEach((apt: any) => {
-        items.push({
-          id: apt.id,
-          time: format(new Date(apt.data_consulta), "HH:mm"),
-          type: "appointment",
-          title: apt.especialidade || "Consulta Médica",
-          subtitle: apt.medico_nome ? `Dr(a). ${apt.medico_nome}` : apt.local,
-          status: apt.status === "realizada" ? "done" : "pending",
-        });
-      });
-
-      // Add exams
-      events?.forEach((event: any) => {
-        items.push({
-          id: event.id,
-          time: "09:00", // Default time for exams
-          type: "exam",
-          title: event.title,
-          subtitle: event.notes || undefined,
-          status: event.completed_at ? "done" : "pending",
-        });
-      });
-
-      // Sort by time
-      items.sort((a, b) => a.time.localeCompare(b.time));
-
-      setTimelineItems(items);
-
-      // Calculate today's stats only if viewing today
-      const isToday = format(date, "yyyy-MM-dd") === format(new Date(), "yyyy-MM-dd");
-      if (isToday && doses) {
-        const total = doses.length;
-        const taken = doses.filter((d: any) => d.status === "taken").length;
-        setTodayStats({ total, taken });
+        setDoses([]);
       }
 
     } catch (error) {
@@ -384,101 +166,38 @@ export default function Today() {
 
   useEffect(() => {
     const hour = new Date().getHours();
-    let quotes: string[] = [];
-    
     if (hour < 12) {
       setGreeting("Bom dia");
-      quotes = [
-        "Um novo dia é uma nova oportunidade para cuidar da sua saúde!",
-        "Cada dose tomada é um passo em direção ao seu bem-estar.",
-        "Hoje é dia de cuidar de você com carinho e atenção.",
-        "Comece o dia bem: sua saúde agradece!",
-        "Que tal começar esse dia com foco no autocuidado?"
-      ];
     } else if (hour < 18) {
       setGreeting("Boa tarde");
-      quotes = [
-        "Continue firme! Você está fazendo um ótimo trabalho.",
-        "Lembre-se: consistência é a chave para o sucesso.",
-        "Mantenha o ritmo! Sua saúde é prioridade.",
-        "Cada dia seguido é uma vitória. Continue assim!",
-        "Você está no caminho certo para uma vida mais saudável."
-      ];
     } else {
       setGreeting("Boa noite");
-      quotes = [
-        "Parabéns por mais um dia de cuidado com você!",
-        "Descanse bem, você merece. Amanhã tem mais!",
-        "Terminar o dia em dia com a saúde é motivo de orgulho.",
-        "Você está construindo hábitos saudáveis. Continue!",
-        "Mais um dia cuidando de você. Que orgulho!"
-      ];
     }
-    
-    setMotivationalQuote(quotes[Math.floor(Math.random() * quotes.length)]);
+    loadData();
+  }, [loadData]);
 
-    loadData(selectedDate);
-    loadEventCounts();
-  }, [loadData, loadEventCounts, selectedDate]);
-
-  // Reload data when active profile changes
   useEffect(() => {
     if (activeProfile) {
       setLoading(true);
-      loadData(selectedDate);
-      loadEventCounts();
+      loadData();
     }
   }, [activeProfile?.id]);
 
-  // Schedule notifications only once on mount
   useEffect(() => {
     scheduleNotificationsForNextDay();
-
-    // Set up realtime subscription
     const channel = supabase
-      .channel('timeline-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'dose_instances'
-        },
-        () => loadData(selectedDate)
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'consultas_medicas'
-        },
-        () => loadData(selectedDate)
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'eventos_saude'
-        },
-        () => loadData(selectedDate)
-      )
+      .channel('today-doses')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'dose_instances' }, () => loadData())
       .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    return () => { supabase.removeChannel(channel); };
   }, []);
 
-  const markAsTaken = async (doseId: string, itemId: string, itemName: string) => {
+  const markAsTaken = async (dose: DoseItem) => {
     try {
-      // Check stock
       const { data: stockData } = await supabase
         .from("stock")
         .select("units_left")
-        .eq("item_id", itemId)
+        .eq("item_id", dose.item_id)
         .maybeSingle();
 
       if (stockData && stockData.units_left === 0) {
@@ -486,27 +205,24 @@ export default function Today() {
         return;
       }
 
-      // Update dose
       await supabase
         .from("dose_instances")
         .update({
           status: "taken",
           taken_at: new Date().toISOString(),
         })
-        .eq("id", doseId);
+        .eq("id", dose.id);
 
-      // Decrement stock with projection recalculation
-      await decrementStockWithProjection(itemId);
+      await decrementStockWithProjection(dose.item_id);
 
-      showFeedback("dose-taken", { medicationName: itemName });
-      loadData(selectedDate);
+      showFeedback("dose-taken", { medicationName: dose.items.name });
+      loadData();
       streakData.refresh();
       criticalAlerts.refresh();
       
-      // Open Side Effect Log modal
-      setLoggedDoseId(doseId);
-      setLoggedItemId(itemId);
-      setLoggedItemName(itemName);
+      setLoggedDoseId(dose.id);
+      setLoggedItemId(dose.item_id);
+      setLoggedItemName(dose.items.name);
       setSideEffectLogOpen(true);
     } catch (error) {
       console.error("Error marking dose:", error);
@@ -514,37 +230,30 @@ export default function Today() {
     }
   };
 
-  const snoozeDose = async (doseId: string, itemName: string) => {
+  const skipDose = async (dose: DoseItem) => {
     try {
-      const { data: dose } = await supabase
+      await supabase
         .from("dose_instances")
-        .select("due_at")
-        .eq("id", doseId)
-        .single();
-
-      if (dose) {
-        const newTime = new Date(dose.due_at);
-        newTime.setMinutes(newTime.getMinutes() + 15);
-
-        await supabase
-          .from("dose_instances")
-          .update({
-            due_at: newTime.toISOString(),
-          })
-          .eq("id", doseId);
-
-        showFeedback("dose-snoozed");
-        loadData(selectedDate);
-      }
+        .update({ status: "skipped" })
+        .eq("id", dose.id);
+      toast.success("Dose pulada");
+      loadData();
     } catch (error) {
-      console.error("Error snoozing dose:", error);
-      toast.error("Erro ao adiar dose");
+      toast.error("Erro ao pular dose");
     }
   };
 
-  const adherencePercentage = todayStats.total > 0 
-    ? Math.round((todayStats.taken / todayStats.total) * 100) 
-    : 0;
+  // Separate doses by status
+  const now = new Date();
+  const pendingDoses = doses.filter(d => d.status === "scheduled");
+  const overdueDoses = pendingDoses.filter(d => new Date(d.due_at) < now);
+  const upcomingDoses = pendingDoses.filter(d => new Date(d.due_at) >= now);
+  const takenDoses = doses.filter(d => d.status === "taken");
+  const skippedDoses = doses.filter(d => d.status === "skipped" || d.status === "missed");
+
+  const totalDoses = doses.length;
+  const completedDoses = takenDoses.length;
+  const progressPercent = totalDoses > 0 ? Math.round((completedDoses / totalDoses) * 100) : 0;
 
   if (loading) {
     return (
@@ -559,235 +268,201 @@ export default function Today() {
   return (
     <>
       <Header />
-      <div className="min-h-screen bg-background pt-20 px-4 py-6 pb-24">
-        <div className="max-w-4xl mx-auto space-y-8">
-          {/* Greeting & Streak Section */}
-          <div className="animate-fade-in">
-            <div className="flex items-start justify-between gap-6">
-              <div className="flex-1 min-w-0 space-y-3">
-                <h1 className="text-3xl font-bold tracking-tight">
+      <div className="min-h-screen bg-background pt-20 pb-24">
+        <div className="max-w-lg mx-auto px-4 space-y-6">
+          
+          {/* Header Section - Simple & Clear */}
+          <div className="pt-4 space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-2xl font-bold">
                   {greeting}{userName && `, ${userName}`}!
                 </h1>
-                <p className="text-base text-primary/90 font-medium leading-relaxed">
-                  {motivationalQuote}
-                </p>
-                <p className="text-sm text-muted-foreground flex items-center gap-1.5">
-                  <span className="inline-block w-1.5 h-1.5 rounded-full bg-primary/60" />
-                  {timelineItems.length > 0 
-                    ? `${timelineItems.length} evento${timelineItems.length > 1 ? 's' : ''} hoje`
-                    : "Nenhum evento programado"}
+                <p className="text-muted-foreground text-sm mt-1">
+                  {format(new Date(), "EEEE, d 'de' MMMM", { locale: ptBR })}
                 </p>
               </div>
               {streakData.currentStreak > 0 && (
-                <div className="flex items-center gap-2 shrink-0">
-                  <StreakBadge streak={streakData.currentStreak} type="current" />
-                  <InfoDialog
-                    title="O que é streak?"
-                    description="Streak são dias seguidos com progresso acima de 80%. Quanto maior seu streak, mais consistente você está sendo!"
-                    triggerClassName="h-5 w-5"
-                  />
-                </div>
+                <StreakBadge streak={streakData.currentStreak} type="current" />
               )}
             </div>
+
+            {/* Progress Bar - Very Visual */}
+            {totalDoses > 0 && (
+              <Card className="bg-gradient-to-r from-primary/10 to-primary/5 border-primary/20">
+                <CardContent className="py-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium">Progresso de Hoje</span>
+                    <span className="text-2xl font-bold text-primary">{progressPercent}%</span>
+                  </div>
+                  <Progress value={progressPercent} className="h-3" />
+                  <p className="text-xs text-muted-foreground mt-2">
+                    {completedDoses} de {totalDoses} doses tomadas
+                  </p>
+                </CardContent>
+              </Card>
+            )}
           </div>
 
-          {/* Empty State - only show when user has NO items at all */}
-          {!hasAnyItems && timelineItems.length === 0 && (
-            <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20 animate-scale-in">
-              <CardContent className="p-8 text-center space-y-5">
-                <div className="text-5xl mb-3 animate-[pulse_2s_ease-in-out_infinite]">🌟</div>
+          {/* Critical Alerts */}
+          {criticalAlerts.alerts.length > 0 && (
+            <CriticalAlertBanner 
+              alerts={criticalAlerts.alerts}
+              onDismiss={criticalAlerts.dismissAlert}
+              onDismissAll={criticalAlerts.dismissAll}
+            />
+          )}
+
+          {/* Empty State */}
+          {!hasAnyItems && (
+            <Card className="border-2 border-dashed border-primary/30 bg-primary/5">
+              <CardContent className="py-10 text-center space-y-4">
+                <div className="w-16 h-16 mx-auto bg-primary/10 rounded-full flex items-center justify-center">
+                  <Pill className="w-8 h-8 text-primary" />
+                </div>
                 <div className="space-y-2">
-                  <h3 className="text-xl font-bold">Comece a organizar seus tratamentos!</h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed max-w-md mx-auto">
-                    Adicione remédios, suplementos e vitaminas. Configure horários e nunca mais esqueça.
+                  <h3 className="text-xl font-bold">Adicione seu primeiro medicamento</h3>
+                  <p className="text-muted-foreground text-sm max-w-xs mx-auto">
+                    Configure seus horários e nós avisamos quando for hora de tomar.
                   </p>
                 </div>
                 <Button 
                   onClick={() => navigate("/adicionar-medicamento")} 
                   size="lg"
-                  className="mt-6 hover-scale"
+                  className="gap-2"
                 >
-                  + Adicionar Primeiro Item
+                  <Plus className="w-5 h-5" />
+                  Adicionar Medicamento
                 </Button>
-                <div className="pt-6 border-t mt-8">
-                  <p className="text-sm text-muted-foreground mb-4 flex items-center justify-center gap-2">
-                    <span>📄</span>
-                    <span>Você também pode guardar seus documentos médicos</span>
-                  </p>
-                  <Button 
-                    variant="outline" 
-                    onClick={() => navigate("/carteira")}
-                    className="hover-scale"
-                  >
-                    Ir para a Carteira de Saúde
-                  </Button>
-                </div>
               </CardContent>
             </Card>
           )}
 
-          {/* Critical Alerts */}
-          {criticalAlerts.alerts.length > 0 && (
-            <div className="animate-fade-in">
-              <CriticalAlertBanner 
-                alerts={criticalAlerts.alerts}
-                onDismiss={criticalAlerts.dismissAlert}
-                onDismissAll={criticalAlerts.dismissAll}
-              />
-            </div>
+          {/* OVERDUE DOSES - Most Urgent Section */}
+          {overdueDoses.length > 0 && (
+            <section className="space-y-3">
+              <div className="flex items-center gap-2">
+                <AlertCircle className="w-5 h-5 text-destructive" />
+                <h2 className="font-bold text-destructive">
+                  Atrasadas ({overdueDoses.length})
+                </h2>
+              </div>
+              <AnimatePresence>
+                {overdueDoses.map((dose) => (
+                  <DoseCardSimple 
+                    key={dose.id} 
+                    dose={dose} 
+                    onTake={() => markAsTaken(dose)}
+                    onSkip={() => skipDose(dose)}
+                    isOverdue
+                  />
+                ))}
+              </AnimatePresence>
+            </section>
           )}
 
-          {/* Smart Actions & Quick Access */}
-          <div className="grid grid-cols-1 gap-5 animate-fade-in" style={{ animationDelay: '0.1s' }}>
-            <SmartActionCards />
-            <EssentialShortcuts />
-          </div>
-
-          {/* Tutorial Hint */}
-          <div className="animate-fade-in" style={{ animationDelay: '0.15s' }}>
-            <TutorialHint
-              id="today_page"
-              title="Sua rotina diária de saúde 📅"
-              message="Aqui você vê todas as suas doses do dia. Toque em ✓ para marcar como tomada, ⏰ para adiar 15 minutos, ou → para pular. Acompanhe seu progresso e mantenha sua sequência de dias!"
-            />
-          </div>
-
-          {/* AI Health Assistant */}
-          <div className="animate-fade-in" style={{ animationDelay: '0.2s' }}>
-            <AIChatUI />
-          </div>
-
-          {/* Health Monitoring Section - Responsive Grid */}
-          <div className="animate-fade-in" style={{ animationDelay: '0.25s' }}>
-            {/* Fitness Widgets - Only show if user has supplements AND preference is enabled */}
-            {hasSupplements && preferences.showFitnessWidgets && (
-              <div className="space-y-4 mb-6">
-                <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Acompanhamento Fitness</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  <HydrationWidget />
-                  <SupplementConsistencyWidget last7Days={[75, 80, 90, 85, 100, 95, 85]} />
-                  <EnergyHintWidget />
-                </div>
+          {/* UPCOMING DOSES - Main Action Area */}
+          {upcomingDoses.length > 0 && (
+            <section className="space-y-3">
+              <div className="flex items-center gap-2">
+                <Clock className="w-5 h-5 text-primary" />
+                <h2 className="font-bold">Próximas Doses</h2>
               </div>
-            )}
-
-            {/* Health Insights & Quick Dose - Side by Side on Desktop */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="w-full">
-                <HealthInsightsCard />
-              </div>
-              <div className="w-full">
-                <QuickDoseWidget />
-              </div>
-            </div>
-          </div>
-
-          {/* Alerts & Reminders Section - Responsive Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 animate-fade-in" style={{ animationDelay: '0.3s' }}>
-            <ExpiredPrescriptionsAlert />
-            <VaccineRemindersWidget />
-            <CaregiverVaccineReminders />
-          </div>
-
-          {/* Adaptive Suggestions - Responsive Grid */}
-          {suggestions.length > 0 && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 animate-fade-in" style={{ animationDelay: '0.35s' }}>
-              {suggestions.map((suggestion, idx) => (
-                <Alert key={idx} className="border-primary/20 bg-primary/5 animate-scale-in" style={{ animationDelay: `${idx * 0.1}s` }}>
-                  <AlertDescription className="text-sm">{suggestion.message}</AlertDescription>
-                </Alert>
-              ))}
-            </div>
+              <AnimatePresence>
+                {upcomingDoses.map((dose) => (
+                  <DoseCardSimple 
+                    key={dose.id} 
+                    dose={dose} 
+                    onTake={() => markAsTaken(dose)}
+                    onSkip={() => skipDose(dose)}
+                  />
+                ))}
+              </AnimatePresence>
+            </section>
           )}
 
-          {/* Today Summary & Progress - Responsive Layout */}
-          {format(selectedDate, "yyyy-MM-dd") === format(new Date(), "yyyy-MM-dd") && todayStats.total > 0 && (
-            <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20 animate-scale-in" style={{ animationDelay: '0.4s' }}>
-              <CardContent className="py-6">
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 sm:gap-8">
-                  <div className="flex-1 space-y-2">
-                    <div className="flex items-center gap-2">
-                      <p className="text-sm font-semibold text-muted-foreground">Progresso de Hoje</p>
-                      <InfoDialog
-                        title="O que é o progresso?"
-                        description="Progresso é a proporção de doses tomadas. Acima de 80% é excelente!"
-                      />
-                    </div>
-                    <p className="text-3xl font-bold tracking-tight">
-                      {todayStats.taken}/{todayStats.total}
-                    </p>
-                    <p className="text-sm font-medium">
-                      {adherencePercentage >= 80 && "🎉 Excelente progresso!"}
-                      {adherencePercentage >= 50 && adherencePercentage < 80 && "💪 Bom trabalho!"}
-                      {adherencePercentage < 50 && todayStats.total > 0 && "💫 Vamos lá!"}
-                    </p>
-                  </div>
-                  <div className="text-left sm:text-right shrink-0">
-                    <div className="text-5xl font-bold text-primary">{adherencePercentage}%</div>
-                    <p className="text-xs text-muted-foreground mt-1">completo</p>
-                  </div>
+          {/* COMPLETED TODAY */}
+          {takenDoses.length > 0 && (
+            <section className="space-y-3">
+              <div className="flex items-center gap-2">
+                <Check className="w-5 h-5 text-green-600" />
+                <h2 className="font-bold text-green-700 dark:text-green-400">
+                  Tomadas Hoje ({takenDoses.length})
+                </h2>
+              </div>
+              <div className="space-y-2 opacity-70">
+                {takenDoses.map((dose) => (
+                  <Card key={dose.id} className="bg-green-50/50 dark:bg-green-950/20 border-green-200/50 dark:border-green-800/30">
+                    <CardContent className="py-3 px-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/50 flex items-center justify-center">
+                          <Check className="w-4 h-4 text-green-600" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-medium text-sm line-through text-muted-foreground">{dose.items.name}</p>
+                          <p className="text-xs text-muted-foreground">{format(new Date(dose.due_at), "HH:mm")}</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* No doses today */}
+          {hasAnyItems && doses.length === 0 && (
+            <Card className="bg-muted/30">
+              <CardContent className="py-8 text-center">
+                <div className="w-12 h-12 mx-auto bg-muted rounded-full flex items-center justify-center mb-3">
+                  <Calendar className="w-6 h-6 text-muted-foreground" />
                 </div>
+                <p className="text-muted-foreground">Nenhuma dose programada para hoje</p>
               </CardContent>
             </Card>
           )}
 
-          {/* Schedule & Timeline Section - Responsive Grid */}
-          <div className="space-y-5 animate-fade-in" style={{ animationDelay: '0.45s' }}>
-            <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Agenda & Calendário</h2>
-            
-            {/* Export Card */}
-            <Card 
-              className="border-muted hover:border-primary/30 transition-all cursor-pointer group hover-scale"
-              onClick={() => navigate('/exportar')}
+          {/* All done for today */}
+          {hasAnyItems && doses.length > 0 && pendingDoses.length === 0 && (
+            <Card className="bg-gradient-to-r from-green-500/10 to-emerald-500/10 border-green-500/30">
+              <CardContent className="py-6 text-center">
+                <div className="text-4xl mb-2">🎉</div>
+                <h3 className="font-bold text-lg text-green-700 dark:text-green-400">
+                  Parabéns! Tudo em dia!
+                </h3>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Você completou todas as doses de hoje.
+                </p>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Quick Actions */}
+          <section className="pt-4 space-y-3">
+            <Button 
+              variant="outline" 
+              className="w-full justify-between h-14"
+              onClick={() => navigate("/rotina")}
             >
-              <CardContent className="py-4">
-                <div className="flex items-center justify-between gap-4">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2.5 bg-muted rounded-lg group-hover:bg-primary/10 transition-colors">
-                      <FileDown className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold group-hover:text-primary transition-colors">Exportar Dados</p>
-                      <p className="text-xs text-muted-foreground">
-                        Baixe seus dados de saúde em PDF (LGPD)
-                      </p>
-                    </div>
-                  </div>
-                  <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
-                </div>
-              </CardContent>
-            </Card>
+              <span className="flex items-center gap-3">
+                <Pill className="w-5 h-5" />
+                Ver Todos os Medicamentos
+              </span>
+              <ChevronRight className="w-5 h-5" />
+            </Button>
+            <Button 
+              variant="outline" 
+              className="w-full justify-between h-14"
+              onClick={() => navigate("/carteira")}
+            >
+              <span className="flex items-center gap-3">
+                <Calendar className="w-5 h-5" />
+                Carteira de Saúde
+              </span>
+              <ChevronRight className="w-5 h-5" />
+            </Button>
+          </section>
 
-            {/* Calendar & Timeline - Responsive Grid Layout */}
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
-              {/* Calendário Melhorado */}
-              <div className="w-full">
-                <ImprovedCalendar
-                  selectedDate={selectedDate}
-                  onDateSelect={(newDate) => {
-                    setSelectedDate(newDate);
-                    setLoading(true);
-                    loadData(newDate);
-                  }}
-                  eventCounts={eventCounts}
-                  profileId={activeProfile?.id}
-                />
-              </div>
-
-              {/* Timeline do Dia */}
-              <div className="w-full">
-                <DayTimeline
-                  date={selectedDate}
-                  items={timelineItems}
-                  onDateChange={(newDate) => {
-                    setSelectedDate(newDate);
-                    setLoading(true);
-                    loadData(newDate);
-                  }}
-                />
-              </div>
-            </div>
-          </div>
         </div>
       </div>
 
@@ -822,5 +497,66 @@ export default function Today() {
         />
       )}
     </>
+  );
+}
+
+// Simple, intuitive dose card
+interface DoseCardSimpleProps {
+  dose: DoseItem;
+  onTake: () => void;
+  onSkip: () => void;
+  isOverdue?: boolean;
+}
+
+function DoseCardSimple({ dose, onTake, onSkip, isOverdue }: DoseCardSimpleProps) {
+  const time = format(new Date(dose.due_at), "HH:mm");
+  
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -10 }}
+    >
+      <Card className={`border-l-4 ${isOverdue ? 'border-l-destructive bg-destructive/5' : 'border-l-primary bg-card'}`}>
+        <CardContent className="p-4">
+          <div className="flex items-center gap-4">
+            {/* Icon & Time */}
+            <div className="text-center shrink-0">
+              <div className={`w-12 h-12 rounded-full flex items-center justify-center ${isOverdue ? 'bg-destructive/10' : 'bg-primary/10'}`}>
+                <Pill className={`w-6 h-6 ${isOverdue ? 'text-destructive' : 'text-primary'}`} />
+              </div>
+              <p className={`text-sm font-bold mt-1 ${isOverdue ? 'text-destructive' : 'text-primary'}`}>{time}</p>
+            </div>
+
+            {/* Medication Info */}
+            <div className="flex-1 min-w-0">
+              <p className="font-bold text-lg truncate">{dose.items.name}</p>
+              {dose.items.dose_text && (
+                <p className="text-sm text-muted-foreground">{dose.items.dose_text}</p>
+              )}
+              {dose.items.with_food && (
+                <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">🍽️ Tomar com alimento</p>
+              )}
+            </div>
+
+            {/* Action Button - BIG & CLEAR */}
+            <Button
+              onClick={onTake}
+              size="lg"
+              className={`shrink-0 h-14 w-14 rounded-full ${isOverdue ? 'bg-destructive hover:bg-destructive/90' : 'bg-green-600 hover:bg-green-700'}`}
+            >
+              <Check className="w-7 h-7" />
+            </Button>
+          </div>
+
+          {/* Skip option - subtle */}
+          <div className="mt-3 pt-3 border-t flex justify-end">
+            <Button variant="ghost" size="sm" className="text-muted-foreground text-xs" onClick={onSkip}>
+              Pular esta dose
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </motion.div>
   );
 }
