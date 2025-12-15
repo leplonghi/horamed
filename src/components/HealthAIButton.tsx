@@ -87,7 +87,7 @@ export default function HealthAIButton() {
         {!isOpen && (
           <motion.button 
             onClick={() => setIsOpen(true)} 
-            className="fixed bottom-32 right-4 z-40 flex items-center gap-2 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-primary-foreground rounded-full pl-4 pr-5 py-3 shadow-xl"
+            className="fixed bottom-36 right-4 z-40 flex items-center gap-2 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-primary-foreground rounded-full pl-4 pr-5 py-2.5 shadow-xl"
             initial={{ scale: 0, opacity: 0, x: 100 }}
             animate={{ 
               scale: 1, 
