@@ -246,6 +246,11 @@ export default function Medications() {
               <HelpTooltip content={microcopy.help.medications.search} />
             </div>
           </div>
+          
+          {/* Texto explicativo */}
+          <p className="text-sm text-muted-foreground">
+            Estas são suas medicações cadastradas. Toque em um item para editar.
+          </p>
 
           {/* Medications List */}
           {filteredItems.length === 0 && searchTerm === "" ? <Card className="border-dashed border-2 bg-gradient-to-br from-primary/5 to-primary/10">
