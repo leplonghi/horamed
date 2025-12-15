@@ -12,15 +12,20 @@ export default function SimpleAdherenceSummary({
   period = "Este mês"
 }: SimpleAdherenceSummaryProps) {
   const percentage = total > 0 ? Math.round(taken / total * 100) : 0;
+  
   const getColor = () => {
+    if (total === 0) return "text-muted-foreground";
     if (percentage >= 90) return "text-green-600 dark:text-green-400";
-    if (percentage >= 70) return "text-yellow-600 dark:text-yellow-400";
-    return "text-red-600 dark:text-red-400";
+    if (percentage >= 70) return "text-primary";
+    return "text-muted-foreground";
   };
+  
   const getMessage = () => {
-    if (percentage >= 90) return "Excelente compromisso!";
+    if (total === 0) return "Nenhuma dose programada";
+    if (percentage >= 90) return "Excelente! Continue assim";
     if (percentage >= 70) return "Bom progresso!";
-    return "Continue tentando!";
+    if (percentage > 0) return "Cada dose conta";
+    return "O dia está começando";
   };
   return <motion.div initial={{
     opacity: 0,
