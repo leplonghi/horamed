@@ -28,6 +28,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import TutorialHint from "@/components/TutorialHint";
 import HelpTooltip from "@/components/HelpTooltip";
 import { microcopy } from "@/lib/microcopy";
+import ClaraSuggestions from "@/components/ClaraSuggestions";
 
 interface DoseItem {
   id: string;
@@ -67,6 +68,9 @@ export default function Today() {
   const [loggedDoseId, setLoggedDoseId] = useState<string>("");
   const [loggedItemId, setLoggedItemId] = useState<string>("");
   const [loggedItemName, setLoggedItemName] = useState<string>("");
+  
+  // Low stock items for Clara suggestions
+  const [lowStockItems, setLowStockItems] = useState<string[]>([]);
 
   useEffect(() => {
     if (isNewMilestone && milestone) {
@@ -130,8 +134,21 @@ export default function Today() {
           .lte("due_at", dayEnd.toISOString())
           .order("due_at", { ascending: true });
         setDoses(dosesData || []);
+        
+        // Fetch low stock items for Clara suggestions
+        const { data: stockData } = await supabase
+          .from("stock")
+          .select("units_left, items(name)")
+          .in("item_id", itemIds)
+          .lte("units_left", 7);
+        
+        const lowItems = (stockData || [])
+          .filter((s: any) => s.items?.name)
+          .map((s: any) => s.items.name);
+        setLowStockItems(lowItems);
       } else {
         setDoses([]);
+        setLowStockItems([]);
       }
     } catch (error) {
       console.error("Error loading data:", error);
@@ -310,6 +327,23 @@ export default function Today() {
             </div>
           )}
 
+          {/* Clara Suggestions - Proactive AI suggestions */}
+          {hasAnyItems && (
+            <div className="mb-6">
+              <ClaraSuggestions
+                overdueDoses={overdueDoses.length}
+                lowStockItems={lowStockItems}
+                currentStreak={streakData.currentStreak}
+                onTakeOverdue={() => {
+                  const overdueSection = document.getElementById('overdue-section');
+                  overdueSection?.scrollIntoView({ behavior: 'smooth' });
+                }}
+                onCheckStock={() => navigate('/estoque')}
+                onOpenClara={() => window.dispatchEvent(new CustomEvent('openClara'))}
+              />
+            </div>
+          )}
+
           {/* Tutorial for new users */}
           <TutorialHint
             id={microcopy.tutorials.today.id}
@@ -342,6 +376,7 @@ export default function Today() {
           <AnimatePresence>
             {overdueDoses.length > 0 && (
               <motion.section 
+                id="overdue-section"
                 initial={{ opacity: 0 }} 
                 animate={{ opacity: 1 }}
                 className="mb-6"

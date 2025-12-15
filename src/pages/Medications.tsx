@@ -17,6 +17,7 @@ import HelpTooltip from "@/components/HelpTooltip";
 import { cn } from "@/lib/utils";
 import { useUserProfiles } from "@/hooks/useUserProfiles";
 import { motion } from "framer-motion";
+import SupplementCategoryTag, { detectSupplementCategory } from "@/components/SupplementCategoryTag";
 
 interface Item {
   id: string;
@@ -138,6 +139,7 @@ export default function Medications() {
   const ItemCard = ({ item }: { item: Item }) => {
     const scheduleSummary = getScheduleSummary(item.schedules);
     const isSupplement = item.category === 'suplemento' || item.category === 'vitamina';
+    const supplementCategory = isSupplement ? detectSupplementCategory(item.name) : null;
     
     return (
       <motion.div
@@ -168,9 +170,14 @@ export default function Medications() {
                   )}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <h3 className="font-semibold truncate">{item.name}</h3>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h3 className="font-semibold truncate">{item.name}</h3>
+                    {supplementCategory && (
+                      <SupplementCategoryTag category={supplementCategory} size="sm" />
+                    )}
+                  </div>
                   {scheduleSummary && (
-                    <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                    <div className="flex items-center gap-1 text-sm text-muted-foreground mt-0.5">
                       <Clock className="w-3 h-3" />
                       <span>{scheduleSummary}</span>
                     </div>
