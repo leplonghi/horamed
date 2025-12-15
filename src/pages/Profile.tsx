@@ -19,7 +19,7 @@ import Header from "@/components/Header";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useUserProfiles } from "@/hooks/useUserProfiles";
 import { useAuth } from "@/contexts/AuthContext";
-import logo from "@/assets/horamed-logo.png";
+import logo from "@/assets/horamed-logo-optimized.webp";
 import TutorialHint from "@/components/TutorialHint";
 import WeightTrackingCard from "@/components/WeightTrackingCard";
 import { Label } from "@/components/ui/label";

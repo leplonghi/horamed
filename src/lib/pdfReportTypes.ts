@@ -15,7 +15,7 @@ const COLORS = {
 export function addHeader(doc: jsPDF, title: string, subtitle: string, yPos: number = 20, logoImage?: string): number {
   if (logoImage) {
     try {
-      doc.addImage(logoImage, 'PNG', 15, yPos, 30, 30);
+      doc.addImage(logoImage, 'WEBP', 15, yPos, 30, 30);
       yPos += 35;
     } catch (error) {
       console.error('Error adding logo:', error);

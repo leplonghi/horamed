@@ -64,7 +64,7 @@ export async function generateCompletePDF(data: ExportData, logoImage?: string) 
   const addLogo = () => {
     if (logoImage) {
       try {
-        doc.addImage(logoImage, 'PNG', 15, yPos, 30, 30);
+        doc.addImage(logoImage, 'WEBP', 15, yPos, 30, 30);
         yPos += 35;
       } catch (error) {
         console.error('Error adding logo:', error);

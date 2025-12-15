@@ -17,7 +17,7 @@ import AdBanner from "@/components/AdBanner";
 import { useSubscription } from "@/hooks/useSubscription";
 import UpgradeModal from "@/components/UpgradeModal";
 import { ListSkeleton } from "@/components/LoadingSkeleton";
-import logo from "@/assets/horamed-logo.png";
+import logo from "@/assets/horamed-logo-optimized.webp";
 import TutorialHint from "@/components/TutorialHint";
 import MedicationWizard from "@/components/medication-wizard/MedicationWizard";
 import { isSupplement, getSupplementTags } from "@/utils/supplementHelpers";

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import logoImageSrc from "@/assets/horamed-logo-optimized.webp";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -117,7 +118,7 @@ export default function MedicalReports() {
       toast.loading("Gerando PDF...");
 
       // Load logo
-      const logoImage = await fetch('/src/assets/horamed-logo.png')
+      const logoImage = await fetch(logoImageSrc)
         .then(res => res.blob())
         .then(blob => new Promise<string>((resolve) => {
           const reader = new FileReader();

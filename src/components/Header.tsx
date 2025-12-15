@@ -6,7 +6,7 @@ import { Link } from "react-router-dom";
 import SubscriptionBadge from "./SubscriptionBadge";
 import { ThemeToggle } from "./ThemeToggle";
 import ProfileSelector from "./ProfileSelector";
-import logo from "@/assets/horamed-logo.png";
+import logo from "@/assets/horamed-logo-optimized.webp";
 import { useUserProfiles } from "@/hooks/useUserProfiles";
 import { useAuth } from "@/contexts/AuthContext";
 export default function Header() {
@@ -55,7 +55,7 @@ export default function Header() {
       <div className="max-w-4xl mx-auto py-3 px-[24px] pl-0 pr-0 pb-[10px] pt-[10px]">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3 animate-fade-in">
-            <img src={logo} alt="HoraMed" className="h-14 w-auto hover:scale-105 transition-transform duration-300" />
+            <img src={logo} alt="HoraMed" width={60} height={56} className="h-14 w-auto hover:scale-105 transition-transform duration-300" loading="eager" fetchPriority="high" />
             <SubscriptionBadge />
           </div>
 

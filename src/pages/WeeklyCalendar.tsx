@@ -10,7 +10,7 @@ import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
 import Navigation from "@/components/Navigation";
 import DoseStatusDialog from "@/components/DoseStatusDialog";
-import logo from "@/assets/horamed-logo.png";
+import logo from "@/assets/horamed-logo-optimized.webp";
 import { useUserProfiles } from "@/hooks/useUserProfiles";
 
 interface DoseInstance {

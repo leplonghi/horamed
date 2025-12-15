@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import horamedLogo from '@/assets/horamed-logo.png';
+import horamedLogo from '@/assets/horamed-logo-optimized.webp';
 
 interface SplashScreenProps {
   onComplete: () => void;
@@ -69,7 +69,11 @@ const SplashScreen = ({ onComplete, minimumDisplayTime = 1800 }: SplashScreenPro
               <img 
                 src={horamedLogo} 
                 alt="HoraMed" 
+                width={192}
+                height={180}
                 className="w-48 h-auto"
+                loading="eager"
+                fetchPriority="high"
               />
             </motion.div>
           </motion.div>
