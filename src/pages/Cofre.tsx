@@ -317,7 +317,7 @@ export default function Cofre() {
         </div>
 
         <Tabs value={categoriaAtiva} onValueChange={setCategoriaAtiva}>
-          <TabsList className="w-full justify-start overflow-x-auto">
+          <TabsList className="w-full flex-wrap h-auto gap-1">
             <TabsTrigger value="todos">Todos</TabsTrigger>
             <TabsTrigger value="vacinacao">Vacinas</TabsTrigger>
             <TabsTrigger value="exame">Exames</TabsTrigger>
