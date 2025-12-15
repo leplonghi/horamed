@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { X, Send, Heart } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -33,6 +33,13 @@ export default function HealthAIButton() {
     isProcessing
   } = useHealthAgent();
   const location = useLocation();
+
+  // Listen for external open events (from QuickActionMenu)
+  useEffect(() => {
+    const handleOpenClara = () => setIsOpen(true);
+    window.addEventListener('openClara', handleOpenClara);
+    return () => window.removeEventListener('openClara', handleOpenClara);
+  }, []);
 
   // Hide on auth and onboarding pages
   const hiddenRoutes = ["/auth", "/onboarding", "/"];
@@ -75,21 +82,41 @@ export default function HealthAIButton() {
 
   return (
     <>
-      {/* Floating Clara Button */}
+      {/* Floating Clara Button - Enhanced with label and pulse */}
       <AnimatePresence>
         {!isOpen && (
           <motion.button 
             onClick={() => setIsOpen(true)} 
-            className="fixed bottom-24 right-6 z-50 bg-primary hover:bg-primary/90 text-primary-foreground rounded-full p-4 shadow-lg"
-            initial={{ scale: 0, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0, opacity: 0 }}
+            className="fixed bottom-24 right-4 z-50 flex items-center gap-2 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-primary-foreground rounded-full pl-4 pr-5 py-3 shadow-xl"
+            initial={{ scale: 0, opacity: 0, x: 100 }}
+            animate={{ 
+              scale: 1, 
+              opacity: 1, 
+              x: 0,
+              boxShadow: [
+                "0 10px 30px -10px hsl(var(--primary) / 0.4)",
+                "0 10px 50px -10px hsl(var(--primary) / 0.6)",
+                "0 10px 30px -10px hsl(var(--primary) / 0.4)",
+              ],
+            }}
+            exit={{ scale: 0, opacity: 0, x: 100 }}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            transition={{ duration: 0.2 }}
+            transition={{ 
+              duration: 0.3,
+              boxShadow: {
+                duration: 2,
+                repeat: Infinity,
+                ease: "easeInOut",
+              },
+            }}
             aria-label="Clara - Assistente de Saúde"
           >
-            <Heart className="h-6 w-6" />
+            <div className="relative">
+              <Heart className="h-5 w-5" />
+              <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-green-400 rounded-full animate-pulse" />
+            </div>
+            <span className="font-medium text-sm">Clara</span>
           </motion.button>
         )}
       </AnimatePresence>
