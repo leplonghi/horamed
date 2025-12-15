@@ -2,18 +2,18 @@ import { useState, useEffect } from "react";
 import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, ArrowRight, Check, Loader2, Sparkles, Calendar, Package, Camera } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Loader2, Sparkles, Calendar, Package, ChevronDown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { WizardStepIdentity } from "./WizardStepIdentity";
 import { WizardStepSchedule } from "./WizardStepSchedule";
 import { WizardStepStock } from "./WizardStepStock";
-import MedicationOCRWrapper from "@/components/MedicationOCRWrapper";
 import { useUserProfiles } from "@/hooks/useUserProfiles";
 import { useSubscription } from "@/hooks/useSubscription";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import PaywallDialog from "@/components/PaywallDialog";
 import { cn } from "@/lib/utils";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 interface MedicationData {
   name: string;
@@ -55,27 +55,26 @@ export default function MedicationWizard({ open, onOpenChange, editItemId }: Med
   const { activeProfile } = useUserProfiles();
   const { subscription, loading: subLoading } = useSubscription();
   
-  // Check for edit mode from URL params
   const urlEditId = searchParams.get("edit");
   const itemIdToEdit = editItemId || urlEditId;
   const isEditing = !!itemIdToEdit;
   
   const prefillData = location.state?.prefillData;
   
-  const [currentStep, setCurrentStep] = useState(isEditing ? 1 : 0);
+  // Wizard simplificado: 2 passos principais + estoque opcional
+  const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(isEditing);
   const [showPaywall, setShowPaywall] = useState(false);
+  const [showStock, setShowStock] = useState(false);
   const [medicationData, setMedicationData] = useState<MedicationData>(INITIAL_DATA);
 
-  // Load existing item data when editing
   useEffect(() => {
     if (itemIdToEdit && open) {
       loadItemData(itemIdToEdit);
     }
   }, [itemIdToEdit, open]);
 
-  // Update form data when prefill data changes
   useEffect(() => {
     if (prefillData) {
       setMedicationData(prev => ({
@@ -84,7 +83,6 @@ export default function MedicationWizard({ open, onOpenChange, editItemId }: Med
         category: prefillData.category || prev.category,
         notes: prefillData.notes || prev.notes,
       }));
-      setCurrentStep(1);
     }
   }, [prefillData]);
 
@@ -121,6 +119,11 @@ export default function MedicationWizard({ open, onOpenChange, editItemId }: Med
         unitLabel: stock?.unit_label || "comprimidos",
         lowStockThreshold: 5,
       });
+      
+      // Mostrar estoque se já existir
+      if (stock?.units_total) {
+        setShowStock(true);
+      }
     } catch (error) {
       console.error("Error loading item:", error);
       toast.error("Erro ao carregar medicamento");
@@ -135,7 +138,7 @@ export default function MedicationWizard({ open, onOpenChange, editItemId }: Med
   };
 
   const checkMedicationLimit = async (): Promise<boolean> => {
-    if (isEditing) return true; // Skip limit check when editing
+    if (isEditing) return true;
     if (subLoading) return false;
     
     const planType = subscription?.plan_type || 'free';
@@ -167,11 +170,6 @@ export default function MedicationWizard({ open, onOpenChange, editItemId }: Med
   };
 
   const handleNext = async () => {
-    if (currentStep === 0) {
-      setCurrentStep(1);
-      return;
-    }
-    
     if (currentStep === 1) {
       if (!medicationData.name.trim()) {
         toast.error("Digite o nome do medicamento");
@@ -179,45 +177,24 @@ export default function MedicationWizard({ open, onOpenChange, editItemId }: Med
       }
       const canProceed = await checkMedicationLimit();
       if (!canProceed) return;
+      setCurrentStep(2);
+      return;
     }
-
+    
     if (currentStep === 2) {
       if (medicationData.times.length === 0) {
         toast.error("Adicione pelo menos um horário");
         return;
       }
-      if (!medicationData.continuousUse && !medicationData.endDate) {
-        toast.error("Defina uma data de término");
-        return;
-      }
-    }
-
-    if (currentStep < 3) {
-      setCurrentStep(currentStep + 1);
+      // Salvar diretamente - estoque é opcional
+      handleSubmit();
     }
   };
 
   const handleBack = () => {
-    if (currentStep > (isEditing ? 1 : 0)) {
+    if (currentStep > 1) {
       setCurrentStep(currentStep - 1);
     }
-  };
-  
-  const handleOCRResult = (result: any) => {
-    const detectCategory = (medName: string): string => {
-      const nameLower = medName.toLowerCase();
-      if (nameLower.includes('vitamina') || nameLower.includes('vit.')) return 'vitamina';
-      if (nameLower.includes('suplemento') || nameLower.includes('whey') || nameLower.includes('creatina')) return 'suplemento';
-      return 'medicamento';
-    };
-    
-    updateData({
-      name: result.name || "",
-      category: result.category || detectCategory(result.name || ""),
-    });
-    
-    setCurrentStep(1);
-    toast.success("Medicamento identificado!");
   };
 
   const handleSubmit = async () => {
@@ -228,7 +205,6 @@ export default function MedicationWizard({ open, onOpenChange, editItemId }: Med
       if (!user) throw new Error("Usuário não autenticado");
 
       if (isEditing && itemIdToEdit) {
-        // UPDATE existing item
         const { error: itemError } = await supabase
           .from('items')
           .update({
@@ -242,11 +218,9 @@ export default function MedicationWizard({ open, onOpenChange, editItemId }: Med
 
         if (itemError) throw itemError;
 
-        // Delete old schedules
         await supabase.from("schedules").delete().eq("item_id", itemIdToEdit);
 
-        // Create new schedule
-        const { data: newSchedule, error: scheduleError } = await supabase
+        const { error: scheduleError } = await supabase
           .from('schedules')
           .insert({
             item_id: itemIdToEdit,
@@ -256,25 +230,24 @@ export default function MedicationWizard({ open, onOpenChange, editItemId }: Med
             ...(medicationData.frequency === 'specific_days' && {
               days_of_week: medicationData.daysOfWeek,
             }),
-          })
-          .select()
-          .single();
+          });
 
         if (scheduleError) throw scheduleError;
 
-        // Update stock
-        await supabase.from("stock").delete().eq("item_id", itemIdToEdit);
-        await supabase.from('stock').insert({
-          item_id: itemIdToEdit,
-          units_total: medicationData.unitsTotal,
-          units_left: medicationData.unitsTotal,
-          unit_label: medicationData.unitLabel,
-          last_refill_at: new Date().toISOString(),
-        });
+        // Atualizar estoque apenas se configurado
+        if (showStock) {
+          await supabase.from("stock").delete().eq("item_id", itemIdToEdit);
+          await supabase.from('stock').insert({
+            item_id: itemIdToEdit,
+            units_total: medicationData.unitsTotal,
+            units_left: medicationData.unitsTotal,
+            unit_label: medicationData.unitLabel,
+            last_refill_at: new Date().toISOString(),
+          });
+        }
 
-        toast.success(`${medicationData.name} atualizado! ✓`);
+        toast.success(`${medicationData.name} atualizado!`);
       } else {
-        // CREATE new item
         const { data: newItem, error: itemError } = await supabase
           .from('items')
           .insert({
@@ -306,27 +279,30 @@ export default function MedicationWizard({ open, onOpenChange, editItemId }: Med
 
         if (scheduleError) throw scheduleError;
 
-        const { error: stockError } = await supabase
-          .from('stock')
-          .insert({
-            item_id: newItem.id,
-            units_total: medicationData.unitsTotal,
-            units_left: medicationData.unitsTotal,
-            unit_label: medicationData.unitLabel,
-            last_refill_at: new Date().toISOString(),
-          });
+        // Criar estoque apenas se configurado
+        if (showStock) {
+          const { error: stockError } = await supabase
+            .from('stock')
+            .insert({
+              item_id: newItem.id,
+              units_total: medicationData.unitsTotal,
+              units_left: medicationData.unitsTotal,
+              unit_label: medicationData.unitLabel,
+              last_refill_at: new Date().toISOString(),
+            });
 
-        if (stockError) throw stockError;
+          if (stockError) throw stockError;
+        }
 
-        toast.success(`${medicationData.name} adicionado! 🎉`);
+        toast.success(`${medicationData.name} adicionado!`);
       }
       
       onOpenChange(false);
       navigate('/rotina');
       
-      // Reset state
-      setCurrentStep(0);
+      setCurrentStep(1);
       setMedicationData(INITIAL_DATA);
+      setShowStock(false);
       
     } catch (error: any) {
       console.error('Error saving medication:', error);
@@ -336,18 +312,10 @@ export default function MedicationWizard({ open, onOpenChange, editItemId }: Med
     }
   };
 
-  const steps = isEditing 
-    ? [
-        { number: 1, title: "Medicamento", icon: Sparkles },
-        { number: 2, title: "Horários", icon: Calendar },
-        { number: 3, title: "Estoque", icon: Package },
-      ]
-    : [
-        { number: 0, title: "Escanear", icon: Camera },
-        { number: 1, title: "Medicamento", icon: Sparkles },
-        { number: 2, title: "Horários", icon: Calendar },
-        { number: 3, title: "Estoque", icon: Package },
-      ];
+  const steps = [
+    { number: 1, title: "O que é?", icon: Sparkles },
+    { number: 2, title: "Quando tomar?", icon: Calendar },
+  ];
 
   if (isLoading) {
     return (
@@ -355,7 +323,7 @@ export default function MedicationWizard({ open, onOpenChange, editItemId }: Med
         <DialogContent className="max-w-lg">
           <div className="flex flex-col items-center justify-center py-12">
             <Loader2 className="w-8 h-8 animate-spin text-primary mb-4" />
-            <p className="text-muted-foreground">Carregando medicamento...</p>
+            <p className="text-muted-foreground">Carregando...</p>
           </div>
         </DialogContent>
       </Dialog>
@@ -367,19 +335,16 @@ export default function MedicationWizard({ open, onOpenChange, editItemId }: Med
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="max-w-lg max-h-[90vh] overflow-hidden flex flex-col">
           <DialogHeader className="pb-2">
-            <DialogTitle className="text-xl flex items-center gap-2">
-              {isEditing ? "Editar Medicamento" : "Adicionar Medicamento"}
+            <DialogTitle className="text-xl">
+              {isEditing ? "Editar Item" : "Adicionar Item"}
             </DialogTitle>
             <DialogDescription className="text-sm">
-              {isEditing 
-                ? "Atualize as informações do seu medicamento"
-                : "Siga os passos para configurar seu medicamento"
-              }
+              {currentStep === 1 ? "Informe o nome e tipo" : "Configure os horários"}
             </DialogDescription>
           </DialogHeader>
 
-          {/* Progress Steps - Compact */}
-          <div className="flex items-center justify-center gap-2 py-4">
+          {/* Progress Steps - Simplificado */}
+          <div className="flex items-center justify-center gap-4 py-4">
             {steps.map((step, index) => {
               const Icon = step.icon;
               const isActive = currentStep === step.number;
@@ -390,7 +355,7 @@ export default function MedicationWizard({ open, onOpenChange, editItemId }: Med
                   <div className="flex flex-col items-center gap-1">
                     <div
                       className={cn(
-                        "w-10 h-10 rounded-full flex items-center justify-center transition-all",
+                        "w-12 h-12 rounded-full flex items-center justify-center transition-all",
                         isActive 
                           ? "bg-primary text-primary-foreground scale-110 shadow-lg" 
                           : isCompleted 
@@ -401,7 +366,7 @@ export default function MedicationWizard({ open, onOpenChange, editItemId }: Med
                       {isCompleted ? <Check className="w-5 h-5" /> : <Icon className="w-5 h-5" />}
                     </div>
                     <span className={cn(
-                      "text-[10px] font-medium",
+                      "text-xs font-medium",
                       isActive ? "text-primary" : "text-muted-foreground"
                     )}>
                       {step.title}
@@ -409,7 +374,7 @@ export default function MedicationWizard({ open, onOpenChange, editItemId }: Med
                   </div>
                   {index < steps.length - 1 && (
                     <div className={cn(
-                      "w-8 h-0.5 mx-1 transition-all",
+                      "w-12 h-0.5 mx-2 transition-all",
                       currentStep > step.number ? "bg-green-500" : "bg-muted"
                     )} />
                   )}
@@ -427,30 +392,41 @@ export default function MedicationWizard({ open, onOpenChange, editItemId }: Med
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
                 transition={{ duration: 0.2 }}
-                className="min-h-[300px]"
               >
-                {currentStep === 0 && !isEditing && (
-                  <div className="space-y-4 py-4">
-                    <MedicationOCRWrapper onResult={handleOCRResult} />
-                    <div className="text-center">
-                      <p className="text-sm text-muted-foreground">
-                        Ou pule para digitar manualmente
-                      </p>
-                    </div>
-                  </div>
-                )}
                 {currentStep === 1 && (
                   <WizardStepIdentity data={medicationData} updateData={updateData} />
                 )}
                 {currentStep === 2 && (
-                  <WizardStepSchedule data={medicationData} updateData={updateData} />
-                )}
-                {currentStep === 3 && (
-                  <WizardStepStock 
-                    data={medicationData} 
-                    updateData={updateData}
-                    dosesPerDay={medicationData.times.length}
-                  />
+                  <div className="space-y-4">
+                    <WizardStepSchedule data={medicationData} updateData={updateData} />
+                    
+                    {/* Estoque opcional - colapsável */}
+                    <Collapsible open={showStock} onOpenChange={setShowStock}>
+                      <CollapsibleTrigger asChild>
+                        <Button 
+                          variant="outline" 
+                          className="w-full justify-between"
+                          type="button"
+                        >
+                          <div className="flex items-center gap-2">
+                            <Package className="w-4 h-4" />
+                            <span>Controlar estoque</span>
+                          </div>
+                          <ChevronDown className={cn(
+                            "w-4 h-4 transition-transform",
+                            showStock && "rotate-180"
+                          )} />
+                        </Button>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="pt-4">
+                        <WizardStepStock 
+                          data={medicationData} 
+                          updateData={updateData}
+                          dosesPerDay={medicationData.times.length}
+                        />
+                      </CollapsibleContent>
+                    </Collapsible>
+                  </div>
                 )}
               </motion.div>
             </AnimatePresence>
@@ -460,30 +436,32 @@ export default function MedicationWizard({ open, onOpenChange, editItemId }: Med
           <div className="flex justify-between pt-4 border-t mt-4">
             <Button
               variant="outline"
-              onClick={handleBack}
-              disabled={currentStep === (isEditing ? 1 : 0) || isSubmitting}
+              onClick={currentStep === 1 ? () => onOpenChange(false) : handleBack}
+              disabled={isSubmitting}
             >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Voltar
+              {currentStep === 1 ? "Cancelar" : (
+                <>
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Voltar
+                </>
+              )}
             </Button>
 
-            {currentStep < 3 ? (
-              <Button onClick={handleNext} disabled={isSubmitting}>
-                {currentStep === 0 ? "Pular" : "Próximo"}
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
-            ) : (
-              <Button onClick={handleSubmit} disabled={isSubmitting} className="min-w-[120px]">
-                {isSubmitting ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <>
-                    {isEditing ? "Salvar" : "Finalizar"}
-                    <Check className="w-4 h-4 ml-2" />
-                  </>
-                )}
-              </Button>
-            )}
+            <Button onClick={handleNext} disabled={isSubmitting} className="min-w-[120px]">
+              {isSubmitting ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : currentStep === 2 ? (
+                <>
+                  {isEditing ? "Salvar" : "Adicionar"}
+                  <Check className="w-4 h-4 ml-2" />
+                </>
+              ) : (
+                <>
+                  Próximo
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </>
+              )}
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
