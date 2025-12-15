@@ -10,8 +10,9 @@ import { toast } from "sonner";
 import { 
   User, Bell, Shield, HelpCircle, LogOut, FileDown, 
   Crown, Users, Plus, Trash2, Settings, BookOpen,
-  Download, FileText, AlertCircle, Smartphone, Gift, Activity, Check
+  Download, FileText, AlertCircle, Smartphone, Gift, Activity, Check, Fingerprint
 } from "lucide-react";
+import { useBiometricAuth } from "@/hooks/useBiometricAuth";
 import CaregiverManager from "@/components/CaregiverManager";
 import { useNavigate } from "react-router-dom";
 import Navigation from "@/components/Navigation";
@@ -38,6 +39,7 @@ export default function Profile() {
   const { subscription, isPremium, daysLeft, refresh } = useSubscription();
   const { profiles, activeProfile, deleteProfile, switchProfile } = useUserProfiles();
   const { preferences, toggleFitnessWidgets } = useFitnessPreferences();
+  const { isAvailable: biometricAvailable, isBiometricEnabled, disableBiometric } = useBiometricAuth();
 
   useEffect(() => {
     loadProfile();
@@ -561,6 +563,53 @@ export default function Profile() {
                   <Smartphone className="h-4 w-4 mr-2" />
                   Configurar alarmes
                 </Button>
+              </CardContent>
+            </Card>
+
+            {/* Biometric Authentication */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Fingerprint className="h-5 w-5" />
+                  Acesso por Biometria
+                </CardTitle>
+                <CardDescription>
+                  Use impressão digital ou Face ID para acessar o app
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {biometricAvailable ? (
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-1">
+                      <Label htmlFor="biometric-toggle" className="cursor-pointer font-medium">
+                        Login com biometria
+                      </Label>
+                      <p className="text-sm text-muted-foreground">
+                        {isBiometricEnabled 
+                          ? "Ativado - sua biometria pré-preenche o email" 
+                          : "Desativado - ative no próximo login"}
+                      </p>
+                    </div>
+                    <Switch
+                      id="biometric-toggle"
+                      checked={isBiometricEnabled}
+                      onCheckedChange={(checked) => {
+                        if (!checked) {
+                          disableBiometric();
+                        } else {
+                          toast.info("Para ativar, faça login novamente e escolha 'Entrar com Biometria'");
+                        }
+                      }}
+                    />
+                  </div>
+                ) : (
+                  <div className="p-4 bg-muted/50 rounded-lg text-center">
+                    <Fingerprint className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+                    <p className="text-sm text-muted-foreground">
+                      Biometria não disponível neste dispositivo
+                    </p>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
