@@ -13,13 +13,21 @@ interface Message {
   content: string;
 }
 
+const quickSuggestions = [
+  "Como adiciono um medicamento?",
+  "Qual meu progresso de hoje?",
+  "Onde vejo meu estoque?",
+  "Como funciona a Carteira de Saúde?",
+];
+
 export default function HealthAIButton() {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([{
     role: "assistant",
-    content: "Olá, sou a Clara. Estou aqui para ajudar você a organizar sua rotina de saúde. Como posso ajudar?"
+    content: "Olá! Sou a Clara, sua assistente de saúde. Posso ajudar você a navegar no app, verificar seus medicamentos, conferir seu progresso ou tirar dúvidas sobre sua rotina. Como posso ajudar?"
   }]);
   const [input, setInput] = useState("");
+  const [showSuggestions, setShowSuggestions] = useState(true);
   const {
     processQuery,
     isProcessing
@@ -33,14 +41,17 @@ export default function HealthAIButton() {
   );
   if (shouldHide) return null;
 
-  const handleSend = async () => {
-    if (!input.trim() || isProcessing) return;
-    const userMessage = input.trim();
+  const handleSend = async (message?: string) => {
+    const userMessage = (message || input).trim();
+    if (!userMessage || isProcessing) return;
+    
     setInput("");
+    setShowSuggestions(false);
     setMessages(prev => [...prev, {
       role: "user",
       content: userMessage
     }]);
+    
     try {
       const response = await processQuery(userMessage);
       if (typeof response === 'string') {
@@ -53,16 +64,14 @@ export default function HealthAIButton() {
       console.error('AI error:', error);
       setMessages(prev => [...prev, {
         role: "assistant",
-        content: "Desculpe, tive um problema. Pode tentar novamente?"
+        content: "Desculpe, tive um problema ao processar sua mensagem. Pode tentar novamente?"
       }]);
     }
   };
 
-  const quickActions = [
-    { label: "Organizar rotina", action: "Me ajude a organizar minha rotina de medicamentos" },
-    { label: "Ver estoque", action: "Mostre meu estoque de medicamentos" },
-    { label: "Dúvida sobre dose", action: "Tenho uma dúvida sobre minha dose" }
-  ];
+  const handleSuggestionClick = (suggestion: string) => {
+    handleSend(suggestion);
+  };
 
   return (
     <>
@@ -151,22 +160,20 @@ export default function HealthAIButton() {
                 </div>
               </ScrollArea>
 
-              {/* Quick Actions */}
-              {messages.length <= 1 && (
+              {/* Quick Suggestions */}
+              {showSuggestions && messages.length <= 1 && (
                 <div className="px-4 pb-3 space-y-2">
-                  <p className="text-xs text-muted-foreground">Como posso ajudar:</p>
-                  <div className="flex flex-wrap gap-2">
-                    {quickActions.map((action, idx) => (
+                  <p className="text-xs text-muted-foreground font-medium">Sugestões rápidas:</p>
+                  <div className="flex flex-col gap-1.5">
+                    {quickSuggestions.map((suggestion, idx) => (
                       <Button 
                         key={idx} 
-                        variant="outline" 
+                        variant="ghost" 
                         size="sm"
-                        onClick={() => {
-                          setInput(action.action);
-                        }}
-                        className="text-xs"
+                        onClick={() => handleSuggestionClick(suggestion)}
+                        className="text-xs justify-start h-auto py-2 px-3 text-left hover:bg-primary/10 border border-border/50"
                       >
-                        {action.label}
+                        {suggestion}
                       </Button>
                     ))}
                   </div>
@@ -185,7 +192,7 @@ export default function HealthAIButton() {
                     className="flex-1" 
                   />
                   <Button 
-                    onClick={handleSend} 
+                    onClick={() => handleSend()} 
                     disabled={!input.trim() || isProcessing} 
                     size="icon"
                   >
