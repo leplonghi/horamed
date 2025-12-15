@@ -135,11 +135,35 @@ export default function Progress() {
       <Header />
 
       <main className="flex-1 container mx-auto p-6 space-y-6">
-        <PageHeader
-          title="Seu Progresso"
-          description="Acompanhe seu compromisso e conquistas"
-          icon={<TrendingUp className="h-6 w-6 text-primary" />}
-        />
+        <div className="flex items-start justify-between gap-4">
+          <PageHeader
+            title="Seu Progresso"
+            description="Acompanhe seu compromisso e conquistas"
+            icon={<TrendingUp className="h-6 w-6 text-primary" />}
+          />
+          <HelpTooltip 
+            content="Aqui você acompanha sua evolução. Veja quantas doses tomou, sua sequência de dias seguidos e suas conquistas." 
+            iconSize="lg"
+          />
+        </div>
+
+        {/* Explicação didática da seção */}
+        <Card className="bg-gradient-to-r from-primary/5 to-primary/10 border-primary/20">
+          <CardContent className="p-4">
+            <div className="flex items-start gap-3">
+              <div className="p-2 bg-primary/10 rounded-full shrink-0">
+                <Trophy className="h-5 w-5 text-primary" />
+              </div>
+              <div className="space-y-1">
+                <p className="font-medium text-foreground">Como funciona?</p>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  Cada dose tomada conta para sua <strong>sequência de dias</strong> e aumenta seu <strong>XP</strong>. 
+                  Quanto mais consistente você for, mais conquistas vai desbloquear!
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Tutorial Hint */}
         <TutorialHint

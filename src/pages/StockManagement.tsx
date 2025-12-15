@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -132,14 +132,38 @@ export default function StockManagement() {
       <main className="container max-w-4xl mx-auto p-6 space-y-8">
         {/* Header */}
         <div className="space-y-3">
-          <h1 className="heading-page flex items-center gap-3">
-            <Package className="h-8 w-8 text-primary" />
-            Controle Inteligente de Estoque
-          </h1>
+          <div className="flex items-center gap-3">
+            <h1 className="heading-page flex items-center gap-3">
+              <Package className="h-8 w-8 text-primary" />
+              Controle Inteligente de Estoque
+            </h1>
+            <HelpTooltip 
+              content="O estoque é atualizado automaticamente quando você toma uma dose. Assim você sabe exatamente quantas unidades restam." 
+              iconSize="lg"
+            />
+          </div>
           <p className="text-description">
             Acompanhe consumo real, projeções automáticas e receba alertas personalizados
           </p>
         </div>
+
+        {/* Explicação didática da seção */}
+        <Card className="bg-gradient-to-r from-primary/5 to-primary/10 border-primary/20">
+          <CardContent className="p-4">
+            <div className="flex items-start gap-3">
+              <div className="p-2 bg-primary/10 rounded-full shrink-0">
+                <Package className="h-5 w-5 text-primary" />
+              </div>
+              <div className="space-y-1">
+                <p className="font-medium text-foreground">Como funciona?</p>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  Cada vez que você marca uma dose como <strong>tomada</strong>, o estoque diminui automaticamente. 
+                  O app calcula quantos dias ainda vão durar e te avisa antes de acabar!
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Tutorial Hint */}
         <TutorialHint

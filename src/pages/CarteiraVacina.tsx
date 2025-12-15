@@ -11,9 +11,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Plus, Upload, Info, ExternalLink } from "lucide-react";
+import { Plus, Upload, Info, ExternalLink, Syringe } from "lucide-react";
 import { useVaccinationRecordsByType, useDeleteVaccinationRecord } from "@/hooks/useVaccinationRecords";
 import { useUserProfiles } from "@/hooks/useUserProfiles";
+import HelpTooltip from "@/components/HelpTooltip";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -52,10 +53,34 @@ export default function CarteiraVacina() {
     <div className="min-h-screen bg-background pb-20">
       <Header />
       <div className="container max-w-4xl mx-auto px-4 py-6 pt-24">
-        <PageHeader
-          title="Caderneta de Vacinação"
-          description="Registro completo de vacinas seguindo o Calendário Nacional"
-        />
+        <div className="flex items-start justify-between gap-4">
+          <PageHeader
+            title="Caderneta de Vacinação"
+            description="Registro completo de vacinas seguindo o Calendário Nacional"
+          />
+          <HelpTooltip 
+            content="Registre aqui todas as vacinas tomadas. Você pode adicionar manualmente ou escanear sua carteirinha de vacinação." 
+            iconSize="lg"
+          />
+        </div>
+
+        {/* Explicação didática da seção */}
+        <Card className="mb-6 bg-gradient-to-r from-primary/5 to-primary/10 border-primary/20">
+          <CardContent className="p-4">
+            <div className="flex items-start gap-3">
+              <div className="p-2 bg-primary/10 rounded-full shrink-0">
+                <Syringe className="h-5 w-5 text-primary" />
+              </div>
+              <div className="space-y-1">
+                <p className="font-medium text-foreground">Como funciona?</p>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  Adicione cada vacina com a <strong>data de aplicação</strong> e o <strong>lote</strong>. 
+                  O app organiza tudo e te lembra quando tiver próximas doses ou reforços!
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         <ProfileSelector />
 

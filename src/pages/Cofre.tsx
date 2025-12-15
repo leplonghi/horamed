@@ -206,7 +206,13 @@ export default function Cofre() {
       <div className="container max-w-6xl mx-auto pt-24 pb-6 space-y-6 px-[24px] py-[95px]">
         <div className="flex items-start justify-between gap-4">
           <div className="space-y-3">
-            <h1 className="heading-page">Carteira de Saúde </h1>
+            <div className="flex items-center gap-2">
+              <h1 className="heading-page">Carteira de Saúde</h1>
+              <HelpTooltip 
+                content="Guarde aqui todos os seus documentos de saúde: receitas, exames, vacinas e laudos. Tudo organizado e seguro." 
+                iconSize="lg"
+              />
+            </div>
             <p className="text-description">
               Seus documentos médicos organizados e seguros
             </p>
@@ -217,6 +223,24 @@ export default function Cofre() {
             <span className="sm:hidden">Adicionar</span>
           </Button>
         </div>
+
+        {/* Explicação didática da seção */}
+        <Card className="bg-gradient-to-r from-primary/5 to-primary/10 border-primary/20">
+          <CardContent className="p-4">
+            <div className="flex items-start gap-3">
+              <div className="p-2 bg-primary/10 rounded-full shrink-0">
+                <FileText className="h-5 w-5 text-primary" />
+              </div>
+              <div className="space-y-1">
+                <p className="font-medium text-foreground">Como funciona?</p>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  Tire uma foto ou faça upload de receitas e exames. O app <strong>lê automaticamente</strong> os dados 
+                  e você pode revisar antes de salvar. Seus documentos ficam sempre disponíveis!
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Dashboard Stats */}
         {stats && <div className="grid grid-cols-4 md:grid-cols-1 gap-2 px-0 py-0">

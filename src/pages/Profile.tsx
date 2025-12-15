@@ -111,6 +111,24 @@ export default function Profile() {
           placement="bottom"
         />
 
+        {/* Explicação didática da seção */}
+        <Card className="bg-gradient-to-r from-primary/5 to-primary/10 border-primary/20">
+          <CardContent className="p-4">
+            <div className="flex items-start gap-3">
+              <div className="p-2 bg-primary/10 rounded-full shrink-0">
+                <User className="h-5 w-5 text-primary" />
+              </div>
+              <div className="space-y-1">
+                <p className="font-medium text-foreground">O que você pode fazer aqui?</p>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  Gerencie sua <strong>conta</strong>, crie <strong>perfis familiares</strong> (Premium), 
+                  configure <strong>notificações</strong> e veja seu <strong>plano de assinatura</strong>.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Profile Header Card */}
         <Card>
           <CardContent className="pt-6">

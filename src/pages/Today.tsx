@@ -225,9 +225,15 @@ export default function Today() {
             <p className="text-muted-foreground text-sm mb-1">
               {format(new Date(), "EEEE, d MMM", { locale: ptBR })}
             </p>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">
-              {greeting}, {userName || "você"}!
-            </h1>
+            <div className="flex items-center justify-center gap-2">
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">
+                {greeting}, {userName || "você"}!
+              </h1>
+              <HelpTooltip 
+                content="Esta é sua tela principal. Aqui você vê todas as doses do dia e confirma quando tomar cada medicamento." 
+                iconSize="lg"
+              />
+            </div>
             
             {/* Streak Badge */}
             {streakData.currentStreak > 0 && (
