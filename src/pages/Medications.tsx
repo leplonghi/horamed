@@ -176,10 +176,16 @@ export default function Medications() {
       <Header />
       <div className="min-h-screen bg-background pt-20 px-3 py-4 pb-24 overflow-x-hidden">
         <div className="max-w-4xl mx-auto space-y-4 overflow-x-hidden">
-          {/* Header */}
+          {/* Header com explicação */}
           <div className="gap-3 flex-row flex items-start justify-between py-[5px]">
             <div className="min-w-0 flex-1 space-y-2">
-              <h1 className="text-3xl font-bold my-[5px]">Minha Saúde</h1>
+              <div className="flex items-center gap-2">
+                <h1 className="text-3xl font-bold my-[5px]">Minha Saúde</h1>
+                <HelpTooltip 
+                  content="Esta é sua central de medicamentos. Aqui você cadastra tudo que toma e o app te lembra nos horários certos." 
+                  iconSize="lg"
+                />
+              </div>
               <p className="text-muted-foreground">
                 {items.length > 0 ? `${items.length} ${items.length === 1 ? 'item ativo' : 'itens ativos'}` : 'Nenhum item cadastrado'}
               </p>
@@ -189,6 +195,24 @@ export default function Medications() {
               <span className="hidden sm:inline">Adicionar</span>
             </Button>
           </div>
+
+          {/* Explicação didática da seção */}
+          <Card className="bg-gradient-to-r from-primary/5 to-primary/10 border-primary/20">
+            <CardContent className="p-4">
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-primary/10 rounded-full shrink-0">
+                  <Pill className="h-5 w-5 text-primary" />
+                </div>
+                <div className="space-y-1">
+                  <p className="font-medium text-foreground">Como funciona?</p>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    Cadastre seus medicamentos, vitaminas ou suplementos clicando em <strong>"+ Adicionar"</strong>. 
+                    O app vai te lembrar automaticamente nos horários definidos e você pode acompanhar seu estoque.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Quick Actions */}
           <div className="grid grid-cols-2 gap-3">
