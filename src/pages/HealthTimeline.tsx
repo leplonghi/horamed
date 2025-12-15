@@ -4,18 +4,19 @@ import Header from "@/components/Header";
 import Navigation from "@/components/Navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import HelpTooltip from "@/components/HelpTooltip";
 import { 
   Calendar, 
   FileText, 
   Pill, 
   Activity, 
   Stethoscope,
-  Filter,
-  TrendingUp
+  TrendingUp,
+  Clock,
+  ChevronRight
 } from "lucide-react";
-import { format } from "date-fns";
+import { format, isThisMonth, isThisYear, startOfMonth } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
 
@@ -50,15 +51,15 @@ export default function HealthTimeline() {
         .select("*")
         .eq("user_id", user.id)
         .order("data_consulta", { ascending: false })
-        .limit(50);
+        .limit(30);
 
       consultas?.forEach(c => {
         allEvents.push({
           id: c.id,
           type: 'consulta',
           date: c.data_consulta,
-          title: `Consulta: ${c.especialidade || 'Médica'}`,
-          description: `${c.medico_nome || 'Médico'} - ${c.local || 'Local não informado'}`,
+          title: c.especialidade || 'Consulta Médica',
+          description: c.medico_nome || '',
           metadata: c
         });
       });
@@ -69,15 +70,15 @@ export default function HealthTimeline() {
         .select("*")
         .eq("user_id", user.id)
         .order("data_exame", { ascending: false })
-        .limit(50);
+        .limit(30);
 
       exames?.forEach(e => {
         allEvents.push({
           id: e.id,
           type: 'exame',
           date: e.data_exame,
-          title: `Exame Laboratorial`,
-          description: `${e.laboratorio || 'Laboratório'} - ${e.medico_solicitante || 'Médico'}`,
+          title: 'Exame Laboratorial',
+          description: e.laboratorio || '',
           metadata: e
         });
       });
@@ -88,15 +89,15 @@ export default function HealthTimeline() {
         .select("*")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false })
-        .limit(50);
+        .limit(30);
 
       medicamentos?.forEach(m => {
         allEvents.push({
           id: m.id,
           type: 'medicamento',
-          date: m.created_at,
-          title: `Medicamento: ${m.name}`,
-          description: m.dose_text || 'Dose não especificada',
+          date: m.created_at || '',
+          title: m.name,
+          description: m.dose_text || '',
           metadata: m
         });
       });
@@ -107,40 +108,16 @@ export default function HealthTimeline() {
         .select("*, categorias_saude(label)")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false })
-        .limit(50);
+        .limit(30);
 
       documentos?.forEach(d => {
         allEvents.push({
           id: d.id,
           type: 'documento',
-          date: d.created_at,
+          date: d.created_at || '',
           title: d.title || 'Documento',
-          description: (d.categorias_saude as any)?.label || 'Documento de saúde',
+          description: (d.categorias_saude as any)?.label || '',
           metadata: d
-        });
-      });
-
-      // Buscar sinais vitais
-      const { data: sinais } = await supabase
-        .from("sinais_vitais")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("data_medicao", { ascending: false })
-        .limit(50);
-
-      sinais?.forEach(s => {
-        const valores = [];
-        if (s.pressao_sistolica) valores.push(`PA: ${s.pressao_sistolica}/${s.pressao_diastolica}`);
-        if (s.glicemia) valores.push(`Glicemia: ${s.glicemia}`);
-        if (s.peso_kg) valores.push(`Peso: ${s.peso_kg}kg`);
-
-        allEvents.push({
-          id: s.id,
-          type: 'sinal_vital',
-          date: s.data_medicao,
-          title: 'Sinais Vitais',
-          description: valores.join(' • '),
-          metadata: s
         });
       });
 
@@ -157,125 +134,177 @@ export default function HealthTimeline() {
   };
 
   const getEventIcon = (type: string) => {
+    const iconClass = "h-4 w-4";
     switch (type) {
-      case 'consulta': return <Stethoscope className="h-5 w-5" />;
-      case 'exame': return <Activity className="h-5 w-5" />;
-      case 'medicamento': return <Pill className="h-5 w-5" />;
-      case 'documento': return <FileText className="h-5 w-5" />;
-      case 'sinal_vital': return <TrendingUp className="h-5 w-5" />;
-      default: return <Calendar className="h-5 w-5" />;
+      case 'consulta': return <Stethoscope className={iconClass} />;
+      case 'exame': return <Activity className={iconClass} />;
+      case 'medicamento': return <Pill className={iconClass} />;
+      case 'documento': return <FileText className={iconClass} />;
+      case 'sinal_vital': return <TrendingUp className={iconClass} />;
+      default: return <Calendar className={iconClass} />;
     }
   };
 
   const getEventColor = (type: string) => {
     switch (type) {
-      case 'consulta': return 'bg-blue-500';
-      case 'exame': return 'bg-purple-500';
-      case 'medicamento': return 'bg-green-500';
-      case 'documento': return 'bg-orange-500';
-      case 'sinal_vital': return 'bg-red-500';
-      default: return 'bg-gray-500';
+      case 'consulta': return 'bg-blue-500/10 text-blue-600 border-blue-200';
+      case 'exame': return 'bg-purple-500/10 text-purple-600 border-purple-200';
+      case 'medicamento': return 'bg-green-500/10 text-green-600 border-green-200';
+      case 'documento': return 'bg-amber-500/10 text-amber-600 border-amber-200';
+      case 'sinal_vital': return 'bg-rose-500/10 text-rose-600 border-rose-200';
+      default: return 'bg-muted text-muted-foreground';
     }
   };
 
-  const filteredEvents = filterType === 'todos' 
+  const getTypeLabel = (type: string) => {
+    switch (type) {
+      case 'consulta': return 'Consulta';
+      case 'exame': return 'Exame';
+      case 'medicamento': return 'Medicamento';
+      case 'documento': return 'Documento';
+      case 'sinal_vital': return 'Vital';
+      default: return 'Outro';
+    }
+  };
+
+  const filteredEvents = filterType === "todos" 
     ? events 
     : events.filter(e => e.type === filterType);
 
+  // Agrupar eventos por mês
+  const groupedEvents = filteredEvents.reduce((groups, event) => {
+    const monthKey = format(new Date(event.date), 'MMMM yyyy', { locale: ptBR });
+    if (!groups[monthKey]) {
+      groups[monthKey] = [];
+    }
+    groups[monthKey].push(event);
+    return groups;
+  }, {} as Record<string, TimelineEvent[]>);
+
+  const formatEventDate = (date: string) => {
+    const eventDate = new Date(date);
+    if (isThisMonth(eventDate)) {
+      return format(eventDate, "d 'de' MMMM", { locale: ptBR });
+    }
+    return format(eventDate, "d MMM", { locale: ptBR });
+  };
+
   return (
-    <>
+    <div className="min-h-screen bg-background pb-20">
       <Header />
-      <div className="min-h-screen bg-background pt-20 pb-24">
-        <div className="max-w-4xl mx-auto p-4 space-y-6">
-          
-          {/* Header */}
-          <div className="space-y-2">
-            <h1 className="text-3xl font-bold flex items-center gap-2">
-              <Calendar className="h-8 w-8 text-primary" />
-              Linha do Tempo
-            </h1>
-            <p className="text-muted-foreground">
-              Histórico completo da sua saúde em ordem cronológica
+      
+      <main className="container max-w-lg mx-auto px-4 py-6">
+        {/* Header com explicação */}
+        <div className="flex items-center gap-2 mb-2">
+          <Clock className="h-5 w-5 text-primary" />
+          <h1 className="text-xl font-bold text-foreground">Linha do Tempo</h1>
+          <HelpTooltip 
+            content="Visualize todo seu histórico de saúde organizado cronologicamente. Consultas, exames, medicamentos e documentos em um só lugar."
+            iconSize="lg"
+          />
+        </div>
+        <p className="text-sm text-muted-foreground mb-4">
+          Seu histórico de saúde organizado por data
+        </p>
+
+        {/* Filtros compactos */}
+        <Tabs value={filterType} onValueChange={setFilterType} className="mb-4">
+          <TabsList className="w-full grid grid-cols-5 h-9">
+            <TabsTrigger value="todos" className="text-xs px-2">Todos</TabsTrigger>
+            <TabsTrigger value="consulta" className="text-xs px-2">
+              <Stethoscope className="h-3 w-3" />
+            </TabsTrigger>
+            <TabsTrigger value="exame" className="text-xs px-2">
+              <Activity className="h-3 w-3" />
+            </TabsTrigger>
+            <TabsTrigger value="medicamento" className="text-xs px-2">
+              <Pill className="h-3 w-3" />
+            </TabsTrigger>
+            <TabsTrigger value="documento" className="text-xs px-2">
+              <FileText className="h-3 w-3" />
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
+
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          </div>
+        ) : filteredEvents.length === 0 ? (
+          <Card className="border-dashed">
+            <CardContent className="py-8 text-center">
+              <Calendar className="h-10 w-10 mx-auto text-muted-foreground/50 mb-3" />
+              <p className="text-muted-foreground font-medium">Nenhum evento encontrado</p>
+              <p className="text-sm text-muted-foreground/70 mt-1">
+                Adicione medicamentos, consultas ou documentos para ver aqui
+              </p>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="space-y-6">
+            {Object.entries(groupedEvents).map(([month, monthEvents]) => (
+              <div key={month}>
+                {/* Cabeçalho do mês */}
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="h-px flex-1 bg-border" />
+                  <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    {month}
+                  </span>
+                  <div className="h-px flex-1 bg-border" />
+                </div>
+
+                {/* Eventos do mês - layout compacto */}
+                <div className="space-y-2">
+                  {monthEvents.map((event) => (
+                    <div
+                      key={event.id}
+                      className="flex items-center gap-3 p-3 rounded-lg bg-card border hover:bg-accent/50 transition-colors cursor-pointer group"
+                    >
+                      {/* Ícone com cor */}
+                      <div className={`p-2 rounded-full ${getEventColor(event.type)}`}>
+                        {getEventIcon(event.type)}
+                      </div>
+
+                      {/* Conteúdo principal */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium text-sm text-foreground truncate">
+                            {event.title}
+                          </span>
+                        </div>
+                        {event.description && (
+                          <p className="text-xs text-muted-foreground truncate">
+                            {event.description}
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Data e seta */}
+                      <div className="flex items-center gap-2 shrink-0">
+                        <span className="text-xs text-muted-foreground">
+                          {formatEventDate(event.date)}
+                        </span>
+                        <ChevronRight className="h-4 w-4 text-muted-foreground/50 group-hover:text-primary transition-colors" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Legenda compacta */}
+        {filteredEvents.length > 0 && (
+          <div className="mt-6 pt-4 border-t">
+            <p className="text-xs text-muted-foreground text-center">
+              Mostrando {filteredEvents.length} eventos • Toque para ver detalhes
             </p>
           </div>
+        )}
+      </main>
 
-          {/* Filtros */}
-          <Tabs value={filterType} onValueChange={setFilterType}>
-            <TabsList className="w-full justify-start overflow-x-auto">
-              <TabsTrigger value="todos">Todos</TabsTrigger>
-              <TabsTrigger value="consulta">Consultas</TabsTrigger>
-              <TabsTrigger value="exame">Exames</TabsTrigger>
-              <TabsTrigger value="medicamento">Medicamentos</TabsTrigger>
-              <TabsTrigger value="documento">Documentos</TabsTrigger>
-              <TabsTrigger value="sinal_vital">Sinais Vitais</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value={filterType} className="space-y-4 mt-6">
-              {loading ? (
-                <div className="text-center py-12">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto" />
-                </div>
-              ) : filteredEvents.length === 0 ? (
-                <Card>
-                  <CardContent className="py-12 text-center">
-                    <Calendar className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                    <p className="text-muted-foreground">Nenhum evento encontrado</p>
-                  </CardContent>
-                </Card>
-              ) : (
-                <div className="relative">
-                  {/* Timeline Line */}
-                  <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-border" />
-
-                  {/* Events */}
-                  <div className="space-y-6">
-                    {filteredEvents.map((event, index) => (
-                      <div key={event.id} className="relative pl-16">
-                        {/* Timeline Dot */}
-                        <div className={`absolute left-4 -translate-x-1/2 w-5 h-5 rounded-full ${getEventColor(event.type)} border-4 border-background`} />
-
-                        <Card className="hover:shadow-md transition-shadow">
-                          <CardContent className="p-4">
-                            <div className="flex items-start gap-3">
-                              <div className={`p-2 rounded-lg ${getEventColor(event.type)} text-white`}>
-                                {getEventIcon(event.type)}
-                              </div>
-                              
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-start justify-between gap-2">
-                                  <h3 className="font-semibold text-foreground">
-                                    {event.title}
-                                  </h3>
-                                  <time className="text-xs text-muted-foreground whitespace-nowrap">
-                                    {format(new Date(event.date), "dd/MM/yyyy HH:mm", { locale: ptBR })}
-                                  </time>
-                                </div>
-                                
-                                <p className="text-sm text-muted-foreground mt-1">
-                                  {event.description}
-                                </p>
-
-                                <Badge variant="outline" className="mt-2 text-xs">
-                                  {event.type === 'consulta' && 'Consulta'}
-                                  {event.type === 'exame' && 'Exame'}
-                                  {event.type === 'medicamento' && 'Medicamento'}
-                                  {event.type === 'documento' && 'Documento'}
-                                  {event.type === 'sinal_vital' && 'Sinais Vitais'}
-                                </Badge>
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </TabsContent>
-          </Tabs>
-        </div>
-      </div>
       <Navigation />
-    </>
+    </div>
   );
 }
