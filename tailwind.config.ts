@@ -97,9 +97,19 @@ export default {
         },
       },
       borderRadius: {
+        "3xl": "1.5rem",
+        "2xl": "1rem",
+        xl: "0.875rem",
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+      },
+      boxShadow: {
+        'clean-sm': 'var(--shadow-sm)',
+        'clean-md': 'var(--shadow-md)',
+        'clean-lg': 'var(--shadow-lg)',
+        'clean-xl': 'var(--shadow-xl)',
+        'glow': 'var(--shadow-glow)',
       },
       keyframes: {
         "accordion-down": {

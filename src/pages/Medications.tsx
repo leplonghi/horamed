@@ -135,7 +135,7 @@ export default function Medications() {
     navigate("/adicionar");
   };
 
-  // Card simplificado
+  // Card simplificado - Clean Design
   const ItemCard = ({ item }: { item: Item }) => {
     const scheduleSummary = getScheduleSummary(item.schedules);
     const isSupplement = item.category === 'suplemento' || item.category === 'vitamina';
@@ -143,80 +143,79 @@ export default function Medications() {
     
     return (
       <motion.div
-        initial={{ opacity: 0, y: 10 }}
+        initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         whileTap={{ scale: 0.98 }}
+        className="group"
       >
-        <Card 
+        <div 
           className={cn(
-            "cursor-pointer transition-all hover:shadow-md border-l-4",
-            isSupplement 
-              ? "border-l-lime-500 bg-gradient-to-r from-lime-50/50 to-transparent dark:from-lime-950/20" 
-              : "border-l-primary bg-gradient-to-r from-primary/5 to-transparent"
+            "p-4 rounded-2xl cursor-pointer transition-all duration-300",
+            "bg-card/80 backdrop-blur-sm",
+            "shadow-[var(--shadow-xs)] hover:shadow-[var(--shadow-md)]",
+            "group-hover:-translate-y-0.5",
+            isSupplement && "ring-1 ring-performance/20"
           )}
           onClick={() => navigate(`/adicionar?edit=${item.id}`)}
         >
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3 min-w-0 flex-1">
-                <div className={cn(
-                  "w-10 h-10 rounded-full flex items-center justify-center shrink-0",
-                  isSupplement ? "bg-lime-100 dark:bg-lime-900" : "bg-primary/10"
-                )}>
-                  {isSupplement ? (
-                    <Leaf className="w-5 h-5 text-lime-600 dark:text-lime-400" />
-                  ) : (
-                    <Pill className="w-5 h-5 text-primary" />
-                  )}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <h3 className="font-semibold truncate">{item.name}</h3>
-                    {supplementCategory && (
-                      <SupplementCategoryTag category={supplementCategory} size="sm" />
-                    )}
-                  </div>
-                  {scheduleSummary && (
-                    <div className="flex items-center gap-1 text-sm text-muted-foreground mt-0.5">
-                      <Clock className="w-3 h-3" />
-                      <span>{scheduleSummary}</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-              
-              <div className="flex items-center gap-1">
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  className="h-8 w-8"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    navigate(`/adicionar?edit=${item.id}`);
-                  }}
-                >
-                  <Pencil className="h-4 w-4" />
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  className="h-8 w-8 text-destructive hover:bg-destructive/10"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    deleteItem(item.id);
-                  }}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
+          <div className="flex items-center gap-4">
+            <div className={cn(
+              "w-11 h-11 rounded-xl flex items-center justify-center shrink-0",
+              isSupplement ? "bg-performance/10" : "bg-primary/10"
+            )}>
+              {isSupplement ? (
+                <Leaf className="w-5 h-5 text-performance" />
+              ) : (
+                <Pill className="w-5 h-5 text-primary" />
+              )}
             </div>
-          </CardContent>
-        </Card>
+            
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h3 className="font-medium truncate">{item.name}</h3>
+                {supplementCategory && (
+                  <SupplementCategoryTag category={supplementCategory} size="sm" />
+                )}
+              </div>
+              {scheduleSummary && (
+                <div className="flex items-center gap-1.5 text-sm text-muted-foreground mt-0.5">
+                  <Clock className="w-3.5 h-3.5" />
+                  <span>{scheduleSummary}</span>
+                </div>
+              )}
+            </div>
+            
+            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-9 w-9"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigate(`/adicionar?edit=${item.id}`);
+                }}
+              >
+                <Pencil className="h-4 w-4" />
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-9 w-9 text-destructive hover:bg-destructive/10"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  deleteItem(item.id);
+                }}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </div>
       </motion.div>
     );
   };
 
-  // Seção de categoria
+  // Seção de categoria - Clean
   const CategorySection = ({ 
     title, 
     icon: Icon, 
@@ -230,23 +229,21 @@ export default function Medications() {
     emptyMessage: string;
     accentColor: string;
   }) => (
-    <div className="space-y-3">
-      <div className="flex items-center gap-2">
-        <div className={cn("p-1.5 rounded-lg", accentColor)}>
-          <Icon className="w-4 h-4" />
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2.5">
+          <div className={cn("p-2 rounded-xl", accentColor)}>
+            <Icon className="w-4 h-4" />
+          </div>
+          <h2 className="font-medium">{title}</h2>
         </div>
-        <h2 className="font-semibold">{title}</h2>
-        <Badge variant="secondary" className="ml-auto">
-          {items.length}
-        </Badge>
+        <span className="text-sm text-muted-foreground">{items.length}</span>
       </div>
       
       {items.length === 0 ? (
-        <Card className="border-dashed">
-          <CardContent className="py-6 text-center text-muted-foreground">
-            <p className="text-sm">{emptyMessage}</p>
-          </CardContent>
-        </Card>
+        <div className="py-8 text-center text-muted-foreground rounded-2xl bg-muted/30">
+          <p className="text-sm">{emptyMessage}</p>
+        </div>
       ) : (
         <div className="space-y-2">
           {items.map(item => (
@@ -274,66 +271,66 @@ export default function Medications() {
   return (
     <>
       <Header />
-      <div className="min-h-screen bg-background pt-20 px-4 pb-24">
-        <div className="max-w-2xl mx-auto space-y-6">
-          {/* Header */}
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-2xl font-bold">Minha Saúde</h1>
-                <HelpTooltip 
-                  content="Gerencie seus medicamentos e suplementos. Toque em um item para editar." 
-                  iconSize="lg"
-                />
+      <div className="min-h-screen bg-gradient-subtle pt-20 pb-28">
+        <div className="container-fluid space-y-8">
+          {/* Header - Clean */}
+          <div className="pt-2">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="flex items-center gap-2">
+                  <h1 className="heading-page">Minha Saúde</h1>
+                  <HelpTooltip 
+                    content="Gerencie seus medicamentos e suplementos. Toque em um item para editar." 
+                    iconSize="lg"
+                  />
+                </div>
+                <p className="text-sm text-muted-foreground mt-1">
+                  {items.length === 0 
+                    ? "Adicione seu primeiro item" 
+                    : `${items.length} ${items.length === 1 ? 'item' : 'itens'}`
+                  }
+                </p>
               </div>
-              <p className="text-sm text-muted-foreground mt-1">
-                {items.length === 0 
-                  ? "Adicione seu primeiro item" 
-                  : `${items.length} ${items.length === 1 ? 'item' : 'itens'} cadastrados`
-                }
-              </p>
+              <Button onClick={handleAddClick} size="sm">
+                <Plus className="h-4 w-4" />
+                Adicionar
+              </Button>
             </div>
-            <Button onClick={handleAddClick} size="sm" className="gap-1.5">
-              <Plus className="h-4 w-4" />
-              Adicionar
-            </Button>
           </div>
 
-          {/* Busca */}
+          {/* Busca - Clean */}
           {items.length > 0 && (
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input 
                 placeholder="Buscar..." 
                 value={searchTerm} 
                 onChange={e => setSearchTerm(e.target.value)} 
-                className="pl-10 h-10" 
+                className="pl-11 h-11 rounded-xl bg-muted/50 border-0" 
               />
             </div>
           )}
 
-          {/* Empty State */}
+          {/* Empty State - Clean */}
           {items.length === 0 && (
-            <Card className="border-dashed border-2 bg-gradient-to-br from-primary/5 to-transparent">
-              <CardContent className="py-12 text-center">
-                <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                  <Pill className="w-8 h-8 text-primary" />
-                </div>
-                <h3 className="text-lg font-semibold mb-2">Comece agora</h3>
-                <p className="text-muted-foreground mb-6 max-w-sm mx-auto">
-                  Adicione seus medicamentos ou suplementos e o app te lembra nos horários certos
-                </p>
-                <Button onClick={handleAddClick} size="lg">
-                  <Plus className="h-5 w-5 mr-2" />
-                  Adicionar Primeiro Item
-                </Button>
-              </CardContent>
-            </Card>
+            <div className="py-16 text-center">
+              <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-5">
+                <Pill className="w-8 h-8 text-primary" />
+              </div>
+              <h3 className="text-lg font-medium mb-2">Comece agora</h3>
+              <p className="text-muted-foreground text-sm mb-8 max-w-[280px] mx-auto">
+                Adicione seus medicamentos ou suplementos e o app te lembra nos horários certos
+              </p>
+              <Button onClick={handleAddClick} size="lg">
+                <Plus className="h-5 w-5" />
+                Adicionar Primeiro Item
+              </Button>
+            </div>
           )}
 
-          {/* Seções separadas */}
+          {/* Seções - Clean */}
           {items.length > 0 && (
-            <div className="space-y-8">
+            <div className="space-y-10">
               <CategorySection 
                 title="Medicamentos" 
                 icon={Pill} 
@@ -347,7 +344,7 @@ export default function Medications() {
                 icon={Leaf} 
                 items={suplementos}
                 emptyMessage="Nenhum suplemento cadastrado"
-                accentColor="bg-lime-100 text-lime-600 dark:bg-lime-900 dark:text-lime-400"
+                accentColor="bg-performance/10 text-performance"
               />
             </div>
           )}
