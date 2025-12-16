@@ -203,7 +203,7 @@ export default function Cofre() {
   };
   return <div className="min-h-screen bg-background pb-20">
       <Header />
-      <div className="container max-w-6xl mx-auto pt-24 pb-6 space-y-6 px-[24px] py-[95px]">
+      <div className="container max-w-6xl mx-auto pt-20 sm:pt-24 pb-6 space-y-6 px-4 sm:px-6">
         <div className="flex items-start justify-between gap-4">
           <div className="space-y-3">
             <div className="flex items-center gap-2">
