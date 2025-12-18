@@ -29,6 +29,7 @@ import TutorialHint from "@/components/TutorialHint";
 import HelpTooltip from "@/components/HelpTooltip";
 import { microcopy } from "@/lib/microcopy";
 import ClaraSuggestions from "@/components/ClaraSuggestions";
+import TodayWeightWidget from "@/components/TodayWeightWidget";
 
 interface DoseItem {
   id: string;
@@ -338,6 +339,9 @@ export default function Today() {
               />
             </div>
           )}
+
+          {/* Weight Widget - Only for GLP-1/Bariatric users */}
+          <TodayWeightWidget profileId={activeProfile?.id} />
 
           {/* Tutorial for new users */}
           <TutorialHint
