@@ -152,7 +152,7 @@ function createReportPDF(data: MonthlyReportData): Blob {
   yPosition += 7;
   doc.text(`Doses perdidas: ${data.missedDoses}`, 20, yPosition);
   yPosition += 7;
-  doc.text(`Taxa de adesão: ${data.adherenceRate.toFixed(1)}%`, 20, yPosition);
+  doc.text(`Progresso: ${data.adherenceRate.toFixed(1)}%`, 20, yPosition);
   yPosition += 7;
   doc.text(`Pontualidade: ${data.punctualityRate.toFixed(1)}%`, 20, yPosition);
   yPosition += 15;

@@ -152,7 +152,7 @@ export default function HealthAnalysis() {
         {adherenceRate !== null && (
           <Alert>
             <CheckCircle2 className="h-4 w-4" />
-            <AlertTitle>Taxa de Adesão</AlertTitle>
+            <AlertTitle>Seu Progresso</AlertTitle>
             <AlertDescription>
               Nos últimos 30 dias: <strong>{adherenceRate.toFixed(1)}%</strong>
             </AlertDescription>
@@ -215,7 +215,7 @@ export default function HealthAnalysis() {
                         <p>Horário: {insight.metadata.hour}h</p>
                       )}
                       {insight.metadata.adherence_rate !== undefined && (
-                        <p>Taxa de adesão: {(insight.metadata.adherence_rate * 100).toFixed(1)}%</p>
+                        <p>Progresso: {(insight.metadata.adherence_rate * 100).toFixed(1)}%</p>
                       )}
                     </div>
                   </CardContent>

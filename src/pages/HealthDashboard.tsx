@@ -536,7 +536,7 @@ export default function HealthDashboard() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-2xl font-bold">{stats.taxaAdesao}%</p>
-                    <p className="text-xs text-muted-foreground truncate">Taxa de Adesão (30d)</p>
+                    <p className="text-xs text-muted-foreground truncate">Progresso (30d)</p>
                   </div>
                 </div>
               </CardContent>
@@ -583,10 +583,10 @@ export default function HealthDashboard() {
                   <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
                   <div className="flex-1">
                     <h3 className="font-semibold text-red-900 dark:text-red-100 mb-1">
-                      Atenção: Taxa de Adesão Baixa
+                      Atenção: Progresso Baixo
                     </h3>
                     <p className="text-sm text-red-700 dark:text-red-200 mb-3">
-                      Sua taxa de adesão está em {stats.taxaAdesao}%. Manter a regularidade é essencial para o tratamento.
+                      Seu progresso está em {stats.taxaAdesao}%. Manter a regularidade é essencial para o tratamento.
                     </p>
                     <Button size="sm" variant="destructive" onClick={() => navigate('/hoje')}>
                       <CheckCircle2 className="h-4 w-4 mr-1.5" />
@@ -637,7 +637,7 @@ export default function HealthDashboard() {
                   {/* Taxa de Adesão */}
                   <div className="bg-background rounded-lg p-4 space-y-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium text-muted-foreground">Taxa de Adesão</span>
+                      <span className="text-sm font-medium text-muted-foreground">Progresso</span>
                       {periodComparison.tendencias.adesao === 'up' && (
                         <Badge variant="default" className="bg-green-500">
                           <TrendingUp className="h-3 w-3 mr-1" />
@@ -789,7 +789,7 @@ export default function HealthDashboard() {
                       fillOpacity={0.2}
                       stroke="hsl(var(--primary))"
                       strokeWidth={2}
-                      name="Taxa de Adesão (%)"
+                      name="Progresso (%)"
                     />
                     <Bar
                       yAxisId="right"

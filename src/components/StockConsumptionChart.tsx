@@ -36,7 +36,7 @@ export function StockConsumptionChart({
         {/* Adherence Overview */}
         <div className="space-y-2">
           <div className="flex items-center justify-between text-sm">
-            <span className="text-subtitle">Taxa de adesão</span>
+            <span className="text-subtitle">Seu progresso</span>
             <span className={`font-semibold ${
               adherence >= 80 ? 'text-success' :
               adherence >= 60 ? 'text-warning' :
