@@ -16,6 +16,7 @@ import { motion } from "framer-motion";
 import TutorialHint from "@/components/TutorialHint";
 import HelpTooltip from "@/components/HelpTooltip";
 import WeightBMICard from "@/components/WeightBMICard";
+import WeightInsightsCard from "@/components/WeightInsightsCard";
 import FitnessProgressWidgets from "@/components/fitness/FitnessProgressWidgets";
 import { useFitnessPreferences } from "@/hooks/useFitnessPreferences";
 import { microcopy } from "@/lib/microcopy";
@@ -180,11 +181,14 @@ export default function Progress() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.05 }}
+            className="space-y-4"
           >
             <WeightBMICard 
               userId={user.id}
               profileId={currentProfile?.id}
             />
+            {/* Weight Insights - GLP-1/Bariatric correlation */}
+            <WeightInsightsCard profileId={currentProfile?.id} />
           </motion.div>
         )}
 
