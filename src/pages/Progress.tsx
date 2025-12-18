@@ -433,7 +433,11 @@ export default function Progress() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.55 }}
           >
-            <FitnessProgressWidgets />
+            <FitnessProgressWidgets 
+              supplementAdherence7Days={doseStats?.adherence || 0}
+              consistencyRate={doseStats?.onTimeRate || 0}
+              hasPreWorkoutSupplements={hasSupplements}
+            />
           </motion.div>
         )}
       </main>

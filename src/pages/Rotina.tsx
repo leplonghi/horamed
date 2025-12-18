@@ -185,7 +185,7 @@ export default function Rotina() {
                   {CATEGORY_ICONS[item.category]} {CATEGORY_LABELS[item.category]}
                 </span>
                 {supplementTags.map((tag, idx) => (
-                  <SupplementTag key={idx} category={tag} />
+                  <SupplementTag key={idx} type={tag as any} />
                 ))}
               </div>
               {item.dose_text && (
@@ -419,12 +419,22 @@ export default function Rotina() {
         </div>
       </div>
 
-      {/* OCR Modal */}
+      {/* OCR Section */}
       {showOCR && (
-        <MedicationOCRWrapper 
-          isOpen={showOCR}
-          onClose={() => setShowOCR(false)} 
-        />
+        <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-card rounded-2xl p-6 max-w-lg w-full space-y-4" style={{ boxShadow: 'var(--shadow-xl)' }}>
+            <div className="flex justify-between items-center">
+              <h3 className="text-lg font-semibold">Escanear Receita</h3>
+              <Button variant="ghost" size="icon" onClick={() => setShowOCR(false)}>✕</Button>
+            </div>
+            <MedicationOCRWrapper 
+              onResult={(result) => {
+                setShowOCR(false);
+                setWizardOpen(true);
+              }} 
+            />
+          </div>
+        </div>
       )}
 
       {/* Medication Wizard */}
