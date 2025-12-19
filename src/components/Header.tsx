@@ -1,14 +1,17 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { User } from "lucide-react";
+import { User, Search } from "lucide-react";
 import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 import SubscriptionBadge from "./SubscriptionBadge";
 import { ThemeToggle } from "./ThemeToggle";
 import ProfileSelector from "./ProfileSelector";
+import SpotlightSearch from "./SpotlightSearch";
 import logo from "@/assets/horamed-logo-optimized.webp";
 import { useUserProfiles } from "@/hooks/useUserProfiles";
 import { useAuth } from "@/contexts/AuthContext";
+
 export default function Header() {
   const {
     user
@@ -16,10 +19,23 @@ export default function Header() {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [userEmail, setUserEmail] = useState<string>("");
   const [userName, setUserName] = useState<string | null>(null);
+  const [spotlightOpen, setSpotlightOpen] = useState(false);
   const {
     profiles,
     activeProfile
   } = useUserProfiles();
+
+  // Keyboard shortcut for Spotlight (Cmd/Ctrl + K)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        setSpotlightOpen(true);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
   useEffect(() => {
     if (user) {
       loadUserData();
@@ -61,7 +77,18 @@ export default function Header() {
 
           <div style={{
           animationDelay: '100ms'
-        }} className="gap-1 md:gap-2 animate-fade-in flex items-end justify-center">
+        }} className="gap-1 md:gap-2 animate-fade-in flex items-center justify-center">
+            {/* Spotlight Search Button */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setSpotlightOpen(true)}
+              className="h-9 w-9 text-muted-foreground hover:text-foreground"
+              title="Buscar (Ctrl+K)"
+            >
+              <Search className="h-5 w-5" />
+            </Button>
+
             <ProfileSelector />
             
             <ThemeToggle />
@@ -86,5 +113,8 @@ export default function Header() {
           </div>
         </div>
       </div>
+
+      {/* Spotlight Search Modal */}
+      <SpotlightSearch open={spotlightOpen} onOpenChange={setSpotlightOpen} />
     </header>;
 }

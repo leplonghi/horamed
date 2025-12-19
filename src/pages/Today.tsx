@@ -24,7 +24,8 @@ import { useUserProfiles } from "@/hooks/useUserProfiles";
 import { useSmartRedirect } from "@/hooks/useSmartRedirect";
 import { SideEffectQuickLog } from "@/components/SideEffectQuickLog";
 import { Check, Clock, AlertTriangle, Pill, Plus, Flame, X, Utensils } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useMotionValue, useTransform } from "framer-motion";
+import { useHapticFeedback } from "@/hooks/useHapticFeedback";
 import TutorialHint from "@/components/TutorialHint";
 import HelpTooltip from "@/components/HelpTooltip";
 import { microcopy } from "@/lib/microcopy";
@@ -519,7 +520,7 @@ export default function Today() {
   );
 }
 
-// Modern Dose Card - Clean Design
+// Modern Swipeable Dose Card - Clean Design
 interface DoseCardProps {
   dose: DoseItem;
   onTake: () => void;
@@ -531,25 +532,108 @@ interface DoseCardProps {
 
 function DoseCard({ dose, onTake, onSkip, isOverdue, isTaking, delay = 0 }: DoseCardProps) {
   const time = format(new Date(dose.due_at), "HH:mm");
+  const { triggerSuccess, triggerWarning, triggerLight } = useHapticFeedback();
+  const [isExiting, setIsExiting] = useState(false);
+  const [exitDirection, setExitDirection] = useState<"left" | "right" | null>(null);
+  
+  const x = useMotionValue(0);
+  const SWIPE_THRESHOLD = 100;
+  
+  // Transform x motion into background colors and opacity
+  const rightBackground = useTransform(x, [0, SWIPE_THRESHOLD], ["rgba(34, 197, 94, 0)", "rgba(34, 197, 94, 0.15)"]);
+  const leftBackground = useTransform(x, [-SWIPE_THRESHOLD, 0], ["rgba(239, 68, 68, 0.15)", "rgba(239, 68, 68, 0)"]);
+  const rightIconOpacity = useTransform(x, [0, SWIPE_THRESHOLD / 2], [0, 1]);
+  const leftIconOpacity = useTransform(x, [-SWIPE_THRESHOLD / 2, 0], [1, 0]);
+  const rightIconScale = useTransform(x, [0, SWIPE_THRESHOLD], [0.5, 1.2]);
+  const leftIconScale = useTransform(x, [-SWIPE_THRESHOLD, 0], [1.2, 0.5]);
+
+  const handleDragEnd = (_: any, info: any) => {
+    const offsetX = info.offset.x;
+    
+    if (offsetX > SWIPE_THRESHOLD) {
+      triggerSuccess();
+      setExitDirection("right");
+      setIsExiting(true);
+      setTimeout(() => onTake(), 200);
+    } else if (offsetX < -SWIPE_THRESHOLD) {
+      triggerWarning();
+      setExitDirection("left");
+      setIsExiting(true);
+      setTimeout(() => onSkip(), 200);
+    }
+  };
+
+  const handleDrag = (_: any, info: any) => {
+    if (Math.abs(info.offset.x) > SWIPE_THRESHOLD - 10 && Math.abs(info.offset.x) < SWIPE_THRESHOLD + 10) {
+      triggerLight();
+    }
+  };
   
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
+      animate={{ 
+        opacity: isExiting ? 0 : 1, 
+        y: 0,
+        x: isExiting ? (exitDirection === "right" ? 300 : -300) : 0,
+        scale: isExiting ? 0.8 : 1
+      }}
       exit={{ opacity: 0, scale: 0.95 }}
-      transition={{ delay, duration: 0.3 }}
+      transition={{ delay: isExiting ? 0 : delay, duration: 0.3 }}
       layout
-      className="group"
+      className="group relative"
     >
-      <div className={`
-        relative rounded-2xl p-4 backdrop-blur-sm transition-all duration-300
-        ${isOverdue 
-          ? 'bg-destructive/5 ring-1 ring-destructive/20' 
-          : 'bg-card/80'
-        }
-        shadow-[var(--shadow-sm)] hover:shadow-[var(--shadow-md)]
-        group-hover:-translate-y-0.5
-      `}>
+      {/* Background indicators */}
+      <div className="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none">
+        <motion.div 
+          className="absolute inset-0 flex items-center pl-4"
+          style={{ backgroundColor: rightBackground }}
+        >
+          <motion.div 
+            style={{ opacity: rightIconOpacity, scale: rightIconScale }}
+            className="flex items-center gap-2 text-success"
+          >
+            <div className="w-10 h-10 rounded-full bg-success/20 flex items-center justify-center">
+              <Check className="w-6 h-6" />
+            </div>
+            <span className="font-medium text-sm">Tomar</span>
+          </motion.div>
+        </motion.div>
+        
+        <motion.div 
+          className="absolute inset-0 flex items-center justify-end pr-4"
+          style={{ backgroundColor: leftBackground }}
+        >
+          <motion.div 
+            style={{ opacity: leftIconOpacity, scale: leftIconScale }}
+            className="flex items-center gap-2 text-destructive"
+          >
+            <span className="font-medium text-sm">Pular</span>
+            <div className="w-10 h-10 rounded-full bg-destructive/20 flex items-center justify-center">
+              <X className="w-6 h-6" />
+            </div>
+          </motion.div>
+        </motion.div>
+      </div>
+
+      {/* Main card content - draggable */}
+      <motion.div
+        drag="x"
+        dragConstraints={{ left: 0, right: 0 }}
+        dragElastic={0.7}
+        onDrag={handleDrag}
+        onDragEnd={handleDragEnd}
+        style={{ x }}
+        whileTap={{ cursor: "grabbing" }}
+        className={`
+          relative rounded-2xl p-4 backdrop-blur-sm transition-colors duration-300
+          shadow-[var(--shadow-sm)] touch-pan-y select-none
+          ${isOverdue 
+            ? 'bg-destructive/5 ring-1 ring-destructive/20' 
+            : 'bg-card'
+          }
+        `}
+      >
         <div className="flex items-center gap-4">
           {/* Time */}
           <div className={`
@@ -578,12 +662,13 @@ function DoseCard({ dose, onTake, onSkip, isOverdue, isTaking, delay = 0 }: Dose
             </div>
           </div>
 
-          {/* Actions */}
+          {/* Actions - fallback for accessibility */}
           <div className="flex items-center gap-2">
             <motion.button
               whileTap={{ scale: 0.92 }}
               onClick={onSkip}
               className="p-2 rounded-xl text-muted-foreground hover:bg-muted/50 transition-colors"
+              aria-label="Pular dose"
             >
               <X className="w-5 h-5" />
             </motion.button>
@@ -596,12 +681,11 @@ function DoseCard({ dose, onTake, onSkip, isOverdue, isTaking, delay = 0 }: Dose
               className={`
                 w-12 h-12 rounded-xl flex items-center justify-center
                 font-medium text-white transition-all duration-300
-                ${isOverdue 
-                  ? 'bg-destructive shadow-[var(--shadow-sm)] hover:shadow-[var(--shadow-md)]' 
-                  : 'bg-success shadow-[var(--shadow-sm)] hover:shadow-[var(--shadow-md)]'
-                }
+                shadow-[var(--shadow-sm)] hover:shadow-[var(--shadow-md)]
+                ${isOverdue ? 'bg-destructive' : 'bg-success'}
                 ${isTaking ? 'opacity-60' : ''}
               `}
+              aria-label="Marcar como tomado"
             >
               {isTaking ? (
                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -611,7 +695,12 @@ function DoseCard({ dose, onTake, onSkip, isOverdue, isTaking, delay = 0 }: Dose
             </motion.button>
           </div>
         </div>
-      </div>
+
+        {/* Swipe hint */}
+        <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
+          <span className="text-[10px] text-muted-foreground/50">← deslize →</span>
+        </div>
+      </motion.div>
     </motion.div>
   );
 }
