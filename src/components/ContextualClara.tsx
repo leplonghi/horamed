@@ -28,49 +28,49 @@ const contextConfig: Record<PageContext, { message: string; actions: QuickAction
     message: "Como posso ajudar com suas doses de hoje?",
     actions: [
       { id: "add-dose", label: "Nova dose", icon: Plus, route: "/adicionar-medicamento", color: "text-primary bg-primary/10" },
-      { id: "view-stock", label: "Ver estoque", icon: Package, route: "/estoque", color: "text-amber-500 bg-amber-500/10" },
+      { id: "view-stock", label: "Ver estoque", icon: Package, route: "/medicamentos?tab=estoque", color: "text-amber-500 bg-amber-500/10" },
     ],
   },
   medications: {
-    message: "Gerenciando seus medicamentos. Precisa de algo?",
+    message: "Sua rotina de saúde organizada. Precisa de algo?",
     actions: [
-      { id: "add-med", label: "Adicionar", icon: Plus, route: "/adicionar-medicamento", color: "text-primary bg-primary/10" },
-      { id: "scan-prescription", label: "Escanear receita", icon: Upload, route: "/cofre/upload", color: "text-blue-500 bg-blue-500/10" },
+      { id: "add-med", label: "Novo medicamento", icon: Plus, route: "/adicionar-medicamento", color: "text-primary bg-primary/10" },
+      { id: "scan-prescription", label: "Escanear receita", icon: Upload, route: "/carteira/upload", color: "text-blue-500 bg-blue-500/10" },
     ],
   },
   stock: {
-    message: "Vejo seu estoque aqui. Posso ajudar a repor algo?",
+    message: "Controle de estoque inteligente. Algo está baixo?",
     actions: [
-      { id: "add-stock", label: "Repor estoque", icon: Plus, route: "/estoque", color: "text-primary bg-primary/10" },
-      { id: "view-meds", label: "Ver medicamentos", icon: Pill, route: "/medicamentos", color: "text-purple-500 bg-purple-500/10" },
+      { id: "view-rotina", label: "Ver rotina", icon: Pill, route: "/medicamentos?tab=rotina", color: "text-primary bg-primary/10" },
+      { id: "add-med", label: "Adicionar item", icon: Plus, route: "/adicionar-medicamento", color: "text-green-500 bg-green-500/10" },
     ],
   },
   cofre: {
-    message: "Seu cofre de documentos. O que deseja guardar?",
+    message: "Sua carteira de saúde digital. O que deseja guardar?",
     actions: [
-      { id: "upload-doc", label: "Enviar documento", icon: Upload, route: "/cofre/upload", color: "text-primary bg-primary/10" },
-      { id: "scan-exam", label: "Escanear exame", icon: Plus, route: "/cofre/manual", color: "text-green-500 bg-green-500/10" },
+      { id: "upload-doc", label: "Enviar documento", icon: Upload, route: "/carteira/upload", color: "text-primary bg-primary/10" },
+      { id: "manual-doc", label: "Cadastrar manual", icon: Plus, route: "/carteira/criar-manual", color: "text-green-500 bg-green-500/10" },
     ],
   },
   progress: {
     message: "Acompanhando seu progresso. Quer ver mais detalhes?",
     actions: [
       { id: "view-calendar", label: "Ver calendário", icon: Calendar, route: "/agenda", color: "text-primary bg-primary/10" },
-      { id: "view-analytics", label: "Análises", icon: TrendingUp, route: "/saude-dashboard", color: "text-blue-500 bg-blue-500/10" },
+      { id: "view-analytics", label: "Análises", icon: TrendingUp, route: "/dashboard-saude", color: "text-blue-500 bg-blue-500/10" },
     ],
   },
   calendar: {
     message: "Sua agenda de saúde. Posso ajudar a planejar?",
     actions: [
-      { id: "add-appointment", label: "Nova consulta", icon: Plus, route: "/cofre/manual", color: "text-primary bg-primary/10" },
+      { id: "add-appointment", label: "Nova consulta", icon: Plus, route: "/carteira/criar-manual", color: "text-primary bg-primary/10" },
       { id: "view-today", label: "Ver hoje", icon: Calendar, route: "/hoje", color: "text-amber-500 bg-amber-500/10" },
     ],
   },
   health: {
     message: "Análise de saúde disponível. O que quer explorar?",
     actions: [
-      { id: "view-insights", label: "Ver insights", icon: Sparkles, route: "/saude-dashboard", color: "text-primary bg-primary/10" },
-      { id: "add-weight", label: "Registrar peso", icon: TrendingUp, route: "/peso", color: "text-green-500 bg-green-500/10" },
+      { id: "view-insights", label: "Ver insights", icon: Sparkles, route: "/dashboard-saude", color: "text-primary bg-primary/10" },
+      { id: "add-weight", label: "Registrar peso", icon: TrendingUp, route: "/peso/historico", color: "text-green-500 bg-green-500/10" },
     ],
   },
   default: {

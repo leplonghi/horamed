@@ -13,6 +13,7 @@ import Index from "./pages/Index";
 import SplashScreen from "./components/SplashScreen";
 import TodayRedesign from "./pages/TodayRedesign";
 import Medications from "./pages/Medications";
+import MedicamentosHub from "./pages/MedicamentosHub";
 import Saude from "./pages/Saude";
 import Agenda from "./pages/Agenda";
 import History from "./pages/History";
@@ -98,22 +99,22 @@ function AppContent() {
         
         {/* Main navigation routes - HoraMed 2.0 */}
         <Route path="/hoje" element={<ProtectedRoute><TodayRedesign /></ProtectedRoute>} />
-        <Route path="/rotina" element={<ProtectedRoute><Medications /></ProtectedRoute>} />
+        <Route path="/rotina" element={<ProtectedRoute><MedicamentosHub /></ProtectedRoute>} />
         <Route path="/progresso" element={<ProtectedRoute><Progress /></ProtectedRoute>} />
         <Route path="/conquistas" element={<ProtectedRoute><Achievements /></ProtectedRoute>} />
         <Route path="/carteira" element={<ProtectedRoute><Cofre /></ProtectedRoute>} />
         <Route path="/perfil" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
         
-        {/* Legacy routes */}
-        <Route path="/medicamentos" element={<ProtectedRoute><Medications /></ProtectedRoute>} />
-        <Route path="/saude" element={<ProtectedRoute><Saude /></ProtectedRoute>} />
+        {/* Super Página de Saúde - Hub unificado */}
+        <Route path="/medicamentos" element={<ProtectedRoute><MedicamentosHub /></ProtectedRoute>} />
+        <Route path="/saude" element={<ProtectedRoute><MedicamentosHub /></ProtectedRoute>} />
         
         {/* Medicamentos subroutes */}
         <Route path="/adicionar" element={<ProtectedRoute><AddItemRedirect /></ProtectedRoute>} />
         <Route path="/adicionar-medicamento" element={<ProtectedRoute><AddMedicationWizard /></ProtectedRoute>} />
         <Route path="/add" element={<ProtectedRoute><AddItemRedirect /></ProtectedRoute>} />
         <Route path="/edit/:id" element={<ProtectedRoute><AddItem /></ProtectedRoute>} />
-        <Route path="/estoque" element={<ProtectedRoute><StockManagement /></ProtectedRoute>} />
+        <Route path="/estoque" element={<ProtectedRoute><MedicamentosHub /></ProtectedRoute>} />
         <Route path="/estoque/:itemId" element={<ProtectedRoute><StockDetails /></ProtectedRoute>} />
         <Route path="/historico-medicamentos" element={<ProtectedRoute><MedicationHistory /></ProtectedRoute>} />
         <Route path="/medicamentos/:id/historico" element={<ProtectedRoute><MedicationHistory /></ProtectedRoute>} />
