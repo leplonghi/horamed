@@ -20,6 +20,7 @@ import TutorialHint from "@/components/TutorialHint";
 import HelpTooltip from "@/components/HelpTooltip";
 import { microcopy } from "@/lib/microcopy";
 import { motion } from "framer-motion";
+import ContextualClara from "@/components/ContextualClara";
 
 export default function Cofre() {
   const [categoriaAtiva, setCategoriaAtiva] = useState("todos");
@@ -193,6 +194,9 @@ export default function Cofre() {
             Adicionar documento
           </Button>
         </div>
+
+        {/* Clara Contextual */}
+        <ContextualClara context="cofre" />
 
         {/* Explicação didática */}
         <motion.div
