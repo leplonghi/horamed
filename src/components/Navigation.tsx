@@ -5,18 +5,20 @@ import { Badge } from "@/components/ui/badge";
 import { useDocumentos } from "@/hooks/useCofre";
 import { useHapticFeedback } from "@/hooks/useHapticFeedback";
 import { motion } from "framer-motion";
+import { useTranslation } from "@/contexts/LanguageContext";
 
 export default function Navigation() {
   const location = useLocation();
   const { triggerLight } = useHapticFeedback();
   const { data: docsExpirando } = useDocumentos({ exp: "30" });
+  const { t } = useTranslation();
   const expiringCount = docsExpirando?.length || 0;
 
   const navItems = [
-    { path: "/hoje", icon: Home, label: "Hoje" },
-    { path: "/medicamentos", icon: Pill, label: "Saúde" },
-    { path: "/carteira", icon: FileText, label: "Carteira", badge: expiringCount > 0 ? expiringCount : undefined },
-    { path: "/perfil", icon: User, label: "Perfil" },
+    { path: "/hoje", icon: Home, labelKey: "nav.today" },
+    { path: "/medicamentos", icon: Pill, labelKey: "nav.routine" },
+    { path: "/carteira", icon: FileText, labelKey: "nav.wallet", badge: expiringCount > 0 ? expiringCount : undefined },
+    { path: "/perfil", icon: User, labelKey: "nav.profile" },
   ];
 
   return (
@@ -65,7 +67,7 @@ export default function Navigation() {
                 <span className={cn(
                   "text-[10px] relative z-10 transition-all duration-300",
                   isActive && "font-bold"
-                )}>{item.label}</span>
+                )}>{t(item.labelKey)}</span>
               </Link>
             );
           })}

@@ -33,6 +33,7 @@ import { StockOriginBadge } from "@/components/StockOriginBadge";
 import { StockConsumptionChart } from "@/components/StockConsumptionChart";
 import HelpTooltip from "@/components/HelpTooltip";
 import { microcopy } from "@/lib/microcopy";
+import { useTranslation } from "@/contexts/LanguageContext";
 import {
   Dialog,
   DialogContent,
@@ -83,6 +84,7 @@ export default function MedicamentosHub() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const activeSection = searchParams.get("tab") || "rotina";
+  const { t } = useTranslation();
   
   // Rotina state
   const [items, setItems] = useState<Item[]>([]);
@@ -374,7 +376,7 @@ export default function MedicamentosHub() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <h2 className="text-2xl font-bold text-foreground">
-                Minha Saúde
+                {t('meds.title')}
               </h2>
               <HelpTooltip 
                 content="Gerencie medicamentos, vitaminas, suplementos e controle seu estoque tudo em um só lugar." 
@@ -423,21 +425,21 @@ export default function MedicamentosHub() {
                 className="rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground flex items-center gap-2 transition-all"
               >
                 <Pill className="h-4 w-4" />
-                <span className="hidden sm:inline">Rotina</span>
+                <span className="hidden sm:inline">{t('meds.routine')}</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="estoque" 
                 className="rounded-xl flex items-center gap-2 transition-all"
               >
                 <Package className="h-4 w-4" />
-                <span className="hidden sm:inline">Estoque</span>
+                <span className="hidden sm:inline">{t('meds.stock')}</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="historico" 
                 className="rounded-xl flex items-center gap-2 transition-all"
               >
                 <History className="h-4 w-4" />
-                <span className="hidden sm:inline">Histórico</span>
+                <span className="hidden sm:inline">{t('meds.history')}</span>
               </TabsTrigger>
             </TabsList>
 
@@ -479,7 +481,7 @@ export default function MedicamentosHub() {
               <div className="relative">
                 <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Buscar medicamentos..."
+                  placeholder={t('common.search') + "..."}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-11 rounded-full border-2 focus:border-primary transition-all h-12"

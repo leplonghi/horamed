@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { ThemeProvider } from "next-themes";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { LanguageProvider } from "@/contexts/LanguageContext";
 import { HelmetProvider } from "react-helmet-async";
 import { lazy, useState, useEffect } from "react";
 import { isLandingDomain } from "@/lib/domainConfig";
@@ -240,18 +241,20 @@ const App = () => {
       <HelmetProvider>
         <QueryClientProvider client={queryClient}>
           <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
-            <TooltipProvider>
-              <ProfileCacheProvider>
-                <SubscriptionProvider>
-                  <BrowserRouter>
-                    <AuthProvider>
-                      {showSplash && <SplashScreen onComplete={handleSplashComplete} />}
-                      <AppContent />
-                    </AuthProvider>
-                  </BrowserRouter>
-                </SubscriptionProvider>
-              </ProfileCacheProvider>
-            </TooltipProvider>
+            <LanguageProvider>
+              <TooltipProvider>
+                <ProfileCacheProvider>
+                  <SubscriptionProvider>
+                    <BrowserRouter>
+                      <AuthProvider>
+                        {showSplash && <SplashScreen onComplete={handleSplashComplete} />}
+                        <AppContent />
+                      </AuthProvider>
+                    </BrowserRouter>
+                  </SubscriptionProvider>
+                </ProfileCacheProvider>
+              </TooltipProvider>
+            </LanguageProvider>
           </ThemeProvider>
         </QueryClientProvider>
       </HelmetProvider>
