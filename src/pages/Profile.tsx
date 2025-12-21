@@ -24,6 +24,8 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useFitnessPreferences } from "@/hooks/useFitnessPreferences";
 import { motion } from "framer-motion";
+import { LanguageSwitch } from "@/components/LanguageToggle";
+import { useTranslation } from "@/contexts/LanguageContext";
 
 export default function Profile() {
   const navigate = useNavigate();
@@ -513,6 +515,14 @@ export default function Profile() {
 
           {/* Settings Tab */}
           <TabsContent value="settings" className="space-y-4 mt-6">
+            {/* Language Toggle */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
+              <LanguageSwitch />
+            </motion.div>
+
             {[
               { icon: Bell, label: 'Notificações', desc: 'Configure alertas e lembretes', path: '/notificacoes/configurar' },
               { icon: Smartphone, label: 'Alarmes', desc: 'Sons e vibração', path: '/alarmes' },
@@ -526,7 +536,7 @@ export default function Profile() {
                 key={item.path}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.05 }}
+                transition={{ delay: (index + 1) * 0.05 }}
                 className="rounded-2xl bg-card/80 backdrop-blur-sm p-4 cursor-pointer group hover-lift"
                 style={{ boxShadow: 'var(--shadow-sm)' }}
                 onClick={() => navigate(item.path)}
