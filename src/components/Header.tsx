@@ -8,6 +8,7 @@ import SubscriptionBadge from "./SubscriptionBadge";
 import { ThemeToggle } from "./ThemeToggle";
 import ProfileSelector from "./ProfileSelector";
 import SpotlightSearch from "./SpotlightSearch";
+import { RewardsHeaderButton } from "./RewardsHeaderButton";
 import logo from "@/assets/horamed-logo-optimized.webp";
 import { useUserProfiles } from "@/hooks/useUserProfiles";
 import { useAuth } from "@/contexts/AuthContext";
@@ -73,6 +74,7 @@ export default function Header() {
           <div className="flex items-center gap-3 animate-fade-in">
             <img src={logo} alt="HoraMed" width={60} height={56} className="h-14 w-auto hover:scale-105 transition-transform duration-300" loading="eager" fetchPriority="high" />
             <SubscriptionBadge />
+            <RewardsHeaderButton />
           </div>
 
           <div style={{

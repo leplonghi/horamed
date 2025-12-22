@@ -1291,12 +1291,17 @@ export type Database = {
         Row: {
           avatar_url: string | null
           birth_date: string | null
+          cpf: string | null
+          cpf_verified: boolean | null
           created_at: string | null
+          device_fingerprint: string | null
+          email_verified: boolean | null
           full_name: string | null
           height_cm: number | null
           id: string
           nickname: string | null
           onboarding_completed: boolean | null
+          onboarding_completed_at: string | null
           referral_code: string | null
           tutorial_flags: Json | null
           updated_at: string | null
@@ -1306,12 +1311,17 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           birth_date?: string | null
+          cpf?: string | null
+          cpf_verified?: boolean | null
           created_at?: string | null
+          device_fingerprint?: string | null
+          email_verified?: boolean | null
           full_name?: string | null
           height_cm?: number | null
           id?: string
           nickname?: string | null
           onboarding_completed?: boolean | null
+          onboarding_completed_at?: string | null
           referral_code?: string | null
           tutorial_flags?: Json | null
           updated_at?: string | null
@@ -1321,17 +1331,141 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           birth_date?: string | null
+          cpf?: string | null
+          cpf_verified?: boolean | null
           created_at?: string | null
+          device_fingerprint?: string | null
+          email_verified?: boolean | null
           full_name?: string | null
           height_cm?: number | null
           id?: string
           nickname?: string | null
           onboarding_completed?: boolean | null
+          onboarding_completed_at?: string | null
           referral_code?: string | null
           tutorial_flags?: Json | null
           updated_at?: string | null
           user_id?: string
           weight_kg?: number | null
+        }
+        Relationships: []
+      }
+      referral_discounts: {
+        Row: {
+          created_at: string | null
+          cycles_used: number | null
+          discount_percent: number
+          id: string
+          max_cycles: number | null
+          stripe_coupon_id: string | null
+          updated_at: string | null
+          user_id: string
+          valid_until: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          cycles_used?: number | null
+          discount_percent?: number
+          id?: string
+          max_cycles?: number | null
+          stripe_coupon_id?: string | null
+          updated_at?: string | null
+          user_id: string
+          valid_until?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          cycles_used?: number | null
+          discount_percent?: number
+          id?: string
+          max_cycles?: number | null
+          stripe_coupon_id?: string | null
+          updated_at?: string | null
+          user_id?: string
+          valid_until?: string | null
+        }
+        Relationships: []
+      }
+      referral_fraud_logs: {
+        Row: {
+          action_taken: string | null
+          created_at: string | null
+          details: Json | null
+          device_fingerprint: string | null
+          fraud_type: string
+          id: string
+          ip_address: unknown
+          referral_id: string | null
+          referrer_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action_taken?: string | null
+          created_at?: string | null
+          details?: Json | null
+          device_fingerprint?: string | null
+          fraud_type: string
+          id?: string
+          ip_address?: unknown
+          referral_id?: string | null
+          referrer_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action_taken?: string | null
+          created_at?: string | null
+          details?: Json | null
+          device_fingerprint?: string | null
+          fraud_type?: string
+          id?: string
+          ip_address?: unknown
+          referral_id?: string | null
+          referrer_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referral_fraud_logs_referral_id_fkey"
+            columns: ["referral_id"]
+            isOneToOne: false
+            referencedRelation: "referrals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      referral_goals: {
+        Row: {
+          completed_at: string | null
+          created_at: string | null
+          current_count: number | null
+          goal_type: string
+          id: string
+          reward_granted: boolean | null
+          target_count: number
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string | null
+          current_count?: number | null
+          goal_type: string
+          id?: string
+          reward_granted?: boolean | null
+          target_count: number
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string | null
+          current_count?: number | null
+          goal_type?: string
+          id?: string
+          reward_granted?: boolean | null
+          target_count?: number
+          updated_at?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -1974,7 +2108,23 @@ export type Database = {
         Args: { p_stock_id: string }
         Returns: string
       }
+      check_and_grant_referral_goals: {
+        Args: { p_user_id: string }
+        Returns: undefined
+      }
+      check_device_duplicate: {
+        Args: { p_fingerprint: string; p_user_id: string }
+        Returns: boolean
+      }
+      complete_referral_onboarding: {
+        Args: { p_user_id: string }
+        Returns: Json
+      }
       generate_referral_code: { Args: never; Returns: string }
+      get_user_referral_discount: {
+        Args: { p_user_id: string }
+        Returns: number
+      }
       has_consent: {
         Args: {
           p_purpose: Database["public"]["Enums"]["consent_purpose"]
@@ -1983,6 +2133,23 @@ export type Database = {
         Returns: boolean
       }
       is_on_trial: { Args: { p_user_id: string }; Returns: boolean }
+      process_referral_subscription: {
+        Args: {
+          p_plan_type: string
+          p_referred_user_id: string
+          p_subscription_days?: number
+        }
+        Returns: Json
+      }
+      validate_referral_signup: {
+        Args: {
+          p_device_fingerprint: string
+          p_ip_address: unknown
+          p_referral_code: string
+          p_referred_user_id: string
+        }
+        Returns: Json
+      }
     }
     Enums: {
       caregiver_role: "viewer" | "helper"
