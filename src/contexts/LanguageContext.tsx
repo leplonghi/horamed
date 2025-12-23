@@ -19,6 +19,9 @@ const translations: Record<Language, Record<string, string>> = {
     'nav.progress': 'Progresso',
     'nav.wallet': 'Carteira',
     'nav.profile': 'Perfil',
+    'nav.medications': 'Medicamentos',
+    'nav.health': 'Saúde',
+    'nav.more': 'Mais',
     
     // Common
     'common.save': 'Salvar',
@@ -59,6 +62,8 @@ const translations: Record<Language, Record<string, string>> = {
     'common.logout': 'Sair',
     'common.login': 'Entrar',
     'common.signup': 'Cadastrar',
+    'common.copy': 'Copiar',
+    'common.copied': 'Copiado!',
     
     // Today page
     'today.title': 'Hoje',
@@ -203,6 +208,38 @@ const translations: Record<Language, Record<string, string>> = {
     'onboarding.step3': 'Receba lembretes',
     'onboarding.start': 'Começar',
     'onboarding.skip': 'Pular introdução',
+    
+    // Rewards / Referrals
+    'rewards.title': 'Recompensas & Indicações',
+    'rewards.headline': 'Indique. Ganhe. Pague menos no Premium.',
+    'rewards.subtitle': 'Cada indicação muda seu plano.',
+    'rewards.yourCode': 'Seu código de indicação',
+    'rewards.copyCode': 'Copiar código',
+    'rewards.generateLink': 'Gerar link',
+    'rewards.codeCopied': 'Código copiado!',
+    'rewards.linkCopied': 'Link copiado!',
+    'rewards.share': 'Compartilhar',
+    'rewards.copyFullLink': 'Copiar link completo',
+    'rewards.goalsProgress': 'Progresso das Metas',
+    'rewards.goal10signups': '10 cadastros = 1 mês Premium',
+    'rewards.goal5monthly': '5 assinaturas mensais = 1 mês',
+    'rewards.goal3annual': '3 assinaturas anuais = 1 ano',
+    'rewards.completed': 'Concluída!',
+    'rewards.premiumDiscount': 'Desconto Premium',
+    'rewards.accumulatedDiscount': 'Desconto acumulado',
+    'rewards.limitInfo': 'Limite: 90% (15% por indicação)',
+    'rewards.cyclesRemaining': 'ciclos restantes este ano',
+    'rewards.availableBenefits': 'Benefícios Disponíveis',
+    'rewards.expires': 'Expira',
+    'rewards.use': 'Usar',
+    'rewards.yourReferrals': 'Suas Indicações',
+    'rewards.noReferrals': 'Nenhuma indicação ainda. Compartilhe seu código!',
+    'rewards.statusActive': 'Ativa',
+    'rewards.statusSignup': 'Cadastrada',
+    'rewards.statusPending': 'Pendente',
+    'rewards.inviteNow': 'Indicar agora',
+    'rewards.viewPlans': 'Ver planos',
+    'rewards.shareMessage': 'Use meu código {code} no HoraMed e ganhe 7 dias Premium grátis!',
   },
   en: {
     // Navigation
@@ -211,6 +248,9 @@ const translations: Record<Language, Record<string, string>> = {
     'nav.progress': 'Progress',
     'nav.wallet': 'Wallet',
     'nav.profile': 'Profile',
+    'nav.medications': 'Medications',
+    'nav.health': 'Health',
+    'nav.more': 'More',
     
     // Common
     'common.save': 'Save',
@@ -251,6 +291,8 @@ const translations: Record<Language, Record<string, string>> = {
     'common.logout': 'Logout',
     'common.login': 'Login',
     'common.signup': 'Sign up',
+    'common.copy': 'Copy',
+    'common.copied': 'Copied!',
     
     // Today page
     'today.title': 'Today',
@@ -395,6 +437,38 @@ const translations: Record<Language, Record<string, string>> = {
     'onboarding.step3': 'Receive reminders',
     'onboarding.start': 'Get started',
     'onboarding.skip': 'Skip intro',
+    
+    // Rewards / Referrals
+    'rewards.title': 'Rewards & Referrals',
+    'rewards.headline': 'Refer. Earn. Pay less for Premium.',
+    'rewards.subtitle': 'Each referral changes your plan.',
+    'rewards.yourCode': 'Your referral code',
+    'rewards.copyCode': 'Copy code',
+    'rewards.generateLink': 'Generate link',
+    'rewards.codeCopied': 'Code copied!',
+    'rewards.linkCopied': 'Link copied!',
+    'rewards.share': 'Share',
+    'rewards.copyFullLink': 'Copy full link',
+    'rewards.goalsProgress': 'Goals Progress',
+    'rewards.goal10signups': '10 signups = 1 month Premium',
+    'rewards.goal5monthly': '5 monthly subs = 1 month',
+    'rewards.goal3annual': '3 annual subs = 1 year',
+    'rewards.completed': 'Completed!',
+    'rewards.premiumDiscount': 'Premium Discount',
+    'rewards.accumulatedDiscount': 'Accumulated discount',
+    'rewards.limitInfo': 'Limit: 90% (15% per referral)',
+    'rewards.cyclesRemaining': 'cycles remaining this year',
+    'rewards.availableBenefits': 'Available Benefits',
+    'rewards.expires': 'Expires',
+    'rewards.use': 'Use',
+    'rewards.yourReferrals': 'Your Referrals',
+    'rewards.noReferrals': 'No referrals yet. Share your code!',
+    'rewards.statusActive': 'Active',
+    'rewards.statusSignup': 'Signed up',
+    'rewards.statusPending': 'Pending',
+    'rewards.inviteNow': 'Invite now',
+    'rewards.viewPlans': 'View plans',
+    'rewards.shareMessage': 'Use my code {code} on HoraMed and get 7 days Premium free!',
   }
 };
 
