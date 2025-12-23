@@ -487,24 +487,24 @@ export default function Profile() {
               )}
             </motion.div>
 
-            {/* Referral Card */}
+            {/* Referral Card - Recompensas */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="rounded-2xl bg-card/80 backdrop-blur-sm p-5 cursor-pointer group hover-lift"
+              className="rounded-2xl bg-gradient-to-br from-primary/10 via-purple-500/5 to-pink-500/5 backdrop-blur-sm p-5 cursor-pointer group hover-lift border border-primary/20"
               style={{ boxShadow: 'var(--shadow-sm)' }}
-              onClick={() => navigate('/indique-ganhe')}
+              onClick={() => navigate('/recompensas')}
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="p-3 rounded-xl" style={{ backgroundColor: 'hsl(var(--success) / 0.1)' }}>
-                    <Gift className="h-5 w-5 text-success" />
+                  <div className="p-3 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500">
+                    <Gift className="h-5 w-5 text-white" />
                   </div>
                   <div>
-                    <h4 className="font-semibold">Indique e Ganhe</h4>
+                    <h4 className="font-semibold">Minhas Recompensas e Convites</h4>
                     <p className="text-sm text-muted-foreground">
-                      Ganhe benefícios indicando amigos
+                      Indique amigos e ganhe descontos
                     </p>
                   </div>
                 </div>

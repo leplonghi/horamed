@@ -14,6 +14,7 @@ import { z } from "zod";
 import { useBiometricAuth } from "@/hooks/useBiometricAuth";
 import { useAuth } from "@/contexts/AuthContext";
 import { APP_DOMAIN } from "@/lib/domainConfig";
+import { useDeviceFingerprint } from "@/hooks/useDeviceFingerprint";
 
 const passwordSchema = z.string()
   .min(8, "A senha deve ter no mínimo 8 caracteres")
@@ -30,6 +31,7 @@ export default function Auth() {
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [referralCode, setReferralCode] = useState("");
   const { isAvailable, isLoading: biometricLoading, loginWithBiometric, isBiometricEnabled, setupBiometricLogin } = useBiometricAuth();
+  const { fingerprint } = useDeviceFingerprint();
 
   // Capturar código de referral da URL
   useEffect(() => {
@@ -109,22 +111,24 @@ export default function Auth() {
       
       if (data.user && referralCode) {
         try {
-          const { data: referrerProfile } = await supabase
-            .from('profiles')
-            .select('user_id')
-            .eq('referral_code', referralCode)
-            .single();
+          // Validar referral com anti-fraude
+          const { data: validationResult, error: validationError } = await supabase.rpc(
+            'validate_referral_signup',
+            {
+              p_referred_user_id: data.user.id,
+              p_referral_code: referralCode,
+              p_device_fingerprint: fingerprint || 'unknown',
+              p_ip_address: '0.0.0.0' // IP will be captured by the function
+            }
+          );
 
-          if (referrerProfile) {
-            await supabase
-              .from('referrals')
-              .insert({
-                referrer_user_id: referrerProfile.user_id,
-                referred_user_id: data.user.id,
-                referral_code_used: referralCode,
-                plan_type: 'free',
-                status: 'pending'
-              });
+          if (validationError) {
+            console.error('Referral validation error:', validationError);
+          } else if (validationResult) {
+            const result = validationResult as { success?: boolean; fraud_detected?: boolean; reasons?: string[] };
+            if (!result.success && result.fraud_detected) {
+              console.warn('Referral fraud detected:', result.reasons);
+            }
           }
         } catch (refError) {
           console.error('Error processing referral:', refError);

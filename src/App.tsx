@@ -72,6 +72,7 @@ import WeightHistory from "./pages/WeightHistory";
 import StockDetails from "./pages/StockDetails";
 import AnalyticsDetails from "./pages/AnalyticsDetails";
 import IndiqueGanhe from "./pages/IndiqueGanhe";
+import Recompensas from "./pages/Recompensas";
 import HealthAIButton from "./components/HealthAIButton";
 import Welcome from "./pages/Welcome";
 import QuickOnboarding from "./components/onboarding/QuickOnboarding";
@@ -147,6 +148,7 @@ function AppContent() {
         <Route path="/profile/edit" element={<ProtectedRoute><ProfileEdit /></ProtectedRoute>} />
         <Route path="/perfil/indique-e-ganhe" element={<ProtectedRoute><IndiqueGanhe /></ProtectedRoute>} />
         <Route path="/indique-ganhe" element={<ProtectedRoute><IndiqueGanhe /></ProtectedRoute>} />
+        <Route path="/recompensas" element={<ProtectedRoute><Recompensas /></ProtectedRoute>} />
         <Route path="/peso/historico" element={<ProtectedRoute><WeightHistory /></ProtectedRoute>} />
         <Route path="/assinatura" element={<ProtectedRoute><SubscriptionManagement /></ProtectedRoute>} />
         <Route path="/assinatura/sucesso" element={<ProtectedRoute><SubscriptionSuccess /></ProtectedRoute>} />
