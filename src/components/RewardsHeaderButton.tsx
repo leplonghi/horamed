@@ -43,12 +43,12 @@ export function RewardsHeaderButton() {
       variant="ghost"
       size="sm"
       onClick={() => navigate("/recompensas")}
-      className={`gap-2 rounded-full px-4 ${content.className}`}
+      className={`gap-2 rounded-full px-3 sm:px-4 ${content.className}`}
     >
       {content.icon}
-      <span className="hidden sm:inline">{content.text}</span>
+      <span className="hidden sm:inline truncate max-w-[10rem]">{content.text}</span>
       {stats.discountPercent > 0 && (
-        <span className="ml-1 text-xs font-bold bg-white/20 px-1.5 py-0.5 rounded-full">
+        <span className="ml-1 text-xs font-bold bg-white/20 px-1.5 py-0.5 rounded-full shrink-0">
           {stats.discountPercent}%
         </span>
       )}
