@@ -32,6 +32,7 @@ import { ExpiredPrescriptionsAlert } from "@/components/ExpiredPrescriptionsAler
 import EssentialShortcuts from "@/components/EssentialShortcuts";
 import SimpleAdherenceSummary from "@/components/SimpleAdherenceSummary";
 import { X, Settings, TrendingUp } from "lucide-react";
+import { cn } from "@/lib/utils";
 import HydrationWidget from "@/components/fitness/HydrationWidget";
 import EnergyHintWidget from "@/components/fitness/EnergyHintWidget";
 import SupplementConsistencyWidget from "@/components/fitness/SupplementConsistencyWidget";
@@ -581,41 +582,50 @@ export default function TodayRedesign() {
           </Button>
         </div>
 
-        {/* Secondary Stats Row - Compact */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-4">
-          {/* Adherence - Compact */}
-          <Card className="p-3 bg-gradient-to-br from-primary/5 to-background border-primary/10">
-            <div className="flex items-center justify-between">
+        {/* Secondary Stats Row - Colorful */}
+        <div className="grid grid-cols-2 gap-2 mb-4">
+          {/* Adherence - Primary color */}
+          <Card className="p-3 bg-gradient-to-br from-green-500/15 to-green-500/5 border-green-500/20">
+            <div className="flex items-center justify-between gap-2">
               <div className="min-w-0">
-                <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Hoje</p>
+                <p className="text-[10px] text-green-600 dark:text-green-400 uppercase tracking-wide font-medium">Doses Hoje</p>
                 <p className="text-lg font-bold text-foreground">
                   {todayStats.taken}/{todayStats.total}
                 </p>
               </div>
-              <div className="text-xl font-bold text-primary">
+              <div className={cn(
+                "text-2xl font-bold",
+                todayStats.total > 0 && todayStats.taken === todayStats.total
+                  ? "text-green-500"
+                  : todayStats.taken > 0
+                  ? "text-primary"
+                  : "text-muted-foreground"
+              )}>
                 {todayStats.total > 0 ? Math.round((todayStats.taken / todayStats.total) * 100) : 0}%
               </div>
             </div>
           </Card>
 
-          {/* Quick Dose Widget - Compact */}
-          <div className="col-span-1">
-            <QuickDoseWidget />
-          </div>
-
-          {/* Insights - Minimal */}
+          {/* Insights - Blue accent */}
           <Card
-            className="p-3 cursor-pointer hover:bg-muted/50 transition-colors col-span-2 md:col-span-2"
+            className="p-3 cursor-pointer hover:shadow-md transition-all bg-gradient-to-br from-blue-500/15 to-blue-500/5 border-blue-500/20 active:scale-[0.98]"
             onClick={() => navigate('/evolucao')}
           >
             <div className="flex items-center gap-2">
-              <TrendingUp className="h-4 w-4 text-muted-foreground shrink-0" />
+              <div className="h-8 w-8 rounded-full bg-blue-500/20 flex items-center justify-center shrink-0">
+                <TrendingUp className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+              </div>
               <div className="min-w-0">
-                <p className="text-xs font-medium truncate">Ver evolução</p>
-                <p className="text-[10px] text-muted-foreground">Dashboard e linha do tempo</p>
+                <p className="text-xs font-semibold text-blue-600 dark:text-blue-400 truncate">Evolução</p>
+                <p className="text-[10px] text-muted-foreground">Insights e dados</p>
               </div>
             </div>
           </Card>
+        </div>
+
+        {/* Quick Dose Widget - Full width */}
+        <div className="mb-4">
+          <QuickDoseWidget />
         </div>
 
         {/* Fitness Widgets - Conditional */}

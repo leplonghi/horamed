@@ -143,8 +143,8 @@ export default function WeekCalendarView({
   }
 
   return (
-      <Card className="overflow-hidden">
-        <CardContent className="p-3 overflow-x-hidden">
+    <Card className="overflow-hidden bg-gradient-to-br from-primary/5 via-background to-accent/10 border-primary/20">
+      <CardContent className="p-3 overflow-x-hidden">
         {/* Week Navigation */}
         <div className="flex items-center justify-between mb-3 gap-2">
           <div className="flex items-center gap-0.5 shrink-0">
@@ -152,30 +152,30 @@ export default function WeekCalendarView({
               variant="ghost"
               size="icon"
               onClick={goToPreviousWeek}
-              className="h-7 w-7"
+              className="h-7 w-7 hover:bg-primary/10"
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
-            <h3 className="text-xs font-semibold min-w-[100px] text-center truncate">
-              {format(weekStart, "MMM yyyy", { locale: ptBR })}
+            <h3 className="text-xs font-bold min-w-[100px] text-center truncate text-primary capitalize">
+              {format(weekStart, "MMMM yyyy", { locale: ptBR })}
             </h3>
             <Button
               variant="ghost"
               size="icon"
               onClick={goToNextWeek}
-              className="h-7 w-7"
+              className="h-7 w-7 hover:bg-primary/10"
             >
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
           
-          <div className="flex gap-0.5 shrink-0">
+          <div className="flex gap-1 shrink-0">
             {!isToday(selectedDate) && (
               <Button
-                variant="ghost"
+                variant="secondary"
                 size="sm"
                 onClick={goToToday}
-                className="h-7 text-[10px] px-1.5"
+                className="h-7 text-[10px] px-2 bg-primary/10 hover:bg-primary/20 text-primary font-medium"
               >
                 Hoje
               </Button>
@@ -184,14 +184,14 @@ export default function WeekCalendarView({
               variant="ghost"
               size="sm"
               onClick={() => setView("month")}
-              className="h-7 text-[10px] px-1.5"
+              className="h-7 text-[10px] px-2"
             >
               Mês
             </Button>
           </div>
         </div>
 
-          {/* Week Days */}
+        {/* Week Days */}
         <div className="grid grid-cols-7 gap-1">
           {weekDays.map((day) => {
             const count = getEventCount(day);
@@ -203,14 +203,17 @@ export default function WeekCalendarView({
                 key={day.toISOString()}
                 onClick={() => onDateSelect(day)}
                 className={cn(
-                  "flex flex-col items-center justify-center p-1.5 rounded-lg transition-all min-w-0 min-h-[60px]",
-                  "hover:bg-accent",
-                  isSelected && "bg-primary text-primary-foreground hover:bg-primary/90",
-                  isDayToday && !isSelected && "ring-1 ring-primary"
+                  "flex flex-col items-center justify-center p-1.5 rounded-xl transition-all min-w-0 min-h-[56px]",
+                  "hover:bg-primary/10 active:scale-95",
+                  isSelected && "bg-primary text-primary-foreground shadow-lg shadow-primary/25 hover:bg-primary/90",
+                  isDayToday && !isSelected && "ring-2 ring-primary bg-primary/5"
                 )}
               >
-                <span className="text-[8px] font-medium uppercase truncate w-full text-center leading-tight mb-0.5">
-                  {format(day, "EEEEEE", { locale: ptBR })}
+                <span className={cn(
+                  "text-[9px] font-semibold uppercase truncate w-full text-center leading-tight mb-0.5",
+                  isSelected ? "text-primary-foreground/80" : "text-muted-foreground"
+                )}>
+                  {format(day, "EEE", { locale: ptBR }).slice(0, 3)}
                 </span>
                 <span className={cn(
                   "text-lg font-bold leading-none",
@@ -220,8 +223,8 @@ export default function WeekCalendarView({
                 </span>
                 {count > 0 && (
                   <div className={cn(
-                    "h-1 w-1 rounded-full mt-1",
-                    isSelected ? "bg-primary-foreground" : "bg-primary"
+                    "h-1.5 w-1.5 rounded-full mt-1",
+                    isSelected ? "bg-primary-foreground" : "bg-green-500"
                   )} />
                 )}
               </button>

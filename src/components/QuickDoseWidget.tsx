@@ -99,44 +99,75 @@ export default function QuickDoseWidget({
     }
   };
   if (loading) {
-    return <Card className={cn("h-full p-4 animate-pulse", className)}>
-        <div className="h-16 bg-muted rounded" />
-      </Card>;
+    return (
+      <Card className={cn("p-3 animate-pulse", className)}>
+        <div className="h-12 bg-muted rounded" />
+      </Card>
+    );
   }
+
   if (!nextDose) {
-    return <Card className={cn("h-full p-6 bg-gradient-to-br from-primary/5 to-primary/10 flex items-center justify-center", className)}>
-        <div className="text-center space-y-1">
-          <CheckCircle2 className="h-12 w-12 mx-auto text-primary" />
-          <h3 className="font-semibold text-lg">Sem doses pendentes</h3>
-          <p className="text-sm text-muted-foreground">Você está em dia! 🎉</p>
+    return (
+      <Card className={cn("p-4 bg-gradient-to-br from-green-500/10 to-green-500/5 border-green-500/20", className)}>
+        <div className="flex items-center gap-3">
+          <div className="h-10 w-10 rounded-full bg-green-500/20 flex items-center justify-center">
+            <CheckCircle2 className="h-5 w-5 text-green-500" />
+          </div>
+          <div>
+            <h3 className="font-semibold text-green-600 dark:text-green-400">Tudo em dia!</h3>
+            <p className="text-xs text-muted-foreground">Sem doses pendentes nas próximas 2h</p>
+          </div>
         </div>
-      </Card>;
+      </Card>
+    );
   }
+
   const itemData = Array.isArray(nextDose.items) ? nextDose.items[0] : nextDose.items;
   const dueTime = new Date(nextDose.due_at);
   const minutesUntil = Math.round((dueTime.getTime() - new Date().getTime()) / 60000);
   const isNow = minutesUntil <= 5 && minutesUntil >= -5;
-  return <Card className={cn("h-full p-6 transition-all flex flex-col justify-between", isNow ? "bg-gradient-to-br from-primary/10 to-primary/5 border-primary/50 shadow-lg" : "", className)}>
-      <div className="space-y-4">
-        <div className="flex items-start justify-between">
-          <div className="space-y-1 flex-1">
-            <div className="flex items-center gap-2">
-              <Clock className={cn("h-5 w-5", isNow ? "text-primary" : "text-muted-foreground")} />
-              <span className="text-sm font-medium text-muted-foreground">
-                {isNow ? "Agora" : format(dueTime, "HH:mm", {
-                locale: ptBR
-              })}
-              </span>
-            </div>
-            <h3 className="font-semibold text-xl">{itemData.name}</h3>
-            {itemData.dose_text && <p className="text-sm text-muted-foreground">{itemData.dose_text}</p>}
-          </div>
-        </div>
 
-        <Button onClick={handleQuickTake} className="w-full gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-sm hover:scale-105 transition-all" size="lg">
-          <CheckCircle2 className="h-5 w-5" />
-          ✓ Tomei agora
+  return (
+    <Card className={cn(
+      "p-4 transition-all",
+      isNow 
+        ? "bg-gradient-to-br from-amber-500/15 to-amber-500/5 border-amber-500/30 shadow-lg shadow-amber-500/10" 
+        : "bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20",
+      className
+    )}>
+      <div className="flex items-center gap-3">
+        <div className={cn(
+          "h-10 w-10 rounded-full flex items-center justify-center shrink-0",
+          isNow ? "bg-amber-500/20" : "bg-primary/20"
+        )}>
+          <Clock className={cn("h-5 w-5", isNow ? "text-amber-600 dark:text-amber-400" : "text-primary")} />
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <span className={cn(
+              "text-xs font-semibold",
+              isNow ? "text-amber-600 dark:text-amber-400" : "text-primary"
+            )}>
+              {isNow ? "Agora" : format(dueTime, "HH:mm", { locale: ptBR })}
+            </span>
+          </div>
+          <h3 className="font-semibold truncate">{itemData.name}</h3>
+          {itemData.dose_text && (
+            <p className="text-xs text-muted-foreground truncate">{itemData.dose_text}</p>
+          )}
+        </div>
+        <Button
+          onClick={handleQuickTake}
+          size="sm"
+          className={cn(
+            "shrink-0 font-semibold",
+            isNow && "bg-amber-500 hover:bg-amber-600"
+          )}
+        >
+          <CheckCircle2 className="h-4 w-4 mr-1" />
+          Tomei
         </Button>
       </div>
-    </Card>;
+    </Card>
+  );
 }
