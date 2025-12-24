@@ -37,36 +37,35 @@ export function WizardStepStock({ data, updateData, dosesPerDay = 1 }: WizardSte
   const willAlertSoon = data.unitsTotal <= data.lowStockThreshold * 1.5 && !isLowStock;
 
   return (
-    <div className="space-y-8">
-      {/* Header explicativo */}
-      <Alert className="bg-primary/5 border-primary/20">
-        <HelpCircle className="h-4 w-4 text-primary" />
-        <AlertDescription className="text-sm">
-          <strong>Por que controlar o estoque?</strong> O app desconta automaticamente quando você toma 
-          e avisa quando estiver acabando. Assim você nunca fica sem!
+    <div className="space-y-5 sm:space-y-8">
+      {/* Header explicativo - Compacto */}
+      <Alert className="bg-primary/5 border-primary/20 py-2 px-3 sm:py-3 sm:px-4">
+        <HelpCircle className="h-4 w-4 text-primary shrink-0" />
+        <AlertDescription className="text-xs sm:text-sm">
+          <strong>Dica:</strong> O app avisa quando estiver acabando.
         </AlertDescription>
       </Alert>
 
-      {/* Quantidade */}
-      <div className="space-y-4">
-        <Label className="text-lg font-semibold">
-          Quantos você tem agora?
+      {/* Quantidade - Layout mais compacto */}
+      <div className="space-y-3 sm:space-y-4">
+        <Label className="text-base sm:text-lg font-semibold">
+          Quantos você tem?
         </Label>
         
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 sm:gap-4">
           <div className="flex-1">
             <Input
               type="number"
               min="0"
               value={data.unitsTotal || ""}
               onChange={(e) => updateData({ unitsTotal: parseInt(e.target.value) || 0 })}
-              className="text-3xl h-20 text-center font-bold"
+              className="text-2xl sm:text-3xl h-14 sm:h-16 text-center font-bold"
               placeholder="0"
             />
           </div>
-          <div className="w-40">
+          <div className="w-28 sm:w-36">
             <Select value={data.unitLabel} onValueChange={(value) => updateData({ unitLabel: value })}>
-              <SelectTrigger className="h-20">
+              <SelectTrigger className="h-14 sm:h-16 text-sm">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -74,7 +73,7 @@ export function WizardStepStock({ data, updateData, dosesPerDay = 1 }: WizardSte
                   <SelectItem key={opt.value} value={opt.value}>
                     <span className="flex items-center gap-2">
                       <span>{opt.emoji}</span>
-                      <span>{opt.label}</span>
+                      <span className="text-sm">{opt.label}</span>
                     </span>
                   </SelectItem>
                 ))}
@@ -85,65 +84,65 @@ export function WizardStepStock({ data, updateData, dosesPerDay = 1 }: WizardSte
       </div>
 
       {/* Alerta de estoque baixo */}
-      <div className="space-y-4">
-        <Label className="text-base font-medium flex items-center gap-2">
+      <div className="space-y-3 sm:space-y-4">
+        <Label className="text-sm sm:text-base font-medium flex items-center gap-2">
           <Bell className="w-4 h-4" />
           Avisar quando restar:
         </Label>
         
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3 sm:gap-4">
           <Input
             type="number"
             min="1"
             value={data.lowStockThreshold}
             onChange={(e) => updateData({ lowStockThreshold: parseInt(e.target.value) || 5 })}
-            className="w-24 h-12 text-center text-lg font-medium"
+            className="w-20 sm:w-24 h-10 sm:h-12 text-center text-base sm:text-lg font-medium"
           />
-          <span className="text-muted-foreground">{data.unitLabel}</span>
+          <span className="text-sm text-muted-foreground">{data.unitLabel}</span>
         </div>
         
-        <p className="text-sm text-muted-foreground">
-          Você receberá uma notificação quando o estoque chegar a este número
+        <p className="text-xs sm:text-sm text-muted-foreground">
+          Notificação quando chegar a este número
         </p>
       </div>
 
-      {/* Preview do estoque */}
+      {/* Preview do estoque - Compacto */}
       {data.unitsTotal > 0 && (
         <Card className={cn(
-          "p-5 space-y-4",
+          "p-3 sm:p-5 space-y-3 sm:space-y-4",
           isLowStock 
             ? "border-destructive/50 bg-destructive/5" 
             : willAlertSoon 
               ? "border-yellow-500/50 bg-yellow-500/5"
               : "border-green-500/50 bg-green-500/5"
         )}>
-          <div className="flex items-start gap-3">
+          <div className="flex items-start gap-2.5 sm:gap-3">
             {isLowStock ? (
-              <AlertTriangle className="w-5 h-5 text-destructive mt-0.5" />
+              <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5 text-destructive mt-0.5 shrink-0" />
             ) : (
               <CheckCircle2 className={cn(
-                "w-5 h-5 mt-0.5",
+                "w-4 h-4 sm:w-5 sm:h-5 mt-0.5 shrink-0",
                 willAlertSoon ? "text-yellow-500" : "text-green-500"
               )} />
             )}
-            <div className="flex-1 space-y-3">
+            <div className="flex-1 space-y-2 sm:space-y-3 min-w-0">
               <div>
-                <p className="font-medium">
+                <p className="text-sm sm:text-base font-medium">
                   {isLowStock 
                     ? "Estoque baixo!" 
                     : willAlertSoon 
-                      ? "Estoque ficando baixo"
-                      : "Estoque em dia"}
+                      ? "Ficando baixo"
+                      : "Estoque OK"}
                 </p>
-                <p className="text-sm text-muted-foreground">
-                  {data.unitsTotal} {data.unitLabel} disponíveis
+                <p className="text-xs sm:text-sm text-muted-foreground">
+                  {data.unitsTotal} {data.unitLabel}
                 </p>
               </div>
               
               <Progress 
                 value={percentRemaining} 
                 className={cn(
-                  "h-2",
+                  "h-1.5 sm:h-2",
                   isLowStock 
                     ? "[&>div]:bg-destructive" 
                     : willAlertSoon 
@@ -152,16 +151,16 @@ export function WizardStepStock({ data, updateData, dosesPerDay = 1 }: WizardSte
                 )}
               />
 
-              <div className="grid grid-cols-2 gap-4 pt-2 text-sm">
+              <div className="grid grid-cols-2 gap-2 sm:gap-4 pt-1 sm:pt-2 text-xs sm:text-sm">
                 <div>
-                  <p className="text-muted-foreground">Duração estimada</p>
-                  <p className="font-semibold text-lg">
+                  <p className="text-muted-foreground">Duração</p>
+                  <p className="font-semibold text-base sm:text-lg">
                     ~{daysRemaining} dias
                   </p>
                 </div>
                 <div>
                   <p className="text-muted-foreground">Alerta em</p>
-                  <p className="font-semibold text-lg">
+                  <p className="font-semibold text-base sm:text-lg">
                     {Math.max(0, data.unitsTotal - data.lowStockThreshold)} doses
                   </p>
                 </div>
@@ -171,12 +170,11 @@ export function WizardStepStock({ data, updateData, dosesPerDay = 1 }: WizardSte
         </Card>
       )}
 
-      {/* Dica */}
-      <div className="text-center text-sm text-muted-foreground p-4 bg-muted/30 rounded-lg">
-        <Package className="w-5 h-5 mx-auto mb-2 text-primary" />
+      {/* Dica - Mais compacta */}
+      <div className="text-center text-xs sm:text-sm text-muted-foreground p-3 sm:p-4 bg-muted/30 rounded-lg">
+        <Package className="w-4 h-4 sm:w-5 sm:h-5 mx-auto mb-1.5 sm:mb-2 text-primary" />
         <p>
-          <strong>Dica:</strong> Mantenha sempre uma margem de segurança. 
-          Assim você tem tempo de comprar mais antes de acabar.
+          <strong>Dica:</strong> Mantenha margem de segurança.
         </p>
       </div>
     </div>

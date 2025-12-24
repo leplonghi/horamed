@@ -108,43 +108,42 @@ export function WizardStepSchedule({ data, updateData }: WizardStepScheduleProps
   };
 
   return (
-    <div className="space-y-8">
-      {/* Header explicativo */}
-      <Alert className="bg-primary/5 border-primary/20">
-        <HelpCircle className="h-4 w-4 text-primary" />
-        <AlertDescription className="text-sm">
-          <strong>Como funciona?</strong> Escolha quando você precisa tomar este medicamento. 
-          O app vai te avisar nos horários certos.
+    <div className="space-y-5 sm:space-y-8">
+      {/* Header explicativo - Compacto */}
+      <Alert className="bg-primary/5 border-primary/20 py-2 px-3 sm:py-3 sm:px-4">
+        <HelpCircle className="h-4 w-4 text-primary shrink-0" />
+        <AlertDescription className="text-xs sm:text-sm">
+          <strong>Dica:</strong> O app vai te avisar nos horários certos.
         </AlertDescription>
       </Alert>
 
-      {/* Frequência */}
-      <div className="space-y-4">
-        <Label className="text-lg font-semibold">
-          Com que frequência você toma?
+      {/* Frequência - Cards mais compactos no mobile */}
+      <div className="space-y-3 sm:space-y-4">
+        <Label className="text-base sm:text-lg font-semibold">
+          Com que frequência?
         </Label>
         
-        <div className="grid gap-3">
+        <div className="grid gap-2 sm:gap-3">
           {FREQUENCY_OPTIONS.map((opt) => (
             <Card
               key={opt.value}
               onClick={() => updateData({ frequency: opt.value })}
               className={cn(
-                "p-4 cursor-pointer transition-all",
+                "p-3 sm:p-4 cursor-pointer transition-all active:scale-[0.99]",
                 data.frequency === opt.value 
                   ? "border-primary bg-primary/5 shadow-md" 
                   : "hover:border-primary/30"
               )}
             >
-              <div className="flex items-center gap-3">
-                <span className="text-2xl">{opt.emoji}</span>
-                <div className="flex-1">
-                  <p className="font-medium">{opt.label}</p>
-                  <p className="text-sm text-muted-foreground">{opt.description}</p>
+              <div className="flex items-center gap-2.5 sm:gap-3">
+                <span className="text-xl sm:text-2xl">{opt.emoji}</span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm sm:text-base font-medium">{opt.label}</p>
+                  <p className="text-xs sm:text-sm text-muted-foreground truncate">{opt.description}</p>
                 </div>
                 {data.frequency === opt.value && (
-                  <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center">
-                    <div className="w-2 h-2 rounded-full bg-white" />
+                  <div className="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-primary flex items-center justify-center shrink-0">
+                    <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-white" />
                   </div>
                 )}
               </div>
@@ -155,11 +154,11 @@ export function WizardStepSchedule({ data, updateData }: WizardStepScheduleProps
 
       {/* Dias da semana (para dias específicos) */}
       {data.frequency === "specific_days" && (
-        <div className="space-y-4">
-          <Label className="text-base font-medium">
+        <div className="space-y-3 sm:space-y-4">
+          <Label className="text-sm sm:text-base font-medium">
             Em quais dias?
           </Label>
-          <div className="flex gap-2 justify-center">
+          <div className="flex gap-1.5 sm:gap-2 justify-center">
             {WEEK_DAYS.map((day) => {
               const isSelected = (data.daysOfWeek || []).includes(day.value);
               return (
@@ -168,9 +167,9 @@ export function WizardStepSchedule({ data, updateData }: WizardStepScheduleProps
                   type="button"
                   onClick={() => toggleDay(day.value)}
                   className={cn(
-                    "w-11 h-11 rounded-full font-semibold text-sm transition-all",
+                    "w-9 h-9 sm:w-11 sm:h-11 rounded-full font-semibold text-xs sm:text-sm transition-all",
                     isSelected
-                      ? "bg-primary text-primary-foreground shadow-md scale-110"
+                      ? "bg-primary text-primary-foreground shadow-md scale-105 sm:scale-110"
                       : "bg-muted hover:bg-muted/80"
                   )}
                   title={day.fullLabel}
@@ -181,7 +180,7 @@ export function WizardStepSchedule({ data, updateData }: WizardStepScheduleProps
             })}
           </div>
           {(data.daysOfWeek?.length || 0) > 0 && (
-            <p className="text-center text-sm text-muted-foreground">
+            <p className="text-center text-xs sm:text-sm text-muted-foreground">
               {data.daysOfWeek?.map(d => WEEK_DAYS.find(w => w.value === d)?.fullLabel).join(", ")}
             </p>
           )}
@@ -189,35 +188,35 @@ export function WizardStepSchedule({ data, updateData }: WizardStepScheduleProps
       )}
 
       {/* Horários */}
-      <div className="space-y-4">
+      <div className="space-y-3 sm:space-y-4">
         <div className="flex items-center justify-between">
-          <Label className="text-lg font-semibold">
-            Em quais horários?
+          <Label className="text-base sm:text-lg font-semibold">
+            Horários
           </Label>
-          <Badge variant="secondary" className="text-xs">
+          <Badge variant="secondary" className="text-[10px] sm:text-xs">
             {data.times.length} horário{data.times.length !== 1 ? "s" : ""}
           </Badge>
         </div>
 
         {/* Horários selecionados */}
         {data.times.length > 0 && (
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-1.5 sm:gap-2">
             {data.times.map((time) => {
               const TimeIcon = getTimeIcon(time);
               return (
                 <div
                   key={time}
-                  className="flex items-center gap-2 px-4 py-2.5 bg-primary/10 border border-primary/20 rounded-full"
+                  className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1.5 sm:py-2.5 bg-primary/10 border border-primary/20 rounded-full"
                 >
-                  <TimeIcon className="w-4 h-4 text-primary" />
-                  <span className="font-medium">{time}</span>
+                  <TimeIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary" />
+                  <span className="text-sm sm:text-base font-medium">{time}</span>
                   <button
                     type="button"
                     onClick={() => removeTime(time)}
-                    className="ml-1 p-0.5 hover:bg-destructive/20 rounded-full transition-colors"
+                    className="ml-0.5 p-0.5 hover:bg-destructive/20 rounded-full transition-colors"
                     disabled={data.times.length === 1}
                   >
-                    <X className="w-3.5 h-3.5 text-muted-foreground hover:text-destructive" />
+                    <X className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-muted-foreground hover:text-destructive" />
                   </button>
                 </div>
               );
@@ -225,10 +224,10 @@ export function WizardStepSchedule({ data, updateData }: WizardStepScheduleProps
           </div>
         )}
 
-        {/* Horários rápidos */}
+        {/* Horários rápidos - Grid otimizado */}
         <div className="space-y-2">
-          <p className="text-sm text-muted-foreground">Adicionar horário:</p>
-          <div className="grid grid-cols-4 gap-2">
+          <p className="text-xs sm:text-sm text-muted-foreground">Adicionar:</p>
+          <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
             {QUICK_TIMES.map((qt) => {
               const isAdded = data.times.includes(qt.time);
               const Icon = qt.icon;
@@ -240,11 +239,11 @@ export function WizardStepSchedule({ data, updateData }: WizardStepScheduleProps
                   size="sm"
                   onClick={() => addQuickTime(qt.time)}
                   disabled={isAdded}
-                  className="flex-col h-auto py-3 gap-1"
+                  className="flex-col h-auto py-2 sm:py-3 gap-0.5 sm:gap-1 px-1"
                 >
-                  <Icon className={cn("w-4 h-4", !isAdded && qt.color)} />
-                  <span className="text-xs">{qt.label}</span>
-                  <span className="text-[10px] opacity-70">{qt.time}</span>
+                  <Icon className={cn("w-3.5 h-3.5 sm:w-4 sm:h-4", !isAdded && qt.color)} />
+                  <span className="text-[10px] sm:text-xs">{qt.label}</span>
+                  <span className="text-[9px] sm:text-[10px] opacity-70">{qt.time}</span>
                 </Button>
               );
             })}
@@ -258,20 +257,20 @@ export function WizardStepSchedule({ data, updateData }: WizardStepScheduleProps
               type="time"
               value={customTime}
               onChange={(e) => setCustomTime(e.target.value)}
-              className="flex-1 h-11"
+              className="flex-1 h-10 sm:h-11"
               autoFocus
             />
-            <Button type="button" size="sm" onClick={addCustomTime} disabled={!customTime}>
-              <Plus className="w-4 h-4 mr-1" />
-              Adicionar
+            <Button type="button" size="sm" onClick={addCustomTime} disabled={!customTime} className="h-10 px-3">
+              <Plus className="w-4 h-4" />
             </Button>
             <Button 
               type="button" 
               size="sm" 
               variant="ghost" 
               onClick={() => setShowCustomTime(false)}
+              className="h-10 px-2"
             >
-              Cancelar
+              <X className="w-4 h-4" />
             </Button>
           </div>
         ) : (
@@ -280,7 +279,7 @@ export function WizardStepSchedule({ data, updateData }: WizardStepScheduleProps
             variant="outline"
             size="sm"
             onClick={() => setShowCustomTime(true)}
-            className="w-full"
+            className="w-full h-9 sm:h-10"
           >
             <Clock className="w-4 h-4 mr-2" />
             Outro horário
@@ -288,12 +287,12 @@ export function WizardStepSchedule({ data, updateData }: WizardStepScheduleProps
         )}
       </div>
 
-      {/* Duração do tratamento */}
-      <div className="space-y-4 pt-4 border-t">
-        <div className="flex items-center justify-between">
-          <div className="space-y-1">
-            <Label className="text-base font-medium">Uso contínuo</Label>
-            <p className="text-sm text-muted-foreground">
+      {/* Duração do tratamento - Mais compacto */}
+      <div className="space-y-3 sm:space-y-4 pt-3 sm:pt-4 border-t">
+        <div className="flex items-center justify-between gap-3">
+          <div className="space-y-0.5">
+            <Label className="text-sm sm:text-base font-medium">Uso contínuo</Label>
+            <p className="text-xs sm:text-sm text-muted-foreground">
               Sem data de término
             </p>
           </div>
@@ -304,23 +303,23 @@ export function WizardStepSchedule({ data, updateData }: WizardStepScheduleProps
         </div>
 
         {!data.continuousUse && (
-          <div className="grid grid-cols-2 gap-4 p-4 bg-muted/30 rounded-lg">
-            <div className="space-y-2">
-              <Label className="text-sm">Início</Label>
+          <div className="grid grid-cols-2 gap-2 sm:gap-4 p-3 sm:p-4 bg-muted/30 rounded-lg">
+            <div className="space-y-1.5 sm:space-y-2">
+              <Label className="text-xs sm:text-sm">Início</Label>
               <Input
                 type="date"
                 value={data.startDate || new Date().toISOString().split('T')[0]}
                 onChange={(e) => updateData({ startDate: e.target.value })}
-                className="h-11"
+                className="h-9 sm:h-11 text-sm"
               />
             </div>
-            <div className="space-y-2">
-              <Label className="text-sm">Término</Label>
+            <div className="space-y-1.5 sm:space-y-2">
+              <Label className="text-xs sm:text-sm">Término</Label>
               <Input
                 type="date"
                 value={data.endDate || ""}
                 onChange={(e) => updateData({ endDate: e.target.value })}
-                className="h-11"
+                className="h-9 sm:h-11 text-sm"
               />
             </div>
           </div>
