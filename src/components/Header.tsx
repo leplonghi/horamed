@@ -70,60 +70,42 @@ export default function Header() {
   };
   return (
     <header className="fixed top-0 left-0 right-0 bg-card border-b border-border z-50 shadow-sm animate-slide-up">
-      <div className="max-w-4xl mx-auto py-3 px-4 pb-[10px] pt-[10px]">
-        <div className="flex flex-wrap items-center justify-between gap-2 min-w-0">
-          <div className="flex items-center gap-2 min-w-0 flex-wrap animate-fade-in">
+      <div className="max-w-4xl mx-auto py-2 px-3">
+        <div className="flex items-center justify-between gap-2">
+          {/* Left: Logo + badges */}
+          <div className="flex items-center gap-1.5 min-w-0">
             <img
               src={logo}
               alt="HoraMed"
-              width={60}
-              height={56}
-              className="h-14 w-auto hover:scale-105 transition-transform duration-300 shrink-0"
+              width={44}
+              height={40}
+              className="h-10 w-auto shrink-0"
               loading="eager"
               fetchPriority="high"
             />
-            <div className="flex items-center gap-2 flex-wrap min-w-0">
-              <SubscriptionBadge />
-              <RewardsHeaderButton />
-            </div>
+            <SubscriptionBadge />
+            <RewardsHeaderButton />
           </div>
 
-          <div
-            style={{ animationDelay: '100ms' }}
-            className="flex items-center justify-end gap-1 md:gap-2 animate-fade-in min-w-0 flex-wrap"
-          >
-            {/* Spotlight Search Button */}
+          {/* Right: Actions */}
+          <div className="flex items-center gap-1">
             <Button
               variant="ghost"
               size="icon"
               onClick={() => setSpotlightOpen(true)}
-              className="h-9 w-9 text-muted-foreground hover:text-foreground"
-              title="Buscar (Ctrl+K)"
+              className="h-8 w-8 text-muted-foreground"
             >
-              <Search className="h-5 w-5" />
+              <Search className="h-4 w-4" />
             </Button>
 
             <ProfileSelector />
-
             <ThemeToggle />
 
-            <Link
-              to="/perfil"
-              className="flex items-center gap-1.5 md:gap-2 hover:opacity-80 transition-opacity group shrink-0"
-            >
-              <div className="hidden md:flex flex-col items-end">
-                <span className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors">
-                  {profiles.length > 1 ? getInitials(userName || userEmail) : userName || "Usuário"}
-                </span>
-                {profiles.length <= 1 && (
-                  <span className="text-xs text-muted-foreground">{userEmail}</span>
-                )}
-              </div>
-
-              <Avatar className="h-7 w-7 md:h-10 md:w-10 ring-2 ring-transparent group-hover:ring-primary transition-all duration-300">
+            <Link to="/perfil" className="shrink-0">
+              <Avatar className="h-8 w-8 ring-1 ring-border">
                 <AvatarImage src={avatarUrl || undefined} alt="Avatar" />
                 <AvatarFallback className="bg-primary text-primary-foreground text-xs">
-                  {userEmail ? getInitials(userEmail) : <User className="h-4 w-4" />}
+                  {userEmail ? getInitials(userEmail) : <User className="h-3 w-3" />}
                 </AvatarFallback>
               </Avatar>
             </Link>
@@ -131,7 +113,6 @@ export default function Header() {
         </div>
       </div>
 
-      {/* Spotlight Search Modal */}
       <SpotlightSearch open={spotlightOpen} onOpenChange={setSpotlightOpen} />
     </header>
   );
