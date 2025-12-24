@@ -31,7 +31,7 @@ import { VaccineRemindersWidget } from "@/components/VaccineRemindersWidget";
 import { ExpiredPrescriptionsAlert } from "@/components/ExpiredPrescriptionsAlert";
 import EssentialShortcuts from "@/components/EssentialShortcuts";
 import SimpleAdherenceSummary from "@/components/SimpleAdherenceSummary";
-import { X, Settings } from "lucide-react";
+import { X, Settings, TrendingUp } from "lucide-react";
 import HydrationWidget from "@/components/fitness/HydrationWidget";
 import EnergyHintWidget from "@/components/fitness/EnergyHintWidget";
 import SupplementConsistencyWidget from "@/components/fitness/SupplementConsistencyWidget";
@@ -488,138 +488,176 @@ export default function TodayRedesign() {
       toast.error("Erro ao adiar dose");
     }
   };
-  return <div className="min-h-screen bg-background">
+  return (
+    <div className="min-h-screen bg-background">
       <Header />
-      
-      <main className="container mx-auto pt-24 pb-20 max-w-6xl px-[10px]">
-        {/* Dismissable Alerts with Swipe - Compact */}
-        {criticalAlerts.alerts.length > 0 && <motion.div drag="x" dragConstraints={{
-        left: 0,
-        right: 0
-      }} onDragEnd={(e, {
-        offset,
-        velocity
-      }) => {
-        if (Math.abs(offset.x) > 100 || Math.abs(velocity.x) > 500) {
-          criticalAlerts.dismissAll();
-        }
-      }} className="mb-2">
-            <CriticalAlertBanner alerts={criticalAlerts.alerts} onDismiss={id => criticalAlerts.dismissAlert(id)} onDismissAll={() => criticalAlerts.dismissAll()} />
-          </motion.div>}
 
-        <div className="space-y-2 mb-2">
+      <main className="container mx-auto pt-24 pb-20 max-w-6xl px-[10px]">
+        {/* Compact Header with greeting */}
+        <div className="mb-3">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex-1 min-w-0">
+              <h1 className="text-xl md:text-2xl font-bold truncate bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
+                {greeting}{userName && `, ${userName}`}!
+              </h1>
+              <p className="text-muted-foreground text-sm truncate">{motivationalQuote}</p>
+            </div>
+            <div className="flex items-center gap-1 shrink-0">
+              {/* Streak inline badge */}
+              {streakData.currentStreak > 0 && (
+                <div className="flex items-center gap-1 px-2 py-1 bg-orange-500/10 text-orange-600 dark:text-orange-400 rounded-full text-xs font-medium">
+                  🔥 {streakData.currentStreak}
+                </div>
+              )}
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={toggleTutorials}
+                className="h-8 w-8"
+                title={tutorialsEnabled ? "Desativar tutoriais" : "Ativar tutoriais"}
+              >
+                <Settings className={`h-4 w-4 ${tutorialsEnabled ? 'text-primary' : 'text-muted-foreground'}`} />
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {/* Critical Alerts - Compact and dismissable */}
+        {criticalAlerts.alerts.length > 0 && (
+          <motion.div
+            drag="x"
+            dragConstraints={{ left: 0, right: 0 }}
+            onDragEnd={(e, { offset, velocity }) => {
+              if (Math.abs(offset.x) > 100 || Math.abs(velocity.x) > 500) {
+                criticalAlerts.dismissAll();
+              }
+            }}
+            className="mb-3"
+          >
+            <CriticalAlertBanner
+              alerts={criticalAlerts.alerts}
+              onDismiss={(id) => criticalAlerts.dismissAlert(id)}
+              onDismissAll={() => criticalAlerts.dismissAll()}
+            />
+          </motion.div>
+        )}
+
+        {/* Expired Prescriptions & Vaccine Reminders - inline compact */}
+        <div className="flex flex-wrap gap-2 mb-3">
           <ExpiredPrescriptionsAlert />
           <VaccineRemindersWidget />
         </div>
 
-        {/* Header with greeting - Visible and Styled */}
-        <div className="mb-2">
-          <div className="flex items-center justify-between">
-            <div className="flex-1">
-              <h1 className="text-3xl md:text-4xl font-bold mb-1 bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
-                {greeting}{userName && `, ${userName}`}!
-              </h1>
-              <p className="text-muted-foreground text-base">{motivationalQuote}</p>
-            </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={toggleTutorials}
-              className="shrink-0"
-              title={tutorialsEnabled ? "Desativar tutoriais" : "Ativar tutoriais"}
-            >
-              <Settings className={`h-5 w-5 ${tutorialsEnabled ? 'text-primary' : 'text-muted-foreground'}`} />
-            </Button>
+        {/* MAIN: Timeline + Calendar (medications first) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+          {/* Timeline - PRIMARY, first on mobile */}
+          <div className="w-full order-1">
+            <DayTimeline date={selectedDate} items={timelineItems} onDateChange={setSelectedDate} />
+          </div>
+
+          {/* Calendar */}
+          <div className="w-full order-2">
+            <ImprovedCalendar selectedDate={selectedDate} onDateSelect={setSelectedDate} eventCounts={eventCounts} />
           </div>
         </div>
 
-        {/* Tutorial Hints */}
-        {tutorialsEnabled && (
-          <>
-            <TutorialHint
-              id="today_overview"
-              title="📅 Bem-vindo à sua rotina de hoje"
-              message="Aqui você vê todas as suas doses, consultas e compromissos de saúde organizados por horário. Marque como tomado quando completar cada dose."
-              placement="bottom"
-            />
-          </>
-        )}
+        {/* Quick Actions - Compact inline row */}
+        <div className="flex flex-wrap gap-2 mb-4">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => navigate("/adicionar-medicamento")}
+            className="text-xs gap-1.5"
+          >
+            <span className="text-primary">+</span> Remédio
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => navigate("/carteira")}
+            className="text-xs gap-1.5"
+          >
+            <span className="text-green-600">📄</span> Documento
+          </Button>
+        </div>
 
-        {/* Compact Grid: Stats and Quick Actions - Equal Height Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mb-2">
-          {/* Streak Badge */}
-          {streakData.currentStreak > 0 && (
-            <div className="transition-transform hover:scale-105 h-full">
-              <StreakBadge streak={streakData.currentStreak} type="current" />
+        {/* Secondary Stats Row - Compact */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-4">
+          {/* Adherence - Compact */}
+          <Card className="p-3 bg-gradient-to-br from-primary/5 to-background border-primary/10">
+            <div className="flex items-center justify-between">
+              <div className="min-w-0">
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Hoje</p>
+                <p className="text-lg font-bold text-foreground">
+                  {todayStats.taken}/{todayStats.total}
+                </p>
+              </div>
+              <div className="text-xl font-bold text-primary">
+                {todayStats.total > 0 ? Math.round((todayStats.taken / todayStats.total) * 100) : 0}%
+              </div>
             </div>
-          )}
-          
-          {/* Adherence Summary */}
-          <div className="transition-transform hover:scale-105 h-full">
-            <SimpleAdherenceSummary taken={todayStats.taken} total={todayStats.total} period="Hoje" />
-          </div>
-          
-          {/* Health Insights - Compact */}
-          <div className="transition-transform hover:scale-105 h-full">
-            <HealthInsightsCard />
-          </div>
-          
+          </Card>
+
           {/* Quick Dose Widget - Compact */}
-          <div className="transition-transform hover:scale-105 h-full">
+          <div className="col-span-1">
             <QuickDoseWidget />
           </div>
-        </div>
 
-        {tutorialsEnabled && (
-          <TutorialHint
-            id="today_widgets"
-            title="📊 Seus indicadores de saúde"
-            message="Estes cards mostram seu progresso diário: sequência de dias seguidos, doses tomadas hoje, insights importantes e ações rápidas. Toque em cada um para ver mais detalhes."
-            placement="bottom"
-          />
-        )}
-
-        {/* Essential Shortcuts - Compact */}
-        <div className="mb-2">
-          <EssentialShortcuts />
+          {/* Insights - Minimal */}
+          <Card
+            className="p-3 cursor-pointer hover:bg-muted/50 transition-colors col-span-2 md:col-span-2"
+            onClick={() => navigate('/evolucao')}
+          >
+            <div className="flex items-center gap-2">
+              <TrendingUp className="h-4 w-4 text-muted-foreground shrink-0" />
+              <div className="min-w-0">
+                <p className="text-xs font-medium truncate">Ver evolução</p>
+                <p className="text-[10px] text-muted-foreground">Dashboard e linha do tempo</p>
+              </div>
+            </div>
+          </Card>
         </div>
 
         {/* Fitness Widgets - Conditional */}
-        {hasSupplements && preferences.showFitnessWidgets && <div className="space-y-2 mb-2">
+        {hasSupplements && preferences.showFitnessWidgets && (
+          <div className="space-y-2 mb-4">
             <HydrationWidget />
             <SupplementConsistencyWidget last7Days={[80, 85, 90, 75, 95, 88, 92]} />
             <EnergyHintWidget />
-          </div>}
+          </div>
+        )}
 
-        {/* Two Column Layout: Calendar + Timeline */}
+        {/* Tutorial Hints */}
         {tutorialsEnabled && (
           <TutorialHint
-            id="today_calendar_timeline"
-            title="📆 Calendário e Linha do Tempo"
-            message="À esquerda, veja todos os dias do mês com seus compromissos marcados. À direita, a linha do tempo detalhada do dia selecionado com horários de cada dose e consulta."
+            id="today_overview"
+            title="📅 Sua rotina de hoje"
+            message="Marque as doses quando tomar. O calendário mostra seus compromissos do mês."
             placement="bottom"
           />
         )}
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
-          {/* Calendar - Compact */}
-          <div className="w-full">
-            <ImprovedCalendar selectedDate={selectedDate} onDateSelect={setSelectedDate} eventCounts={eventCounts} />
-          </div>
-
-          {/* Timeline - Compact */}
-          <div className="w-full">
-            <DayTimeline date={selectedDate} items={timelineItems} onDateChange={setSelectedDate} />
-          </div>
-        </div>
 
         {/* Milestone Reward Modal */}
-        {milestone && <MilestoneReward visible={showMilestoneReward} onClose={handleMilestoneClose} onShare={handleMilestoneShare} milestone={milestone} />}
+        {milestone && (
+          <MilestoneReward
+            visible={showMilestoneReward}
+            onClose={handleMilestoneClose}
+            onShare={handleMilestoneShare}
+            milestone={milestone}
+          />
+        )}
 
         {/* Achievement Share Dialog */}
-        {selectedAchievement && <AchievementShareDialog achievement={selectedAchievement} open={shareDialogOpen} onOpenChange={setShareDialogOpen} />}
+        {selectedAchievement && (
+          <AchievementShareDialog
+            achievement={selectedAchievement}
+            open={shareDialogOpen}
+            onOpenChange={setShareDialogOpen}
+          />
+        )}
       </main>
 
       <Navigation />
-    </div>;
+    </div>
+  );
 }
