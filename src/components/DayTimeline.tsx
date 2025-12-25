@@ -56,56 +56,73 @@ export default function DayTimeline({
     }
   };
 
-  const getTypeStyles = (type: string, status: string, isPast: boolean) => {
+  const getTypeStyles = (type: string, status: string, isPast: boolean, itemName?: string) => {
     const isDone = status === "done";
     const isMissed = status === "missed";
 
     if (isDone) {
       return {
-        card: "bg-gradient-to-r from-success/10 via-success/5 to-transparent border-l-success",
-        iconBg: "bg-success text-success-foreground",
-        badge: "bg-success/20 text-success border-success/30",
+        card: "bg-success/5 border-l-success/60",
+        iconBg: "bg-success/15 text-success",
       };
     }
     if (isMissed) {
       return {
-        card: "bg-gradient-to-r from-destructive/10 via-destructive/5 to-transparent border-l-destructive",
-        iconBg: "bg-destructive text-destructive-foreground",
-        badge: "bg-destructive/20 text-destructive border-destructive/30",
+        card: "bg-destructive/5 border-l-destructive/60",
+        iconBg: "bg-destructive/15 text-destructive",
       };
     }
     if (isPast) {
       return {
-        card: "bg-gradient-to-r from-warning/10 via-warning/5 to-transparent border-l-warning animate-pulse",
-        iconBg: "bg-warning text-warning-foreground",
-        badge: "bg-warning/20 text-warning border-warning/30",
+        card: "bg-warning/5 border-l-warning animate-pulse",
+        iconBg: "bg-warning/15 text-warning",
       };
     }
 
+    // Variações sutis de cores baseadas no nome do medicamento
+    const getMedicationColorVariant = (name?: string) => {
+      if (!name) return { class: "bg-blue-500/5 border-l-blue-500/70", icon: "bg-blue-500/12 text-blue-600" };
+      
+      const hash = name.toLowerCase().split('').reduce((a, b) => {
+        a = ((a << 5) - a) + b.charCodeAt(0);
+        return a & a;
+      }, 0);
+      
+      const variants = [
+        { class: "bg-blue-500/5 border-l-blue-500/70", icon: "bg-blue-500/12 text-blue-600" },
+        { class: "bg-indigo-500/5 border-l-indigo-500/70", icon: "bg-indigo-500/12 text-indigo-600" },
+        { class: "bg-violet-500/5 border-l-violet-500/70", icon: "bg-violet-500/12 text-violet-600" },
+        { class: "bg-purple-500/5 border-l-purple-500/70", icon: "bg-purple-500/12 text-purple-600" },
+        { class: "bg-sky-500/5 border-l-sky-500/70", icon: "bg-sky-500/12 text-sky-600" },
+        { class: "bg-cyan-500/5 border-l-cyan-500/70", icon: "bg-cyan-500/12 text-cyan-600" },
+        { class: "bg-teal-500/5 border-l-teal-500/70", icon: "bg-teal-500/12 text-teal-600" },
+      ];
+      
+      return variants[Math.abs(hash) % variants.length];
+    };
+
     switch (type) {
-      case "medication":
+      case "medication": {
+        const variant = getMedicationColorVariant(itemName);
         return {
-          card: "bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border-l-primary hover:from-primary/15",
-          iconBg: "bg-primary/20 text-primary",
-          badge: "bg-primary/20 text-primary border-primary/30",
+          card: variant.class,
+          iconBg: variant.icon,
         };
+      }
       case "appointment":
         return {
-          card: "bg-gradient-to-r from-emerald-500/10 via-emerald-500/5 to-transparent border-l-emerald-500 hover:from-emerald-500/15",
-          iconBg: "bg-emerald-500/20 text-emerald-600",
-          badge: "bg-emerald-500/20 text-emerald-600 border-emerald-500/30",
+          card: "bg-emerald-500/5 border-l-emerald-500/70",
+          iconBg: "bg-emerald-500/12 text-emerald-600",
         };
       case "exam":
         return {
-          card: "bg-gradient-to-r from-violet-500/10 via-violet-500/5 to-transparent border-l-violet-500 hover:from-violet-500/15",
-          iconBg: "bg-violet-500/20 text-violet-600",
-          badge: "bg-violet-500/20 text-violet-600 border-violet-500/30",
+          card: "bg-amber-500/5 border-l-amber-500/70",
+          iconBg: "bg-amber-500/12 text-amber-600",
         };
       default:
         return {
-          card: "bg-gradient-to-r from-muted/50 to-transparent border-l-muted-foreground",
+          card: "bg-muted/30 border-l-muted-foreground/40",
           iconBg: "bg-muted text-muted-foreground",
-          badge: "bg-muted text-muted-foreground border-muted",
         };
     }
   };
@@ -170,7 +187,7 @@ export default function DayTimeline({
                     const isPast = isCurrentDay && isBefore(parseISO(`${format(date, "yyyy-MM-dd")}T${item.time}`), now);
                     const isDone = item.status === "done";
                     const isMissed = item.status === "missed";
-                    const styles = getTypeStyles(item.type, item.status, isPast && !isDone && !isMissed);
+                    const styles = getTypeStyles(item.type, item.status, isPast && !isDone && !isMissed, item.title);
 
                     return (
                       <motion.div
@@ -186,80 +203,75 @@ export default function DayTimeline({
                             isDone && "opacity-80"
                           )}
                         >
-                          <CardContent className="p-4">
-                            <div className="flex items-start gap-3">
-                              {/* Ícone */}
-                              <div className={cn("p-2.5 rounded-xl shrink-0 shadow-sm", styles.iconBg)}>
+                          <CardContent className="p-3">
+                            <div className="flex items-center gap-2.5">
+                              {/* Ícone compacto */}
+                              <div className={cn("p-2 rounded-lg shrink-0", styles.iconBg)}>
                                 {getTypeIcon(item.type, isDone)}
                               </div>
 
                               {/* Conteúdo */}
                               <div className="flex-1 min-w-0">
-                                <div className="flex items-start justify-between gap-2 mb-1.5">
-                                  <div className="flex-1 min-w-0">
-                                    <h3 className={cn(
-                                      "font-semibold text-foreground",
-                                      isDone && "line-through text-muted-foreground"
-                                    )}>
-                                      {item.title}
-                                    </h3>
-                                    {item.subtitle && (
-                                      <p className="text-sm text-muted-foreground truncate">
-                                        {item.subtitle}
-                                      </p>
-                                    )}
-                                  </div>
-                                  <span className="text-lg font-bold text-primary shrink-0">
+                                <div className="flex items-center justify-between gap-2">
+                                  <h3 className={cn(
+                                    "font-medium text-sm text-foreground truncate",
+                                    isDone && "line-through text-muted-foreground"
+                                  )}>
+                                    {item.title}
+                                  </h3>
+                                  <span className="text-sm font-semibold text-primary shrink-0">
                                     {item.time}
                                   </span>
                                 </div>
-
-                                <div className="flex items-center gap-2 flex-wrap mt-2">
-                                  <Badge variant="outline" className={cn("text-xs border", styles.badge)}>
-                                    {getTypeLabel(item.type)}
-                                  </Badge>
+                                {item.subtitle && (
+                                  <p className="text-xs text-muted-foreground truncate">
+                                    {item.subtitle}
+                                  </p>
+                                )}
+                                
+                                {/* Status badges inline */}
+                                <div className="flex items-center gap-1.5 mt-1">
                                   {isPast && !isDone && !isMissed && (
-                                    <Badge className="bg-warning/90 text-warning-foreground text-xs animate-pulse">
-                                      ⚠️ Atrasado
+                                    <Badge className="bg-warning/90 text-warning-foreground text-[10px] px-1.5 py-0 h-4">
+                                      Atrasado
                                     </Badge>
                                   )}
                                   {isDone && (
-                                    <Badge className="bg-success text-success-foreground text-xs">
+                                    <Badge className="bg-success/90 text-success-foreground text-[10px] px-1.5 py-0 h-4">
                                       ✓ Tomado
                                     </Badge>
                                   )}
                                   {isMissed && (
-                                    <Badge variant="destructive" className="text-xs">
+                                    <Badge variant="destructive" className="text-[10px] px-1.5 py-0 h-4">
                                       Perdido
                                     </Badge>
                                   )}
                                 </div>
+                              </div>
 
-                                {/* Ações - apenas para medicamentos pendentes */}
-                                {item.type === "medication" && !isDone && !isMissed && (
-                                  <div className="flex gap-2 mt-3">
+                              {/* Ações compactas - apenas para medicamentos pendentes */}
+                              {item.type === "medication" && !isDone && !isMissed && (
+                                <div className="flex gap-1.5 shrink-0">
+                                  <Button
+                                    size="sm"
+                                    onClick={item.onMarkDone}
+                                    className="h-8 px-3 text-xs bg-primary hover:bg-primary/90"
+                                  >
+                                    <CheckCircle2 className="h-3.5 w-3.5 mr-1" />
+                                    Tomei
+                                  </Button>
+                                  {item.onSnooze && (
                                     <Button
                                       size="sm"
-                                      onClick={item.onMarkDone}
-                                      className="flex-1 h-9 bg-primary hover:bg-primary/90 text-primary-foreground font-medium shadow-sm"
+                                      variant="ghost"
+                                      onClick={item.onSnooze}
+                                      className="h-8 px-2"
                                     >
-                                      <CheckCircle2 className="h-4 w-4 mr-1.5" />
-                                      Tomei
+                                      <Timer className="h-3.5 w-3.5" />
                                     </Button>
-                                    {item.onSnooze && (
-                                      <Button
-                                        size="sm"
-                                        variant="outline"
-                                        onClick={item.onSnooze}
-                                        className="h-9 px-3 border-muted-foreground/30"
-                                      >
-                                        <Timer className="h-4 w-4 mr-1" />
-                                        Adiar
-                                      </Button>
-                                    )}
-                                  </div>
-                                )}
-                              </div>
+                                  )}
+                                </div>
+                              )}
                             </div>
                           </CardContent>
                         </Card>
