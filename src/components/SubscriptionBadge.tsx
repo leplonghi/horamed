@@ -8,8 +8,8 @@ export default function SubscriptionBadge() {
   
   if (isPremium) {
     return (
-      <div className="flex items-center justify-center h-6 w-6 rounded-full bg-primary/20">
-        <Sparkles className="h-3.5 w-3.5 text-primary" />
+      <div className="flex items-center justify-center h-7 w-7 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 shadow-md shadow-blue-500/30">
+        <Crown className="h-4 w-4 text-yellow-400 fill-yellow-400" />
       </div>
     );
   }
