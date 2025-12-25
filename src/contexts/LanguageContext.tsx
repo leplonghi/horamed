@@ -472,11 +472,23 @@ const translations: Record<Language, Record<string, string>> = {
   }
 };
 
+// Detecta se o idioma do navegador é português
+const detectLanguage = (): Language => {
+  const saved = localStorage.getItem('horamed_language');
+  if (saved === 'pt' || saved === 'en') {
+    return saved;
+  }
+  
+  // Detecta idioma do navegador
+  const browserLang = navigator.language || (navigator as any).userLanguage || 'en';
+  const langCode = browserLang.toLowerCase().split('-')[0];
+  
+  // Só retorna português para língua portuguesa, todo o resto é inglês
+  return langCode === 'pt' ? 'pt' : 'en';
+};
+
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [language, setLanguageState] = useState<Language>(() => {
-    const saved = localStorage.getItem('horamed_language');
-    return (saved as Language) || 'pt';
-  });
+  const [language, setLanguageState] = useState<Language>(detectLanguage);
 
   useEffect(() => {
     localStorage.setItem('horamed_language', language);
