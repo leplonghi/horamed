@@ -74,9 +74,7 @@ serve(async (req) => {
         item_id,
         items!inner (
           user_id,
-          name,
-          current_stock,
-          dose_per_take
+          name
         )
       `)
       .eq('id', doseId)
