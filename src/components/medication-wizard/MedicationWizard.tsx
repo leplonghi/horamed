@@ -1,8 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, ArrowRight, Check, Loader2, Sparkles, Calendar, Package, ChevronDown } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Loader2, Sparkles, Calendar, Package, ChevronDown, Camera, Upload, Edit3 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { WizardStepIdentity } from "./WizardStepIdentity";
 import { WizardStepSchedule } from "./WizardStepSchedule";
@@ -14,7 +14,8 @@ import { toast } from "sonner";
 import PaywallDialog from "@/components/PaywallDialog";
 import { cn } from "@/lib/utils";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-
+import { Card } from "@/components/ui/card";
+import UpgradeModal from "@/components/UpgradeModal";
 interface MedicationData {
   name: string;
   category: string;
@@ -54,7 +55,7 @@ export default function MedicationWizard({ open, onOpenChange, editItemId }: Med
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const { activeProfile } = useUserProfiles();
-  const { subscription, loading: subLoading } = useSubscription();
+  const { subscription, loading: subLoading, hasFeature } = useSubscription();
   
   const urlEditId = searchParams.get("edit");
   const itemIdToEdit = editItemId || urlEditId;
@@ -62,13 +63,19 @@ export default function MedicationWizard({ open, onOpenChange, editItemId }: Med
   
   const prefillData = location.state?.prefillData;
   
-  // Wizard simplificado: 2 passos principais + estoque opcional
-  const [currentStep, setCurrentStep] = useState(1);
+  // Step 0 = seleção de método, 1 = identidade, 2 = horários
+  const [currentStep, setCurrentStep] = useState(isEditing ? 1 : 0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(isEditing);
   const [showPaywall, setShowPaywall] = useState(false);
   const [showStock, setShowStock] = useState(false);
   const [medicationData, setMedicationData] = useState<MedicationData>(INITIAL_DATA);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [processingOCR, setProcessingOCR] = useState(false);
+  const [ocrPreview, setOcrPreview] = useState<string | null>(null);
+  
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (itemIdToEdit && open) {
@@ -131,6 +138,77 @@ export default function MedicationWizard({ open, onOpenChange, editItemId }: Med
       onOpenChange(false);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Reset step when opening (only for new items)
+  useEffect(() => {
+    if (open && !isEditing) {
+      setCurrentStep(0);
+      setMedicationData(INITIAL_DATA);
+      setOcrPreview(null);
+    }
+  }, [open, isEditing]);
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64 = reader.result as string;
+        setOcrPreview(base64);
+        processOCR(base64);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const processOCR = async (imageData: string) => {
+    setProcessingOCR(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("extract-medication", {
+        body: { image: imageData },
+      });
+
+      if (error) throw error;
+
+      if (data?.name) {
+        toast.success("Medicamento identificado!");
+        setMedicationData(prev => ({
+          ...prev,
+          name: data.name,
+          category: data.category || "medicamento",
+        }));
+        setCurrentStep(1);
+      } else {
+        toast.error("Não foi possível identificar o medicamento");
+        setCurrentStep(1);
+      }
+    } catch (error) {
+      console.error("Error processing image:", error);
+      toast.error("Erro ao processar imagem. Preencha manualmente.");
+      setCurrentStep(1);
+    } finally {
+      setProcessingOCR(false);
+      setOcrPreview(null);
+    }
+  };
+
+  const handleMethodSelect = (method: "camera" | "upload" | "manual") => {
+    if (method === "manual") {
+      setCurrentStep(1);
+      return;
+    }
+
+    if (!hasFeature("ocr")) {
+      setShowUpgradeModal(true);
+      return;
+    }
+
+    if (method === "camera") {
+      cameraInputRef.current?.click();
+    } else if (method === "upload") {
+      fileInputRef.current?.click();
     }
   };
 
@@ -318,6 +396,30 @@ export default function MedicationWizard({ open, onOpenChange, editItemId }: Med
     { number: 2, title: "Quando tomar?", icon: Calendar },
   ];
 
+  const methodOptions = [
+    {
+      id: "camera",
+      icon: Camera,
+      title: "Escanear Receita",
+      description: "Tire foto da receita ou caixa",
+      premium: true,
+    },
+    {
+      id: "upload",
+      icon: Upload,
+      title: "Enviar Imagem",
+      description: "Selecione da galeria",
+      premium: true,
+    },
+    {
+      id: "manual",
+      icon: Edit3,
+      title: "Digitar Manualmente",
+      description: "Preencher os dados",
+      premium: false,
+    },
+  ];
+
   if (isLoading) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
@@ -333,56 +435,79 @@ export default function MedicationWizard({ open, onOpenChange, editItemId }: Med
 
   return (
     <>
+      {/* Hidden file inputs for OCR */}
+      <input
+        ref={cameraInputRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        onChange={handleFileSelect}
+        className="hidden"
+      />
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        onChange={handleFileSelect}
+        className="hidden"
+      />
+
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="w-[95vw] max-w-lg max-h-[85vh] sm:max-h-[90vh] overflow-hidden flex flex-col p-4 sm:p-6 rounded-2xl">
           <DialogHeader className="pb-2 space-y-1">
             <DialogTitle className="text-lg sm:text-xl">
-              {isEditing ? "Editar Item" : "Adicionar Item"}
+              {isEditing ? "Editar Item" : currentStep === 0 ? "Adicionar Medicamento" : "Adicionar Item"}
             </DialogTitle>
             <DialogDescription className="text-xs sm:text-sm">
-              {currentStep === 1 ? "Informe o nome e tipo" : "Configure os horários"}
+              {currentStep === 0 
+                ? "Como você quer adicionar?" 
+                : currentStep === 1 
+                  ? "Informe o nome e tipo" 
+                  : "Configure os horários"}
             </DialogDescription>
           </DialogHeader>
 
-          {/* Progress Steps - Mobile optimized */}
-          <div className="flex items-center justify-center gap-2 sm:gap-4 py-3 sm:py-4">
-            {steps.map((step, index) => {
-              const Icon = step.icon;
-              const isActive = currentStep === step.number;
-              const isCompleted = currentStep > step.number;
-              
-              return (
-                <div key={step.number} className="flex items-center">
-                  <div className="flex flex-col items-center gap-1">
-                    <div
-                      className={cn(
-                        "w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition-all",
-                        isActive 
-                          ? "bg-primary text-primary-foreground scale-110 shadow-lg" 
-                          : isCompleted 
-                            ? "bg-green-500 text-white" 
-                            : "bg-muted text-muted-foreground"
-                      )}
-                    >
-                      {isCompleted ? <Check className="w-4 h-4 sm:w-5 sm:h-5" /> : <Icon className="w-4 h-4 sm:w-5 sm:h-5" />}
+          {/* Progress Steps - só mostra após step 0 */}
+          {currentStep > 0 && (
+            <div className="flex items-center justify-center gap-2 sm:gap-4 py-3 sm:py-4">
+              {steps.map((step, index) => {
+                const Icon = step.icon;
+                const isActive = currentStep === step.number;
+                const isCompleted = currentStep > step.number;
+                
+                return (
+                  <div key={step.number} className="flex items-center">
+                    <div className="flex flex-col items-center gap-1">
+                      <div
+                        className={cn(
+                          "w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition-all",
+                          isActive 
+                            ? "bg-primary text-primary-foreground scale-110 shadow-lg" 
+                            : isCompleted 
+                              ? "bg-green-500 text-white" 
+                              : "bg-muted text-muted-foreground"
+                        )}
+                      >
+                        {isCompleted ? <Check className="w-4 h-4 sm:w-5 sm:h-5" /> : <Icon className="w-4 h-4 sm:w-5 sm:h-5" />}
+                      </div>
+                      <span className={cn(
+                        "text-[10px] sm:text-xs font-medium",
+                        isActive ? "text-primary" : "text-muted-foreground"
+                      )}>
+                        {step.title}
+                      </span>
                     </div>
-                    <span className={cn(
-                      "text-[10px] sm:text-xs font-medium",
-                      isActive ? "text-primary" : "text-muted-foreground"
-                    )}>
-                      {step.title}
-                    </span>
+                    {index < steps.length - 1 && (
+                      <div className={cn(
+                        "w-8 sm:w-12 h-0.5 mx-1.5 sm:mx-2 transition-all",
+                        currentStep > step.number ? "bg-green-500" : "bg-muted"
+                      )} />
+                    )}
                   </div>
-                  {index < steps.length - 1 && (
-                    <div className={cn(
-                      "w-8 sm:w-12 h-0.5 mx-1.5 sm:mx-2 transition-all",
-                      currentStep > step.number ? "bg-green-500" : "bg-muted"
-                    )} />
-                  )}
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          )}
 
           {/* Step Content */}
           <div className="flex-1 overflow-y-auto px-1">
@@ -394,6 +519,48 @@ export default function MedicationWizard({ open, onOpenChange, editItemId }: Med
                 exit={{ opacity: 0, x: -20 }}
                 transition={{ duration: 0.2 }}
               >
+                {/* Step 0: Seleção de método */}
+                {currentStep === 0 && (
+                  <div className="space-y-3 py-2">
+                    {processingOCR ? (
+                      <Card className="p-8 flex flex-col items-center justify-center">
+                        <Loader2 className="w-10 h-10 animate-spin text-primary mb-4" />
+                        <p className="text-muted-foreground text-center">
+                          Analisando imagem...
+                        </p>
+                      </Card>
+                    ) : (
+                      methodOptions.map((option) => (
+                        <Card
+                          key={option.id}
+                          className="p-4 cursor-pointer hover:bg-accent/50 transition-all border-2 hover:border-primary/30"
+                          onClick={() => handleMethodSelect(option.id as "camera" | "upload" | "manual")}
+                        >
+                          <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                              <option.icon className="w-6 h-6 text-primary" />
+                            </div>
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2">
+                                <h3 className="font-medium">{option.title}</h3>
+                                {option.premium && !hasFeature("ocr") && (
+                                  <span className="text-[10px] bg-amber-500/10 text-amber-600 px-1.5 py-0.5 rounded-full font-medium">
+                                    Premium
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-sm text-muted-foreground">
+                                {option.description}
+                              </p>
+                            </div>
+                            <ArrowRight className="w-5 h-5 text-muted-foreground" />
+                          </div>
+                        </Card>
+                      ))
+                    )}
+                  </div>
+                )}
+                
                 {currentStep === 1 && (
                   <WizardStepIdentity data={medicationData} updateData={updateData} />
                 )}
@@ -434,43 +601,60 @@ export default function MedicationWizard({ open, onOpenChange, editItemId }: Med
           </div>
 
           {/* Navigation Buttons - Mobile optimized */}
-          <div className="flex justify-between gap-3 pt-3 sm:pt-4 border-t mt-3 sm:mt-4">
-            <Button
-              variant="outline"
-              onClick={currentStep === 1 ? () => onOpenChange(false) : handleBack}
-              disabled={isSubmitting}
-              className="flex-1 sm:flex-none h-11 sm:h-10"
-            >
-              {currentStep === 1 ? "Cancelar" : (
-                <>
-                  <ArrowLeft className="w-4 h-4 mr-1 sm:mr-2" />
-                  <span className="hidden xs:inline">Voltar</span>
-                </>
-              )}
-            </Button>
+          {currentStep > 0 && (
+            <div className="flex justify-between gap-3 pt-3 sm:pt-4 border-t mt-3 sm:mt-4">
+              <Button
+                variant="outline"
+                onClick={currentStep === 1 ? () => setCurrentStep(0) : handleBack}
+                disabled={isSubmitting}
+                className="flex-1 sm:flex-none h-11 sm:h-10"
+              >
+                <ArrowLeft className="w-4 h-4 mr-1 sm:mr-2" />
+                <span>Voltar</span>
+              </Button>
 
-            <Button 
-              onClick={handleNext} 
-              disabled={isSubmitting} 
-              className="flex-1 sm:flex-none sm:min-w-[120px] h-11 sm:h-10"
-            >
-              {isSubmitting ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : currentStep === 2 ? (
-                <>
-                  {isEditing ? "Salvar" : "Adicionar"}
-                  <Check className="w-4 h-4 ml-1 sm:ml-2" />
-                </>
-              ) : (
-                <>
-                  Próximo
-                  <ArrowRight className="w-4 h-4 ml-1 sm:ml-2" />
-                </>
-              )}
-            </Button>
-          </div>
+              <Button 
+                onClick={handleNext} 
+                disabled={isSubmitting} 
+                className="flex-1 sm:flex-none sm:min-w-[120px] h-11 sm:h-10"
+              >
+                {isSubmitting ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : currentStep === 2 ? (
+                  <>
+                    {isEditing ? "Salvar" : "Adicionar"}
+                    <Check className="w-4 h-4 ml-1 sm:ml-2" />
+                  </>
+                ) : (
+                  <>
+                    Próximo
+                    <ArrowRight className="w-4 h-4 ml-1 sm:ml-2" />
+                  </>
+                )}
+              </Button>
+            </div>
+          )}
+          
+          {/* Cancel button only on step 0 */}
+          {currentStep === 0 && !processingOCR && (
+            <div className="pt-3 sm:pt-4 border-t mt-3 sm:mt-4">
+              <Button
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+                className="w-full h-11 sm:h-10"
+              >
+                Cancelar
+              </Button>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
+
+      <UpgradeModal
+        open={showUpgradeModal}
+        onOpenChange={setShowUpgradeModal}
+        feature="OCR de receitas"
+      />
 
       <PaywallDialog
         open={showPaywall}
