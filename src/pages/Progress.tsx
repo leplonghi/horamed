@@ -302,7 +302,13 @@ export default function Progress() {
           </div>
         </motion.div>
 
-        {hasSupplements && preferences.showFitnessWidgets && <FitnessProgressWidgets />}
+        {hasSupplements && preferences.showFitnessWidgets && (
+          <FitnessProgressWidgets 
+            supplementAdherence7Days={doseStats?.adherence || 0}
+            consistencyRate={Math.round((doseStats?.adherence || 0) * 0.9)}
+            hasPreWorkoutSupplements={hasSupplements}
+          />
+        )}
       </main>
 
       <Navigation />
