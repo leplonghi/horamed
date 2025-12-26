@@ -140,8 +140,27 @@ export default function DayTimeline({
     }
   };
 
+  // Check if all items are done
+  const allDone = items.length > 0 && items.every(item => item.status === "done");
+  const pendingCount = items.filter(item => item.status === "pending").length;
+
   return (
     <div className="space-y-3 overflow-x-hidden w-full">
+      {/* Success banner when all done */}
+      {allDone && (
+        <Card className="border-green-500/30 bg-green-500/5">
+          <CardContent className="py-4 text-center">
+            <div className="inline-flex items-center gap-2 text-green-600 dark:text-green-400">
+              <CheckCircle2 className="h-5 w-5" />
+              <span className="font-semibold">Tudo em dia!</span>
+            </div>
+            <p className="text-sm text-muted-foreground mt-1">
+              Você tomou todos os medicamentos de hoje. Parabéns!
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Header do Dia */}
       <div className="text-center py-2 mb-2">
         <p className="text-xs text-muted-foreground capitalize">
@@ -150,19 +169,24 @@ export default function DayTimeline({
         <p className="text-base font-bold text-foreground">
           {format(date, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
         </p>
+        {pendingCount > 0 && (
+          <p className="text-xs text-muted-foreground mt-1">
+            {pendingCount} {pendingCount === 1 ? "dose pendente" : "doses pendentes"}
+          </p>
+        )}
       </div>
 
       {/* Timeline do Dia */}
       <div className="space-y-3 w-full overflow-x-hidden">
         {items.length === 0 ? (
           <Card className="border-dashed">
-            <CardContent className="py-12 text-center">
-              <div className="inline-flex p-4 rounded-full bg-muted/50 mb-4">
-                <Calendar className="h-12 w-12 text-muted-foreground" />
+            <CardContent className="py-8 text-center">
+              <div className="inline-flex p-3 rounded-full bg-muted/50 mb-3">
+                <Calendar className="h-8 w-8 text-muted-foreground" />
               </div>
-              <p className="text-lg font-semibold mb-2">Nenhum evento hoje</p>
+              <p className="font-semibold mb-1">Nenhum evento hoje</p>
               <p className="text-muted-foreground text-sm">
-                Você não tem medicamentos, consultas ou exames agendados para este dia.
+                Você não tem medicamentos agendados para este dia.
               </p>
             </CardContent>
           </Card>

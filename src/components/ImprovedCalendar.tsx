@@ -439,25 +439,79 @@ export default function ImprovedCalendar({
 
   return (
     <Card className="overflow-hidden">
-      <CardContent className="p-4 space-y-4">
-        {/* View Mode Tabs */}
-        <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as ViewMode)}>
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="day" className="text-xs">Dia</TabsTrigger>
-            <TabsTrigger value="week" className="text-xs">Semana</TabsTrigger>
-            <TabsTrigger value="month" className="text-xs">Mês</TabsTrigger>
-          </TabsList>
-        </Tabs>
-
-        {/* Header with Navigation */}
-        {renderHeader()}
-
-        {/* Content based on view mode */}
-        <div className="min-h-[200px]">
-          {viewMode === "day" && renderDayView()}
-          {viewMode === "week" && renderWeekView()}
-          {viewMode === "month" && renderMonthView()}
+      <CardContent className="p-3 space-y-3">
+        {/* Compact Week Strip - default view */}
+        <div className="flex items-center justify-between gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={goToPrevious}
+            className="h-8 w-8"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <h4 className="text-sm font-semibold capitalize">
+            {format(weekStart, "MMM yyyy", { locale: ptBR })}
+          </h4>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={goToNext}
+            className="h-8 w-8"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
         </div>
+
+        {/* Week days - simplified */}
+        <div className="grid grid-cols-7 gap-1">
+          {weekDays.map((day) => {
+            const count = getEventCount(day);
+            const isDayToday = isToday(day);
+            const isSelected = isSameDay(day, selectedDate);
+
+            return (
+              <button
+                key={day.toISOString()}
+                onClick={() => handleDateClick(day)}
+                className={cn(
+                  "flex flex-col items-center justify-center py-2 px-1 rounded-lg transition-all",
+                  "hover:bg-accent",
+                  isSelected && "bg-primary text-primary-foreground shadow-sm",
+                  isDayToday && !isSelected && "ring-1 ring-primary"
+                )}
+              >
+                <span className="text-[10px] font-medium uppercase opacity-70">
+                  {format(day, "EEE", { locale: ptBR }).slice(0, 3)}
+                </span>
+                <span className={cn(
+                  "text-lg font-bold",
+                  isDayToday && !isSelected && "text-primary"
+                )}>
+                  {format(day, "d")}
+                </span>
+                {count > 0 && (
+                  <div className={cn(
+                    "mt-0.5 h-1.5 w-1.5 rounded-full",
+                    isSelected ? "bg-primary-foreground" : "bg-primary"
+                  )} />
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Today button if not today selected */}
+        {!isToday(selectedDate) && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={goToToday}
+            className="w-full text-xs h-7"
+          >
+            Ir para hoje
+          </Button>
+        )}
       </CardContent>
     </Card>
   );

@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { 
   User, Bell, Shield, HelpCircle, LogOut, FileDown, 
   Crown, Users, Plus, Trash2, Settings, BookOpen,
-  Download, FileText, AlertCircle, Smartphone, Gift, Activity, Check, Fingerprint, ArrowRight
+  Download, FileText, AlertCircle, Smartphone, Gift, Activity, Check, Fingerprint, ArrowRight, Star
 } from "lucide-react";
 import { useBiometricAuth } from "@/hooks/useBiometricAuth";
 import CaregiverManager from "@/components/CaregiverManager";
@@ -210,8 +210,36 @@ export default function Profile() {
             </TabsTrigger>
           </TabsList>
 
-          {/* Account Tab */}
           <TabsContent value="account" className="space-y-6 mt-6">
+            {/* Referral Card */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="rounded-2xl p-4"
+              style={{ 
+                boxShadow: 'var(--shadow-sm)',
+                background: 'linear-gradient(135deg, hsl(var(--primary) / 0.08), hsl(var(--primary) / 0.02))'
+              }}
+            >
+              <div className="flex items-center gap-3">
+                <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Star className="h-6 w-6 text-primary" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-semibold">Indique e Ganhe</p>
+                  <p className="text-sm text-muted-foreground">Ganhe descontos indicando amigos</p>
+                </div>
+                <Button 
+                  variant="outline"
+                  className="rounded-xl"
+                  onClick={() => navigate('/recompensas')}
+                >
+                  Ver
+                  <ArrowRight className="h-4 w-4 ml-1" />
+                </Button>
+              </div>
+            </motion.div>
+
             {/* Weight Tracking */}
             {profile.user_id && (
               <WeightTrackingCard 

@@ -31,7 +31,7 @@ import { VaccineRemindersWidget } from "@/components/VaccineRemindersWidget";
 import { ExpiredPrescriptionsAlert } from "@/components/ExpiredPrescriptionsAlert";
 import EssentialShortcuts from "@/components/EssentialShortcuts";
 import SimpleAdherenceSummary from "@/components/SimpleAdherenceSummary";
-import { X, Settings, TrendingUp } from "lucide-react";
+import { X, Settings, TrendingUp, Gift } from "lucide-react";
 import { cn } from "@/lib/utils";
 import HydrationWidget from "@/components/fitness/HydrationWidget";
 import EnergyHintWidget from "@/components/fitness/EnergyHintWidget";
@@ -553,18 +553,31 @@ export default function TodayRedesign() {
           <VaccineRemindersWidget />
         </div>
 
-        {/* MAIN: Timeline + Calendar (medications first) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
-          {/* Timeline - PRIMARY, first on mobile */}
-          <div className="w-full order-1">
-            <DayTimeline date={selectedDate} items={timelineItems} onDateChange={setSelectedDate} />
-          </div>
-
-          {/* Calendar */}
-          <div className="w-full order-2">
-            <ImprovedCalendar selectedDate={selectedDate} onDateSelect={setSelectedDate} eventCounts={eventCounts} />
-          </div>
+        {/* MAIN: Timeline */}
+        <div className="mb-4">
+          <DayTimeline date={selectedDate} items={timelineItems} onDateChange={setSelectedDate} />
         </div>
+
+        {/* Simple Week Strip Calendar */}
+        <div className="mb-4">
+          <ImprovedCalendar selectedDate={selectedDate} onDateSelect={setSelectedDate} eventCounts={eventCounts} />
+        </div>
+
+        {/* Referral Card - if not already referred */}
+        <Card className="mb-4 p-3 bg-gradient-to-r from-primary/5 to-purple-500/5 border-primary/20">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+              <Gift className="h-5 w-5 text-primary" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="font-semibold text-sm">Indique e Ganhe</p>
+              <p className="text-xs text-muted-foreground truncate">Ganhe descontos indicando amigos</p>
+            </div>
+            <Button size="sm" variant="outline" onClick={() => navigate("/recompensas")} className="shrink-0">
+              Ver
+            </Button>
+          </div>
+        </Card>
 
         {/* Quick Actions - Compact inline row */}
         <div className="flex flex-wrap gap-2 mb-4">
