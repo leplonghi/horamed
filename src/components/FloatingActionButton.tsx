@@ -8,8 +8,8 @@ export default function FloatingActionButton() {
   const [showMenu, setShowMenu] = useState(false);
   const location = useLocation();
   
-  // Hide FAB on auth and onboarding pages
-  const hiddenRoutes = ["/auth", "/onboarding"];
+  // Hide FAB on auth, onboarding, and pages with their own add button
+  const hiddenRoutes = ["/auth", "/onboarding", "/rotina", "/medicamentos"];
   const shouldHide = hiddenRoutes.some(route => location.pathname.startsWith(route));
 
   if (shouldHide) return null;
