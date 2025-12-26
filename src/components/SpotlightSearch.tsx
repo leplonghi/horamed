@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface SearchResult {
   id: string;
@@ -21,21 +22,22 @@ interface SpotlightSearchProps {
   onOpenChange: (open: boolean) => void;
 }
 
-const QUICK_ACTIONS: SearchResult[] = [
-  { id: "add-med", type: "action", title: "Adicionar medicamento", route: "/adicionar-medicamento" },
-  { id: "upload-doc", type: "action", title: "Enviar documento", route: "/cofre/upload" },
-  { id: "view-stock", type: "action", title: "Ver estoque", route: "/estoque" },
-  { id: "view-calendar", type: "action", title: "Ver calendário", route: "/agenda" },
-  { id: "view-progress", type: "action", title: "Ver progresso", route: "/progresso" },
-  { id: "view-vaccines", type: "action", title: "Carteira de vacinas", route: "/vacinas" },
-];
-
 export default function SpotlightSearch({ open, onOpenChange }: SpotlightSearchProps) {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
+
+  const QUICK_ACTIONS: SearchResult[] = [
+    { id: "add-med", type: "action", title: t('search.addMedication'), route: "/adicionar-medicamento" },
+    { id: "upload-doc", type: "action", title: t('search.uploadDocument'), route: "/cofre/upload" },
+    { id: "view-stock", type: "action", title: t('search.viewStock'), route: "/estoque" },
+    { id: "view-calendar", type: "action", title: t('search.viewCalendar'), route: "/agenda" },
+    { id: "view-progress", type: "action", title: t('search.viewProgress'), route: "/progresso" },
+    { id: "view-vaccines", type: "action", title: t('search.vaccineWallet'), route: "/vacinas" },
+  ];
 
   const search = useCallback(async (searchQuery: string) => {
     if (!searchQuery.trim()) {
@@ -76,7 +78,7 @@ export default function SpotlightSearch({ open, onOpenChange }: SpotlightSearchP
         searchResults.push({
           id: doc.id,
           type: "document",
-          title: doc.title || "Documento",
+          title: doc.title || t('cofre.document'),
           route: `/cofre/${doc.id}`,
         });
       });
@@ -92,7 +94,7 @@ export default function SpotlightSearch({ open, onOpenChange }: SpotlightSearchP
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     if (open) {
@@ -150,7 +152,7 @@ export default function SpotlightSearch({ open, onOpenChange }: SpotlightSearchP
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Buscar medicamentos, documentos, ações..."
+            placeholder={t('search.placeholder')}
             className="flex-1 border-0 bg-transparent focus-visible:ring-0 text-base py-4"
             autoFocus
           />
@@ -174,7 +176,7 @@ export default function SpotlightSearch({ open, onOpenChange }: SpotlightSearchP
             </div>
           ) : results.length === 0 ? (
             <div className="p-8 text-center text-muted-foreground">
-              Nenhum resultado encontrado
+              {t('search.noResults')}
             </div>
           ) : (
             <AnimatePresence mode="popLayout">
@@ -218,15 +220,15 @@ export default function SpotlightSearch({ open, onOpenChange }: SpotlightSearchP
         <div className="flex items-center gap-4 px-4 py-2 border-t border-border text-xs text-muted-foreground">
           <span className="flex items-center gap-1">
             <kbd className="px-1.5 py-0.5 rounded bg-muted text-[10px]">↑↓</kbd>
-            navegar
+            {t('search.navigate')}
           </span>
           <span className="flex items-center gap-1">
             <kbd className="px-1.5 py-0.5 rounded bg-muted text-[10px]">↵</kbd>
-            selecionar
+            {t('search.select')}
           </span>
           <span className="flex items-center gap-1">
             <kbd className="px-1.5 py-0.5 rounded bg-muted text-[10px]">esc</kbd>
-            fechar
+            {t('search.close')}
           </span>
         </div>
       </DialogContent>

@@ -4,12 +4,17 @@ import { Badge } from "@/components/ui/badge";
 import { useVaccineReminders } from "@/hooks/useVaccineReminders";
 import { useUserProfiles } from "@/hooks/useUserProfiles";
 import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { ptBR, enUS } from "date-fns/locale";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export function VaccineRemindersWidget() {
   const { activeProfile } = useUserProfiles();
   const { data: reminders, isLoading } = useVaccineReminders(activeProfile?.id);
+  const { t, language } = useLanguage();
+  
+  const dateLocale = language === 'pt' ? ptBR : enUS;
+  const dateFormat = language === 'pt' ? "dd 'de' MMMM" : "MMMM dd";
 
   // Don't show anything if no active profile yet
   if (!activeProfile) {
@@ -21,6 +26,12 @@ export function VaccineRemindersWidget() {
     return null;
   }
 
+  const getDaysLabel = (daysUntil: number) => {
+    if (daysUntil === 0) return t('vaccines.today');
+    if (daysUntil === 1) return t('vaccines.tomorrow');
+    return `${daysUntil} ${t('vaccines.days')}`;
+  };
+
   // Only show skeleton when actively loading and profile exists
   if (isLoading) {
     return (
@@ -28,7 +39,7 @@ export function VaccineRemindersWidget() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Syringe className="h-5 w-5" />
-            Próximas Vacinas
+            {t('vaccines.upcoming')}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -43,7 +54,7 @@ export function VaccineRemindersWidget() {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Syringe className="h-5 w-5" />
-          Próximas Vacinas
+          {t('vaccines.upcoming')}
           <Badge variant="outline" className="ml-auto">
             {reminders.length}
           </Badge>
@@ -75,9 +86,7 @@ export function VaccineRemindersWidget() {
                   }
                   className="shrink-0"
                 >
-                  {reminder.daysUntil === 0 ? 'Hoje' :
-                   reminder.daysUntil === 1 ? 'Amanhã' :
-                   `${reminder.daysUntil} dias`}
+                  {getDaysLabel(reminder.daysUntil)}
                 </Badge>
               </div>
               {reminder.dose_description && (
@@ -87,7 +96,7 @@ export function VaccineRemindersWidget() {
               )}
               <div className="flex items-center gap-1 text-xs text-muted-foreground">
                 <Calendar className="h-3 w-3" />
-                {format(new Date(reminder.next_dose_date), "dd 'de' MMMM", { locale: ptBR })}
+                {format(new Date(reminder.next_dose_date), dateFormat, { locale: dateLocale })}
               </div>
             </div>
           </div>
