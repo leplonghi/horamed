@@ -493,31 +493,31 @@ export default function MedicamentosHub() {
                 />
               </div>
 
-              {/* Category Tabs */}
+              {/* Category Tabs - Compact single line */}
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList className="w-full flex-wrap h-auto gap-2 p-1.5 rounded-2xl bg-muted/50">
+                <TabsList className="w-full grid grid-cols-4 h-auto gap-1 p-1 rounded-xl bg-muted/50">
                   <TabsTrigger 
                     value="todos" 
-                    className="rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-4 py-2.5 transition-all"
+                    className="rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-2 py-2 text-xs transition-all"
                   >
-                    <Pill className="h-4 w-4 mr-2" />
-                    Todos ({items.length})
+                    <Pill className="h-3.5 w-3.5 mr-1" />
+                    <span className="hidden sm:inline">Todos</span> ({items.length})
                   </TabsTrigger>
                   <TabsTrigger 
                     value="medicamento" 
-                    className="rounded-xl px-4 py-2.5 transition-all"
+                    className="rounded-lg px-2 py-2 text-xs transition-all"
                   >
                     💊 ({getCategoryCount("medicamento")})
                   </TabsTrigger>
                   <TabsTrigger 
                     value="vitamina" 
-                    className="rounded-xl px-4 py-2.5 transition-all"
+                    className="rounded-lg px-2 py-2 text-xs transition-all"
                   >
                     ❤️ ({getCategoryCount("vitamina")})
                   </TabsTrigger>
                   <TabsTrigger 
                     value="suplemento" 
-                    className="rounded-xl px-4 py-2.5 transition-all"
+                    className="rounded-lg px-2 py-2 text-xs transition-all"
                   >
                     ⚡ ({getCategoryCount("suplemento")})
                   </TabsTrigger>
