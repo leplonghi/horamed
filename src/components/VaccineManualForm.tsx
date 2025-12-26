@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useCreateVaccinationRecord } from "@/hooks/useVaccinationRecords";
 import { X } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface VaccineManualFormProps {
   profileId?: string;
@@ -45,6 +46,7 @@ const CHILD_VACCINES = [
 ];
 
 export default function VaccineManualForm({ profileId, vaccineType, onClose }: VaccineManualFormProps) {
+  const { t } = useLanguage();
   const createMutation = useCreateVaccinationRecord();
   const vaccines = vaccineType === 'adulto' ? ADULT_VACCINES : CHILD_VACCINES;
 
@@ -85,7 +87,7 @@ export default function VaccineManualForm({ profileId, vaccineType, onClose }: V
     <Card className="w-full max-w-2xl mx-auto">
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>
-          {vaccineType === 'adulto' ? '💉 Adicionar Vacina (Adulto)' : '👶 Adicionar Vacina (Infantil)'}
+          {vaccineType === 'adulto' ? `💉 ${t('vaccines.addVaccineAdult')}` : `👶 ${t('vaccines.addVaccineChild')}`}
         </CardTitle>
         <Button variant="ghost" size="icon" onClick={onClose}>
           <X className="h-4 w-4" />
@@ -94,10 +96,10 @@ export default function VaccineManualForm({ profileId, vaccineType, onClose }: V
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="vaccine_name">Vacina *</Label>
+            <Label htmlFor="vaccine_name">{t('vaccines.selectVaccine')} *</Label>
             <Select value={formData.vaccine_name} onValueChange={handleVaccineSelect} required>
               <SelectTrigger>
-                <SelectValue placeholder="Selecione a vacina" />
+                <SelectValue placeholder={t('vaccines.selectVaccine')} />
               </SelectTrigger>
               <SelectContent>
                 {vaccines.map((vaccine) => (
@@ -112,24 +114,24 @@ export default function VaccineManualForm({ profileId, vaccineType, onClose }: V
           {formData.disease_prevention && (
             <div className="p-3 bg-blue-50 dark:bg-blue-950 rounded-lg">
               <p className="text-sm text-blue-900 dark:text-blue-100">
-                <span className="font-semibold">Previne:</span> {formData.disease_prevention}
+                <span className="font-semibold">{t('vaccines.prevents')}:</span> {formData.disease_prevention}
               </p>
             </div>
           )}
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="dose_description">Dose</Label>
+              <Label htmlFor="dose_description">{t('vaccines.doseLabel')}</Label>
               <Input
                 id="dose_description"
                 value={formData.dose_description}
                 onChange={(e) => setFormData({ ...formData, dose_description: e.target.value })}
-                placeholder="Ex: 1ª dose, Reforço"
+                placeholder={t('vaccines.dosePlaceholder')}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="application_date">Data de Aplicação *</Label>
+              <Label htmlFor="application_date">{t('vaccines.applicationDate')} *</Label>
               <Input
                 id="application_date"
                 type="date"
@@ -141,7 +143,7 @@ export default function VaccineManualForm({ profileId, vaccineType, onClose }: V
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="next_dose_date">Próxima Dose (se houver)</Label>
+            <Label htmlFor="next_dose_date">{t('vaccines.nextDoseIfAny')}</Label>
             <Input
               id="next_dose_date"
               type="date"
@@ -151,64 +153,64 @@ export default function VaccineManualForm({ profileId, vaccineType, onClose }: V
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="vaccination_location">Local de Aplicação</Label>
+            <Label htmlFor="vaccination_location">{t('vaccines.applicationLocation')}</Label>
             <Input
               id="vaccination_location"
               value={formData.vaccination_location}
               onChange={(e) => setFormData({ ...formData, vaccination_location: e.target.value })}
-              placeholder="Ex: UBS Centro, Clínica Saúde"
+              placeholder={t('vaccines.locationPlaceholder')}
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="vaccinator_name">Vacinador</Label>
+            <Label htmlFor="vaccinator_name">{t('vaccines.vaccinatorName')}</Label>
             <Input
               id="vaccinator_name"
               value={formData.vaccinator_name}
               onChange={(e) => setFormData({ ...formData, vaccinator_name: e.target.value })}
-              placeholder="Nome do profissional"
+              placeholder={t('vaccines.vaccinatorPlaceholder')}
             />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="batch_number">Lote</Label>
+              <Label htmlFor="batch_number">{t('vaccines.batchNumber')}</Label>
               <Input
                 id="batch_number"
                 value={formData.batch_number}
                 onChange={(e) => setFormData({ ...formData, batch_number: e.target.value })}
-                placeholder="Número do lote"
+                placeholder={t('vaccines.batchPlaceholder')}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="manufacturer">Fabricante</Label>
+              <Label htmlFor="manufacturer">{t('vaccines.manufacturerLabel')}</Label>
               <Input
                 id="manufacturer"
                 value={formData.manufacturer}
                 onChange={(e) => setFormData({ ...formData, manufacturer: e.target.value })}
-                placeholder="Ex: Butantan, Fiocruz"
+                placeholder={t('vaccines.manufacturerPlaceholder')}
               />
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="notes">Observações</Label>
+            <Label htmlFor="notes">{t('vaccines.observations')}</Label>
             <Textarea
               id="notes"
               value={formData.notes}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-              placeholder="Reações adversas, observações..."
+              placeholder={t('vaccines.observationsPlaceholder')}
               rows={3}
             />
           </div>
 
           <div className="flex gap-2 pt-4">
             <Button type="submit" className="flex-1" disabled={createMutation.isPending}>
-              {createMutation.isPending ? "Salvando..." : "Salvar Registro"}
+              {createMutation.isPending ? t('vaccines.saving') : t('vaccines.saveRecord')}
             </Button>
             <Button type="button" variant="outline" onClick={onClose}>
-              Cancelar
+              {t('common.cancel')}
             </Button>
           </div>
         </form>

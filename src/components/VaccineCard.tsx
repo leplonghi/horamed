@@ -2,9 +2,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { ptBR, enUS } from "date-fns/locale";
 import { Calendar, MapPin, Syringe, FileText, Trash2, Edit } from "lucide-react";
 import { VaccinationRecord } from "@/hooks/useVaccinationRecords";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface VaccineCardProps {
   record: VaccinationRecord;
@@ -13,6 +14,8 @@ interface VaccineCardProps {
 }
 
 export default function VaccineCard({ record, onEdit, onDelete }: VaccineCardProps) {
+  const { t, language } = useLanguage();
+  const dateLocale = language === 'pt' ? ptBR : enUS;
   const isAdult = record.vaccine_type === 'adulto';
   
   return (
@@ -26,12 +29,12 @@ export default function VaccineCard({ record, onEdit, onDelete }: VaccineCardPro
             </div>
             {record.disease_prevention && (
               <p className="text-sm text-muted-foreground">
-                Previne: {record.disease_prevention}
+                {t('vaccines.prevents')}: {record.disease_prevention}
               </p>
             )}
           </div>
           <Badge variant={isAdult ? "default" : "secondary"}>
-            {isAdult ? "Adulto" : "Infantil"}
+            {isAdult ? t('vaccines.adult') : t('vaccines.child')}
           </Badge>
         </div>
 
@@ -44,13 +47,13 @@ export default function VaccineCard({ record, onEdit, onDelete }: VaccineCardPro
         <div className="space-y-2 text-sm">
           <div className="flex items-center gap-2 text-muted-foreground">
             <Calendar className="h-4 w-4" />
-            <span>Aplicada em: {format(new Date(record.application_date), "dd/MM/yyyy", { locale: ptBR })}</span>
+            <span>{t('vaccines.appliedOn')}: {format(new Date(record.application_date), "dd/MM/yyyy", { locale: dateLocale })}</span>
           </div>
 
           {record.next_dose_date && (
             <div className="flex items-center gap-2 text-amber-600 dark:text-amber-500">
               <Calendar className="h-4 w-4" />
-              <span>Próxima dose: {format(new Date(record.next_dose_date), "dd/MM/yyyy", { locale: ptBR })}</span>
+              <span>{t('vaccines.nextDose')}: {format(new Date(record.next_dose_date), "dd/MM/yyyy", { locale: dateLocale })}</span>
             </div>
           )}
 
@@ -63,17 +66,17 @@ export default function VaccineCard({ record, onEdit, onDelete }: VaccineCardPro
 
           {record.vaccinator_name && (
             <div className="text-muted-foreground">
-              <span className="font-medium">Vacinador:</span> {record.vaccinator_name}
+              <span className="font-medium">{t('vaccines.vaccinator')}:</span> {record.vaccinator_name}
             </div>
           )}
 
           {(record.batch_number || record.manufacturer) && (
             <div className="pt-2 border-t">
               {record.batch_number && (
-                <p className="text-xs text-muted-foreground">Lote: {record.batch_number}</p>
+                <p className="text-xs text-muted-foreground">{t('vaccines.batch')}: {record.batch_number}</p>
               )}
               {record.manufacturer && (
-                <p className="text-xs text-muted-foreground">Fabricante: {record.manufacturer}</p>
+                <p className="text-xs text-muted-foreground">{t('vaccines.manufacturer')}: {record.manufacturer}</p>
               )}
             </div>
           )}
@@ -98,7 +101,7 @@ export default function VaccineCard({ record, onEdit, onDelete }: VaccineCardPro
                 className="flex-1"
               >
                 <Edit className="h-4 w-4 mr-1" />
-                Editar
+                {t('common.edit')}
               </Button>
             )}
             {onDelete && (
@@ -116,7 +119,7 @@ export default function VaccineCard({ record, onEdit, onDelete }: VaccineCardPro
         {record.official_source && record.official_source !== 'Manual' && (
           <div className="mt-3 pt-3 border-t">
             <Badge variant="outline" className="text-xs">
-              Fonte: {record.official_source}
+              {t('vaccines.source')}: {record.official_source}
             </Badge>
           </div>
         )}

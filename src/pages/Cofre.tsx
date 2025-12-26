@@ -13,7 +13,7 @@ import { usePrescriptionControl } from "@/hooks/usePrescriptionControl";
 import { PrescriptionStatusBadge } from "@/components/PrescriptionStatusBadge";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { ptBR, enUS } from "date-fns/locale";
 import Navigation from "@/components/Navigation";
 import Header from "@/components/Header";
 import TutorialHint from "@/components/TutorialHint";
@@ -21,8 +21,11 @@ import HelpTooltip from "@/components/HelpTooltip";
 import { microcopy } from "@/lib/microcopy";
 import { motion } from "framer-motion";
 import ContextualClara from "@/components/ContextualClara";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function Cofre() {
+  const { t, language } = useLanguage();
+  const dateLocale = language === 'pt' ? ptBR : enUS;
   const [categoriaAtiva, setCategoriaAtiva] = useState("todos");
   const [busca, setBusca] = useState("");
   const [filtroExp, setFiltroExp] = useState<"30" | "all">("all");
@@ -62,15 +65,15 @@ export default function Cofre() {
   const getCategoryIcon = (categorySlug?: string) => {
     switch (categorySlug) {
       case "receita":
-        return { emoji: "💊", label: "Receita", color: "text-doc-prescription-foreground", bg: "bg-doc-prescription-background", border: "border-doc-prescription-border" };
+        return { emoji: "💊", label: t('cofre.categoryPrescription'), color: "text-doc-prescription-foreground", bg: "bg-doc-prescription-background", border: "border-doc-prescription-border" };
       case "exame":
-        return { emoji: "🧪", label: "Exame", color: "text-doc-exam-foreground", bg: "bg-doc-exam-background", border: "border-doc-exam-border" };
+        return { emoji: "🧪", label: t('cofre.categoryExam'), color: "text-doc-exam-foreground", bg: "bg-doc-exam-background", border: "border-doc-exam-border" };
       case "vacinacao":
-        return { emoji: "💉", label: "Vacina", color: "text-doc-vaccine-foreground", bg: "bg-doc-vaccine-background", border: "border-doc-vaccine-border" };
+        return { emoji: "💉", label: t('cofre.categoryVaccine'), color: "text-doc-vaccine-foreground", bg: "bg-doc-vaccine-background", border: "border-doc-vaccine-border" };
       case "consulta":
-        return { emoji: "🩺", label: "Consulta", color: "text-doc-consultation-foreground", bg: "bg-doc-consultation-background", border: "border-doc-consultation-border" };
+        return { emoji: "🩺", label: t('cofre.categoryConsultation'), color: "text-doc-consultation-foreground", bg: "bg-doc-consultation-background", border: "border-doc-consultation-border" };
       default:
-        return { emoji: "📋", label: "Documento", color: "text-doc-other-foreground", bg: "bg-doc-other-background", border: "border-doc-other-border" };
+        return { emoji: "📋", label: t('cofre.categoryDocument'), color: "text-doc-other-foreground", bg: "bg-doc-other-background", border: "border-doc-other-border" };
     }
   };
 
@@ -113,20 +116,20 @@ export default function Cofre() {
               </div>
               
               <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-foreground truncate mb-2">{doc.title || "Sem título"}</h3>
+                <h3 className="font-semibold text-foreground truncate mb-2">{doc.title || t('cofre.noTitle')}</h3>
                 
                 <div className="flex flex-wrap gap-1.5 mb-3">
                   <span className={`pill text-xs ${category.color}`}>
                     {category.label}
                   </span>
                   {needsReview && (
-                    <span className="pill-warning text-xs">👁️ Revisar</span>
+                    <span className="pill-warning text-xs">👁️ {t('cofre.reviewBadge')}</span>
                   )}
                   {isReviewed && (
-                    <span className="pill-success text-xs">✓ Revisado</span>
+                    <span className="pill-success text-xs">✓ {t('cofre.reviewedBadge')}</span>
                   )}
                   {isExpiringSoon && (
-                    <span className="pill-destructive text-xs">⏰ Vence em breve</span>
+                    <span className="pill-destructive text-xs">⏰ {t('cofre.expiresSoon')}</span>
                   )}
                   {isPrescription && prescStatus && (
                     <PrescriptionStatusBadge 
@@ -143,13 +146,13 @@ export default function Cofre() {
                   {doc.issued_at && (
                     <div className="flex items-center gap-1.5">
                       <span>📅</span>
-                      <span>Emissão: {format(new Date(doc.issued_at), "dd/MM/yyyy", { locale: ptBR })}</span>
+                      <span>{t('cofre.issuedAt')}: {format(new Date(doc.issued_at), "dd/MM/yyyy", { locale: dateLocale })}</span>
                     </div>
                   )}
                   {doc.expires_at && (
                     <div className="flex items-center gap-1.5">
                       <span>⏰</span>
-                      <span>Validade: {format(new Date(doc.expires_at), "dd/MM/yyyy", { locale: ptBR })}</span>
+                      <span>{t('cofre.validUntil')}: {format(new Date(doc.expires_at), "dd/MM/yyyy", { locale: dateLocale })}</span>
                     </div>
                   )}
                   {doc.provider && (
@@ -175,14 +178,14 @@ export default function Cofre() {
         <div className="flex items-start justify-between gap-4">
           <div className="space-y-2">
             <div className="flex items-center gap-2">
-              <h1 className="text-2xl font-bold">Carteira de Saúde</h1>
+              <h1 className="text-2xl font-bold">{t('cofre.title')}</h1>
               <HelpTooltip 
-                content="Guarde aqui todos os seus documentos de saúde: receitas, exames, vacinas e laudos. Tudo organizado e seguro." 
+                content={t('cofre.howItWorksDesc')} 
                 iconSize="lg"
               />
             </div>
             <p className="text-sm text-muted-foreground">
-              Seus documentos médicos organizados e seguros
+              {t('cofre.subtitle')}
             </p>
           </div>
           <Button 
@@ -191,7 +194,7 @@ export default function Cofre() {
             onClick={() => setShowAddModal(true)}
           >
             <Plus className="w-5 h-5" />
-            Adicionar documento
+            {t('cofre.addDocument')}
           </Button>
         </div>
 
@@ -209,11 +212,8 @@ export default function Cofre() {
               <FileText className="h-5 w-5 text-primary" />
             </div>
             <div className="space-y-1">
-              <p className="font-medium text-foreground">Como funciona?</p>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                Tire uma foto ou faça upload de receitas e exames. O app <strong>lê automaticamente</strong> os dados 
-                e você pode revisar antes de salvar. Seus documentos ficam sempre disponíveis!
-              </p>
+              <p className="font-medium text-foreground">{t('cofre.howItWorks')}</p>
+              <p className="text-sm text-muted-foreground leading-relaxed" dangerouslySetInnerHTML={{ __html: t('cofre.howItWorksDesc') }} />
             </div>
           </div>
         </motion.div>
@@ -230,10 +230,10 @@ export default function Cofre() {
             >
               <div className="flex items-center gap-2 mb-2 text-muted-foreground">
                 <FolderOpen className="w-4 h-4" />
-                <span className="text-sm">Total</span>
+                <span className="text-sm">{t('cofre.total')}</span>
               </div>
               <div className="text-3xl font-bold">{stats.total}</div>
-              <p className="text-xs text-muted-foreground mt-1">documentos</p>
+              <p className="text-xs text-muted-foreground mt-1">{t('cofre.documents')}</p>
             </motion.div>
 
             <motion.div
@@ -248,11 +248,11 @@ export default function Cofre() {
             >
               <div className="flex items-center gap-2 mb-2 text-destructive">
                 <Clock className="w-4 h-4" />
-                <span className="text-sm">Expirando</span>
+                <span className="text-sm">{t('cofre.expiring')}</span>
                 <HelpTooltip content={microcopy.help.cofre.expiring} />
               </div>
               <div className="text-3xl font-bold text-destructive">{stats.expiringSoon}</div>
-              <p className="text-xs text-muted-foreground mt-1">em 30 dias</p>
+              <p className="text-xs text-muted-foreground mt-1">{t('cofre.in30days')}</p>
             </motion.div>
 
             <motion.div
@@ -267,11 +267,11 @@ export default function Cofre() {
             >
               <div className="flex items-center gap-2 mb-2 text-warning">
                 <AlertTriangle className="w-4 h-4" />
-                <span className="text-sm">Revisar</span>
+                <span className="text-sm">{t('cofre.review')}</span>
                 <HelpTooltip content={microcopy.help.cofre.review} />
               </div>
               <div className="text-3xl font-bold text-warning">{stats.needsReview}</div>
-              <p className="text-xs text-muted-foreground mt-1">pendentes</p>
+              <p className="text-xs text-muted-foreground mt-1">{t('cofre.pending')}</p>
             </motion.div>
 
             <motion.div
@@ -283,10 +283,10 @@ export default function Cofre() {
             >
               <div className="flex items-center gap-2 mb-2 text-muted-foreground">
                 <FileText className="w-4 h-4" />
-                <span className="text-sm">Categorias</span>
+                <span className="text-sm">{t('cofre.categories')}</span>
               </div>
               <div className="text-3xl font-bold">{Object.keys(stats.byCategory).length}</div>
-              <p className="text-xs text-muted-foreground mt-1">tipos</p>
+              <p className="text-xs text-muted-foreground mt-1">{t('cofre.types')}</p>
             </motion.div>
           </div>
         )}
@@ -302,7 +302,7 @@ export default function Cofre() {
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input 
-              placeholder="Buscar documentos..." 
+              placeholder={t('cofre.searchDocuments')} 
               value={busca} 
               onChange={e => setBusca(e.target.value)} 
               className="pl-10 rounded-full border-2 focus:border-primary transition-all"
@@ -321,11 +321,11 @@ export default function Cofre() {
         {/* Tabs */}
         <Tabs value={categoriaAtiva} onValueChange={setCategoriaAtiva}>
           <TabsList className="w-full flex-wrap h-auto gap-1 p-1.5 rounded-2xl bg-muted/50">
-            <TabsTrigger value="todos" className="rounded-xl">Todos</TabsTrigger>
-            <TabsTrigger value="vacinacao" className="rounded-xl">Vacinas</TabsTrigger>
-            <TabsTrigger value="exame" className="rounded-xl">Exames</TabsTrigger>
-            <TabsTrigger value="receita" className="rounded-xl">Receitas</TabsTrigger>
-            <TabsTrigger value="consulta" className="rounded-xl">Consultas</TabsTrigger>
+            <TabsTrigger value="todos" className="rounded-xl">{t('cofre.all')}</TabsTrigger>
+            <TabsTrigger value="vacinacao" className="rounded-xl">{t('cofre.vaccines')}</TabsTrigger>
+            <TabsTrigger value="exame" className="rounded-xl">{t('cofre.exams')}</TabsTrigger>
+            <TabsTrigger value="receita" className="rounded-xl">{t('cofre.prescriptions')}</TabsTrigger>
+            <TabsTrigger value="consulta" className="rounded-xl">{t('cofre.consultations')}</TabsTrigger>
           </TabsList>
 
           <TabsContent value={categoriaAtiva} className="space-y-3 mt-6">
@@ -347,9 +347,9 @@ export default function Cofre() {
                 <div className="inline-flex p-4 rounded-full bg-muted/50 mb-4">
                   <FileText className="w-10 h-10 text-muted-foreground" />
                 </div>
-                <p className="text-muted-foreground font-medium mb-2">Nenhum documento encontrado</p>
+                <p className="text-muted-foreground font-medium mb-2">{t('cofre.noDocumentFound')}</p>
                 <p className="text-xs text-muted-foreground">
-                  Clique em "Adicionar Documento" para começar
+                  {t('cofre.clickToAdd')}
                 </p>
               </motion.div>
             )}

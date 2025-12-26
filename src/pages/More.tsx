@@ -15,8 +15,10 @@ import { useUserProfiles } from "@/hooks/useUserProfiles";
 import { useAuth } from "@/contexts/AuthContext";
 import SubscriptionBadge from "@/components/SubscriptionBadge";
 import { toast } from "sonner";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function More() {
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const { signOut } = useAuth();
   const [userEmail, setUserEmail] = useState("");
@@ -51,105 +53,104 @@ export default function More() {
   const handleLogout = async () => {
     try {
       await signOut();
-      // Limpar dados do localStorage da biometria
       localStorage.removeItem("biometric_refresh_token");
       localStorage.removeItem("biometric_expiry");
       localStorage.removeItem("biometric_enabled");
-      toast.success("Logout realizado com sucesso");
+      toast.success(t('profile.logoutSuccess'));
     } catch (error: any) {
       console.error("Error logging out:", error);
-      toast.error("Erro ao fazer logout");
+      toast.error(t('profile.logoutError'));
     }
   };
 
   const menuItems = [
     {
-      title: "Diário de Efeitos",
-      description: "Registre como você se sente",
+      title: t('more.sideEffectsDiary'),
+      description: t('more.sideEffectsDiaryDesc'),
       icon: Activity,
       path: "/diario-efeitos",
-      badge: <Badge variant="secondary" className="ml-2">Novo</Badge>,
+      badge: <Badge variant="secondary" className="ml-2">{t('common.new')}</Badge>,
     },
     {
-      title: "Modo Viagem",
-      description: "Planeje viagens com ajustes automáticos",
+      title: t('more.travelMode'),
+      description: t('more.travelModeDesc'),
       icon: Plane,
       path: "/viagem",
-      badge: <Badge variant="secondary" className="ml-2">Novo</Badge>,
+      badge: <Badge variant="secondary" className="ml-2">{t('common.new')}</Badge>,
     },
     {
-      title: "Carteira de Saúde",
-      description: "Documentos e exames",
+      title: t('more.healthWallet'),
+      description: t('more.healthWalletDesc'),
       icon: FolderHeart,
       path: "/carteira",
       badge: null,
     },
     {
-      title: "Histórico de Doses",
-      description: "Ver suas doses",
+      title: t('more.doseHistory'),
+      description: t('more.doseHistoryDesc'),
       icon: History,
       path: "/historico",
       badge: null,
     },
     {
-      title: "Controle de Estoque",
-      description: "Gerencie seu estoque",
+      title: t('more.stockControl'),
+      description: t('more.stockControlDesc'),
       icon: Package,
       path: "/estoque",
       badge: null,
     },
     {
-      title: "Relatórios Médicos",
-      description: "Gere relatórios para consultas",
+      title: t('more.medicalReports'),
+      description: t('more.medicalReportsDesc'),
       icon: FileText,
       path: "/relatorios",
-      badge: isPremium ? null : <Badge variant="secondary" className="ml-2">Premium</Badge>,
+      badge: isPremium ? null : <Badge variant="secondary" className="ml-2">{t('common.premium')}</Badge>,
     },
     {
-      title: "Digitalizar Documentos",
-      description: "OCR para receitas e exames",
+      title: t('more.scanDocuments'),
+      description: t('more.scanDocumentsDesc'),
       icon: QrCode,
       path: "/digitalizar",
       badge: null,
     },
     {
-      title: "Família & Cuidadores",
-      description: "Gerencie perfis familiares",
+      title: t('more.familyCaregivers'),
+      description: t('more.familyCaregiversDesc'),
       icon: Users,
       path: "/perfil",
-      badge: isPremium ? <Badge className="ml-2">{profiles.length} perfis</Badge> : <Badge variant="secondary" className="ml-2">Premium</Badge>,
+      badge: isPremium ? <Badge className="ml-2">{profiles.length} {t('more.profiles')}</Badge> : <Badge variant="secondary" className="ml-2">{t('common.premium')}</Badge>,
     },
   ];
 
   const settingsItems = [
     {
-      title: "Exportar Meus Dados",
-      description: "Baixe medicamentos, documentos e histórico",
+      title: t('more.exportData'),
+      description: t('more.exportDataDesc'),
       icon: FileText,
       path: "/exportar",
       badge: <Badge variant="secondary" className="ml-2">LGPD</Badge>,
     },
     {
-      title: "Tutorial Interativo",
-      description: "Aprenda a usar o app",
+      title: t('more.tutorial'),
+      description: t('more.tutorialDesc'),
       icon: BookOpen,
       path: "/tutorial",
     },
     {
-      title: "Notificações",
-      description: "Configurar lembretes",
+      title: t('more.notifications'),
+      description: t('more.notificationsDesc'),
       icon: Bell,
       path: "/notificacoes",
     },
     {
-      title: "Privacidade e Dados",
-      description: "LGPD e segurança",
+      title: t('more.privacyData'),
+      description: t('more.privacyDataDesc'),
       icon: Shield,
       path: "/privacy",
     },
     {
-      title: "Ajuda e Suporte",
-      description: "Tire suas dúvidas",
+      title: t('more.helpSupport'),
+      description: t('more.helpSupportDesc'),
       icon: HelpCircle,
       path: "/help-support",
     },
@@ -166,7 +167,7 @@ export default function More() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-xl font-bold">{userName || "Usuário"}</h2>
+                <h2 className="text-xl font-bold">{userName || t('more.user')}</h2>
                 <p className="text-sm text-muted-foreground">{userEmail}</p>
               </div>
               <SubscriptionBadge />
@@ -179,7 +180,7 @@ export default function More() {
                 size="lg"
               >
                 <Crown className="h-4 w-4 mr-2" />
-                Upgrade para Premium
+                {t('more.upgradePremium')}
               </Button>
             )}
           </CardContent>
@@ -187,7 +188,7 @@ export default function More() {
 
         {/* Main Features */}
         <div className="space-y-2 mb-6">
-          <h3 className="text-sm font-semibold text-muted-foreground px-2">Ferramentas</h3>
+          <h3 className="text-sm font-semibold text-muted-foreground px-2">{t('more.tools')}</h3>
           {menuItems.map((item) => (
             <Card 
               key={item.path} 
@@ -217,7 +218,7 @@ export default function More() {
 
         {/* Settings */}
         <div className="space-y-2 mb-6">
-          <h3 className="text-sm font-semibold text-muted-foreground px-2">Configurações</h3>
+          <h3 className="text-sm font-semibold text-muted-foreground px-2">{t('more.settings')}</h3>
           {settingsItems.map((item) => (
             <Card 
               key={item.path} 
@@ -253,7 +254,7 @@ export default function More() {
                 onClick={() => navigate('/assinatura')}
               >
                 <Settings className="h-4 w-4 mr-2" />
-                Gerenciar Assinatura
+                {t('more.manageSubscription')}
               </Button>
             </CardContent>
           </Card>
@@ -268,7 +269,7 @@ export default function More() {
               onClick={handleLogout}
             >
               <LogOut className="h-4 w-4 mr-2" />
-              Sair
+              {t('more.signOut')}
             </Button>
           </CardContent>
         </Card>
@@ -280,18 +281,18 @@ export default function More() {
               onClick={() => navigate('/terms')}
               className="hover:underline"
             >
-              Termos de Uso
+              {t('more.termsOfUse')}
             </button>
             {" • "}
             <button 
               onClick={() => navigate('/privacy')}
               className="hover:underline"
             >
-              Privacidade
+              {t('more.privacy')}
             </button>
           </p>
           <p className="text-xs">
-            HoraMed • Organizador de Rotina de Saúde
+            HoraMed • {t('more.tagline')}
           </p>
         </div>
       </main>

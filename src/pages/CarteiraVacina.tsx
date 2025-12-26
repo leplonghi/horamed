@@ -15,6 +15,7 @@ import { Plus, Upload, Info, ExternalLink, Syringe } from "lucide-react";
 import { useVaccinationRecordsByType, useDeleteVaccinationRecord } from "@/hooks/useVaccinationRecords";
 import { useUserProfiles } from "@/hooks/useUserProfiles";
 import HelpTooltip from "@/components/HelpTooltip";
+import { useLanguage } from "@/contexts/LanguageContext";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -27,6 +28,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 export default function CarteiraVacina() {
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const { activeProfile } = useUserProfiles();
   const [activeTab, setActiveTab] = useState<'adulto' | 'infantil'>('adulto');
@@ -55,11 +57,11 @@ export default function CarteiraVacina() {
       <div className="container max-w-4xl mx-auto px-4 py-6 pt-24">
         <div className="flex items-start justify-between gap-4">
           <PageHeader
-            title="Caderneta de Vacinação"
-            description="Registro completo de vacinas seguindo o Calendário Nacional"
+            title={t('vaccines.title')}
+            description={t('vaccines.subtitle')}
           />
           <HelpTooltip 
-            content="Registre aqui todas as vacinas tomadas. Você pode adicionar manualmente ou escanear sua carteirinha de vacinação." 
+            content={t('vaccines.howItWorksDesc')} 
             iconSize="lg"
           />
         </div>
@@ -72,11 +74,8 @@ export default function CarteiraVacina() {
                 <Syringe className="h-5 w-5 text-primary" />
               </div>
               <div className="space-y-1">
-                <p className="font-medium text-foreground">Como funciona?</p>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  Adicione cada vacina com a <strong>data de aplicação</strong> e o <strong>lote</strong>. 
-                  O app organiza tudo e te lembra quando tiver próximas doses ou reforços!
-                </p>
+                <p className="font-medium text-foreground">{t('vaccines.howItWorks')}</p>
+                <p className="text-sm text-muted-foreground leading-relaxed" dangerouslySetInnerHTML={{ __html: t('vaccines.howItWorksDesc') }} />
               </div>
             </div>
           </CardContent>
@@ -91,11 +90,10 @@ export default function CarteiraVacina() {
               <Info className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
               <div className="space-y-2">
                 <CardTitle className="text-base text-blue-900 dark:text-blue-100">
-                  Caderneta de Vacinação Digital Brasileira
+                  {t('vaccines.infoTitle')}
                 </CardTitle>
                 <p className="text-sm text-blue-700 dark:text-blue-300">
-                  Baseada no Calendário Nacional de Vacinação do Ministério da Saúde e na Caderneta Digital da Criança.
-                  Mantenha seu histórico de vacinas sempre atualizado e organizado.
+                  {t('vaccines.infoDesc')}
                 </p>
                 <div className="flex flex-wrap gap-2 pt-2">
                   <Button
@@ -105,7 +103,7 @@ export default function CarteiraVacina() {
                     onClick={() => window.open('https://www.gov.br/saude/pt-br/assuntos/saude-de-a-a-z/c/calendario-nacional-de-vacinacao', '_blank')}
                   >
                     <ExternalLink className="h-3 w-3 mr-1" />
-                    Calendário Nacional
+                    {t('vaccines.nationalCalendar')}
                   </Button>
                   <Button
                     variant="outline"
@@ -114,7 +112,7 @@ export default function CarteiraVacina() {
                     onClick={() => window.open('https://www.gov.br/saude/pt-br/assuntos/saude-da-crianca/caderneta-de-saude-da-crianca', '_blank')}
                   >
                     <ExternalLink className="h-3 w-3 mr-1" />
-                    Caderneta Digital da Criança
+                    {t('vaccines.childBooklet')}
                   </Button>
                 </div>
               </div>
@@ -126,11 +124,11 @@ export default function CarteiraVacina() {
         <div className="flex flex-wrap gap-2 mb-6">
           <Button onClick={() => setShowManualForm(true)} className="flex-1 sm:flex-none">
             <Plus className="h-4 w-4 mr-2" />
-            Adicionar Manualmente
+            {t('vaccines.addManually')}
           </Button>
           <Button variant="outline" onClick={handleUploadDocument} className="flex-1 sm:flex-none">
             <Upload className="h-4 w-4 mr-2" />
-            Escanear Carteira
+            {t('vaccines.scanCard')}
           </Button>
         </div>
 
@@ -147,13 +145,13 @@ export default function CarteiraVacina() {
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'adulto' | 'infantil')}>
           <TabsList className="grid w-full grid-cols-2 mb-6">
             <TabsTrigger value="adulto" className="flex items-center gap-2">
-              💉 Adulto
+              💉 {t('vaccines.adult')}
               {adultVaccines && adultVaccines.length > 0 && (
                 <Badge variant="secondary">{adultVaccines.length}</Badge>
               )}
             </TabsTrigger>
             <TabsTrigger value="infantil" className="flex items-center gap-2">
-              👶 Infantil
+              👶 {t('vaccines.child')}
               {childVaccines && childVaccines.length > 0 && (
                 <Badge variant="secondary">{childVaccines.length}</Badge>
               )}
@@ -170,14 +168,14 @@ export default function CarteiraVacina() {
               <Card>
                 <CardContent className="pt-6 text-center">
                   <p className="text-muted-foreground mb-4">
-                    Nenhuma vacina de adulto registrada ainda.
+                    {t('vaccines.noAdultVaccines')}
                   </p>
                   <p className="text-sm text-muted-foreground mb-4">
-                    Adicione suas vacinas manualmente ou escaneie sua carteira de vacinação.
+                    {t('vaccines.addVaccineHint')}
                   </p>
                   <Button onClick={() => setShowManualForm(true)}>
                     <Plus className="h-4 w-4 mr-2" />
-                    Adicionar Primeira Vacina
+                    {t('vaccines.addFirstVaccine')}
                   </Button>
                 </CardContent>
               </Card>
@@ -204,14 +202,14 @@ export default function CarteiraVacina() {
               <Card>
                 <CardContent className="pt-6 text-center">
                   <p className="text-muted-foreground mb-4">
-                    Nenhuma vacina infantil registrada ainda.
+                    {t('vaccines.noChildVaccines')}
                   </p>
                   <p className="text-sm text-muted-foreground mb-4">
-                    Adicione as vacinas da criança manualmente ou escaneie a carteirinha.
+                    {t('vaccines.addChildVaccineHint')}
                   </p>
                   <Button onClick={() => setShowManualForm(true)}>
                     <Plus className="h-4 w-4 mr-2" />
-                    Adicionar Primeira Vacina
+                    {t('vaccines.addFirstVaccine')}
                   </Button>
                 </CardContent>
               </Card>
@@ -234,15 +232,15 @@ export default function CarteiraVacina() {
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Excluir Registro de Vacina?</AlertDialogTitle>
+            <AlertDialogTitle>{t('vaccines.deleteTitle')}</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta ação não pode ser desfeita. O registro será permanentemente excluído.
+              {t('vaccines.deleteDesc')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
             <AlertDialogAction onClick={() => deleteId && handleDelete(deleteId)}>
-              Excluir
+              {t('common.delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
