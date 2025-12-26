@@ -31,7 +31,8 @@ import { VaccineRemindersWidget } from "@/components/VaccineRemindersWidget";
 import { ExpiredPrescriptionsAlert } from "@/components/ExpiredPrescriptionsAlert";
 import EssentialShortcuts from "@/components/EssentialShortcuts";
 import SimpleAdherenceSummary from "@/components/SimpleAdherenceSummary";
-import { X, Settings, TrendingUp, Gift } from "lucide-react";
+import { X, TrendingUp, Gift, HelpCircle } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import HydrationWidget from "@/components/fitness/HydrationWidget";
 import EnergyHintWidget from "@/components/fitness/EnergyHintWidget";
@@ -514,15 +515,28 @@ export default function TodayRedesign() {
                   🔥 {streakData.currentStreak}
                 </div>
               )}
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={toggleTutorials}
-                className="h-8 w-8"
-                title={tutorialsEnabled ? "Desativar tutoriais" : "Ativar tutoriais"}
-              >
-                <Settings className={`h-4 w-4 ${tutorialsEnabled ? 'text-primary' : 'text-muted-foreground'}`} />
-              </Button>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={toggleTutorials}
+                      className="h-8 w-8"
+                    >
+                      <HelpCircle className={`h-4 w-4 ${tutorialsEnabled ? 'text-primary' : 'text-muted-foreground'}`} />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" className="max-w-[200px]">
+                    <p className="text-sm font-medium">
+                      {tutorialsEnabled ? "Dicas ativadas" : "Dicas desativadas"}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Toque para {tutorialsEnabled ? "ocultar" : "mostrar"} as dicas de uso
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
           </div>
         </div>
