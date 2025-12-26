@@ -53,13 +53,26 @@ export function OverdueDosesBanner() {
     <AnimatePresence>
       <motion.div
         initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
+        animate={{ 
+          opacity: 1, 
+          y: 0,
+          boxShadow: urgencyLevel === "critical" 
+            ? ["0 0 0 0 rgba(239, 68, 68, 0.4)", "0 0 0 8px rgba(239, 68, 68, 0)", "0 0 0 0 rgba(239, 68, 68, 0.4)"]
+            : undefined
+        }}
+        transition={{
+          boxShadow: {
+            duration: 2,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }
+        }}
         exit={{ opacity: 0, y: -20 }}
         className={cn(
-          "w-full p-3 shadow-lg mb-3 rounded-lg",
-          urgencyLevel === "critical" && "bg-destructive text-destructive-foreground",
-          urgencyLevel === "urgent" && "bg-orange-500 text-white",
-          urgencyLevel === "warning" && "bg-amber-400 text-amber-900"
+          "w-full p-4 shadow-lg mb-3 rounded-xl border-2",
+          urgencyLevel === "critical" && "bg-red-600 text-white border-red-400",
+          urgencyLevel === "urgent" && "bg-orange-500 text-white border-orange-400",
+          urgencyLevel === "warning" && "bg-amber-500 text-white border-amber-400"
         )}
       >
         <div className="max-w-4xl mx-auto">
@@ -74,11 +87,8 @@ export function OverdueDosesBanner() {
             {overdueDoses.length === 1 && (
               <Button
                 size="sm"
-                variant={urgencyLevel === "critical" ? "secondary" : "outline"}
-                className={cn(
-                  "flex-shrink-0 gap-1",
-                  urgencyLevel === "warning" && "border-amber-700 text-amber-900 hover:bg-amber-500"
-                )}
+                variant="secondary"
+                className="flex-shrink-0 gap-1 bg-white/20 hover:bg-white/30 text-white border-white/30"
                 disabled={loadingIds.has(overdueDoses[0].id)}
                 onClick={() => handleMarkAsTaken(overdueDoses[0].id, overdueDoses[0].itemName)}
               >
