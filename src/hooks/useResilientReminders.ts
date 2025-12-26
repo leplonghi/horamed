@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { LocalNotifications } from "@capacitor/local-notifications";
 import { Capacitor } from "@capacitor/core";
@@ -26,12 +26,17 @@ const STORAGE_KEY = "local_reminders_backup";
 const MAX_RETRY_ATTEMPTS = 3;
 const RETRY_DELAY = 60000; // 1 minute
 
+// Singleton to prevent multiple initializations
+let isInitialized = false;
+let initializationPromise: Promise<void> | null = null;
+
 export const useResilientReminders = () => {
   const { logAction } = useAuditLog();
   const retryTimeoutRef = useRef<NodeJS.Timeout>();
+  const hasInitializedRef = useRef(false);
 
   // Cleanup old localStorage reminders to prevent QuotaExceededError
-  const cleanupLocalStorageReminders = () => {
+  const cleanupLocalStorageReminders = useCallback(() => {
     try {
       const backupData = localStorage.getItem(STORAGE_KEY);
       if (backupData) {
@@ -50,18 +55,31 @@ export const useResilientReminders = () => {
       // If corrupted, reset entirely
       localStorage.removeItem(STORAGE_KEY);
     }
-  };
+  }, []);
 
-  // Initialize local storage sync
+  // Initialize local storage sync - only once per app lifecycle
   useEffect(() => {
-    cleanupLocalStorageReminders();
-    cleanupOldReminders(); // Clean database too
-    syncLocalRemindersWithBackend();
+    // Skip if already initialized globally or in this instance
+    if (isInitialized || hasInitializedRef.current) return;
     
-    // Check for pending retries every minute
+    hasInitializedRef.current = true;
+    isInitialized = true;
+
+    const initialize = async () => {
+      cleanupLocalStorageReminders();
+      await cleanupOldReminders();
+      await syncLocalRemindersWithBackend();
+    };
+
+    // Only run once globally
+    if (!initializationPromise) {
+      initializationPromise = initialize();
+    }
+    
+    // Check for pending retries every 5 minutes (reduced from 1 min)
     const interval = setInterval(() => {
       retryFailedReminders();
-    }, RETRY_DELAY);
+    }, 5 * RETRY_DELAY);
 
     return () => {
       clearInterval(interval);
@@ -69,7 +87,7 @@ export const useResilientReminders = () => {
         clearTimeout(retryTimeoutRef.current);
       }
     };
-  }, []);
+  }, [cleanupLocalStorageReminders]);
 
   /**
    * Schedule a reminder with automatic fallback and metrics

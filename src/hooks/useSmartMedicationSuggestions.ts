@@ -17,11 +17,23 @@ export function useSmartMedicationSuggestions(profileId?: string) {
     queryFn: async () => {
       const suggestions: SmartSuggestion[] = [];
       
+      // First, get the receita category UUID
+      const { data: categoriaReceita } = await supabase
+        .from("categorias_saude")
+        .select("id")
+        .eq("slug", "receita")
+        .single();
+
+      if (!categoriaReceita) {
+        console.warn("Categoria receita not found");
+        return suggestions;
+      }
+      
       // 1. Receitas com medicamentos não adicionados
       let prescriptionsQuery = supabase
         .from("documentos_saude")
         .select("id, title, meta, expires_at")
-        .eq("categoria_id", "receita")
+        .eq("categoria_id", categoriaReceita.id)
         .order("created_at", { ascending: false })
         .limit(10);
 
