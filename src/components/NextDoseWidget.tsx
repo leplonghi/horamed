@@ -1,9 +1,10 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Clock, Pill } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { ptBR, enUS } from "date-fns/locale";
 import DoseActionButton from "./DoseActionButton";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface NextDoseWidgetProps {
   dose: {
@@ -20,6 +21,8 @@ interface NextDoseWidgetProps {
 }
 
 export default function NextDoseWidget({ dose, onTake, className }: NextDoseWidgetProps) {
+  const { t, language } = useLanguage();
+  const dateLocale = language === 'pt' ? ptBR : enUS;
   const dueTime = new Date(dose.due_at);
   const now = new Date();
   const minutesUntil = Math.round((dueTime.getTime() - now.getTime()) / (1000 * 60));
@@ -36,7 +39,7 @@ export default function NextDoseWidget({ dose, onTake, className }: NextDoseWidg
           <div className="flex items-center gap-2 text-primary">
             <Pill className="h-5 w-5" />
             <span className="text-sm font-semibold uppercase tracking-wide">
-              {isNow ? "⏰ É AGORA!" : "Próxima Dose"}
+              {isNow ? (language === 'pt' ? "⏰ É AGORA!" : "⏰ IT'S NOW!") : (language === 'pt' ? "Próxima Dose" : "Next Dose")}
             </span>
           </div>
 
@@ -52,10 +55,10 @@ export default function NextDoseWidget({ dose, onTake, className }: NextDoseWidg
             <div className="flex items-center gap-2 text-muted-foreground">
               <Clock className="h-4 w-4" />
               <span className="text-sm">
-                {format(dueTime, "HH:mm", { locale: ptBR })}
+                {format(dueTime, "HH:mm", { locale: dateLocale })}
                 {!isNow && (
                   <span className="ml-2 text-primary font-medium">
-                    ({formatDistanceToNow(dueTime, { locale: ptBR, addSuffix: true })})
+                    ({formatDistanceToNow(dueTime, { locale: dateLocale, addSuffix: true })})
                   </span>
                 )}
               </span>

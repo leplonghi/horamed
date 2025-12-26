@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, Clock, MoreHorizontal } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface DoseActionButtonProps {
   variant: 'taken' | 'snooze' | 'more';
@@ -15,15 +16,17 @@ export default function DoseActionButton({
   disabled = false,
   className,
 }: DoseActionButtonProps) {
+  const { t } = useLanguage();
+  
   const config = {
     taken: {
       icon: CheckCircle2,
-      label: "✓ Tomei",
+      label: t('today.iTookIt'),
       className: "bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-sm",
     },
     snooze: {
       icon: Clock,
-      label: "Mais tarde",
+      label: t('today.snooze'),
       className: "bg-secondary hover:bg-secondary/80 text-secondary-foreground",
     },
     more: {

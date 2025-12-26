@@ -15,8 +15,10 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { PageSkeleton } from "@/components/LoadingSkeleton";
 import TutorialHint from "@/components/TutorialHint";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function Achievements() {
+  const { t } = useLanguage();
   const { achievements, loading: achievementsLoading, unlockedCount } = useAchievements();
   const xpSystem = useXPSystem();
   const { currentStreak, longestStreak, loading: streakLoading } = useStreakCalculator();
@@ -34,8 +36,8 @@ export default function Achievements() {
     return (
       <div className="min-h-screen bg-background pb-20">
         <PageHeader
-          title="Conquistas"
-          description="Seu progresso e badges"
+          title={t('achievements.title')}
+          description={t('achievements.description')}
         />
         <div className="container mx-auto p-4 space-y-4">
           <PageSkeleton />
@@ -50,16 +52,16 @@ export default function Achievements() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-background via-muted/20 to-background pb-20">
       <PageHeader
-        title="Conquistas"
-        description="Seu progresso e badges"
+        title={t('achievements.title')}
+        description={t('achievements.description')}
       />
 
       <div className="container mx-auto p-4 space-y-6">
         {/* Tutorial Hint */}
         <TutorialHint
           id="achievements_page"
-          title="Seu sistema de conquistas 🏆"
-          message="Desbloqueie medalhas mantendo sua sequência de dias, tomando doses no horário, e atingindo metas. Ganhe XP a cada dose tomada e suba de nível! Compartilhe suas conquistas nas redes sociais."
+          title={t('achievements.tutorialTitle')}
+          message={t('achievements.tutorialMessage')}
         />
 
         {/* XP System */}
@@ -87,13 +89,13 @@ export default function Achievements() {
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
                   <Flame className="h-5 w-5 text-orange-500" />
-                  <h3 className="text-lg font-semibold">Sequência Atual</h3>
+                  <h3 className="text-lg font-semibold">{t('achievements.currentStreak')}</h3>
                 </div>
                 <p className="text-3xl font-bold text-primary">
-                  {currentStreak} dias
+                  {currentStreak} {t('achievements.days')}
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  Recorde: {longestStreak} dias
+                  {t('achievements.record')}: {longestStreak} {t('achievements.days')}
                 </p>
               </div>
               <StreakAnimation streak={currentStreak} />
@@ -111,19 +113,19 @@ export default function Achievements() {
           <Card className="p-4 text-center">
             <Trophy className="h-6 w-6 mx-auto mb-2 text-yellow-500" />
             <p className="text-2xl font-bold">{unlockedCount}</p>
-            <p className="text-xs text-muted-foreground">Desbloqueados</p>
+            <p className="text-xs text-muted-foreground">{t('achievements.unlocked')}</p>
           </Card>
 
           <Card className="p-4 text-center">
             <Star className="h-6 w-6 mx-auto mb-2 text-purple-500" />
             <p className="text-2xl font-bold">{xpSystem.level}</p>
-            <p className="text-xs text-muted-foreground">Nível</p>
+            <p className="text-xs text-muted-foreground">{t('achievements.level')}</p>
           </Card>
 
           <Card className="p-4 text-center">
             <Lock className="h-6 w-6 mx-auto mb-2 text-muted-foreground" />
             <p className="text-2xl font-bold">{lockedAchievements.length}</p>
-            <p className="text-xs text-muted-foreground">Bloqueados</p>
+            <p className="text-xs text-muted-foreground">{t('achievements.locked')}</p>
           </Card>
         </motion.div>
 
@@ -136,13 +138,13 @@ export default function Achievements() {
           <Tabs defaultValue="all" className="w-full">
             <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="all">
-                Todos ({achievements.length})
+                {t('achievements.all')} ({achievements.length})
               </TabsTrigger>
               <TabsTrigger value="unlocked">
-                Desbloqueados ({unlockedCount})
+                {t('achievements.unlockedTab')} ({unlockedCount})
               </TabsTrigger>
               <TabsTrigger value="locked">
-                Bloqueados ({lockedAchievements.length})
+                {t('achievements.lockedTab')} ({lockedAchievements.length})
               </TabsTrigger>
             </TabsList>
 
@@ -167,7 +169,7 @@ export default function Achievements() {
                       className="w-full mt-2"
                       onClick={() => handleShareClick(achievement)}
                     >
-                      Compartilhar 🎉
+                      {t('achievements.share')}
                     </Button>
                   )}
                 </motion.div>
@@ -191,7 +193,7 @@ export default function Achievements() {
                     className="w-full mt-2"
                     onClick={() => handleShareClick(achievement)}
                   >
-                    Compartilhar 🎉
+                    {t('achievements.share')}
                   </Button>
                 </motion.div>
               ))}

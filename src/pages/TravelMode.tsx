@@ -12,19 +12,21 @@ import { Plane, MapPin, Calendar, Clock, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { addDays } from "date-fns";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const COMMON_TIMEZONES = [
   { value: "America/Sao_Paulo", label: "São Paulo (BRT)" },
-  { value: "America/New_York", label: "Nova York (EST)" },
+  { value: "America/New_York", label: "New York (EST)" },
   { value: "America/Los_Angeles", label: "Los Angeles (PST)" },
-  { value: "Europe/London", label: "Londres (GMT)" },
+  { value: "Europe/London", label: "London (GMT)" },
   { value: "Europe/Paris", label: "Paris (CET)" },
-  { value: "Asia/Tokyo", label: "Tóquio (JST)" },
+  { value: "Asia/Tokyo", label: "Tokyo (JST)" },
   { value: "Asia/Dubai", label: "Dubai (GST)" },
   { value: "Australia/Sydney", label: "Sydney (AEDT)" },
 ];
 
 export default function TravelMode() {
+  const { t } = useLanguage();
   const [tripDays, setTripDays] = useState<number>(7);
   const [destinationTimezone, setDestinationTimezone] = useState<string>("America/New_York");
   const [adjustSchedules, setAdjustSchedules] = useState(true);
@@ -35,18 +37,18 @@ export default function TravelMode() {
 
   const handleCalculate = async () => {
     if (tripDays < 1) {
-      toast.error("Duração da viagem deve ser maior que 0");
+      toast.error(t('travel.durationError'));
       return;
     }
 
     await calculateTravelNeeds(tripDays, destinationTimezone);
     setHasCalculated(true);
-    toast.success("Cálculos realizados com sucesso!");
+    toast.success(t('travel.calculatedSuccess'));
   };
 
   const handleApplyAdjustments = async () => {
     if (!adjustSchedules) {
-      toast.info("Ajustes de horário não serão aplicados");
+      toast.info(t('travel.adjustmentsNotApplied'));
       return;
     }
 
@@ -54,14 +56,14 @@ export default function TravelMode() {
     const end = addDays(start, tripDays);
 
     await adjustSchedulesForTimezone(destinationTimezone, start, end);
-    toast.success("Horários ajustados para o fuso horário de destino!");
+    toast.success(t('travel.adjustedSuccess'));
   };
 
   return (
     <div className="container max-w-4xl py-6 space-y-6">
       <PageHeader
-        title="Modo Viagem"
-        description="Planeje sua viagem com ajustes automáticos de horários e lista de bagagem inteligente"
+        title={t('travel.title')}
+        description={t('travel.description')}
       />
 
       <motion.div
@@ -73,10 +75,10 @@ export default function TravelMode() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Plane className="h-5 w-5" />
-              Configurar Viagem
+              {t('travel.configureTrip')}
             </CardTitle>
             <CardDescription>
-              Configure os detalhes da sua viagem para gerar sua lista de bagagem e ajustar horários
+              {t('travel.configureDesc')}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -84,7 +86,7 @@ export default function TravelMode() {
               <div className="space-y-2">
                 <Label htmlFor="start-date" className="flex items-center gap-2">
                   <Calendar className="h-4 w-4" />
-                  Data de Partida
+                  {t('travel.startDate')}
                 </Label>
                 <Input
                   id="start-date"
@@ -98,7 +100,7 @@ export default function TravelMode() {
               <div className="space-y-2">
                 <Label htmlFor="trip-days" className="flex items-center gap-2">
                   <Clock className="h-4 w-4" />
-                  Duração (dias)
+                  {t('travel.duration')}
                 </Label>
                 <Input
                   id="trip-days"
@@ -114,7 +116,7 @@ export default function TravelMode() {
             <div className="space-y-2">
               <Label htmlFor="timezone" className="flex items-center gap-2">
                 <MapPin className="h-4 w-4" />
-                Fuso Horário de Destino
+                {t('travel.destination')}
               </Label>
               <Select value={destinationTimezone} onValueChange={setDestinationTimezone}>
                 <SelectTrigger id="timezone">
@@ -134,10 +136,10 @@ export default function TravelMode() {
               <div className="space-y-0.5">
                 <Label className="flex items-center gap-2">
                   <Sparkles className="h-4 w-4" />
-                  Ajustar Horários Automaticamente
+                  {t('travel.adjustSchedules')}
                 </Label>
                 <p className="text-sm text-muted-foreground">
-                  Seus horários de dose serão ajustados para o fuso horário de destino
+                  {t('travel.adjustDesc')}
                 </p>
               </div>
               <Switch checked={adjustSchedules} onCheckedChange={setAdjustSchedules} />
@@ -149,7 +151,7 @@ export default function TravelMode() {
                 disabled={isLoading}
                 className="flex-1"
               >
-                {isLoading ? "Calculando..." : "Calcular Necessidades"}
+                {isLoading ? t('common.loading') : t('travel.calculate')}
               </Button>
               
               {hasCalculated && adjustSchedules && (
@@ -157,7 +159,7 @@ export default function TravelMode() {
                   onClick={handleApplyAdjustments}
                   variant="secondary"
                 >
-                  Aplicar Ajustes
+                  {t('travel.applyAdjustments')}
                 </Button>
               )}
             </div>
@@ -180,7 +182,7 @@ export default function TravelMode() {
           <CardContent className="py-12 text-center">
             <Plane className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
             <p className="text-muted-foreground">
-              Nenhum medicamento ativo encontrado para calcular
+              {t('meds.noMedications')}
             </p>
           </CardContent>
         </Card>
