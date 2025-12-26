@@ -34,7 +34,7 @@ import { StockConsumptionChart } from "@/components/StockConsumptionChart";
 import HelpTooltip from "@/components/HelpTooltip";
 import { microcopy } from "@/lib/microcopy";
 import { useTranslation } from "@/contexts/LanguageContext";
-import { getCategoryColors } from "@/lib/categoryColors";
+import { getUniqueItemColors } from "@/lib/categoryColors";
 import {
   Dialog,
   DialogContent,
@@ -278,7 +278,7 @@ export default function MedicamentosHub() {
 
   const renderItemCard = (item: Item, index: number, isSupplementItem: boolean = false) => {
     const supplementTags = isSupplementItem ? getSupplementTags(item.name) : [];
-    const categoryConfig = getCategoryColors(item.category);
+    const categoryConfig = getUniqueItemColors(item.name, item.category);
     const CategoryIcon = categoryConfig.icon;
     
     return (

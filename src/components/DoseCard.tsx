@@ -11,7 +11,7 @@ import MedicationInfoSheet from "./MedicationInfoSheet";
 import { useMedicationInfo } from "@/hooks/useMedicationInfo";
 import HelpTooltip from "@/components/HelpTooltip";
 import { microcopy } from "@/lib/microcopy";
-import { getCategoryColors } from "@/lib/categoryColors";
+import { getUniqueItemColors } from "@/lib/categoryColors";
 
 interface DoseCardProps {
   dose: {
@@ -44,8 +44,8 @@ export default function DoseCard({ dose, onTake, onMore }: DoseCardProps) {
   const isCurrent = Math.abs(dueTime.getTime() - now.getTime()) < 30 * 60 * 1000; // 30min window
   const isFuture = dueTime > now && !isCurrent;
 
-  // Get category colors
-  const categoryConfig = getCategoryColors(dose.items.category);
+  // Get unique colors per medication
+  const categoryConfig = getUniqueItemColors(dose.items.name, dose.items.category);
   const CategoryIcon = categoryConfig.icon;
 
   const handleShowInfo = () => {
