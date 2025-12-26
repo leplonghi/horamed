@@ -160,9 +160,10 @@ export const usePushNotifications = () => {
         // Show a test notification to confirm it's working
         scheduleWebNotifications();
       } else if (permission === 'denied') {
-        toast.error("Notificações bloqueadas. Ative nas configurações do navegador.", { duration: 4000 });
+        console.log('⚠️ Web notifications denied by user');
+        // Don't show toast - user explicitly denied, no need to bother them
       } else {
-        toast.info("Clique em 'Permitir' para receber lembretes de medicamentos", { duration: 4000 });
+        console.log('ℹ️ Notification permission dismissed');
       }
     } catch (error) {
       console.error("Error initializing web notifications:", error);

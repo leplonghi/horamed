@@ -445,10 +445,7 @@ export default function Terms() {
           <Card className="p-6 bg-primary/5 border-primary/20">
             <h3 className="font-semibold mb-3">Dados do Responsável</h3>
             <div className="space-y-2 text-sm">
-              <p><strong>Nome:</strong> Luis Eduardo Paim Longhi (Pessoa Física)</p>
-              <p><strong>Cidade/Estado:</strong> São Luís - MA</p>
-              <p><strong>E-mail Geral:</strong> <a href="mailto:app.medhora@gmail.com" className="text-primary hover:underline">app.medhora@gmail.com</a></p>
-              <p><strong>E-mail Privacidade/LGPD:</strong> <a href="mailto:app.medhora@gmail.com" className="text-primary hover:underline">app.medhora@gmail.com</a></p>
+              <p><strong>E-mail:</strong> <a href="mailto:contato@horamed.net" className="text-primary hover:underline">contato@horamed.net</a></p>
             </div>
           </Card>
 
