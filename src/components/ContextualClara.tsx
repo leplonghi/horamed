@@ -34,8 +34,8 @@ const contextConfig: Record<PageContext, { message: string; actions: QuickAction
   medications: {
     message: "Sua rotina de saúde organizada. Precisa de algo?",
     actions: [
-      { id: "add-med", label: "Novo medicamento", icon: Plus, route: "/adicionar-medicamento", color: "text-primary bg-primary/10" },
       { id: "scan-prescription", label: "Escanear receita", icon: Upload, route: "/carteira/upload", color: "text-blue-500 bg-blue-500/10" },
+      { id: "view-stock", label: "Ver estoque", icon: Package, route: "/medicamentos?tab=estoque", color: "text-amber-500 bg-amber-500/10" },
     ],
   },
   stock: {
