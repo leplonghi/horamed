@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { TrendingUp, Calendar, Pill, Target, Clock, AlertCircle, Lightbulb, Activity, Award, Package, AlertTriangle } from "lucide-react";
 import { format, subDays, startOfWeek, startOfMonth, eachDayOfInterval, endOfMonth } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { ptBR, enUS } from "date-fns/locale";
 import { useSubscription } from "@/hooks/useSubscription";
 import UpgradeModal from "@/components/UpgradeModal";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,7 @@ import ProgressChart from "@/components/AdherenceChart";
 import StockChart from "@/components/StockChart";
 import InfoDialog from "@/components/InfoDialog";
 import { useUserProfiles } from "@/hooks/useUserProfiles";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface TimeSlotStats {
   label: string;
@@ -36,6 +37,8 @@ interface HealthDataPoint {
 }
 
 export default function Charts() {
+  const { t, language } = useLanguage();
+  const dateLocale = language === 'pt' ? ptBR : enUS;
   const [period, setPeriod] = useState<"week" | "month">("week");
   const [stats, setStats] = useState({
     weeklyAdherence: 0,
@@ -149,7 +152,7 @@ export default function Charts() {
             return doseDate.toDateString() === day.toDateString();
           });
           return {
-            day: format(day, dateFormat, { locale: ptBR }),
+            day: format(day, dateFormat, { locale: dateLocale }),
             taken: dayDoses.filter(d => d.status === "taken").length,
             total: dayDoses.length
           };
@@ -172,7 +175,7 @@ export default function Charts() {
 
         const timeSlots: TimeSlotStats[] = [
           {
-            label: "Manhã",
+            label: t('charts.morning'),
             period: "6h - 12h",
             count: morningDoses.length,
             adherence: morningDoses.length > 0 
@@ -180,7 +183,7 @@ export default function Charts() {
               : 0
           },
           {
-            label: "Tarde",
+            label: t('charts.afternoon'),
             period: "12h - 18h",
             count: afternoonDoses.length,
             adherence: afternoonDoses.length > 0
@@ -188,7 +191,7 @@ export default function Charts() {
               : 0
           },
           {
-            label: "Noite",
+            label: t('charts.night'),
             period: "18h - 23h",
             count: nightDoses.length,
             adherence: nightDoses.length > 0
@@ -255,7 +258,7 @@ export default function Charts() {
   if (loading) {
     return (
       <div className="min-h-screen bg-background p-6 flex items-center justify-center pb-24">
-        <div className="animate-pulse text-muted-foreground">Carregando...</div>
+        <div className="animate-pulse text-muted-foreground">{t('common.loading')}</div>
       </div>
     );
   }
@@ -268,19 +271,19 @@ export default function Charts() {
             <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
               <TrendingUp className="h-8 w-8 text-primary" />
             </div>
-            <h2 className="text-2xl font-bold">Gráficos Avançados</h2>
+            <h2 className="text-2xl font-bold">{t('charts.advancedCharts')}</h2>
             <p className="text-muted-foreground max-w-md mx-auto">
-              Os gráficos avançados de progresso e estatísticas detalhadas estão disponíveis apenas no Plano Premium.
+              {t('charts.premiumFeature')}
             </p>
             <Button onClick={() => navigate('/planos')} size="lg">
-              Ver Planos Premium
+              {t('charts.viewPlans')}
             </Button>
           </div>
         </div>
         <UpgradeModal 
           open={showUpgradeModal} 
           onOpenChange={setShowUpgradeModal}
-          feature="Gráficos avançados"
+          feature={t('charts.advancedCharts')}
         />
       </>
     );
@@ -295,17 +298,17 @@ export default function Charts() {
             <div className="space-y-2">
               <h2 className="text-3xl font-bold text-foreground flex items-center gap-2">
                 <TrendingUp className="h-7 w-7 text-primary" />
-                Análise e Estatísticas
+                {t('charts.title')}
               </h2>
               <p className="text-muted-foreground">
-                Acompanhe seu compromisso com o tratamento e gerencie seu estoque
+                {t('charts.subtitle')}
               </p>
             </div>
             
             <Tabs value={period} onValueChange={(v) => setPeriod(v as "week" | "month")} className="w-full">
               <TabsList className="grid w-full max-w-md grid-cols-2">
-                <TabsTrigger value="week">Semanal</TabsTrigger>
-                <TabsTrigger value="month">Mensal</TabsTrigger>
+                <TabsTrigger value="week">{t('charts.weekly')}</TabsTrigger>
+                <TabsTrigger value="month">{t('charts.monthly')}</TabsTrigger>
               </TabsList>
             </Tabs>
           </div>
@@ -316,16 +319,16 @@ export default function Charts() {
             <div className="flex items-center justify-between">
               <div>
                 <div className="flex items-center gap-2 mb-1">
-                  <p className="text-sm text-muted-foreground font-medium">Total de Doses</p>
+                  <p className="text-sm text-muted-foreground font-medium">{t('charts.totalDoses')}</p>
                   <InfoDialog
-                    title="Total de doses"
-                    description="Número total de doses programadas para o período selecionado. Isso inclui todos os medicamentos e horários configurados."
+                    title={t('charts.totalDoses')}
+                    description={t('charts.totalDosesDesc')}
                     triggerClassName="h-4 w-4"
                   />
                 </div>
                 <p className="text-4xl font-bold text-foreground mt-1">{stats.totalDoses}</p>
                 <p className="text-xs text-muted-foreground mt-2">
-                  {period === "week" ? "últimos 7 dias" : "último mês"}
+                  {period === "week" ? t('charts.last7Days') : t('charts.lastMonth')}
                 </p>
               </div>
               <div className="h-14 w-14 rounded-full bg-primary/20 flex items-center justify-center">
@@ -338,16 +341,16 @@ export default function Charts() {
             <div className="flex items-center justify-between">
               <div>
                 <div className="flex items-center gap-2 mb-1">
-                  <p className="text-sm text-muted-foreground font-medium">Doses Tomadas</p>
+                  <p className="text-sm text-muted-foreground font-medium">{t('charts.dosesTaken')}</p>
                   <InfoDialog
-                    title="Doses tomadas"
-                    description="Quantidade de doses que você confirmou como tomadas no período. Cada dose tomada no horário correto contribui para o sucesso do tratamento."
+                    title={t('charts.dosesTaken')}
+                    description={t('charts.dosesTakenDesc')}
                     triggerClassName="h-4 w-4"
                   />
                 </div>
                 <p className="text-4xl font-bold text-foreground mt-1">{stats.takenDoses}</p>
                 <p className="text-xs text-muted-foreground mt-2">
-                  {stats.totalDoses - stats.takenDoses} não tomadas
+                  {stats.totalDoses - stats.takenDoses} {t('charts.notTaken')}
                 </p>
               </div>
               <div className="h-14 w-14 rounded-full bg-success/20 flex items-center justify-center">
@@ -360,10 +363,10 @@ export default function Charts() {
             <div className="flex items-center justify-between">
               <div>
                 <div className="flex items-center gap-2 mb-1">
-                  <p className="text-sm text-muted-foreground font-medium">Taxa de Progresso</p>
+                  <p className="text-sm text-muted-foreground font-medium">{t('charts.adherenceRate')}</p>
                   <InfoDialog
-                    title="Taxa de progresso"
-                    description="Porcentagem de doses tomadas em relação ao total. Acima de 80% é considerado excelente para manter a eficácia do tratamento!"
+                    title={t('charts.adherenceRate')}
+                    description={t('charts.adherenceRateDesc')}
                     triggerClassName="h-4 w-4"
                   />
                 </div>
@@ -374,10 +377,10 @@ export default function Charts() {
                   stats.weeklyAdherence >= 70 ? 'text-warning' : 
                   'text-destructive'
                 }`}>
-                  {stats.weeklyAdherence >= 90 ? '🎯 Excelente!' : 
-                   stats.weeklyAdherence >= 80 ? '👍 Muito bom!' : 
-                   stats.weeklyAdherence >= 70 ? '💪 Bom' : 
-                   '⚠️ Precisa melhorar'}
+                  {stats.weeklyAdherence >= 90 ? `🎯 ${t('charts.excellent')}` : 
+                   stats.weeklyAdherence >= 80 ? `👍 ${t('charts.veryGood')}` : 
+                   stats.weeklyAdherence >= 70 ? `💪 ${t('charts.good')}` : 
+                   `⚠️ ${t('charts.needsImprovement')}`}
                 </p>
               </div>
               <div className="h-14 w-14 rounded-full bg-primary/20 flex items-center justify-center">
@@ -390,17 +393,17 @@ export default function Charts() {
             <div className="flex items-center justify-between">
               <div>
                 <div className="flex items-center gap-2 mb-1">
-                  <p className="text-sm text-muted-foreground font-medium">Melhor Período</p>
+                  <p className="text-sm text-muted-foreground font-medium">{t('charts.bestPeriod')}</p>
                   <InfoDialog
-                    title="Melhor período do dia"
-                    description="Horário em que você tem o melhor progresso de doses tomadas. Use essa informação para entender seus padrões e otimizar os horários dos medicamentos."
+                    title={t('charts.bestPeriod')}
+                    description={t('charts.bestPeriodDesc')}
                     triggerClassName="h-4 w-4"
                   />
                 </div>
                 <p className="text-2xl font-bold text-foreground mt-1">
                   {timeSlotStats.length > 0 ? timeSlotStats.reduce((prev, curr) => prev.adherence > curr.adherence ? prev : curr).label : '-'}
                 </p>
-                <p className="text-xs text-muted-foreground mt-2">maior progresso</p>
+                <p className="text-xs text-muted-foreground mt-2">{t('charts.bestAdherence')}</p>
               </div>
               <div className="h-14 w-14 rounded-full bg-warning/20 flex items-center justify-center">
                 <Award className="h-7 w-7 text-warning" />
@@ -424,10 +427,10 @@ export default function Charts() {
         <Card className="p-6">
           <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
             <Clock className="h-5 w-5 text-primary" />
-            Analise Detalhada de Horarios
+            {t('charts.timeAnalysis')}
           </h3>
           <p className="text-sm text-muted-foreground mb-4">
-            Identifique seus melhores e piores horarios para tomar medicamentos
+            {t('charts.timeAnalysisDesc')}
           </p>
           <div className="space-y-4">
             {timeSlotStats.map((slot, i) => {

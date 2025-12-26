@@ -2,12 +2,13 @@ import { useState } from "react";
 import Header from "@/components/Header";
 import Navigation from "@/components/Navigation";
 import HealthCalendar from "@/components/HealthCalendar";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { Plus, Calendar, Stethoscope, Activity } from "lucide-react";
+import { Plus } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function Agenda() {
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
 
@@ -19,14 +20,14 @@ export default function Agenda() {
         <div className="max-w-7xl mx-auto space-y-6">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold mb-2">Agenda de Saúde</h1>
+              <h1 className="text-3xl font-bold mb-2">{t('agenda.title')}</h1>
               <p className="text-muted-foreground">
-                Gerencie todos os seus compromissos de saúde de forma intuitiva
+                {t('agenda.subtitle')}
               </p>
             </div>
             <Button onClick={() => navigate('/saude/consultas')} className="w-full md:w-auto">
               <Plus className="h-4 w-4 mr-2" />
-              Novo Compromisso
+              {t('agenda.newAppointment')}
             </Button>
           </div>
 
