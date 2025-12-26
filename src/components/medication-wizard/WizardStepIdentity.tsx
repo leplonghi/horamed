@@ -109,23 +109,13 @@ export function WizardStepIdentity({ data, updateData }: WizardStepIdentityProps
   const selectedCategory = categories.find(c => c.value === data.category);
 
   return (
-    <div className="space-y-5 sm:space-y-8">
-      {/* Header explicativo - Compacto no mobile */}
-      <Alert className="bg-primary/5 border-primary/20 py-2 px-3 sm:py-3 sm:px-4">
-        <HelpCircle className="h-4 w-4 text-primary shrink-0" />
-        <AlertDescription className="text-xs sm:text-sm">
-          <strong>Dica:</strong> Busque na lista ou digite diretamente.
-        </AlertDescription>
-      </Alert>
-
+    <div className="space-y-6">
       {/* Nome do medicamento */}
-      <div className="space-y-3 sm:space-y-4">
-        <div className="flex items-center gap-2">
-          <Label className="text-base sm:text-lg font-semibold">
-            Qual medicamento?
-          </Label>
+      <div className="space-y-3">
+        <Label className="text-base font-semibold flex items-center gap-1">
+          Nome do medicamento
           <span className="text-destructive">*</span>
-        </div>
+        </Label>
         
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger asChild>
@@ -134,30 +124,28 @@ export function WizardStepIdentity({ data, updateData }: WizardStepIdentityProps
               role="combobox"
               aria-expanded={open}
               className={cn(
-                "w-full h-12 sm:h-14 justify-between text-sm sm:text-base font-normal transition-all",
+                "w-full h-12 justify-between text-left font-normal",
                 data.name ? "border-primary bg-primary/5" : "border-dashed"
               )}
             >
-              <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-                <Search className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground shrink-0" />
-                {data.name ? (
-                  <span className="font-medium truncate">{data.name}</span>
-                ) : (
-                  <span className="text-muted-foreground">Buscar...</span>
-                )}
+              <div className="flex items-center gap-2 min-w-0 flex-1">
+                <Search className="h-4 w-4 text-muted-foreground shrink-0" />
+                <span className={cn("truncate", !data.name && "text-muted-foreground")}>
+                  {data.name || "Buscar medicamento..."}
+                </span>
               </div>
               <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-[calc(100vw-2rem)] sm:w-[calc(100vw-4rem)] max-w-[500px] p-0" align="start">
+          <PopoverContent className="w-[calc(100vw-3rem)] max-w-[400px] p-0" align="start">
             <Command shouldFilter={false}>
               <CommandInput 
                 placeholder="Digite o nome..." 
                 value={searchTerm}
                 onValueChange={setSearchTerm}
-                className="h-11 sm:h-12"
+                className="h-11"
               />
-              <CommandList className="max-h-[200px] sm:max-h-[250px]">
+              <CommandList className="max-h-[200px]">
                 <CommandEmpty className="py-6 text-center text-sm">
                   {loading ? (
                     <span className="text-muted-foreground">Buscando...</span>
@@ -186,7 +174,7 @@ export function WizardStepIdentity({ data, updateData }: WizardStepIdentityProps
                         key={med.nome}
                         value={med.nome}
                         onSelect={() => handleSelectMedication(med.nome)}
-                        className="py-3 cursor-pointer"
+                        className="py-2.5 cursor-pointer"
                       >
                         <Check
                           className={cn(
@@ -194,7 +182,7 @@ export function WizardStepIdentity({ data, updateData }: WizardStepIdentityProps
                             data.name === med.nome ? "opacity-100" : "opacity-0"
                           )}
                         />
-                        <span>{med.nome}</span>
+                        <span className="truncate">{med.nome}</span>
                       </CommandItem>
                     ))}
                   </CommandGroup>
@@ -204,31 +192,20 @@ export function WizardStepIdentity({ data, updateData }: WizardStepIdentityProps
           </PopoverContent>
         </Popover>
 
-        {/* Input manual */}
-        <div className="relative my-3 sm:my-4">
-          <div className="absolute inset-0 flex items-center">
-            <span className="w-full border-t" />
-          </div>
-          <div className="relative flex justify-center text-[10px] sm:text-xs uppercase">
-            <span className="bg-background px-2 text-muted-foreground">ou digite</span>
-          </div>
-        </div>
-
+        {/* Input manual alternativo */}
         <Input
-          placeholder="Ex: Losartana 50mg..."
+          placeholder="Ou digite o nome aqui..."
           value={data.name}
           onChange={(e) => updateData({ name: e.target.value })}
-          className="h-11 sm:h-12 text-sm sm:text-base"
+          className="h-11"
         />
       </div>
 
-      {/* Categoria - Grid otimizado para mobile */}
-      <div className="space-y-3 sm:space-y-4">
-        <Label className="text-base sm:text-lg font-semibold">
-          Tipo de produto
-        </Label>
+      {/* Categoria */}
+      <div className="space-y-3">
+        <Label className="text-base font-semibold">Tipo</Label>
         
-        <div className="grid grid-cols-2 gap-2 sm:gap-3">
+        <div className="grid grid-cols-2 gap-2">
           {categories.map((cat) => {
             const Icon = cat.icon;
             const isSelected = data.category === cat.value;
@@ -237,24 +214,22 @@ export function WizardStepIdentity({ data, updateData }: WizardStepIdentityProps
                 key={cat.value}
                 onClick={() => updateData({ category: cat.value })}
                 className={cn(
-                  "p-3 sm:p-4 cursor-pointer transition-all active:scale-[0.98] overflow-hidden relative",
+                  "p-3 cursor-pointer transition-all active:scale-[0.98]",
                   isSelected 
-                    ? `${cat.bgColor} ${cat.borderColor} border-2 shadow-md` 
+                    ? `${cat.bgColor} ${cat.borderColor} border-2` 
                     : "hover:border-primary/30"
                 )}
               >
-                <div className="flex flex-col items-center text-center gap-2 sm:flex-row sm:text-left sm:gap-3">
+                <div className="flex items-center gap-2">
                   <div className={cn(
-                    "w-10 h-10 rounded-full flex items-center justify-center shrink-0",
+                    "w-8 h-8 rounded-full flex items-center justify-center shrink-0",
                     isSelected ? cat.bgColor : "bg-muted"
                   )}>
-                    <Icon className={cn("w-5 h-5", cat.color)} />
+                    <Icon className={cn("w-4 h-4", cat.color)} />
                   </div>
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium leading-tight">{cat.label}</p>
-                  </div>
+                  <span className="text-sm font-medium truncate">{cat.label}</span>
                   {isSelected && (
-                    <Check className="w-4 h-4 text-primary shrink-0 absolute top-2 right-2 sm:static" />
+                    <Check className="w-4 h-4 text-primary ml-auto shrink-0" />
                   )}
                 </div>
               </Card>
@@ -265,15 +240,12 @@ export function WizardStepIdentity({ data, updateData }: WizardStepIdentityProps
 
       {/* Categoria do Suplemento - só aparece se for vitamina ou suplemento */}
       {(data.category === 'vitamina' || data.category === 'suplemento') && (
-        <div className="space-y-3 sm:space-y-4">
-          <div className="flex items-center gap-2 flex-wrap">
-            <Label className="text-sm sm:text-base font-semibold">
-              Para que você usa?
-            </Label>
-            <Badge variant="outline" className="text-[10px] sm:text-xs">Opcional</Badge>
-          </div>
+        <div className="space-y-3">
+          <Label className="text-sm font-medium">
+            Para que você usa? <span className="text-muted-foreground font-normal">(opcional)</span>
+          </Label>
           
-          <div className="flex flex-wrap gap-1.5 sm:gap-2">
+          <div className="flex flex-wrap gap-1.5">
             {supplementCategories.map((cat) => {
               const Icon = cat.icon;
               const isSelected = data.supplementCategory === cat.value;
@@ -286,13 +258,10 @@ export function WizardStepIdentity({ data, updateData }: WizardStepIdentityProps
                   onClick={() => updateData({ 
                     supplementCategory: isSelected ? undefined : cat.value 
                   })}
-                  className={cn(
-                    "h-8 sm:h-9 py-1.5 px-2.5 sm:px-3 gap-1.5 text-xs sm:text-sm transition-all",
-                    isSelected && "ring-2 ring-primary ring-offset-1"
-                  )}
+                  className="h-8 gap-1.5 text-xs"
                 >
-                  <Icon className={cn("h-3.5 w-3.5 sm:h-4 sm:w-4", isSelected ? "text-primary-foreground" : cat.color)} />
-                  <span>{cat.label}</span>
+                  <Icon className={cn("h-3.5 w-3.5", isSelected ? "text-primary-foreground" : cat.color)} />
+                  {cat.label}
                 </Button>
               );
             })}
@@ -300,18 +269,18 @@ export function WizardStepIdentity({ data, updateData }: WizardStepIdentityProps
         </div>
       )}
 
-      {/* Observações - Compacto */}
-      <div className="space-y-2 sm:space-y-3">
+      {/* Observações */}
+      <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <Label className="text-sm sm:text-base font-medium">
+          <Label className="text-sm font-medium">
             Observação <span className="text-muted-foreground font-normal">(opcional)</span>
           </Label>
-          <span className="text-[10px] sm:text-xs text-muted-foreground">
+          <span className="text-xs text-muted-foreground">
             {data.notes.length}/200
           </span>
         </div>
         <Textarea
-          placeholder="Ex: Tomar com água..."
+          placeholder="Ex: Tomar com água, após as refeições..."
           value={data.notes}
           onChange={(e) => updateData({ notes: e.target.value.slice(0, 200) })}
           rows={2}

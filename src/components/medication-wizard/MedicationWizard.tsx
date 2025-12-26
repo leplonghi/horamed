@@ -453,45 +453,48 @@ export default function MedicationWizard({ open, onOpenChange, editItemId }: Med
       />
 
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="w-[95vw] max-w-lg max-h-[85vh] sm:max-h-[90vh] overflow-hidden flex flex-col p-4 sm:p-6 rounded-2xl">
-          <DialogHeader className="pb-2 space-y-1">
-            <DialogTitle className="text-lg sm:text-xl">
-              {isEditing ? "Editar Item" : currentStep === 0 ? "Adicionar Medicamento" : "Adicionar Item"}
-            </DialogTitle>
-            <DialogDescription className="text-xs sm:text-sm">
-              {currentStep === 0 
-                ? "Como você quer adicionar?" 
-                : currentStep === 1 
-                  ? "Informe o nome e tipo" 
-                  : "Configure os horários"}
-            </DialogDescription>
-          </DialogHeader>
+        <DialogContent className="w-[95vw] max-w-md max-h-[90vh] overflow-hidden flex flex-col p-0 rounded-2xl gap-0">
+          {/* Header fixo */}
+          <div className="px-4 pt-4 pb-3 sm:px-6 sm:pt-6 sm:pb-4 border-b bg-background shrink-0">
+            <DialogHeader className="space-y-1">
+              <DialogTitle className="text-lg font-semibold">
+                {isEditing ? "Editar Item" : currentStep === 0 ? "Novo Medicamento" : "Adicionar Item"}
+              </DialogTitle>
+              <DialogDescription className="text-sm text-muted-foreground">
+                {currentStep === 0 
+                  ? "Escolha como adicionar" 
+                  : currentStep === 1 
+                    ? "Passo 1: Informações básicas" 
+                    : "Passo 2: Horários e frequência"}
+              </DialogDescription>
+            </DialogHeader>
+          </div>
 
-          {/* Progress Steps - só mostra após step 0 */}
+          {/* Progress Steps - compacto e fixo */}
           {currentStep > 0 && (
-            <div className="flex items-center justify-center gap-2 sm:gap-4 py-3 sm:py-4">
+            <div className="flex items-center justify-center gap-6 py-4 px-4 bg-muted/30 shrink-0">
               {steps.map((step, index) => {
                 const Icon = step.icon;
                 const isActive = currentStep === step.number;
                 const isCompleted = currentStep > step.number;
                 
                 return (
-                  <div key={step.number} className="flex items-center">
-                    <div className="flex flex-col items-center gap-1">
+                  <div key={step.number} className="flex items-center gap-3">
+                    <div className="flex items-center gap-2">
                       <div
                         className={cn(
-                          "w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition-all",
+                          "w-8 h-8 rounded-full flex items-center justify-center transition-all text-sm font-medium",
                           isActive 
-                            ? "bg-primary text-primary-foreground scale-110 shadow-lg" 
+                            ? "bg-primary text-primary-foreground" 
                             : isCompleted 
                               ? "bg-green-500 text-white" 
                               : "bg-muted text-muted-foreground"
                         )}
                       >
-                        {isCompleted ? <Check className="w-4 h-4 sm:w-5 sm:h-5" /> : <Icon className="w-4 h-4 sm:w-5 sm:h-5" />}
+                        {isCompleted ? <Check className="w-4 h-4" /> : step.number}
                       </div>
                       <span className={cn(
-                        "text-[10px] sm:text-xs font-medium",
+                        "text-sm font-medium hidden sm:block",
                         isActive ? "text-primary" : "text-muted-foreground"
                       )}>
                         {step.title}
@@ -499,7 +502,7 @@ export default function MedicationWizard({ open, onOpenChange, editItemId }: Med
                     </div>
                     {index < steps.length - 1 && (
                       <div className={cn(
-                        "w-8 sm:w-12 h-0.5 mx-1.5 sm:mx-2 transition-all",
+                        "w-8 h-0.5",
                         currentStep > step.number ? "bg-green-500" : "bg-muted"
                       )} />
                     )}
@@ -509,8 +512,8 @@ export default function MedicationWizard({ open, onOpenChange, editItemId }: Med
             </div>
           )}
 
-          {/* Step Content */}
-          <div className="flex-1 overflow-y-auto px-1">
+          {/* Step Content - scrollable */}
+          <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-6">
             <AnimatePresence mode="wait">
               <motion.div
                 key={currentStep}
@@ -600,35 +603,35 @@ export default function MedicationWizard({ open, onOpenChange, editItemId }: Med
             </AnimatePresence>
           </div>
 
-          {/* Navigation Buttons - Mobile optimized */}
+          {/* Navigation Buttons - fixo no footer */}
           {currentStep > 0 && (
-            <div className="flex justify-between gap-3 pt-3 sm:pt-4 border-t mt-3 sm:mt-4">
+            <div className="flex gap-3 p-4 sm:px-6 border-t bg-background shrink-0">
               <Button
                 variant="outline"
                 onClick={currentStep === 1 ? () => setCurrentStep(0) : handleBack}
                 disabled={isSubmitting}
-                className="flex-1 sm:flex-none h-11 sm:h-10"
+                className="flex-1 h-12"
               >
-                <ArrowLeft className="w-4 h-4 mr-1 sm:mr-2" />
-                <span>Voltar</span>
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Voltar
               </Button>
 
               <Button 
                 onClick={handleNext} 
                 disabled={isSubmitting} 
-                className="flex-1 sm:flex-none sm:min-w-[120px] h-11 sm:h-10"
+                className="flex-1 h-12"
               >
                 {isSubmitting ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
                 ) : currentStep === 2 ? (
                   <>
                     {isEditing ? "Salvar" : "Adicionar"}
-                    <Check className="w-4 h-4 ml-1 sm:ml-2" />
+                    <Check className="w-4 h-4 ml-2" />
                   </>
                 ) : (
                   <>
                     Próximo
-                    <ArrowRight className="w-4 h-4 ml-1 sm:ml-2" />
+                    <ArrowRight className="w-4 h-4 ml-2" />
                   </>
                 )}
               </Button>
@@ -637,11 +640,11 @@ export default function MedicationWizard({ open, onOpenChange, editItemId }: Med
           
           {/* Cancel button only on step 0 */}
           {currentStep === 0 && !processingOCR && (
-            <div className="pt-3 sm:pt-4 border-t mt-3 sm:mt-4">
+            <div className="p-4 sm:px-6 border-t bg-background shrink-0">
               <Button
-                variant="outline"
+                variant="ghost"
                 onClick={() => onOpenChange(false)}
-                className="w-full h-11 sm:h-10"
+                className="w-full h-11 text-muted-foreground"
               >
                 Cancelar
               </Button>
