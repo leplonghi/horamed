@@ -11,7 +11,7 @@ import { Separator } from "@/components/ui/separator";
 import { useDocumento, useCompartilhamentos, useDeletarDocumento } from "@/hooks/useCofre";
 import { supabase } from "@/integrations/supabase/client";
 import { format, isBefore, differenceInDays, parseISO } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { ptBR, enUS } from "date-fns/locale";
 import { toast } from "sonner";
 import Header from "@/components/Header";
 import Navigation from "@/components/Navigation";
@@ -19,6 +19,7 @@ import UpgradeModal from "@/components/UpgradeModal";
 import { PrescriptionStatusBadge } from "@/components/PrescriptionStatusBadge";
 import { MedicationQuickAddCard } from "@/components/MedicationQuickAddCard";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { useQuery } from "@tanstack/react-query";
 import ExamDeficiencyBadges from "@/components/fitness/ExamDeficiencyBadges";
 import {
@@ -41,6 +42,8 @@ export default function CofreDocumento() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { t, language } = useLanguage();
+  const dateLocale = language === 'pt' ? ptBR : enUS;
   const [signedUrl, setSignedUrl] = useState<string>("");
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showUpgrade, setShowUpgrade] = useState(false);
@@ -91,15 +94,15 @@ export default function CofreDocumento() {
   const getCategoryConfig = (categorySlug?: string) => {
     switch (categorySlug) {
       case "receita":
-        return { icon: Pill, color: "text-blue-600 dark:text-blue-400", bg: "bg-blue-50 dark:bg-blue-950", label: "Receita Médica" };
+        return { icon: Pill, color: "text-blue-600 dark:text-blue-400", bg: "bg-blue-50 dark:bg-blue-950", label: t('cofreDoc.prescription') };
       case "exame":
-        return { icon: TestTube2, color: "text-green-600 dark:text-green-400", bg: "bg-green-50 dark:bg-green-950", label: "Exame Laboratorial" };
+        return { icon: TestTube2, color: "text-green-600 dark:text-green-400", bg: "bg-green-50 dark:bg-green-950", label: t('cofreDoc.exam') };
       case "vacinacao":
-        return { icon: Syringe, color: "text-purple-600 dark:text-purple-400", bg: "bg-purple-50 dark:bg-purple-950", label: "Cartão de Vacina" };
+        return { icon: Syringe, color: "text-purple-600 dark:text-purple-400", bg: "bg-purple-50 dark:bg-purple-950", label: t('cofreDoc.vaccineCard') };
       case "consulta":
-        return { icon: Stethoscope, color: "text-orange-600 dark:text-orange-400", bg: "bg-orange-50 dark:bg-orange-950", label: "Consulta Médica" };
+        return { icon: Stethoscope, color: "text-orange-600 dark:text-orange-400", bg: "bg-orange-50 dark:bg-orange-950", label: t('cofreDoc.consultation') };
       default:
-        return { icon: Calendar, color: "text-gray-600 dark:text-gray-400", bg: "bg-gray-50 dark:bg-gray-950", label: "Documento" };
+        return { icon: Calendar, color: "text-gray-600 dark:text-gray-400", bg: "bg-gray-50 dark:bg-gray-950", label: t('cofreDoc.document') };
     }
   };
 
@@ -135,10 +138,10 @@ export default function CofreDocumento() {
 
       if (data?.url) {
         await navigator.clipboard.writeText(data.url);
-        toast.success("Link copiado para área de transferência!");
+        toast.success(t('cofreDoc.linkCopied'));
       }
     } catch (error: any) {
-      toast.error("Erro ao gerar link de compartilhamento");
+      toast.error(t('cofreDoc.shareError'));
     }
   };
 
@@ -157,10 +160,10 @@ export default function CofreDocumento() {
       if (error) throw error;
 
       setIsPurchased(checked);
-      toast.success(checked ? "Receita marcada como utilizada" : "Status atualizado");
+      toast.success(checked ? t('cofreDoc.usedStatus') : t('cofreDoc.statusUpdated'));
     } catch (error) {
       console.error("Error updating prescription status:", error);
-      toast.error("Erro ao atualizar status da receita");
+      toast.error(t('cofreDoc.deleteError'));
     }
   };
 
@@ -169,7 +172,7 @@ export default function CofreDocumento() {
       deletar(id!);
       navigate("/carteira");
     } catch (error) {
-      toast.error("Erro ao deletar documento");
+      toast.error(t('cofreDoc.deleteError'));
     }
   };
 
@@ -177,7 +180,7 @@ export default function CofreDocumento() {
     return (
       <div className="min-h-screen bg-background pb-20">
         <Header />
-        <div className="container max-w-4xl mx-auto px-4 py-6 pt-24">{/* pt-24 para compensar o header fixo */}
+        <div className="container max-w-4xl mx-auto px-4 py-6 pt-24">
           <Skeleton className="h-8 w-24 mb-4" />
           <Skeleton className="h-96" />
         </div>
@@ -191,7 +194,7 @@ export default function CofreDocumento() {
       <div className="min-h-screen bg-background pb-20">
         <Header />
         <div className="container max-w-4xl mx-auto px-4 py-6">
-          <p>Documento não encontrado</p>
+          <p>{t('cofreDoc.notFound')}</p>
         </div>
         <Navigation />
       </div>
@@ -222,7 +225,7 @@ export default function CofreDocumento() {
       <div className="container max-w-4xl mx-auto px-4 py-6 pt-24">
         <Button variant="ghost" onClick={() => navigate("/carteira")} className="mb-4">
           <ArrowLeft className="w-4 h-4 mr-2" />
-          Voltar
+          {t('cofreDoc.back')}
         </Button>
 
         {/* Header Card with Category */}
@@ -234,10 +237,10 @@ export default function CofreDocumento() {
               </div>
               <div className="flex-1 min-w-0">
                 <Badge variant="outline" className="mb-2">{categoryConfig.label}</Badge>
-                <CardTitle className="text-2xl">{documento.title || "Sem título"}</CardTitle>
+                <CardTitle className="text-2xl">{documento.title || t('cofreDoc.noTitle')}</CardTitle>
                 {documento.user_profiles && (
                   <p className="text-sm text-muted-foreground mt-1">
-                    Perfil: {documento.user_profiles.name}
+                    {t('cofreDoc.profile')}: {documento.user_profiles.name}
                   </p>
                 )}
               </div>
@@ -249,30 +252,30 @@ export default function CofreDocumento() {
               {(meta?.patient_name || meta?.patient_age || meta?.patient_cpf) && (
                 <div className="p-4 bg-secondary/30 rounded-lg">
                   <h3 className="font-semibold mb-3 flex items-center gap-2">
-                    <span>👤</span> Dados do Paciente
+                    <span>👤</span> {t('cofreDoc.patientData')}
                   </h3>
                   <div className="grid grid-cols-2 gap-3 text-sm">
                     {meta.patient_name && (
                       <div className="col-span-2">
-                        <p className="text-muted-foreground">Nome</p>
+                        <p className="text-muted-foreground">{t('cofreDoc.name')}</p>
                         <p className="font-medium">{meta.patient_name}</p>
                       </div>
                     )}
                     {meta.patient_age && (
                       <div>
-                        <p className="text-muted-foreground">Idade</p>
+                        <p className="text-muted-foreground">{t('cofreDoc.age')}</p>
                         <p className="font-medium">{meta.patient_age}</p>
                       </div>
                     )}
                     {meta.patient_cpf && (
                       <div>
-                        <p className="text-muted-foreground">CPF</p>
+                        <p className="text-muted-foreground">{t('cofreDoc.cpf')}</p>
                         <p className="font-medium">{meta.patient_cpf}</p>
                       </div>
                     )}
                     {meta.patient_address && (
                       <div className="col-span-2">
-                        <p className="text-muted-foreground">Endereço</p>
+                        <p className="text-muted-foreground">{t('cofreDoc.address')}</p>
                         <p className="font-medium">{meta.patient_address}</p>
                       </div>
                     )}
@@ -284,30 +287,30 @@ export default function CofreDocumento() {
               {(meta?.emitter_name || meta?.emitter_address || documento.provider) && (
                 <div className="p-4 bg-secondary/30 rounded-lg">
                   <h3 className="font-semibold mb-3 flex items-center gap-2">
-                    <span>🏥</span> Identificação do Emitente
+                    <span>🏥</span> {t('cofreDoc.emitter')}
                   </h3>
                   <div className="grid grid-cols-2 gap-3 text-sm">
                     {(meta?.emitter_name || documento.provider) && (
                       <div className="col-span-2">
-                        <p className="text-muted-foreground">Nome</p>
+                        <p className="text-muted-foreground">{t('cofreDoc.name')}</p>
                         <p className="font-medium">{meta?.emitter_name || documento.provider}</p>
                       </div>
                     )}
                     {meta?.emitter_cnpj && (
                       <div className="col-span-2">
-                        <p className="text-muted-foreground">CNPJ</p>
+                        <p className="text-muted-foreground">{t('cofreDoc.cnpj')}</p>
                         <p className="font-medium">{meta.emitter_cnpj}</p>
                       </div>
                     )}
                     {meta?.emitter_address && (
                       <div className="col-span-2">
-                        <p className="text-muted-foreground">Endereço</p>
+                        <p className="text-muted-foreground">{t('cofreDoc.address')}</p>
                         <p className="font-medium">{meta.emitter_address}</p>
                       </div>
                     )}
                     {(meta?.emitter_city || meta?.emitter_state) && (
                       <div className="col-span-2">
-                        <p className="text-muted-foreground">Cidade/Estado</p>
+                        <p className="text-muted-foreground">{t('cofreDoc.cityState')}</p>
                         <p className="font-medium">
                           {[meta?.emitter_city, meta?.emitter_state].filter(Boolean).join(' - ')}
                         </p>
@@ -315,13 +318,13 @@ export default function CofreDocumento() {
                     )}
                     {meta?.emitter_zip && (
                       <div>
-                        <p className="text-muted-foreground">CEP</p>
+                        <p className="text-muted-foreground">{t('cofreDoc.zipCode')}</p>
                         <p className="font-medium">{meta.emitter_zip}</p>
                       </div>
                     )}
                     {meta?.emitter_phone && (
                       <div>
-                        <p className="text-muted-foreground">Telefone</p>
+                        <p className="text-muted-foreground">{t('cofreDoc.phone')}</p>
                         <p className="font-medium">{meta.emitter_phone}</p>
                       </div>
                     )}
@@ -333,16 +336,16 @@ export default function CofreDocumento() {
               {meta?.doctor_name && (
                 <div className="p-4 bg-secondary/30 rounded-lg">
                   <h3 className="font-semibold mb-3 flex items-center gap-2">
-                    <span>👨‍⚕️</span> Dados do Médico
+                    <span>👨‍⚕️</span> {t('cofreDoc.doctorData')}
                   </h3>
                   <div className="grid grid-cols-2 gap-3 text-sm">
                     <div className="col-span-2">
-                      <p className="text-muted-foreground">Nome</p>
+                      <p className="text-muted-foreground">{t('cofreDoc.name')}</p>
                       <p className="font-medium">{meta.doctor_name}</p>
                     </div>
                     {meta?.doctor_registration && (
                       <div>
-                        <p className="text-muted-foreground">CRM</p>
+                        <p className="text-muted-foreground">{t('cofreDoc.doctorCRM')}</p>
                         <p className="font-medium">
                           {meta.doctor_registration}
                           {meta.doctor_state && ` - ${meta.doctor_state}`}
@@ -351,7 +354,7 @@ export default function CofreDocumento() {
                     )}
                     {meta?.specialty && (
                       <div>
-                        <p className="text-muted-foreground">Especialidade</p>
+                        <p className="text-muted-foreground">{t('cofreDoc.specialty')}</p>
                         <p className="font-medium">{meta.specialty}</p>
                       </div>
                     )}
@@ -363,44 +366,44 @@ export default function CofreDocumento() {
               <div className="grid grid-cols-2 gap-4 text-sm">
                 {documento.issued_at && (
                   <div>
-                    <p className="text-muted-foreground">📅 Data de Emissão</p>
+                    <p className="text-muted-foreground">📅 {t('cofreDoc.issueDate')}</p>
                     <p className="font-medium">
-                      {format(new Date(documento.issued_at), "dd/MM/yyyy", { locale: ptBR })}
+                      {format(new Date(documento.issued_at), "dd/MM/yyyy", { locale: dateLocale })}
                     </p>
                   </div>
                 )}
                 {documento.expires_at && (
                   <div>
-                    <p className="text-muted-foreground">⏰ Validade</p>
+                    <p className="text-muted-foreground">⏰ {t('cofreDoc.validity')}</p>
                     <p className="font-medium">
-                      {format(new Date(documento.expires_at), "dd/MM/yyyy", { locale: ptBR })}
+                      {format(new Date(documento.expires_at), "dd/MM/yyyy", { locale: dateLocale })}
                     </p>
                   </div>
                 )}
                 {meta?.prescription_type && (
                   <div>
-                    <p className="text-muted-foreground">📋 Tipo de Receita</p>
+                    <p className="text-muted-foreground">📋 {t('cofreDoc.prescriptionType')}</p>
                     <p className="font-medium capitalize">{meta.prescription_type}</p>
                   </div>
                 )}
                 {meta?.diagnosis && (
                   <div className="col-span-2">
-                    <p className="text-muted-foreground">🔍 Diagnóstico</p>
+                    <p className="text-muted-foreground">🔍 {t('cofreDoc.diagnosis')}</p>
                     <p className="font-medium">{meta.diagnosis}</p>
                   </div>
                 )}
                 {meta?.followup_date && (
                   <div className="col-span-2">
-                    <p className="text-muted-foreground">📅 Data de Retorno</p>
+                    <p className="text-muted-foreground">📅 {t('cofreDoc.followupDate')}</p>
                     <p className="font-medium">
-                      {format(new Date(meta.followup_date), "dd/MM/yyyy", { locale: ptBR })}
+                      {format(new Date(meta.followup_date), "dd/MM/yyyy", { locale: dateLocale })}
                     </p>
                   </div>
                 )}
               </div>
 
               {/* Status da Receita (somente para receitas) */}
-              {categoryConfig.label === "Receita Médica" && (
+              {categoryConfig.label === t('cofreDoc.prescription') && (
                 <>
                   <Separator />
                   <div className="space-y-4">
@@ -418,10 +421,10 @@ export default function CofreDocumento() {
                     <div className="flex items-center justify-between p-3 bg-secondary/30 rounded-lg">
                       <div className="space-y-1">
                         <Label htmlFor="purchased-switch" className="cursor-pointer">
-                          Receita Utilizada
+                          {t('cofreDoc.prescriptionUsedLabel')}
                         </Label>
                         <p className="text-xs text-muted-foreground">
-                          Marque se já comprou os medicamentos
+                          {t('cofreDoc.prescriptionUsedHint')}
                         </p>
                       </div>
                       <Switch
@@ -434,10 +437,10 @@ export default function CofreDocumento() {
                     {!isPurchased && documento.expires_at && isBefore(parseISO(documento.expires_at), new Date()) && (
                       <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
                         <p className="text-sm text-destructive font-medium mb-1">
-                          ⚠️ Receita Vencida
+                          ⚠️ {t('cofreDoc.prescriptionExpired')}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          Esta receita está vencida e não pode mais ser utilizada. Solicite uma nova receita ao seu médico.
+                          {t('cofreDoc.prescriptionExpiredDesc')}
                         </p>
                       </div>
                     )}
@@ -450,7 +453,7 @@ export default function CofreDocumento() {
               <>
                 <Separator />
                 <div>
-                  <p className="text-sm text-muted-foreground mb-1">📝 Observações</p>
+                  <p className="text-sm text-muted-foreground mb-1">📝 {t('cofreDoc.notes')}</p>
                   <p className="text-sm">{documento.notes}</p>
                 </div>
               </>
@@ -460,17 +463,17 @@ export default function CofreDocumento() {
             <div className="flex flex-wrap gap-2">
               <Button onClick={() => navigate(`/carteira/${id}/editar`)} variant="outline" size="sm">
                 <Edit className="w-4 h-4 mr-2" />
-                Editar
+                {t('cofreDoc.edit')}
               </Button>
               <Button onClick={handleCompartilhar} variant="outline" size="sm">
                 <Share2 className="w-4 h-4 mr-2" />
-                Compartilhar
+                {t('cofreDoc.shareLink')}
               </Button>
               {signedUrl && (
                 <Button asChild variant="outline" size="sm">
                   <a href={signedUrl} download target="_blank" rel="noopener noreferrer">
                     <Download className="w-4 h-4 mr-2" />
-                    Baixar
+                    {t('common.download')}
                   </a>
                 </Button>
               )}
@@ -481,7 +484,7 @@ export default function CofreDocumento() {
                 className="ml-auto"
               >
                 <Trash2 className="w-4 h-4 mr-2" />
-                Excluir
+                {t('cofreDoc.delete')}
               </Button>
             </div>
           </CardContent>
@@ -495,7 +498,7 @@ export default function CofreDocumento() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Pill className="w-5 h-5 text-blue-600" />
-                    <CardTitle className="text-lg">Medicamentos Prescritos</CardTitle>
+                    <CardTitle className="text-lg">{t('cofreDoc.prescribedMeds')}</CardTitle>
                     <Badge variant="secondary">{meta.prescriptions.length}</Badge>
                   </div>
                   <CollapsibleTrigger asChild>
@@ -530,7 +533,7 @@ export default function CofreDocumento() {
                       {isAdded && (
                         <div className="mb-3 flex items-center gap-2 text-green-600 dark:text-green-400">
                           <CheckCircle2 className="h-4 w-4" />
-                          <span className="text-sm font-medium">Já adicionado à rotina</span>
+                          <span className="text-sm font-medium">{t('cofreDoc.addedToRoutine')}</span>
                         </div>
                       )}
                       {/* Cabeçalho do Medicamento */}
@@ -548,13 +551,13 @@ export default function CofreDocumento() {
                           </div>
                           {med.is_generic !== undefined && (
                             <Badge variant={med.is_generic ? "default" : "secondary"} className="shrink-0">
-                              {med.is_generic ? "💊 Genérico" : "Referência"}
+                              {med.is_generic ? `💊 ${t('cofreDoc.generic')}` : t('cofreDoc.brand')}
                             </Badge>
                           )}
                         </div>
                         {med.active_ingredient && (
                           <p className="text-sm text-blue-600 dark:text-blue-400">
-                            <span className="font-medium">Princípio Ativo:</span> {med.active_ingredient}
+                            <span className="font-medium">{t('cofreDoc.activeIngredient')}:</span> {med.active_ingredient}
                           </p>
                         )}
                       </div>
@@ -565,23 +568,23 @@ export default function CofreDocumento() {
                       {(med.package_type || med.package_quantity || med.packages_count) && (
                         <div className="mb-3 p-2 bg-blue-100/50 dark:bg-blue-900/30 rounded">
                           <p className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-1">
-                            📦 Informações da Embalagem
+                            📦 {t('cofreDoc.packageInfo')}
                           </p>
                           <div className="text-sm text-blue-700 dark:text-blue-300 space-y-1">
                             {med.package_type && (
-                              <p>• Tipo: {med.package_type}</p>
+                              <p>• {t('cofreDoc.type')}: {med.package_type}</p>
                             )}
                             {med.package_quantity && (
-                              <p>• Quantidade: {med.package_quantity}</p>
+                              <p>• {t('cofreDoc.quantity')}: {med.package_quantity}</p>
                             )}
                             {med.packages_count && (
-                              <p>• Número de embalagens: {med.packages_count} {med.packages_count === 1 ? 'embalagem' : 'embalagens'}</p>
+                              <p>• {t('cofreDoc.packagesCount')}: {med.packages_count} {med.packages_count === 1 ? t('cofreDoc.package') : t('cofreDoc.packages')}</p>
                             )}
                             {(() => {
                               const totalUnits = calculateTotalUnits(med.packages_count, med.package_quantity);
                               return totalUnits && (
                                 <p className="font-semibold pt-1 border-t border-blue-200 dark:border-blue-800 mt-2">
-                                  ✨ Total disponível: {totalUnits} {extractQuantity(med.package_quantity || '') === 1 ? 'unidade' : 'unidades'}
+                                  ✨ {t('cofreDoc.totalAvailable')}: {totalUnits} {extractQuantity(med.package_quantity || '') === 1 ? t('cofreDoc.unit') : t('cofreDoc.units')}
                                 </p>
                               );
                             })()}
@@ -593,32 +596,32 @@ export default function CofreDocumento() {
                       <div className="text-sm text-blue-700 dark:text-blue-300 space-y-2">
                         {med.dose && (
                           <div className="flex items-start gap-2">
-                            <span className="font-medium">💊 Dose:</span>
+                            <span className="font-medium">💊 {t('cofreDoc.dose')}:</span>
                             <span>{med.dose}</span>
                           </div>
                         )}
                         {med.frequency && (
                           <div className="flex items-start gap-2">
-                            <span className="font-medium">⏰ Frequência:</span>
+                            <span className="font-medium">⏰ {t('cofreDoc.frequency')}:</span>
                             <span>{med.frequency}</span>
                           </div>
                         )}
                         {med.duration_days && (
                           <div className="flex items-start gap-2">
-                            <span className="font-medium">📅 Duração:</span>
-                            <span>{med.duration_days} dias {med.duration && `(${med.duration})`}</span>
+                            <span className="font-medium">📅 {t('cofreDoc.duration')}:</span>
+                            <span>{med.duration_days} {t('cofreDoc.days')} {med.duration && `(${med.duration})`}</span>
                           </div>
                         )}
                         {med.instructions && (
                           <div className="flex items-start gap-2">
-                            <span className="font-medium">📝 Instruções:</span>
+                            <span className="font-medium">📝 {t('cofreDoc.instructions')}:</span>
                             <span>{med.instructions}</span>
                           </div>
                         )}
                         {med.with_food !== undefined && (
                           <div className="flex items-start gap-2">
-                            <span className="font-medium">🍽️ Alimentação:</span>
-                            <span>{med.with_food ? 'Tomar com alimento' : 'Pode tomar sem alimento'}</span>
+                            <span className="font-medium">🍽️ {t('cofreDoc.withFood')}:</span>
+                            <span>{med.with_food ? t('cofreDoc.takeWithFood') : t('cofreDoc.takeWithoutFood')}</span>
                           </div>
                         )}
                       </div>
@@ -627,7 +630,7 @@ export default function CofreDocumento() {
                   })}
                   {meta?.notes && (
                     <div className="p-3 bg-amber-50 dark:bg-amber-950 rounded-lg border border-amber-200 dark:border-amber-900 mt-3">
-                      <p className="text-sm font-medium text-amber-900 dark:text-amber-100 mb-1">📋 Observações do Médico</p>
+                      <p className="text-sm font-medium text-amber-900 dark:text-amber-100 mb-1">📋 {t('cofreDoc.doctorNotes')}</p>
                       <p className="text-sm text-amber-700 dark:text-amber-300">{meta.notes}</p>
                     </div>
                   )}
@@ -638,7 +641,7 @@ export default function CofreDocumento() {
                     onClick={() => navigate('/rotina')}
                   >
                     <ExternalLink className="w-4 h-4 mr-2" />
-                    Ver na Rotina de Medicamentos
+                    {t('cofreDoc.viewInRoutine')}
                   </Button>
                 </CardContent>
               </CollapsibleContent>
@@ -653,7 +656,7 @@ export default function CofreDocumento() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <TestTube2 className="w-5 h-5 text-green-600" />
-                    <CardTitle className="text-lg">Resultados do Exame</CardTitle>
+                    <CardTitle className="text-lg">{t('cofreDoc.examResults')}</CardTitle>
                     <Badge variant="secondary">{meta.extracted_values.length}</Badge>
                   </div>
                   <CollapsibleTrigger asChild>
@@ -678,7 +681,7 @@ export default function CofreDocumento() {
                           </p>
                           {val.reference_range && (
                             <p className="text-xs text-green-600 dark:text-green-400">
-                              Referência: {val.reference_range}
+                              {t('cofreDoc.reference')}: {val.reference_range}
                             </p>
                           )}
                         </div>
@@ -687,7 +690,7 @@ export default function CofreDocumento() {
                             variant={val.status === 'normal' ? 'outline' : 'destructive'}
                             className="ml-2"
                           >
-                            {val.status === 'normal' ? '✓ Normal' : '⚠️ Alterado'}
+                            {val.status === 'normal' ? `✓ ${t('cofreDoc.normalValue')}` : `⚠️ ${t('cofreDoc.alteredValue')}`}
                           </Badge>
                         )}
                        </div>
@@ -704,13 +707,13 @@ export default function CofreDocumento() {
             <CardHeader>
               <div className="flex items-center gap-2">
                 <Syringe className="w-5 h-5 text-purple-600" />
-                <CardTitle className="text-lg">Informações da Vacina</CardTitle>
+                <CardTitle className="text-lg">{t('cofreDoc.vaccineInfo')}</CardTitle>
               </div>
             </CardHeader>
             <CardContent className="space-y-2">
               <div className="p-3 bg-purple-50 dark:bg-purple-950 rounded-lg">
                 <p className="font-semibold text-purple-900 dark:text-purple-100">{meta.vaccine_name}</p>
-                {meta.dose_number && <p className="text-sm text-purple-700 dark:text-purple-300">Dose: {meta.dose_number}</p>}
+                {meta.dose_number && <p className="text-sm text-purple-700 dark:text-purple-300">{t('cofreDoc.dose')}: {meta.dose_number}</p>}
               </div>
             </CardContent>
           </Card>
@@ -721,19 +724,19 @@ export default function CofreDocumento() {
             <CardHeader>
               <div className="flex items-center gap-2">
                 <Stethoscope className="w-5 h-5 text-orange-600" />
-                <CardTitle className="text-lg">Detalhes da Consulta</CardTitle>
+                <CardTitle className="text-lg">{t('cofreDoc.consultationDetails')}</CardTitle>
               </div>
             </CardHeader>
             <CardContent className="space-y-2">
               {meta.specialty && (
                 <div>
-                  <p className="text-sm text-muted-foreground">Especialidade</p>
+                  <p className="text-sm text-muted-foreground">{t('cofreDoc.specialty')}</p>
                   <p className="font-medium">{meta.specialty}</p>
                 </div>
               )}
               {meta.diagnosis && (
                 <div>
-                  <p className="text-sm text-muted-foreground">Diagnóstico/Avaliação</p>
+                  <p className="text-sm text-muted-foreground">{t('cofreDoc.diagnosisEval')}</p>
                   <p className="text-sm">{meta.diagnosis}</p>
                 </div>
               )}
@@ -757,14 +760,14 @@ export default function CofreDocumento() {
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Excluir documento?</AlertDialogTitle>
+            <AlertDialogTitle>{t('cofreDoc.deleteTitle')}</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta ação não pode ser desfeita. O documento será removido permanentemente.
+              {t('cofreDoc.deleteDesc')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeletar}>Excluir</AlertDialogAction>
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeletar}>{t('cofreDoc.delete')}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
