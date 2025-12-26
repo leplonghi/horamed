@@ -146,21 +146,6 @@ export default function DayTimeline({
 
   return (
     <div className="space-y-3 overflow-x-hidden w-full">
-      {/* Success banner when all done */}
-      {allDone && (
-        <Card className="border-green-500/30 bg-green-500/5">
-          <CardContent className="py-4 text-center">
-            <div className="inline-flex items-center gap-2 text-green-600 dark:text-green-400">
-              <CheckCircle2 className="h-5 w-5" />
-              <span className="font-semibold">Tudo em dia!</span>
-            </div>
-            <p className="text-sm text-muted-foreground mt-1">
-              Você tomou todos os medicamentos de hoje. Parabéns!
-            </p>
-          </CardContent>
-        </Card>
-      )}
-
       {/* Header do Dia */}
       <div className="text-center py-2 mb-2">
         <p className="text-xs text-muted-foreground capitalize">
@@ -179,14 +164,26 @@ export default function DayTimeline({
       {/* Timeline do Dia */}
       <div className="space-y-3 w-full overflow-x-hidden">
         {items.length === 0 ? (
-          <Card className="border-dashed">
-            <CardContent className="py-8 text-center">
-              <div className="inline-flex p-3 rounded-full bg-muted/50 mb-3">
-                <Calendar className="h-8 w-8 text-muted-foreground" />
+          <Card className="border-dashed border-green-500/30 bg-green-500/5">
+            <CardContent className="py-6 text-center">
+              <div className="inline-flex p-3 rounded-full bg-green-500/10 mb-3">
+                <CheckCircle2 className="h-6 w-6 text-green-600 dark:text-green-400" />
               </div>
-              <p className="font-semibold mb-1">Nenhum evento hoje</p>
-              <p className="text-muted-foreground text-sm">
-                Você não tem medicamentos agendados para este dia.
+              <p className="font-semibold text-green-600 dark:text-green-400">Tudo certo!</p>
+              <p className="text-muted-foreground text-sm mt-1">
+                Nenhum medicamento agendado para este dia.
+              </p>
+            </CardContent>
+          </Card>
+        ) : allDone ? (
+          <Card className="border-green-500/30 bg-green-500/5">
+            <CardContent className="py-6 text-center">
+              <div className="inline-flex p-3 rounded-full bg-green-500/10 mb-3">
+                <CheckCircle2 className="h-6 w-6 text-green-600 dark:text-green-400" />
+              </div>
+              <p className="font-semibold text-green-600 dark:text-green-400">Tudo em dia!</p>
+              <p className="text-sm text-muted-foreground mt-1">
+                Você tomou todos os {items.length} medicamentos de hoje. 🎉
               </p>
             </CardContent>
           </Card>
