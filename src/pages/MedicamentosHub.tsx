@@ -408,7 +408,7 @@ export default function MedicamentosHub() {
             <Button
               size="default"
               className="rounded-xl hover-lift gap-2 shadow-md"
-              onClick={() => navigate("/adicionar-medicamento")}
+              onClick={() => setWizardOpen(true)}
             >
               <Plus className="h-4 w-4" />
               <span className="hidden sm:inline">Adicionar</span>
