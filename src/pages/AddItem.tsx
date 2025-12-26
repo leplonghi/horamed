@@ -29,7 +29,7 @@ import { useUserProfiles } from "@/hooks/useUserProfiles";
 import { useFilteredMedicamentos } from "@/hooks/useMedicamentosBrasileiros";
 import { cn } from "@/lib/utils";
 import SupplementDetailInfo from "@/components/fitness/SupplementDetailInfo";
-
+import { useLanguage } from "@/contexts/LanguageContext";
 export default function AddItem() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -41,6 +41,7 @@ export default function AddItem() {
   const [hasHealthProfile, setHasHealthProfile] = useState(false);
   const { showFeedback } = useFeedbackToast();
   const { activeProfile } = useUserProfiles();
+  const { t } = useLanguage();
   const [openNameCombobox, setOpenNameCombobox] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -180,7 +181,7 @@ export default function AddItem() {
       }
     } catch (error) {
       console.error("Error loading item:", error);
-      toast.error("Erro ao carregar item");
+      toast.error(t('addItem.loadError'));
     }
   };
 
@@ -489,7 +490,7 @@ export default function AddItem() {
           await supabase.from("stock").delete().eq("item_id", isEditing);
         }
 
-        toast.success("Item atualizado com sucesso! 🎉");
+        toast.success(t('addItem.itemUpdated'));
       } else {
         // Create new item
         const treatmentEndDate = formData.treatment_start_date && formData.treatment_duration_days
@@ -516,10 +517,10 @@ export default function AddItem() {
 
         if (itemError) {
           // Check if error is subscription limit
-          if (itemError.message?.includes('Limite de medicamentos atingido')) {
-            toast.error("Limite de medicamentos atingido. Faça upgrade para o plano Premium!", {
+        if (itemError.message?.includes('Limite de medicamentos atingido')) {
+            toast.error(t('addItem.limitReached'), {
               action: {
-                label: "Ver Planos",
+                label: t('addItem.viewPlans'),
                 onClick: () => navigate('/planos'),
               },
             });
@@ -589,7 +590,7 @@ export default function AddItem() {
       navigate("/medicamentos");
     } catch (error) {
       console.error("Error saving item:", error);
-      toast.error("Erro ao salvar item");
+      toast.error(t('addItem.saveError'));
     } finally {
       setLoading(false);
     }
@@ -618,12 +619,12 @@ export default function AddItem() {
             <div>
               <h2 className="text-2xl font-bold text-foreground flex items-center gap-2">
                 <Pill className="h-6 w-6" />
-                {isEditing ? "Editar Item" : "Adicionar Item"}
+                {isEditing ? t('addItem.editItem') : t('addItem.addItem')}
               </h2>
               <p className="text-muted-foreground">
                 {isEditing
-                  ? "Atualize as informações do seu medicamento"
-                  : "Adicione um novo medicamento ou suplemento"}
+                  ? t('addItem.updateInfo')
+                  : t('addItem.addNew')}
               </p>
             </div>
           </div>
@@ -639,7 +640,7 @@ export default function AddItem() {
                 >
                   <div className="flex flex-col items-center gap-2">
                     <Pill className="h-6 w-6" />
-                    <span>Manual</span>
+                    <span>{t('addItem.manual')}</span>
                   </div>
                 </Button>
                 <Button
@@ -650,7 +651,7 @@ export default function AddItem() {
                 >
                   <div className="flex flex-col items-center gap-2">
                     <Pill className="h-6 w-6" />
-                    <span>Ler Remédio</span>
+                    <span>{t('addItem.scanMed')}</span>
                   </div>
                 </Button>
               </div>
@@ -669,7 +670,7 @@ export default function AddItem() {
                         treatment_start_date: result.start_date || "",
                       }));
                       setAddMethod("manual");
-                      toast.success("Dados extraídos! Complete as informações abaixo.");
+                      toast.success(t('addItem.dataExtracted'));
                     }}
                   />
                 </Card>
@@ -681,7 +682,7 @@ export default function AddItem() {
             <Card className="p-6 space-y-6">
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="name">Nome do item *</Label>
+                  <Label htmlFor="name">{t('addItem.itemName')} *</Label>
                   <Popover open={openNameCombobox} onOpenChange={setOpenNameCombobox}>
                     <PopoverTrigger asChild>
                       <Button
@@ -691,28 +692,28 @@ export default function AddItem() {
                         className="w-full justify-between h-auto min-h-[40px] text-left font-normal"
                       >
                         <span className={cn("truncate", !formData.name && "text-muted-foreground")}>
-                          {formData.name || "Digite ou selecione um medicamento..."}
+                          {formData.name || t('addItem.typeOrSelect')}
                         </span>
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-full p-0 bg-background z-50" align="start">
                       <Command shouldFilter={false}>
                         <CommandInput 
-                          placeholder="Buscar medicamento..." 
+                          placeholder={t('addItem.searchMed')} 
                           value={formData.name}
                           onValueChange={(value) => setFormData({ ...formData, name: value })}
                         />
                         <CommandList>
                           <CommandEmpty>
                             <div className="p-4 text-sm">
-                              <p className="font-medium mb-2">Não encontrou?</p>
-                              <p className="text-muted-foreground mb-3">Digite o nome do seu medicamento</p>
+                              <p className="font-medium mb-2">{t('addItem.notFound')}</p>
+                              <p className="text-muted-foreground mb-3">{t('addItem.typeYourMed')}</p>
                               <Button 
                                 size="sm" 
                                 onClick={() => setOpenNameCombobox(false)}
                                 className="w-full"
                               >
-                                Continuar com "{formData.name}"
+                                {t('addItem.continueWith')} "{formData.name}"
                               </Button>
                             </div>
                           </CommandEmpty>
@@ -743,12 +744,12 @@ export default function AddItem() {
                     </PopoverContent>
                   </Popover>
                   <p className="text-xs text-muted-foreground">
-                    💊 Selecione da lista ou digite o nome do seu medicamento
+                    💊 {t('addItem.selectFromList')}
                   </p>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="category">Categoria *</Label>
+                  <Label htmlFor="category">{t('addItem.category')} *</Label>
                   <Select
                     value={formData.category}
                     onValueChange={(value) =>
@@ -768,23 +769,23 @@ export default function AddItem() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="dose">Concentração/Dosagem</Label>
+                  <Label htmlFor="dose">{t('addItem.concentration')}</Label>
                   <Input
                     id="dose"
-                    placeholder="Ex: 500mg, 10mg/ml"
+                    placeholder={t('addItem.concentrationPlaceholder')}
                     value={formData.dose_text}
                     onChange={(e) =>
                       setFormData({ ...formData, dose_text: e.target.value })
                     }
                   />
                   <p className="text-xs text-muted-foreground">
-                    Concentração do medicamento (ex: 500mg por comprimido)
+                    {t('addItem.concentrationHint')}
                   </p>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="dose-quantity">Quantidade por Dose *</Label>
+                    <Label htmlFor="dose-quantity">{t('addItem.quantityPerDose')} *</Label>
                     <Input
                       id="dose-quantity"
                       type="number"

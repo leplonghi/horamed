@@ -178,7 +178,7 @@ export default function Today() {
         .from("stock").select("units_left").eq("item_id", dose.item_id).maybeSingle();
 
       if (stockData && stockData.units_left === 0) {
-        toast.error("Estoque zerado!");
+        toast.error(t('today.stockEmpty'));
         setTakingDose(null);
         return;
       }
@@ -198,7 +198,7 @@ export default function Today() {
       setLoggedItemName(dose.items.name);
       setSideEffectLogOpen(true);
     } catch (error) {
-      toast.error("Erro ao confirmar");
+      toast.error(t('today.confirmError'));
     } finally {
       setTakingDose(null);
     }
@@ -207,10 +207,10 @@ export default function Today() {
   const skipDose = async (dose: DoseItem) => {
     try {
       await supabase.from("dose_instances").update({ status: "skipped" }).eq("id", dose.id);
-      toast.success("Dose pulada");
+      toast.success(t('today.doseSkipped'));
       loadData();
     } catch (error) {
-      toast.error("Erro");
+      toast.error(t('common.error'));
     }
   };
 
@@ -252,7 +252,7 @@ export default function Today() {
                 {greeting}, {userName || (language === 'pt' ? "você" : "you")}
               </h1>
               <HelpTooltip 
-                content="Esta é sua tela principal. Aqui você vê todas as doses do dia e confirma quando tomar cada medicamento." 
+                content={t('today.helpTooltip')} 
                 iconSize="lg"
               />
             </div>
@@ -490,7 +490,7 @@ export default function Today() {
               </div>
               <h3 className="text-lg font-medium text-muted-foreground">{t('today.noDoses')}</h3>
               <p className="text-muted-foreground/70 text-sm mt-1">
-                {language === 'pt' ? 'Seus medicamentos não têm doses agendadas para hoje' : 'Your medications have no doses scheduled for today'}
+                {t('today.noScheduledDoses')}
               </p>
             </motion.div>
           )}
@@ -506,7 +506,7 @@ export default function Today() {
                 <Check className="w-6 h-6 text-success" />
               </div>
               <h3 className="text-base font-medium text-muted-foreground">
-                {language === 'pt' ? 'Sem doses pendentes por agora' : 'No pending doses right now'}
+                {t('today.noPendingDoses')}
               </h3>
             </motion.div>
           )}
@@ -558,6 +558,7 @@ interface DoseCardProps {
 function DoseCard({ dose, onTake, onSkip, isOverdue, isTaking, delay = 0 }: DoseCardProps) {
   const time = format(new Date(dose.due_at), "HH:mm");
   const { triggerSuccess, triggerWarning, triggerLight } = useHapticFeedback();
+  const { t } = useLanguage();
   const [isExiting, setIsExiting] = useState(false);
   const [exitDirection, setExitDirection] = useState<"left" | "right" | null>(null);
   
@@ -621,7 +622,7 @@ function DoseCard({ dose, onTake, onSkip, isOverdue, isTaking, delay = 0 }: Dose
             <div className="w-10 h-10 rounded-full bg-success/20 flex items-center justify-center">
               <Check className="w-6 h-6" />
             </div>
-            <span className="font-medium text-sm">Tomar</span>
+            <span className="font-medium text-sm">{t('today.take')}</span>
           </motion.div>
         </motion.div>
         
@@ -633,7 +634,7 @@ function DoseCard({ dose, onTake, onSkip, isOverdue, isTaking, delay = 0 }: Dose
             style={{ opacity: leftIconOpacity, scale: leftIconScale }}
             className="flex items-center gap-2 text-destructive"
           >
-            <span className="font-medium text-sm">Pular</span>
+            <span className="font-medium text-sm">{t('today.skip')}</span>
             <div className="w-10 h-10 rounded-full bg-destructive/20 flex items-center justify-center">
               <X className="w-6 h-6" />
             </div>
@@ -681,7 +682,7 @@ function DoseCard({ dose, onTake, onSkip, isOverdue, isTaking, delay = 0 }: Dose
               {dose.items.with_food && (
                 <span className="pill-warning text-xs py-0.5">
                   <Utensils className="w-3 h-3" />
-                  Com alimento
+                  {t('today.withFood')}
                 </span>
               )}
             </div>
@@ -693,7 +694,7 @@ function DoseCard({ dose, onTake, onSkip, isOverdue, isTaking, delay = 0 }: Dose
               whileTap={{ scale: 0.92 }}
               onClick={onSkip}
               className="p-2 rounded-xl text-muted-foreground hover:bg-muted/50 transition-colors"
-              aria-label="Pular dose"
+              aria-label={t('today.skip')}
             >
               <X className="w-5 h-5" />
             </motion.button>
@@ -710,7 +711,7 @@ function DoseCard({ dose, onTake, onSkip, isOverdue, isTaking, delay = 0 }: Dose
                 ${isOverdue ? 'bg-destructive' : 'bg-success'}
                 ${isTaking ? 'opacity-60' : ''}
               `}
-              aria-label="Marcar como tomado"
+              aria-label={t('today.markAsTaken')}
             >
               {isTaking ? (
                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -723,7 +724,7 @@ function DoseCard({ dose, onTake, onSkip, isOverdue, isTaking, delay = 0 }: Dose
 
         {/* Swipe hint */}
         <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
-          <span className="text-[10px] text-muted-foreground/50">← deslize →</span>
+          <span className="text-[10px] text-muted-foreground/50">{t('today.swipeHint')}</span>
         </div>
       </motion.div>
     </motion.div>
