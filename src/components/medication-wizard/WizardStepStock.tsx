@@ -6,6 +6,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface WizardStepStockProps {
   data: {
@@ -18,16 +19,18 @@ interface WizardStepStockProps {
 }
 
 export function WizardStepStock({ data, updateData, dosesPerDay = 1 }: WizardStepStockProps) {
+  const { t } = useLanguage();
+  
   const unitOptions = [
-    { value: "comprimidos", label: "Comprimidos", emoji: "💊" },
-    { value: "cápsulas", label: "Cápsulas", emoji: "💊" },
-    { value: "gotas", label: "Gotas", emoji: "💧" },
-    { value: "ml", label: "Mililitros (ml)", emoji: "🧪" },
-    { value: "frascos", label: "Frascos", emoji: "🧴" },
-    { value: "ampolas", label: "Ampolas", emoji: "💉" },
-    { value: "aplicações", label: "Aplicações", emoji: "💉" },
-    { value: "sachês", label: "Sachês", emoji: "📦" },
-    { value: "unidades", label: "Unidades", emoji: "📦" },
+    { value: "comprimidos", label: t('wizard.pills'), emoji: "💊" },
+    { value: "cápsulas", label: t('wizard.capsules'), emoji: "💊" },
+    { value: "gotas", label: t('wizard.drops'), emoji: "💧" },
+    { value: "ml", label: t('wizard.ml'), emoji: "🧪" },
+    { value: "frascos", label: t('wizard.doses'), emoji: "🧴" },
+    { value: "ampolas", label: t('wizard.doses'), emoji: "💉" },
+    { value: "aplicações", label: t('wizard.doses'), emoji: "💉" },
+    { value: "sachês", label: t('wizard.doses'), emoji: "📦" },
+    { value: "unidades", label: t('wizard.units'), emoji: "📦" },
   ];
 
   // Cálculos
@@ -42,14 +45,14 @@ export function WizardStepStock({ data, updateData, dosesPerDay = 1 }: WizardSte
       <Alert className="bg-primary/5 border-primary/20 py-2 px-3 sm:py-3 sm:px-4">
         <HelpCircle className="h-4 w-4 text-primary shrink-0" />
         <AlertDescription className="text-xs sm:text-sm">
-          <strong>Dica:</strong> O app avisa quando estiver acabando.
+          <strong>{t('wizard.tip')}:</strong> {t('wizard.appWillAlert')}
         </AlertDescription>
       </Alert>
 
       {/* Quantidade - Layout mais compacto */}
       <div className="space-y-3 sm:space-y-4">
         <Label className="text-base sm:text-lg font-semibold">
-          Quantos você tem?
+          {t('wizard.howMany')}
         </Label>
         
         <div className="flex items-center gap-2 sm:gap-4">
@@ -87,7 +90,7 @@ export function WizardStepStock({ data, updateData, dosesPerDay = 1 }: WizardSte
       <div className="space-y-3 sm:space-y-4">
         <Label className="text-sm sm:text-base font-medium flex items-center gap-2">
           <Bell className="w-4 h-4" />
-          Avisar quando restar:
+          {t('wizard.alertWhenRemaining')}
         </Label>
         
         <div className="flex items-center gap-3 sm:gap-4">
@@ -102,7 +105,7 @@ export function WizardStepStock({ data, updateData, dosesPerDay = 1 }: WizardSte
         </div>
         
         <p className="text-xs sm:text-sm text-muted-foreground">
-          Notificação quando chegar a este número
+          {t('wizard.notificationWhenReached')}
         </p>
       </div>
 
@@ -129,10 +132,10 @@ export function WizardStepStock({ data, updateData, dosesPerDay = 1 }: WizardSte
               <div>
                 <p className="text-sm sm:text-base font-medium">
                   {isLowStock 
-                    ? "Estoque baixo!" 
+                    ? t('wizard.lowStock')
                     : willAlertSoon 
-                      ? "Ficando baixo"
-                      : "Estoque OK"}
+                      ? t('wizard.gettingLow')
+                      : t('wizard.stockOk')}
                 </p>
                 <p className="text-xs sm:text-sm text-muted-foreground">
                   {data.unitsTotal} {data.unitLabel}
@@ -153,15 +156,15 @@ export function WizardStepStock({ data, updateData, dosesPerDay = 1 }: WizardSte
 
               <div className="grid grid-cols-2 gap-2 sm:gap-4 pt-1 sm:pt-2 text-xs sm:text-sm">
                 <div>
-                  <p className="text-muted-foreground">Duração</p>
+                  <p className="text-muted-foreground">{t('wizard.duration')}</p>
                   <p className="font-semibold text-base sm:text-lg">
-                    ~{daysRemaining} dias
+                    ~{daysRemaining} {t('progress.days')}
                   </p>
                 </div>
                 <div>
-                  <p className="text-muted-foreground">Alerta em</p>
+                  <p className="text-muted-foreground">{t('wizard.alertIn')}</p>
                   <p className="font-semibold text-base sm:text-lg">
-                    {Math.max(0, data.unitsTotal - data.lowStockThreshold)} doses
+                    {Math.max(0, data.unitsTotal - data.lowStockThreshold)} {t('wizard.doses').toLowerCase()}
                   </p>
                 </div>
               </div>
@@ -174,7 +177,7 @@ export function WizardStepStock({ data, updateData, dosesPerDay = 1 }: WizardSte
       <div className="text-center text-xs sm:text-sm text-muted-foreground p-3 sm:p-4 bg-muted/30 rounded-lg">
         <Package className="w-4 h-4 sm:w-5 sm:h-5 mx-auto mb-1.5 sm:mb-2 text-primary" />
         <p>
-          <strong>Dica:</strong> Mantenha margem de segurança.
+          <strong>{t('wizard.tip')}:</strong> {t('wizard.keepMargin')}
         </p>
       </div>
     </div>

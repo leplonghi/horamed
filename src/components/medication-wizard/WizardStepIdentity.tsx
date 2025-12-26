@@ -5,12 +5,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
-import { Pill, Leaf, Heart, Package, Check, ChevronsUpDown, HelpCircle, Search, Zap, Moon, Shield, Droplets, Dumbbell } from "lucide-react";
+import { Pill, Leaf, Heart, Package, Check, ChevronsUpDown, Search, Zap, Moon, Shield, Droplets, Dumbbell } from "lucide-react";
 import { useFilteredMedicamentos } from "@/hooks/useMedicamentosBrasileiros";
 import { cn } from "@/lib/utils";
 import { Card } from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
+import { useLanguage } from "@/contexts/LanguageContext";
+
 interface WizardStepIdentityProps {
   data: {
     name: string;
@@ -21,54 +21,55 @@ interface WizardStepIdentityProps {
   updateData: (data: Partial<any>) => void;
 }
 
-const supplementCategories = [
-  { value: "energy", label: "Energia", icon: Zap, color: "text-amber-500", bgColor: "bg-amber-50 dark:bg-amber-950/30", description: "Pré-treino, cafeína, B12" },
-  { value: "sleep", label: "Sono", icon: Moon, color: "text-purple-500", bgColor: "bg-purple-50 dark:bg-purple-950/30", description: "Melatonina, magnésio, camomila" },
-  { value: "immunity", label: "Imunidade", icon: Shield, color: "text-green-500", bgColor: "bg-green-50 dark:bg-green-950/30", description: "Vitamina C, D, zinco" },
-  { value: "performance", label: "Performance", icon: Dumbbell, color: "text-orange-500", bgColor: "bg-orange-50 dark:bg-orange-950/30", description: "Whey, creatina, BCAA" },
-  { value: "hydration", label: "Hidratação", icon: Droplets, color: "text-blue-500", bgColor: "bg-blue-50 dark:bg-blue-950/30", description: "Eletrólitos, isotônicos" },
-];
-
 export function WizardStepIdentity({ data, updateData }: WizardStepIdentityProps) {
+  const { t } = useLanguage();
   const [open, setOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+
+  const supplementCategories = [
+    { value: "energy", label: t('wizard.energy'), icon: Zap, color: "text-amber-500", bgColor: "bg-amber-50 dark:bg-amber-950/30", description: t('wizard.energyDesc') },
+    { value: "sleep", label: t('wizard.sleep'), icon: Moon, color: "text-purple-500", bgColor: "bg-purple-50 dark:bg-purple-950/30", description: t('wizard.sleepDesc') },
+    { value: "immunity", label: t('wizard.immunity'), icon: Shield, color: "text-green-500", bgColor: "bg-green-50 dark:bg-green-950/30", description: t('wizard.immunityDesc') },
+    { value: "performance", label: t('wizard.performance'), icon: Dumbbell, color: "text-orange-500", bgColor: "bg-orange-50 dark:bg-orange-950/30", description: t('wizard.performanceDesc') },
+    { value: "hydration", label: t('wizard.hydration'), icon: Droplets, color: "text-blue-500", bgColor: "bg-blue-50 dark:bg-blue-950/30", description: t('wizard.hydrationDesc') },
+  ];
   
   const categories = [
     { 
       value: "medicamento", 
-      label: "Medicamento", 
+      label: t('wizard.medication'), 
       icon: Pill, 
       color: "text-blue-500",
       bgColor: "bg-blue-50 dark:bg-blue-950/30",
       borderColor: "border-blue-200 dark:border-blue-800",
-      description: "Remédios prescritos ou de farmácia"
+      description: t('wizard.medicationDesc')
     },
     { 
       value: "vitamina", 
-      label: "Vitamina", 
+      label: t('wizard.vitamin'), 
       icon: Leaf, 
       color: "text-green-500",
       bgColor: "bg-green-50 dark:bg-green-950/30",
       borderColor: "border-green-200 dark:border-green-800",
-      description: "Vitaminas e minerais"
+      description: t('wizard.vitaminDesc')
     },
     { 
       value: "suplemento", 
-      label: "Suplemento", 
+      label: t('wizard.supplement'), 
       icon: Heart, 
       color: "text-purple-500",
       bgColor: "bg-purple-50 dark:bg-purple-950/30",
       borderColor: "border-purple-200 dark:border-purple-800",
-      description: "Suplementos alimentares"
+      description: t('wizard.supplementDesc')
     },
     { 
       value: "outro", 
-      label: "Outro", 
+      label: t('wizard.other'), 
       icon: Package, 
       color: "text-gray-500",
       bgColor: "bg-gray-50 dark:bg-gray-950/30",
       borderColor: "border-gray-200 dark:border-gray-800",
-      description: "Outros produtos de saúde"
+      description: t('wizard.otherDesc')
     },
   ];
 
@@ -106,14 +107,12 @@ export function WizardStepIdentity({ data, updateData }: WizardStepIdentityProps
     setSearchTerm("");
   };
 
-  const selectedCategory = categories.find(c => c.value === data.category);
-
   return (
     <div className="space-y-6">
       {/* Nome do medicamento */}
       <div className="space-y-3">
         <Label className="text-base font-semibold flex items-center gap-1">
-          Nome do medicamento
+          {t('wizard.medicationName')}
           <span className="text-destructive">*</span>
         </Label>
         
@@ -131,7 +130,7 @@ export function WizardStepIdentity({ data, updateData }: WizardStepIdentityProps
               <div className="flex items-center gap-2 min-w-0 flex-1">
                 <Search className="h-4 w-4 text-muted-foreground shrink-0" />
                 <span className={cn("truncate", !data.name && "text-muted-foreground")}>
-                  {data.name || "Buscar medicamento..."}
+                  {data.name || t('wizard.searchMedication')}
                 </span>
               </div>
               <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -140,7 +139,7 @@ export function WizardStepIdentity({ data, updateData }: WizardStepIdentityProps
           <PopoverContent className="w-[calc(100vw-3rem)] max-w-[400px] p-0" align="start">
             <Command shouldFilter={false}>
               <CommandInput 
-                placeholder="Digite o nome..." 
+                placeholder={t('wizard.typeName')} 
                 value={searchTerm}
                 onValueChange={setSearchTerm}
                 className="h-11"
@@ -148,12 +147,12 @@ export function WizardStepIdentity({ data, updateData }: WizardStepIdentityProps
               <CommandList className="max-h-[200px]">
                 <CommandEmpty className="py-6 text-center text-sm">
                   {loading ? (
-                    <span className="text-muted-foreground">Buscando...</span>
+                    <span className="text-muted-foreground">{t('wizard.searching')}</span>
                   ) : searchTerm.length < 2 ? (
-                    <span className="text-muted-foreground">Digite pelo menos 2 letras</span>
+                    <span className="text-muted-foreground">{t('wizard.typeAtLeast2')}</span>
                   ) : (
                     <div className="space-y-2">
-                      <p className="text-muted-foreground">Não encontrado na lista</p>
+                      <p className="text-muted-foreground">{t('wizard.notFoundInList')}</p>
                       <Button 
                         size="sm" 
                         variant="outline"
@@ -162,7 +161,7 @@ export function WizardStepIdentity({ data, updateData }: WizardStepIdentityProps
                           setOpen(false);
                         }}
                       >
-                        Usar "{searchTerm}"
+                        {t('wizard.use')} "{searchTerm}"
                       </Button>
                     </div>
                   )}
@@ -194,7 +193,7 @@ export function WizardStepIdentity({ data, updateData }: WizardStepIdentityProps
 
         {/* Input manual alternativo */}
         <Input
-          placeholder="Ou digite o nome aqui..."
+          placeholder={t('wizard.typeName')}
           value={data.name}
           onChange={(e) => updateData({ name: e.target.value })}
           className="h-11"
@@ -203,7 +202,7 @@ export function WizardStepIdentity({ data, updateData }: WizardStepIdentityProps
 
       {/* Categoria */}
       <div className="space-y-3">
-        <Label className="text-base font-semibold">Tipo</Label>
+        <Label className="text-base font-semibold">{t('wizard.type')}</Label>
         
         <div className="grid grid-cols-2 gap-2">
           {categories.map((cat) => {
@@ -242,7 +241,7 @@ export function WizardStepIdentity({ data, updateData }: WizardStepIdentityProps
       {(data.category === 'vitamina' || data.category === 'suplemento') && (
         <div className="space-y-3">
           <Label className="text-sm font-medium">
-            Para que você usa? <span className="text-muted-foreground font-normal">(opcional)</span>
+            {t('wizard.whatFor')} <span className="text-muted-foreground font-normal">({t('wizard.optional')})</span>
           </Label>
           
           <div className="flex flex-wrap gap-1.5">
@@ -273,14 +272,14 @@ export function WizardStepIdentity({ data, updateData }: WizardStepIdentityProps
       <div className="space-y-2">
         <div className="flex items-center justify-between">
           <Label className="text-sm font-medium">
-            Observação <span className="text-muted-foreground font-normal">(opcional)</span>
+            {t('wizard.notes')} <span className="text-muted-foreground font-normal">({t('wizard.optional')})</span>
           </Label>
           <span className="text-xs text-muted-foreground">
             {data.notes.length}/200
           </span>
         </div>
         <Textarea
-          placeholder="Ex: Tomar com água, após as refeições..."
+          placeholder={t('wizard.notesPlaceholder')}
           value={data.notes}
           onChange={(e) => updateData({ notes: e.target.value.slice(0, 200) })}
           rows={2}

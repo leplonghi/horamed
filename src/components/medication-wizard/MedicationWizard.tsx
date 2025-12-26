@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Card } from "@/components/ui/card";
 import UpgradeModal from "@/components/UpgradeModal";
+import { useLanguage } from "@/contexts/LanguageContext";
 interface MedicationData {
   name: string;
   category: string;
@@ -56,6 +57,7 @@ export default function MedicationWizard({ open, onOpenChange, editItemId }: Med
   const [searchParams] = useSearchParams();
   const { activeProfile } = useUserProfiles();
   const { subscription, loading: subLoading, hasFeature } = useSubscription();
+  const { t } = useLanguage();
   
   const urlEditId = searchParams.get("edit");
   const itemIdToEdit = editItemId || urlEditId;
@@ -392,30 +394,30 @@ export default function MedicationWizard({ open, onOpenChange, editItemId }: Med
   };
 
   const steps = [
-    { number: 1, title: "O que é?", icon: Sparkles },
-    { number: 2, title: "Quando tomar?", icon: Calendar },
+    { number: 1, title: t('wizard.step1'), icon: Sparkles },
+    { number: 2, title: t('wizard.step2'), icon: Calendar },
   ];
 
   const methodOptions = [
     {
       id: "camera",
       icon: Camera,
-      title: "Escanear Receita",
-      description: "Tire foto da receita ou caixa",
+      title: t('meds.scanPrescription'),
+      description: t('wizard.scanDesc'),
       premium: true,
     },
     {
       id: "upload",
       icon: Upload,
-      title: "Enviar Imagem",
-      description: "Selecione da galeria",
+      title: t('wizard.uploadImage'),
+      description: t('wizard.uploadDesc'),
       premium: true,
     },
     {
       id: "manual",
       icon: Edit3,
-      title: "Digitar Manualmente",
-      description: "Preencher os dados",
+      title: t('wizard.typeManually'),
+      description: t('wizard.typeManuallyDesc'),
       premium: false,
     },
   ];
@@ -426,7 +428,7 @@ export default function MedicationWizard({ open, onOpenChange, editItemId }: Med
         <DialogContent className="max-w-lg">
           <div className="flex flex-col items-center justify-center py-12">
             <Loader2 className="w-8 h-8 animate-spin text-primary mb-4" />
-            <p className="text-muted-foreground">Carregando...</p>
+            <p className="text-muted-foreground">{t('common.loading')}</p>
           </div>
         </DialogContent>
       </Dialog>
@@ -458,14 +460,14 @@ export default function MedicationWizard({ open, onOpenChange, editItemId }: Med
           <div className="px-4 pt-4 pb-3 sm:px-6 sm:pt-6 sm:pb-4 border-b bg-background shrink-0">
             <DialogHeader className="space-y-1">
               <DialogTitle className="text-lg font-semibold">
-                {isEditing ? "Editar Item" : currentStep === 0 ? "Novo Medicamento" : "Adicionar Item"}
+                {isEditing ? t('common.edit') : currentStep === 0 ? t('meds.addMedication') : t('wizard.addItem')}
               </DialogTitle>
               <DialogDescription className="text-sm text-muted-foreground">
                 {currentStep === 0 
-                  ? "Escolha como adicionar" 
+                  ? t('wizard.chooseMethod') 
                   : currentStep === 1 
-                    ? "Passo 1: Informações básicas" 
-                    : "Passo 2: Horários e frequência"}
+                    ? `${t('wizard.step')} 1: ${t('wizard.step1')}` 
+                    : `${t('wizard.step')} 2: ${t('wizard.step2')}`}
               </DialogDescription>
             </DialogHeader>
           </div>
@@ -529,7 +531,7 @@ export default function MedicationWizard({ open, onOpenChange, editItemId }: Med
                       <Card className="p-8 flex flex-col items-center justify-center">
                         <Loader2 className="w-10 h-10 animate-spin text-primary mb-4" />
                         <p className="text-muted-foreground text-center">
-                          Analisando imagem...
+                          {t('wizard.analyzingImage')}
                         </p>
                       </Card>
                     ) : (
@@ -581,7 +583,7 @@ export default function MedicationWizard({ open, onOpenChange, editItemId }: Med
                         >
                           <div className="flex items-center gap-2">
                             <Package className="w-4 h-4" />
-                            <span>Controlar estoque</span>
+                            <span>{t('wizard.controlStock')}</span>
                           </div>
                           <ChevronDown className={cn(
                             "w-4 h-4 transition-transform",
@@ -613,7 +615,7 @@ export default function MedicationWizard({ open, onOpenChange, editItemId }: Med
                 className="flex-1 h-12"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
-                Voltar
+                {t('common.back')}
               </Button>
 
               <Button 
@@ -625,12 +627,12 @@ export default function MedicationWizard({ open, onOpenChange, editItemId }: Med
                   <Loader2 className="w-4 h-4 animate-spin" />
                 ) : currentStep === 2 ? (
                   <>
-                    {isEditing ? "Salvar" : "Adicionar"}
+                    {isEditing ? t('common.save') : t('common.add')}
                     <Check className="w-4 h-4 ml-2" />
                   </>
                 ) : (
                   <>
-                    Próximo
+                    {t('common.next')}
                     <ArrowRight className="w-4 h-4 ml-2" />
                   </>
                 )}
@@ -646,7 +648,7 @@ export default function MedicationWizard({ open, onOpenChange, editItemId }: Med
                 onClick={() => onOpenChange(false)}
                 className="w-full h-11 text-muted-foreground"
               >
-                Cancelar
+                {t('common.cancel')}
               </Button>
             </div>
           )}

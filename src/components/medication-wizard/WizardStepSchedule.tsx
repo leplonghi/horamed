@@ -3,11 +3,11 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
-import { Plus, X, Clock, HelpCircle, Calendar, Sun, Moon, Sunrise, Sunset } from "lucide-react";
+import { Plus, X, Clock, Sun, Moon, Sunrise, Sunset } from "lucide-react";
 import { Card } from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface WizardStepScheduleProps {
   data: {
@@ -21,35 +21,7 @@ interface WizardStepScheduleProps {
   updateData: (data: Partial<any>) => void;
 }
 
-const QUICK_TIMES = [
-  { label: "Manhã", time: "08:00", icon: Sunrise, color: "text-orange-500" },
-  { label: "Almoço", time: "12:00", icon: Sun, color: "text-yellow-500" },
-  { label: "Tarde", time: "18:00", icon: Sunset, color: "text-purple-500" },
-  { label: "Noite", time: "22:00", icon: Moon, color: "text-blue-500" },
-];
-
-const FREQUENCY_OPTIONS = [
-  { 
-    value: "daily", 
-    label: "Todo dia", 
-    description: "Todos os dias da semana",
-    emoji: "📅"
-  },
-  { 
-    value: "specific_days", 
-    label: "Dias específicos", 
-    description: "Escolher quais dias",
-    emoji: "📆"
-  },
-  { 
-    value: "weekly", 
-    label: "Semanal", 
-    description: "Uma vez por semana (ex: Ozempic)",
-    emoji: "🔄"
-  },
-];
-
-const WEEK_DAYS = [
+const WEEK_DAYS_PT = [
   { value: 0, label: "D", fullLabel: "Dom" },
   { value: 1, label: "S", fullLabel: "Seg" },
   { value: 2, label: "T", fullLabel: "Ter" },
@@ -59,9 +31,50 @@ const WEEK_DAYS = [
   { value: 6, label: "S", fullLabel: "Sáb" },
 ];
 
+const WEEK_DAYS_EN = [
+  { value: 0, label: "S", fullLabel: "Sun" },
+  { value: 1, label: "M", fullLabel: "Mon" },
+  { value: 2, label: "T", fullLabel: "Tue" },
+  { value: 3, label: "W", fullLabel: "Wed" },
+  { value: 4, label: "T", fullLabel: "Thu" },
+  { value: 5, label: "F", fullLabel: "Fri" },
+  { value: 6, label: "S", fullLabel: "Sat" },
+];
+
 export function WizardStepSchedule({ data, updateData }: WizardStepScheduleProps) {
+  const { t, language } = useLanguage();
   const [showCustomTime, setShowCustomTime] = useState(false);
   const [customTime, setCustomTime] = useState("");
+
+  const QUICK_TIMES = [
+    { label: t('wizard.morning'), time: "08:00", icon: Sunrise, color: "text-orange-500" },
+    { label: t('wizard.lunch'), time: "12:00", icon: Sun, color: "text-yellow-500" },
+    { label: t('wizard.afternoon'), time: "18:00", icon: Sunset, color: "text-purple-500" },
+    { label: t('wizard.night'), time: "22:00", icon: Moon, color: "text-blue-500" },
+  ];
+
+  const FREQUENCY_OPTIONS = [
+    { 
+      value: "daily", 
+      label: t('wizard.daily'), 
+      description: t('wizard.dailyDesc'),
+      emoji: "📅"
+    },
+    { 
+      value: "specific_days", 
+      label: t('wizard.specificDays'), 
+      description: t('wizard.specificDaysDesc'),
+      emoji: "📆"
+    },
+    { 
+      value: "weekly", 
+      label: t('wizard.weekly'), 
+      description: t('wizard.weeklyDesc'),
+      emoji: "🔄"
+    },
+  ];
+
+  const WEEK_DAYS = language === 'pt' ? WEEK_DAYS_PT : WEEK_DAYS_EN;
 
   const addQuickTime = (time: string) => {
     if (!data.times.includes(time)) {
@@ -99,22 +112,14 @@ export function WizardStepSchedule({ data, updateData }: WizardStepScheduleProps
     return Moon;
   };
 
-  const getTimeLabel = (time: string) => {
-    const hour = parseInt(time.split(":")[0]);
-    if (hour >= 5 && hour < 12) return "Manhã";
-    if (hour >= 12 && hour < 17) return "Tarde";
-    if (hour >= 17 && hour < 21) return "Fim de tarde";
-    return "Noite";
-  };
-
   return (
     <div className="space-y-6">
       {/* Duração do tratamento - agora primeiro */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <div>
-            <Label className="text-sm font-medium">Uso contínuo</Label>
-            <p className="text-xs text-muted-foreground">Sem data de término</p>
+            <Label className="text-sm font-medium">{t('wizard.continuousUse')}</Label>
+            <p className="text-xs text-muted-foreground">{t('wizard.noEndDate')}</p>
           </div>
           <Switch
             checked={data.continuousUse}
@@ -125,7 +130,7 @@ export function WizardStepSchedule({ data, updateData }: WizardStepScheduleProps
         {!data.continuousUse && (
           <div className="grid grid-cols-2 gap-3 p-3 bg-muted/30 rounded-lg">
             <div className="space-y-1.5">
-              <Label className="text-xs">Início</Label>
+              <Label className="text-xs">{t('wizard.start')}</Label>
               <Input
                 type="date"
                 value={data.startDate || new Date().toISOString().split('T')[0]}
@@ -134,7 +139,7 @@ export function WizardStepSchedule({ data, updateData }: WizardStepScheduleProps
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs">Término</Label>
+              <Label className="text-xs">{t('wizard.end')}</Label>
               <Input
                 type="date"
                 value={data.endDate || ""}
@@ -148,7 +153,7 @@ export function WizardStepSchedule({ data, updateData }: WizardStepScheduleProps
 
       {/* Frequência */}
       <div className="space-y-3 pt-4 border-t">
-        <Label className="text-base font-semibold">Frequência</Label>
+        <Label className="text-base font-semibold">{t('wizard.frequency')}</Label>
         
         <div className="space-y-2">
           {FREQUENCY_OPTIONS.map((opt) => (
@@ -182,7 +187,7 @@ export function WizardStepSchedule({ data, updateData }: WizardStepScheduleProps
       {/* Dias da semana (para dias específicos) */}
       {data.frequency === "specific_days" && (
         <div className="space-y-3">
-          <Label className="text-sm font-medium">Quais dias?</Label>
+          <Label className="text-sm font-medium">{t('wizard.whichDays')}</Label>
           <div className="flex gap-1 justify-center">
             {WEEK_DAYS.map((day) => {
               const isSelected = (data.daysOfWeek || []).includes(day.value);
@@ -210,9 +215,9 @@ export function WizardStepSchedule({ data, updateData }: WizardStepScheduleProps
       {/* Horários */}
       <div className="space-y-3 pt-4 border-t">
         <div className="flex items-center justify-between">
-          <Label className="text-base font-semibold">Horários</Label>
+          <Label className="text-base font-semibold">{t('wizard.times')}</Label>
           <Badge variant="secondary" className="text-xs">
-            {data.times.length} horário{data.times.length !== 1 ? "s" : ""}
+            {data.times.length} {data.times.length !== 1 ? t('wizard.timesCount') : t('wizard.time')}
           </Badge>
         </div>
 
@@ -297,7 +302,7 @@ export function WizardStepSchedule({ data, updateData }: WizardStepScheduleProps
             className="w-full h-10"
           >
             <Clock className="w-4 h-4 mr-2" />
-            Outro horário
+            {t('wizard.otherTime')}
           </Button>
         )}
       </div>
