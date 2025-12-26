@@ -14,7 +14,20 @@ export default function NotificationSettings() {
   const [localQuietHours, setLocalQuietHours] = useState(quietHours);
 
   useEffect(() => {
-    checkPermissions().then(setIsEnabled);
+    const checkNotificationPermission = async () => {
+      // First try the hook's check
+      const hookResult = await checkPermissions();
+      
+      // On web, also do a direct check as fallback
+      if ('Notification' in window) {
+        const webPermission = Notification.permission === 'granted';
+        setIsEnabled(hookResult || webPermission);
+      } else {
+        setIsEnabled(hookResult);
+      }
+    };
+    
+    checkNotificationPermission();
   }, []);
 
   const handleQuietHoursToggle = () => {
