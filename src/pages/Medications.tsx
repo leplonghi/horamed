@@ -1,8 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Pencil, Trash2, Search, Plus, Pill, Leaf, Clock } from "lucide-react";
 import { toast } from "sonner";
@@ -18,6 +16,7 @@ import { cn } from "@/lib/utils";
 import { useUserProfiles } from "@/hooks/useUserProfiles";
 import { motion } from "framer-motion";
 import SupplementCategoryTag, { detectSupplementCategory } from "@/components/SupplementCategoryTag";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Item {
   id: string;
@@ -38,6 +37,7 @@ interface Item {
 
 export default function Medications() {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -88,7 +88,7 @@ export default function Medications() {
       setItems(formattedData);
     } catch (error) {
       console.error("Error fetching items:", error);
-      toast.error("Erro ao carregar medicamentos");
+      toast.error(t('medications.loadError'));
     } finally {
       setLoading(false);
     }
@@ -106,15 +106,15 @@ export default function Medications() {
   );
 
   const deleteItem = async (id: string) => {
-    if (!confirm("Tem certeza que deseja excluir?")) return;
+    if (!confirm(t('medications.confirmDelete'))) return;
     try {
       const { error } = await supabase.from("items").delete().eq("id", id);
       if (error) throw error;
-      toast.success("Item excluído");
+      toast.success(t('medications.deleteSuccess'));
       fetchItems();
     } catch (error) {
       console.error("Error deleting item:", error);
-      toast.error("Erro ao excluir");
+      toast.error(t('common.error'));
     }
   };
 
@@ -124,7 +124,7 @@ export default function Medications() {
       const times = Array.isArray(schedule.times) ? schedule.times.length : 0;
       return acc + times;
     }, 0);
-    return `${totalTimes}x ao dia`;
+    return `${totalTimes}${t('medications.timesPerDay')}`;
   };
 
   const handleAddClick = () => {
@@ -278,22 +278,22 @@ export default function Medications() {
             <div className="flex items-center justify-between">
               <div>
                 <div className="flex items-center gap-2">
-                  <h1 className="heading-page">Minha Saúde</h1>
+                  <h1 className="heading-page">{t('medications.title')}</h1>
                   <HelpTooltip 
-                    content="Gerencie seus medicamentos e suplementos. Toque em um item para editar." 
+                    content={t('medications.tooltipHelp')} 
                     iconSize="lg"
                   />
                 </div>
                 <p className="text-sm text-muted-foreground mt-1">
                   {items.length === 0 
-                    ? "Adicione seu primeiro item" 
-                    : `${items.length} ${items.length === 1 ? 'item' : 'itens'}`
+                    ? t('medications.addItem') 
+                    : `${items.length} ${items.length === 1 ? t('medications.itemCount') : t('medications.itemsCount')}`
                   }
                 </p>
               </div>
               <Button onClick={handleAddClick} size="sm">
                 <Plus className="h-4 w-4" />
-                Adicionar
+                {t('medications.addButton')}
               </Button>
             </div>
           </div>
@@ -303,7 +303,7 @@ export default function Medications() {
             <div className="relative">
               <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input 
-                placeholder="Buscar..." 
+                placeholder={t('medications.searchPlaceholder')} 
                 value={searchTerm} 
                 onChange={e => setSearchTerm(e.target.value)} 
                 className="pl-11 h-11 rounded-xl bg-muted/50 border-0" 
@@ -317,13 +317,13 @@ export default function Medications() {
               <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-5">
                 <Pill className="w-8 h-8 text-primary" />
               </div>
-              <h3 className="text-lg font-medium mb-2">Comece agora</h3>
+              <h3 className="text-lg font-medium mb-2">{t('medications.getStarted')}</h3>
               <p className="text-muted-foreground text-sm mb-8 max-w-[280px] mx-auto">
-                Adicione seus medicamentos ou suplementos e o app te lembra nos horários certos
+                {t('medications.emptyDesc')}
               </p>
               <Button onClick={handleAddClick} size="lg">
                 <Plus className="h-5 w-5" />
-                Adicionar Primeiro Item
+                {t('medications.addFirstItem')}
               </Button>
             </div>
           )}
@@ -332,18 +332,18 @@ export default function Medications() {
           {items.length > 0 && (
             <div className="space-y-10">
               <CategorySection 
-                title="Medicamentos" 
+                title={t('medications.medicationsSection')} 
                 icon={Pill} 
                 items={medicamentos}
-                emptyMessage="Nenhum medicamento cadastrado"
+                emptyMessage={t('medications.noMedications')}
                 accentColor="bg-primary/10 text-primary"
               />
               
               <CategorySection 
-                title="Suplementos & Vitaminas" 
+                title={t('medications.supplementsSection')} 
                 icon={Leaf} 
                 items={suplementos}
-                emptyMessage="Nenhum suplemento cadastrado"
+                emptyMessage={t('medications.noSupplements')}
                 accentColor="bg-performance/10 text-performance"
               />
             </div>

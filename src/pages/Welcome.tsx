@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import logo from "@/assets/horamed-logo-optimized.webp";
 import Confetti from "react-confetti";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 // Custom hook for window size (for confetti)
 function useWindowSize() {
@@ -35,6 +36,7 @@ function useWindowSize() {
 
 export default function Welcome() {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [showConfetti, setShowConfetti] = useState(true);
   const { width, height } = useWindowSize();
 
@@ -45,9 +47,9 @@ export default function Welcome() {
   }, []);
 
   const benefits = [
-    { icon: Bell, text: "Lembretes inteligentes no horário certo" },
-    { icon: FileText, text: "Carteira de saúde digital com OCR" },
-    { icon: Users, text: "Gestão de toda a família" },
+    { icon: Bell, text: t('welcome.benefit1') },
+    { icon: FileText, text: t('welcome.benefit2') },
+    { icon: Users, text: t('welcome.benefit3') },
   ];
 
   return (
@@ -86,10 +88,10 @@ export default function Welcome() {
               transition={{ delay: 0.4 }}
             >
               <h1 className="text-3xl font-bold text-foreground">
-                Bem-vindo ao HoraMed! 🎉
+                {t('welcome.title')}
               </h1>
               <p className="text-muted-foreground mt-2">
-                Sua conta foi criada com sucesso
+                {t('welcome.accountCreated')}
               </p>
             </motion.div>
           </div>
@@ -102,7 +104,7 @@ export default function Welcome() {
           >
             <Badge className="bg-primary/10 text-primary border-primary/20 px-4 py-2 text-sm">
               <Gift className="w-4 h-4 mr-2 inline" />
-              7 dias de Premium grátis ativados!
+              {t('welcome.trialBadge')}
             </Badge>
           </motion.div>
 
@@ -135,7 +137,7 @@ export default function Welcome() {
           >
             <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
               <Clock className="w-4 h-4" />
-              <span>Seu período Premium expira em <strong className="text-foreground">7 dias</strong></span>
+              <span>{t('welcome.trialExpires')} <strong className="text-foreground">7 {t('welcome.days')}</strong></span>
             </div>
           </motion.div>
 
@@ -152,7 +154,7 @@ export default function Welcome() {
               className="w-full h-14 text-lg font-semibold bg-primary hover:bg-primary/90"
             >
               <Sparkles className="w-5 h-5 mr-2" />
-              Adicionar Primeiro Medicamento
+              {t('welcome.addFirstMed')}
               <ArrowRight className="w-5 h-5 ml-2" />
             </Button>
 
@@ -161,7 +163,7 @@ export default function Welcome() {
               onClick={() => navigate("/hoje")}
               className="w-full"
             >
-              Explorar o app primeiro
+              {t('welcome.exploreApp')}
             </Button>
           </motion.div>
 
