@@ -478,7 +478,7 @@ export default function Today() {
             </motion.section>
           )}
 
-          {/* No events today - only show when there are items but no doses scheduled */}
+          {/* No events today - only show when there are items but no scheduled/upcoming doses AND no overdue doses */}
           {hasAnyItems && doses.length === 0 && (
             <motion.div 
               initial={{ opacity: 0, y: 10 }} 
@@ -492,6 +492,22 @@ export default function Today() {
               <p className="text-muted-foreground/70 text-sm mt-1">
                 {language === 'pt' ? 'Seus medicamentos não têm doses agendadas para hoje' : 'Your medications have no doses scheduled for today'}
               </p>
+            </motion.div>
+          )}
+
+          {/* Show message only when no upcoming doses but NOT when there are overdue doses */}
+          {hasAnyItems && upcomingDoses.length === 0 && overdueDoses.length === 0 && takenDoses.length > 0 && (
+            <motion.div 
+              initial={{ opacity: 0, y: 10 }} 
+              animate={{ opacity: 1, y: 0 }}
+              className="text-center py-6"
+            >
+              <div className="w-12 h-12 mx-auto mb-3 rounded-2xl bg-success/10 flex items-center justify-center">
+                <Check className="w-6 h-6 text-success" />
+              </div>
+              <h3 className="text-base font-medium text-muted-foreground">
+                {language === 'pt' ? 'Sem doses pendentes por agora' : 'No pending doses right now'}
+              </h3>
             </motion.div>
           )}
 
@@ -638,7 +654,7 @@ function DoseCard({ dose, onTake, onSkip, isOverdue, isTaking, delay = 0 }: Dose
           relative rounded-2xl p-4 backdrop-blur-sm transition-colors duration-300
           shadow-[var(--shadow-sm)] touch-pan-y select-none
           ${isOverdue 
-            ? 'bg-destructive/8 ring-2 ring-destructive/30 border-l-4 border-l-destructive' 
+            ? 'bg-destructive/10 ring-2 ring-destructive/40 border-l-4 border-l-destructive shadow-lg shadow-destructive/10' 
             : 'bg-card'
           }
         `}

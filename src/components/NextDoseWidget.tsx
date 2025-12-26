@@ -28,7 +28,7 @@ export default function NextDoseWidget({ dose, onTake, className }: NextDoseWidg
   return (
     <Card className={cn(
       "border-primary/30 bg-gradient-to-br from-primary/5 to-primary/10 transition-all duration-300",
-      isNow && "animate-pulse ring-2 ring-primary/50",
+      isNow && "ring-2 ring-primary/50 shadow-lg shadow-primary/20",
       className
     )}>
       <CardContent className="pt-6">
