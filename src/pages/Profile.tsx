@@ -65,16 +65,18 @@ export default function Profile() {
     }
   };
 
+  const { t } = useTranslation();
+  
   const handleLogout = async () => {
     try {
       await signOut();
       localStorage.removeItem("biometric_refresh_token");
       localStorage.removeItem("biometric_expiry");
       localStorage.removeItem("biometric_enabled");
-      toast.success("Logout realizado com sucesso");
+      toast.success(t('profile.logoutSuccess'));
     } catch (error: any) {
       console.error("Error logging out:", error);
-      toast.error("Erro ao fazer logout");
+      toast.error(t('profile.logoutError'));
     }
   };
 
@@ -89,11 +91,11 @@ export default function Profile() {
 
   const getRelationshipLabel = (rel: string) => {
     const labels: { [key: string]: string } = {
-      self: 'Você',
-      child: 'Filho(a)',
-      parent: 'Pai/Mãe',
-      spouse: 'Cônjuge',
-      other: 'Outro'
+      self: t('profile.relationSelf'),
+      child: t('profile.relationChild'),
+      parent: t('profile.relationParent'),
+      spouse: t('profile.relationSpouse'),
+      other: t('profile.relationOther')
     };
     return labels[rel] || rel;
   };
@@ -105,8 +107,8 @@ export default function Profile() {
       <main className="container max-w-2xl mx-auto px-4 py-6 pt-24 space-y-6">
         <TutorialHint
           id="profile-overview"
-          title="Seu Perfil"
-          message="Aqui você gerencia suas informações, perfis familiares, assinatura e configurações."
+          title={t('profile.yourProfile')}
+          message={t('profile.manageProfileDesc')}
           placement="bottom"
         />
 
@@ -116,18 +118,15 @@ export default function Profile() {
           animate={{ opacity: 1, y: 0 }}
           className="glass-card p-4 rounded-2xl"
         >
-          <div className="flex items-start gap-3">
-            <div className="p-2 rounded-xl" style={{ backgroundColor: 'hsl(var(--primary) / 0.1)' }}>
-              <User className="h-5 w-5 text-primary" />
+            <div className="flex items-start gap-3">
+              <div className="p-2 rounded-xl" style={{ backgroundColor: 'hsl(var(--primary) / 0.1)' }}>
+                <User className="h-5 w-5 text-primary" />
+              </div>
+              <div className="space-y-1">
+                <p className="font-medium text-foreground">{t('profile.whatCanYouDo')}</p>
+                <p className="text-sm text-muted-foreground leading-relaxed" dangerouslySetInnerHTML={{ __html: t('profile.whatCanYouDoDesc') }} />
+              </div>
             </div>
-            <div className="space-y-1">
-              <p className="font-medium text-foreground">O que você pode fazer aqui?</p>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                Gerencie sua <strong>conta</strong>, crie <strong>perfis familiares</strong> (Premium), 
-                configure <strong>notificações</strong> e veja seu <strong>plano de assinatura</strong>.
-              </p>
-            </div>
-          </div>
         </motion.div>
 
         {/* Profile Header Card */}
@@ -160,7 +159,7 @@ export default function Profile() {
                   </span>
                 ) : (
                   <span className="pill">
-                    {daysLeft !== null ? `${daysLeft} dias restantes` : 'Gratuito'}
+                    {daysLeft !== null ? `${daysLeft} ${t('profile.daysLeft')}` : t('common.free')}
                   </span>
                 )}
               </div>
@@ -175,7 +174,7 @@ export default function Profile() {
               onClick={() => navigate('/profile/edit')}
             >
               <Settings className="h-4 w-4 mr-2" />
-              Editar perfil
+              {t('profile.editProfile')}
             </Button>
             <Button 
               variant="outline" 
@@ -184,7 +183,7 @@ export default function Profile() {
               onClick={handleLogout}
             >
               <LogOut className="h-4 w-4 mr-2" />
-              Sair da conta
+              {t('profile.leaveAccount')}
             </Button>
           </div>
         </motion.div>
@@ -194,19 +193,19 @@ export default function Profile() {
           <TabsList className="w-full grid grid-cols-4 h-auto p-1.5 rounded-2xl bg-muted/50">
             <TabsTrigger value="account" className="flex-col gap-1 py-3 rounded-xl">
               <User className="h-5 w-5" />
-              <span className="text-xs">Conta</span>
+              <span className="text-xs">{t('profile.account')}</span>
             </TabsTrigger>
             <TabsTrigger value="profiles" className="flex-col gap-1 py-3 rounded-xl">
               <Users className="h-5 w-5" />
-              <span className="text-xs">Perfis</span>
+              <span className="text-xs">{t('profile.profiles')}</span>
             </TabsTrigger>
             <TabsTrigger value="subscription" className="flex-col gap-1 py-3 rounded-xl">
               <Crown className="h-5 w-5" />
-              <span className="text-xs">Plano</span>
+              <span className="text-xs">{t('profile.plan')}</span>
             </TabsTrigger>
             <TabsTrigger value="settings" className="flex-col gap-1 py-3 rounded-xl">
               <Settings className="h-5 w-5" />
-              <span className="text-xs">Ajustes</span>
+              <span className="text-xs">{t('common.settings')}</span>
             </TabsTrigger>
           </TabsList>
 
@@ -226,15 +225,15 @@ export default function Profile() {
                   <Star className="h-6 w-6 text-primary" />
                 </div>
                 <div className="flex-1">
-                  <p className="font-semibold">Indique e Ganhe</p>
-                  <p className="text-sm text-muted-foreground">Ganhe descontos indicando amigos</p>
+                  <p className="font-semibold">{t('profile.referAndEarn')}</p>
+                  <p className="text-sm text-muted-foreground">{t('profile.earnDiscounts')}</p>
                 </div>
                 <Button 
                   variant="outline"
                   className="rounded-xl"
                   onClick={() => navigate('/recompensas')}
                 >
-                  Ver
+                  {t('common.view')}
                   <ArrowRight className="h-4 w-4 ml-1" />
                 </Button>
               </div>
@@ -258,15 +257,15 @@ export default function Profile() {
             >
               <div className="flex items-center gap-2 mb-4">
                 <Activity className="h-5 w-5 text-performance" />
-                <h3 className="font-semibold">Preferências de Bem-estar</h3>
+                <h3 className="font-semibold">{t('profile.wellnessPrefs')}</h3>
               </div>
               <div className="flex items-center justify-between">
                 <div className="space-y-1">
                   <Label htmlFor="fitness-widgets" className="cursor-pointer font-medium">
-                    Exibir widgets de bem-estar
+                    {t('profile.showWellnessWidgets')}
                   </Label>
                   <p className="text-sm text-muted-foreground">
-                    Mostre métricas de hidratação, consistência e energia
+                    {t('profile.showWellnessWidgetsDesc')}
                   </p>
                 </div>
                 <Switch
@@ -288,9 +287,9 @@ export default function Profile() {
             >
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <h3 className="font-semibold">Perfis Familiares</h3>
+                  <h3 className="font-semibold">{t('profile.familyProfiles')}</h3>
                   <p className="text-sm text-muted-foreground">
-                    Gerencie medicamentos de toda a família
+                    {t('profile.manageFamilyMeds')}
                   </p>
                 </div>
                 {isPremium && (
@@ -300,7 +299,7 @@ export default function Profile() {
                     onClick={() => navigate('/perfil/criar')}
                   >
                     <Plus className="h-4 w-4 mr-2" />
-                    Novo
+                    {t('common.new')}
                   </Button>
                 )}
               </div>
@@ -313,16 +312,16 @@ export default function Profile() {
                   <div className="flex items-start gap-3">
                     <Crown className="h-5 w-5 text-primary mt-0.5" />
                     <div className="flex-1">
-                      <p className="font-medium text-sm mb-1">Recurso Premium</p>
+                      <p className="font-medium text-sm mb-1">{t('profile.premiumFeature')}</p>
                       <p className="text-xs text-muted-foreground mb-3">
-                        Crie perfis para toda família e gerencie medicamentos de cada um separadamente.
+                        {t('profile.premiumFeatureDesc')}
                       </p>
                       <Button
                         size="lg"
                         className="w-full rounded-xl"
                         onClick={() => navigate('/planos')}
                       >
-                        Fazer Upgrade
+                        {t('common.upgrade')}
                       </Button>
                     </div>
                   </div>
@@ -353,7 +352,7 @@ export default function Profile() {
                         <div className="flex items-center gap-2">
                           <p className="font-medium truncate">{profile.name}</p>
                           {isActive && (
-                            <span className="pill-primary text-xs">Ativo</span>
+                            <span className="pill-primary text-xs">{t('common.active')}</span>
                           )}
                         </div>
                         <p className="text-sm text-muted-foreground">
@@ -369,7 +368,7 @@ export default function Profile() {
                             className="rounded-xl"
                             onClick={() => switchProfile(profile)}
                           >
-                            Ativar
+                            {t('profile.activate')}
                           </Button>
                         )}
                         {!profile.is_primary && (
@@ -378,7 +377,7 @@ export default function Profile() {
                             variant="ghost"
                             className="rounded-xl"
                             onClick={() => {
-                              if (confirm(`Deseja remover o perfil de ${profile.name}?`)) {
+                              if (confirm(t('profile.confirmDeleteProfile', { name: profile.name }))) {
                                 deleteProfile(profile.id);
                               }
                             }}
@@ -403,9 +402,9 @@ export default function Profile() {
               <div className="flex items-center gap-2 mb-4">
                 <Shield className="h-5 w-5 text-primary" />
                 <div>
-                  <h3 className="font-semibold">Cuidadores</h3>
+                  <h3 className="font-semibold">{t('profile.caregivers')}</h3>
                   <p className="text-sm text-muted-foreground">
-                    Compartilhe acesso com familiares e profissionais
+                    {t('profile.caregiversDesc')}
                   </p>
                 </div>
               </div>
@@ -429,12 +428,12 @@ export default function Profile() {
                 <div className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-4" style={{ backgroundColor: 'hsl(var(--primary) / 0.2)' }}>
                   <Crown className="h-8 w-8 text-primary" />
                 </div>
-                <h3 className="text-xl font-bold mb-2">Assine o Premium</h3>
+                <h3 className="text-xl font-bold mb-2">{t('profile.subscribePremium')}</h3>
                 <p className="text-muted-foreground mb-4">
-                  Medicamentos ilimitados, IA sem limites e muito mais
+                  {t('profile.subscribePremiumDesc')}
                 </p>
                 <div className="inline-block px-4 py-2 rounded-full mb-4" style={{ backgroundColor: 'hsl(var(--primary) / 0.2)' }}>
-                  <p className="text-2xl font-bold text-primary">R$ 19,90<span className="text-sm font-normal">/mês</span></p>
+                  <p className="text-2xl font-bold text-primary">R$ 19,90<span className="text-sm font-normal">{t('common.perMonth')}</span></p>
                 </div>
                 <Button 
                   size="lg"
@@ -442,7 +441,7 @@ export default function Profile() {
                   onClick={() => navigate('/planos')}
                 >
                   <Crown className="h-5 w-5 mr-2" />
-                  Assinar agora
+                  {t('profile.subscribeNow')}
                 </Button>
               </motion.div>
             )}
@@ -456,13 +455,13 @@ export default function Profile() {
             >
               <div className="flex items-center gap-2 mb-4">
                 <Crown className="h-5 w-5 text-primary" />
-                <h3 className="font-semibold">Plano Atual</h3>
+                <h3 className="font-semibold">{t('profile.currentPlan')}</h3>
               </div>
               
               <div className="p-4 rounded-xl bg-muted/50">
                 <div className="flex items-center justify-between mb-2">
                   <span className="font-semibold text-lg">
-                    {isPremium ? 'Premium' : 'Gratuito'}
+                    {isPremium ? 'Premium' : t('common.free')}
                   </span>
                   {isPremium ? (
                     <span className="pill-primary">
@@ -471,15 +470,15 @@ export default function Profile() {
                     </span>
                   ) : (
                     <span className="pill">
-                      {daysLeft !== null ? `${daysLeft} dias restantes` : 'Gratuito'}
+                      {daysLeft !== null ? `${daysLeft} ${t('profile.daysLeft')}` : t('common.free')}
                     </span>
                   )}
                 </div>
                 {!isPremium && daysLeft !== null && (
                   <p className="text-sm text-muted-foreground">
                     {daysLeft > 0 
-                      ? `${daysLeft} dias restantes do período gratuito` 
-                      : 'Período gratuito expirado'}
+                      ? t('profile.freeTrialDays', { days: String(daysLeft) })
+                      : t('profile.freeTrialExpired')}
                   </p>
                 )}
               </div>
@@ -488,11 +487,11 @@ export default function Profile() {
                 <div className="space-y-4 mt-4">
                   <div className="space-y-3">
                     {[
-                      'Medicamentos ilimitados',
-                      'Perfis familiares ilimitados',
-                      'Assistente IA sem limites',
-                      'Exportação de relatórios PDF',
-                      'Alertas inteligentes de estoque'
+                      t('profile.unlimitedMeds'),
+                      t('profile.unlimitedProfiles'),
+                      t('profile.unlimitedAI'),
+                      t('profile.pdfExport'),
+                      t('profile.smartStockAlerts')
                     ].map((benefit, i) => (
                       <div key={i} className="flex items-start gap-3">
                         <div className="mt-0.5 p-1 rounded-full" style={{ backgroundColor: 'hsl(var(--success) / 0.2)' }}>
@@ -508,7 +507,7 @@ export default function Profile() {
                     className="w-full rounded-xl"
                     onClick={() => navigate('/assinatura')}
                   >
-                    Gerenciar assinatura
+                    {t('profile.manageSubscription')}
                     <ArrowRight className="h-4 w-4 ml-2" />
                   </Button>
                 </div>
@@ -530,9 +529,9 @@ export default function Profile() {
                     <Gift className="h-5 w-5 text-white" />
                   </div>
                   <div>
-                    <h4 className="font-semibold">Minhas Recompensas e Convites</h4>
+                    <h4 className="font-semibold">{t('profile.myRewardsInvites')}</h4>
                     <p className="text-sm text-muted-foreground">
-                      Indique amigos e ganhe descontos
+                      {t('profile.inviteFriendsDiscount')}
                     </p>
                   </div>
                 </div>
@@ -552,13 +551,13 @@ export default function Profile() {
             </motion.div>
 
             {[
-              { icon: Bell, label: 'Notificações', desc: 'Configure alertas e lembretes', path: '/notificacoes/configurar' },
-              { icon: Smartphone, label: 'Alarmes', desc: 'Sons e vibração', path: '/alarmes' },
-              { icon: FileDown, label: 'Exportar Dados', desc: 'Baixe seus dados em PDF', path: '/exportar' },
-              { icon: BookOpen, label: 'Tutorial', desc: 'Aprenda a usar o app', path: '/tutorial' },
-              { icon: HelpCircle, label: 'Ajuda e Suporte', desc: 'Dúvidas e contato', path: '/ajuda' },
-              { icon: Shield, label: 'Privacidade', desc: 'Política de privacidade', path: '/privacidade' },
-              { icon: FileText, label: 'Termos de Uso', desc: 'Termos e condições', path: '/termos' },
+              { icon: Bell, label: t('profile.notifLabel'), desc: t('profile.notifDesc'), path: '/notificacoes/configurar' },
+              { icon: Smartphone, label: t('profile.alarmsLabel'), desc: t('profile.alarmsDesc'), path: '/alarmes' },
+              { icon: FileDown, label: t('profile.exportLabel'), desc: t('profile.exportDesc'), path: '/exportar' },
+              { icon: BookOpen, label: t('profile.tutorialLabel'), desc: t('profile.tutorialDesc'), path: '/tutorial' },
+              { icon: HelpCircle, label: t('profile.helpLabel'), desc: t('profile.helpDesc'), path: '/ajuda' },
+              { icon: Shield, label: t('profile.privacyLabel'), desc: t('profile.privacyDesc'), path: '/privacidade' },
+              { icon: FileText, label: t('profile.termsLabel'), desc: t('profile.termsDesc'), path: '/termos' },
             ].map((item, index) => (
               <motion.div
                 key={item.path}
@@ -599,8 +598,8 @@ export default function Profile() {
                       <Fingerprint className="h-5 w-5 text-muted-foreground" />
                     </div>
                     <div>
-                      <h4 className="font-medium">Login Biométrico</h4>
-                      <p className="text-xs text-muted-foreground">Ativado neste dispositivo</p>
+                      <h4 className="font-medium">{t('profile.biometricLogin')}</h4>
+                      <p className="text-xs text-muted-foreground">{t('profile.biometricEnabled')}</p>
                     </div>
                   </div>
                   <Button
@@ -609,7 +608,7 @@ export default function Profile() {
                     className="text-destructive rounded-xl"
                     onClick={disableBiometric}
                   >
-                    Desativar
+                    {t('profile.disable')}
                   </Button>
                 </div>
               </motion.div>
