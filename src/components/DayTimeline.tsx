@@ -2,10 +2,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { format, parseISO, isBefore, isToday } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { ptBR, enUS } from "date-fns/locale";
 import { CheckCircle2, Clock, Calendar, Stethoscope, TestTube, Pill, Timer } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface TimelineItem {
   id: string;
@@ -29,8 +30,10 @@ export default function DayTimeline({
   items,
   onDateChange
 }: DayTimelineProps) {
+  const { t, language } = useLanguage();
   const now = new Date();
   const isCurrentDay = isToday(date);
+  const dateLocale = language === 'pt' ? ptBR : enUS;
 
   // Agrupar por hora
   const groupedItems = items.reduce((acc, item) => {
@@ -130,11 +133,11 @@ export default function DayTimeline({
   const getTypeLabel = (type: string) => {
     switch (type) {
       case "medication":
-        return "Medicamento";
+        return t('today.medication');
       case "appointment":
-        return "Consulta";
+        return t('today.appointment');
       case "exam":
-        return "Exame";
+        return t('today.exam');
       default:
         return "";
     }
@@ -149,14 +152,14 @@ export default function DayTimeline({
       {/* Header do Dia */}
       <div className="text-center py-2 mb-2">
         <p className="text-xs text-muted-foreground capitalize">
-          {format(date, "EEEE", { locale: ptBR })}
+          {format(date, "EEEE", { locale: dateLocale })}
         </p>
         <p className="text-base font-bold text-foreground">
-          {format(date, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+          {format(date, language === 'pt' ? "dd 'de' MMMM 'de' yyyy" : "MMMM dd, yyyy", { locale: dateLocale })}
         </p>
         {pendingCount > 0 && (
           <p className="text-xs text-muted-foreground mt-1">
-            {pendingCount} {pendingCount === 1 ? "dose pendente" : "doses pendentes"}
+            {pendingCount} {pendingCount === 1 ? t('today.dosePending') : t('today.dosesPending')}
           </p>
         )}
       </div>
@@ -169,9 +172,9 @@ export default function DayTimeline({
               <div className="inline-flex p-3 rounded-full bg-green-500/10 mb-3">
                 <CheckCircle2 className="h-6 w-6 text-green-600 dark:text-green-400" />
               </div>
-              <p className="font-semibold text-green-600 dark:text-green-400">Tudo certo!</p>
+              <p className="font-semibold text-green-600 dark:text-green-400">{t('today.allGood')}</p>
               <p className="text-muted-foreground text-sm mt-1">
-                Nenhum medicamento agendado para este dia.
+                {t('today.noMedsScheduled')}
               </p>
             </CardContent>
           </Card>
@@ -181,9 +184,9 @@ export default function DayTimeline({
               <div className="inline-flex p-3 rounded-full bg-green-500/10 mb-3">
                 <CheckCircle2 className="h-6 w-6 text-green-600 dark:text-green-400" />
               </div>
-              <p className="font-semibold text-green-600 dark:text-green-400">Tudo em dia!</p>
+              <p className="font-semibold text-green-600 dark:text-green-400">{t('today.allTaken')}</p>
               <p className="text-sm text-muted-foreground mt-1">
-                Você tomou todos os {items.length} medicamentos de hoje. 🎉
+                {t('today.youTookAll')} {items.length} {t('today.medsToday')} 🎉
               </p>
             </CardContent>
           </Card>
@@ -254,17 +257,17 @@ export default function DayTimeline({
                                 <div className="flex items-center gap-1.5 mt-1">
                                   {isPast && !isDone && !isMissed && (
                                     <Badge className="bg-warning/90 text-warning-foreground text-[10px] px-1.5 py-0 h-4">
-                                      Atrasado
+                                      {t('today.late')}
                                     </Badge>
                                   )}
                                   {isDone && (
                                     <Badge className="bg-success/90 text-success-foreground text-[10px] px-1.5 py-0 h-4">
-                                      ✓ Tomado
+                                      ✓ {t('today.taken')}
                                     </Badge>
                                   )}
                                   {isMissed && (
                                     <Badge variant="destructive" className="text-[10px] px-1.5 py-0 h-4">
-                                      Perdido
+                                      {t('today.missed')}
                                     </Badge>
                                   )}
                                 </div>
@@ -279,7 +282,7 @@ export default function DayTimeline({
                                     className="h-8 px-3 text-xs bg-primary hover:bg-primary/90"
                                   >
                                     <CheckCircle2 className="h-3.5 w-3.5 mr-1" />
-                                    Tomei
+                                    {t('today.iTookIt')}
                                   </Button>
                                   {item.onSnooze && (
                                     <Button

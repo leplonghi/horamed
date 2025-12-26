@@ -3,7 +3,7 @@ import { decrementStockWithProjection } from "@/lib/stockHelpers";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format, startOfDay, endOfDay } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { ptBR, enUS } from "date-fns/locale";
 import { useNavigate } from "react-router-dom";
 import Navigation from "@/components/Navigation";
 import Header from "@/components/Header";
@@ -31,6 +31,7 @@ import HelpTooltip from "@/components/HelpTooltip";
 import { microcopy } from "@/lib/microcopy";
 import ClaraSuggestions from "@/components/ClaraSuggestions";
 import TodayWeightWidget from "@/components/TodayWeightWidget";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface DoseItem {
   id: string;
@@ -54,6 +55,7 @@ export default function Today() {
   const criticalAlerts = useCriticalAlerts();
   const { showFeedback } = useFeedbackToast();
   const { activeProfile } = useUserProfiles();
+  const { t, language } = useLanguage();
   useSmartRedirect();
   
   const [doses, setDoses] = useState<DoseItem[]>([]);
@@ -223,7 +225,8 @@ export default function Today() {
   const progressPercent = totalDoses > 0 ? Math.round((completedDoses / totalDoses) * 100) : 0;
 
   const hour = new Date().getHours();
-  const greeting = hour < 12 ? "Bom dia" : hour < 18 ? "Boa tarde" : "Boa noite";
+  const greeting = hour < 12 ? t('today.goodMorning') : hour < 18 ? t('today.goodAfternoon') : t('today.goodEvening');
+  const dateLocale = language === 'pt' ? ptBR : enUS;
 
   if (loading) {
     return (<><Header /><PageSkeleton /><Navigation /></>);
@@ -242,11 +245,11 @@ export default function Today() {
             className="py-8"
           >
             <p className="text-muted-foreground text-sm mb-2 text-center">
-              {format(new Date(), "EEEE, d MMM", { locale: ptBR })}
+              {format(new Date(), "EEEE, d MMM", { locale: dateLocale })}
             </p>
             <div className="flex items-center justify-center gap-2">
               <h1 className="text-2xl font-semibold tracking-tight">
-                {greeting}, {userName || "você"}
+                {greeting}, {userName || (language === 'pt' ? "você" : "you")}
               </h1>
               <HelpTooltip 
                 content="Esta é sua tela principal. Aqui você vê todas as doses do dia e confirma quando tomar cada medicamento." 
@@ -264,8 +267,8 @@ export default function Today() {
               >
                 <div className="pill-warning">
                   <Flame className="w-4 h-4" />
-                  <span className="font-semibold">{streakData.currentStreak} dias</span>
-                  <span className="text-muted-foreground">seguidos</span>
+                  <span className="font-semibold">{streakData.currentStreak} {language === 'pt' ? 'dias' : 'days'}</span>
+                  <span className="text-muted-foreground">{t('today.daysInRow')}</span>
                   <HelpTooltip content={microcopy.help.today.streak} side="bottom" iconSize="sm" />
                 </div>
               </motion.div>
@@ -310,7 +313,7 @@ export default function Today() {
               </div>
               <div className="flex items-center gap-1.5 mt-3">
                 <p className={`text-sm ${progressPercent === 100 ? 'text-success font-medium' : 'text-muted-foreground'}`}>
-                  {progressPercent === 100 ? "Tudo em dia! 🎉" : `${completedDoses} de ${totalDoses} doses`}
+                  {progressPercent === 100 ? `${t('today.allTaken')} 🎉` : `${completedDoses} ${t('today.ofDoses')} ${totalDoses} ${t('today.doses')}`}
                 </p>
                 <HelpTooltip content={microcopy.help.today.progress} iconSize="sm" />
               </div>
@@ -365,13 +368,13 @@ export default function Today() {
               <div className="w-16 h-16 mx-auto mb-5 rounded-2xl bg-primary/10 flex items-center justify-center">
                 <Pill className="w-8 h-8 text-primary" />
               </div>
-              <h2 className="text-lg font-medium mb-2">Adicione seu primeiro medicamento</h2>
+              <h2 className="text-lg font-medium mb-2">{t('today.addFirstMed')}</h2>
               <p className="text-muted-foreground text-sm mb-8 max-w-[260px] mx-auto">
-                Nós avisamos na hora certa de tomar
+                {t('today.weRemindYou')}
               </p>
               <Button onClick={() => navigate("/adicionar-medicamento")} size="lg">
                 <Plus className="w-5 h-5" />
-                Adicionar
+                {t('common.add')}
               </Button>
             </motion.div>
           )}
@@ -388,7 +391,7 @@ export default function Today() {
                 <div className="flex items-center gap-2 mb-4">
                   <span className="pill-destructive">
                     <AlertTriangle className="w-3.5 h-3.5" />
-                    Atrasadas
+                    {t('today.overdue')}
                   </span>
                   <HelpTooltip content={microcopy.help.today.overdue} iconSize="sm" />
                 </div>
@@ -420,7 +423,7 @@ export default function Today() {
                 <div className="flex items-center gap-2 mb-4">
                   <span className="pill-primary">
                     <Clock className="w-3.5 h-3.5" />
-                    Próximas
+                    {t('today.upcoming')}
                   </span>
                   <HelpTooltip content={microcopy.help.today.upcoming} iconSize="sm" />
                 </div>
@@ -451,7 +454,7 @@ export default function Today() {
               <div className="flex items-center gap-2 mb-4">
                 <span className="pill-success">
                   <Check className="w-3.5 h-3.5" />
-                  Tomadas
+                  {t('today.taken')}
                 </span>
               </div>
               <div className="space-y-2">
@@ -485,8 +488,10 @@ export default function Today() {
               <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-muted/30 flex items-center justify-center">
                 <Clock className="w-7 h-7 text-muted-foreground" />
               </div>
-              <h3 className="text-lg font-medium text-muted-foreground">Nenhum evento hoje</h3>
-              <p className="text-muted-foreground/70 text-sm mt-1">Seus medicamentos não têm doses agendadas para hoje</p>
+              <h3 className="text-lg font-medium text-muted-foreground">{t('today.noDoses')}</h3>
+              <p className="text-muted-foreground/70 text-sm mt-1">
+                {language === 'pt' ? 'Seus medicamentos não têm doses agendadas para hoje' : 'Your medications have no doses scheduled for today'}
+              </p>
             </motion.div>
           )}
 

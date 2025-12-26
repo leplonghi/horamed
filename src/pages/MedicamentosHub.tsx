@@ -167,7 +167,7 @@ export default function MedicamentosHub() {
       setItems(formattedData);
     } catch (error) {
       console.error("Error fetching items:", error);
-      toast.error("Erro ao carregar itens");
+      toast.error(t('common.error'));
     } finally {
       setLoading(false);
     }
@@ -180,21 +180,21 @@ export default function MedicamentosHub() {
   });
 
   const deleteItem = async (id: string) => {
-    if (!confirm("Tem certeza que deseja excluir este item?")) return;
+    if (!confirm(t('meds.confirmDelete'))) return;
 
     try {
       const { error } = await supabase.from("items").delete().eq("id", id);
       if (error) throw error;
-      toast.success("Item excluído com sucesso");
+      toast.success(t('meds.deleteSuccess'));
       fetchItems();
     } catch (error) {
       console.error("Error deleting item:", error);
-      toast.error("Erro ao excluir item");
+      toast.error(t('common.error'));
     }
   };
 
   const getScheduleSummary = (schedule: any) => {
-    if (!schedule.times || schedule.times.length === 0) return "Sem horários";
+    if (!schedule.times || schedule.times.length === 0) return t('meds.noTimes');
     const times = Array.isArray(schedule.times) ? schedule.times : [schedule.times];
     return times.join(", ");
   };
@@ -230,7 +230,7 @@ export default function MedicamentosHub() {
           .eq("id", stockId);
       }
 
-      toast.success("✓ Estoque atualizado!");
+      toast.success(t('meds.stockUpdated'));
       refetch();
       setEditingItem(null);
       setAdjustmentAmount(0);
@@ -260,10 +260,10 @@ export default function MedicamentosHub() {
 
   const getStockStatus = (unitsLeft: number, unitsTotal: number) => {
     const percentage = (unitsLeft / unitsTotal) * 100;
-    if (percentage <= 10) return { color: "text-destructive", bg: "bg-destructive/10", label: "Crítico" };
-    if (percentage <= 20) return { color: "text-warning", bg: "bg-warning/10", label: "Baixo" };
-    if (percentage <= 50) return { color: "text-primary", bg: "bg-primary/10", label: "Médio" };
-    return { color: "text-success", bg: "bg-success/10", label: "Bom" };
+    if (percentage <= 10) return { color: "text-destructive", bg: "bg-destructive/10", label: t('meds.critical') };
+    if (percentage <= 20) return { color: "text-warning", bg: "bg-warning/10", label: t('meds.low') };
+    if (percentage <= 50) return { color: "text-primary", bg: "bg-primary/10", label: t('meds.medium') };
+    return { color: "text-success", bg: "bg-success/10", label: t('meds.good') };
   };
 
   const toggleExpanded = (id: string) => {
@@ -350,7 +350,7 @@ export default function MedicamentosHub() {
                   {item.with_food && (
                     <div className="flex items-center gap-1">
                       <UtensilsCrossed className="h-3.5 w-3.5" />
-                      <span>Com alimento</span>
+                      <span>{t('meds.withFood')}</span>
                     </div>
                   )}
                   {item.stock && item.stock.length > 0 && (
@@ -398,8 +398,8 @@ export default function MedicamentosHub() {
                 <h2 className="text-xl sm:text-2xl font-bold text-foreground">
                   {t('meds.title')}
                 </h2>
-                <p className="text-xs text-muted-foreground hidden sm:block">
-                  Gerencie medicamentos e estoque
+              <p className="text-xs text-muted-foreground hidden sm:block">
+                  {t('meds.manageDesc')}
                 </p>
               </div>
             </div>
@@ -410,9 +410,9 @@ export default function MedicamentosHub() {
                 onClick={() => setWizardOpen(true)}
               >
                 <Plus className="h-4 w-4" />
-                <span className="hidden sm:inline">Adicionar</span>
+                <span className="hidden sm:inline">{t('common.add')}</span>
               </Button>
-              <span className="text-[10px] text-muted-foreground sm:hidden">Novo remédio</span>
+              <span className="text-[10px] text-muted-foreground sm:hidden">{t('meds.newMed')}</span>
             </div>
           </div>
 
@@ -426,7 +426,7 @@ export default function MedicamentosHub() {
                 <div className="p-1.5 rounded-lg bg-primary/10 group-data-[state=active]:bg-primary/20">
                   <Pill className="h-4 w-4 text-primary" />
                 </div>
-                <span className="text-xs font-medium">Meus Remédios</span>
+                <span className="text-xs font-medium">{t('meds.myMeds')}</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="estoque" 
@@ -435,7 +435,7 @@ export default function MedicamentosHub() {
                 <div className="p-1.5 rounded-lg bg-amber-500/10">
                   <Package className="h-4 w-4 text-amber-600" />
                 </div>
-                <span className="text-xs font-medium">Estoque</span>
+                <span className="text-xs font-medium">{t('meds.stock')}</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="historico" 
@@ -444,7 +444,7 @@ export default function MedicamentosHub() {
                 <div className="p-1.5 rounded-lg bg-purple-500/10">
                   <History className="h-4 w-4 text-purple-600" />
                 </div>
-                <span className="text-xs font-medium">Histórico</span>
+                <span className="text-xs font-medium">{t('meds.history')}</span>
               </TabsTrigger>
             </TabsList>
 
