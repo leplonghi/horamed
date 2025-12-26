@@ -30,18 +30,7 @@ const SplashScreen = ({ onComplete, minimumDisplayTime = 1800 }: SplashScreenPro
         >
           {/* Subtle background pattern */}
           <div className="absolute inset-0 overflow-hidden">
-            <motion.div
-              animate={{ 
-                scale: [1, 1.1, 1],
-                opacity: [0.03, 0.06, 0.03]
-              }}
-              transition={{ 
-                duration: 4,
-                repeat: Infinity,
-                ease: "easeInOut"
-              }}
-              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full bg-primary/20"
-            />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full bg-primary/20 animate-pulse" />
           </div>
 
           {/* Logo with animation */}
@@ -56,26 +45,15 @@ const SplashScreen = ({ onComplete, minimumDisplayTime = 1800 }: SplashScreenPro
             }}
             className="relative z-10"
           >
-            <motion.div
-              animate={{ 
-                scale: [1, 1.02, 1],
-              }}
-              transition={{ 
-                duration: 2.5,
-                repeat: Infinity,
-                ease: "easeInOut"
-              }}
-            >
-              <img 
-                src={horamedLogo} 
-                alt="HoraMed" 
-                width={192}
-                height={180}
-                className="w-48 h-auto"
-                loading="eager"
-                fetchPriority="high"
-              />
-            </motion.div>
+            <img 
+              src={horamedLogo} 
+              alt="HoraMed" 
+              width={192}
+              height={180}
+              className="w-48 h-auto"
+              loading="eager"
+              fetchPriority="high"
+            />
           </motion.div>
 
           {/* Tagline */}
@@ -96,18 +74,10 @@ const SplashScreen = ({ onComplete, minimumDisplayTime = 1800 }: SplashScreenPro
             className="mt-10 flex items-center gap-1.5"
           >
             {[0, 1, 2].map((i) => (
-              <motion.div
+              <div
                 key={i}
-                animate={{ 
-                  scale: [1, 1.3, 1],
-                  opacity: [0.4, 1, 0.4]
-                }}
-                transition={{ 
-                  duration: 0.8, 
-                  repeat: Infinity, 
-                  delay: i * 0.15 
-                }}
-                className="w-2 h-2 rounded-full bg-primary"
+                className="w-2 h-2 rounded-full bg-primary animate-pulse"
+                style={{ animationDelay: `${i * 150}ms` }}
               />
             ))}
           </motion.div>
