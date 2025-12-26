@@ -5,47 +5,50 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import Header from "@/components/Header";
 import Navigation from "@/components/Navigation";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function Saude() {
+  const { t } = useLanguage();
+  
   const healthSections = [
     {
-      title: "Agenda de Saúde",
-      description: "Calendário com todos seus compromissos",
+      title: t('saude.healthAgenda'),
+      description: t('saude.healthAgendaDesc'),
       icon: Calendar,
       path: "/saude/agenda",
       color: "from-purple-500 to-purple-600",
     },
     {
-      title: "Consultas Médicas",
-      description: "Agende e acompanhe suas consultas",
+      title: t('saude.medicalAppointments'),
+      description: t('saude.medicalAppointmentsDesc'),
       icon: Stethoscope,
       path: "/consultas",
       color: "from-blue-500 to-blue-600",
     },
     {
-      title: "Exames Laboratoriais",
-      description: "Gerencie resultados de exames",
+      title: t('saude.labExams'),
+      description: t('saude.labExamsDesc'),
       icon: FileText,
       path: "/exames",
       color: "from-green-500 to-green-600",
     },
     {
-      title: "Dashboard de Saúde",
-      description: "Visão geral dos seus dados",
+      title: t('saude.healthDashboard'),
+      description: t('saude.healthDashboardDesc'),
       icon: TrendingUp,
       path: "/dashboard-saude",
       color: "from-purple-500 to-purple-600",
     },
     {
-      title: "Linha do Tempo",
-      description: "Histórico completo de saúde",
+      title: t('saude.timeline'),
+      description: t('saude.timelineDesc'),
       icon: Calendar,
       path: "/linha-do-tempo",
       color: "from-orange-500 to-orange-600",
     },
     {
-      title: "Análise com IA",
-      description: "Insights inteligentes sobre sua saúde",
+      title: t('saude.aiAnalysis'),
+      description: t('saude.aiAnalysisDesc'),
       icon: Brain,
       path: "/analise-saude",
       color: "from-pink-500 to-pink-600",
@@ -56,7 +59,7 @@ export default function Saude() {
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
       <Header />
       
-      <main className="container mx-auto px-4 py-6 pb-24 max-w-4xl pt-24">{/* pt-24 para compensar o header fixo */}
+      <main className="container mx-auto px-4 py-6 pb-24 max-w-4xl pt-24">
         {/* Hero Section */}
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
@@ -64,9 +67,9 @@ export default function Saude() {
               <Activity className="h-8 w-8 text-primary" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold">Saúde</h1>
+              <h1 className="text-3xl font-bold">{t('saude.title')}</h1>
               <p className="text-muted-foreground">
-                Seu centro de saúde completo
+                {t('saude.subtitle')}
               </p>
             </div>
           </div>
@@ -103,21 +106,21 @@ export default function Saude() {
         {/* Quick Stats */}
         <Card className="mt-6 bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
           <CardHeader>
-            <CardTitle className="text-lg">Resumo Rápido</CardTitle>
+            <CardTitle className="text-lg">{t('saude.quickSummary')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-3 gap-4 text-center">
               <div>
                 <div className="text-2xl font-bold text-primary">--</div>
-                <div className="text-xs text-muted-foreground">Consultas</div>
+                <div className="text-xs text-muted-foreground">{t('saude.appointments')}</div>
               </div>
               <div>
                 <div className="text-2xl font-bold text-primary">--</div>
-                <div className="text-xs text-muted-foreground">Exames</div>
+                <div className="text-xs text-muted-foreground">{t('saude.exams')}</div>
               </div>
               <div>
                 <div className="text-2xl font-bold text-primary">--</div>
-                <div className="text-xs text-muted-foreground">Medições</div>
+                <div className="text-xs text-muted-foreground">{t('saude.measurements')}</div>
               </div>
             </div>
           </CardContent>

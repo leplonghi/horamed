@@ -15,16 +15,12 @@ import { useBiometricAuth } from "@/hooks/useBiometricAuth";
 import { useAuth } from "@/contexts/AuthContext";
 import { APP_DOMAIN } from "@/lib/domainConfig";
 import { useDeviceFingerprint } from "@/hooks/useDeviceFingerprint";
-
-const passwordSchema = z.string()
-  .min(8, "A senha deve ter no mínimo 8 caracteres")
-  .regex(/[A-Z]/, "A senha deve conter pelo menos uma letra maiúscula")
-  .regex(/[a-z]/, "A senha deve conter pelo menos uma letra minúscula")
-  .regex(/[0-9]/, "A senha deve conter pelo menos um número");
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function Auth() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -74,7 +70,7 @@ export default function Auth() {
       console.log('Google OAuth initiated successfully:', data);
     } catch (error: any) {
       console.error("Exception during Google login:", error);
-      toast.error(error.message || "Erro ao fazer login com Google. Verifique se o Google Auth está configurado no backend.");
+      toast.error(error.message || t('auth.googleError'));
       setLoading(false);
     }
   };
@@ -82,18 +78,30 @@ export default function Auth() {
   const handleEmailSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) {
-      toast.error("Preencha todos os campos");
+      toast.error(t('auth.fillAllFields'));
       return;
     }
 
     if (!acceptedTerms) {
-      toast.error("Você precisa aceitar os Termos de Uso e Política de Privacidade para criar uma conta");
+      toast.error(t('auth.acceptTerms'));
       return;
     }
 
-    const validation = passwordSchema.safeParse(password);
-    if (!validation.success) {
-      toast.error(validation.error.errors[0].message);
+    // Password validation
+    if (password.length < 8) {
+      toast.error(t('auth.passwordMin'));
+      return;
+    }
+    if (!/[A-Z]/.test(password)) {
+      toast.error(t('auth.passwordUppercase'));
+      return;
+    }
+    if (!/[a-z]/.test(password)) {
+      toast.error(t('auth.passwordLowercase'));
+      return;
+    }
+    if (!/[0-9]/.test(password)) {
+      toast.error(t('auth.passwordNumber'));
       return;
     }
 
@@ -136,15 +144,15 @@ export default function Auth() {
       }
       
       if (data.user) {
-        toast.success("Conta criada! 🎉");
+        toast.success(t('auth.accountCreated'));
         navigate("/bem-vindo");
         return;
       }
       
-      toast.success("Conta criada! Você já pode fazer login 🎉");
+      toast.success(t('auth.accountCreatedLogin'));
     } catch (error: any) {
       console.error("Error:", error);
-      toast.error(error.message || "Erro ao criar conta");
+      toast.error(error.message || t('auth.signupError'));
     } finally {
       setLoading(false);
     }
@@ -153,7 +161,7 @@ export default function Auth() {
   const handleEmailSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) {
-      toast.error("Preencha todos os campos");
+      toast.error(t('auth.fillAllFields'));
       return;
     }
 
@@ -166,11 +174,11 @@ export default function Auth() {
 
       if (error) throw error;
       
-      toast.success("Login realizado! 💚");
+      toast.success(t('auth.loginSuccess'));
       
       if (isAvailable && !isBiometricEnabled) {
         setTimeout(() => {
-          if (window.confirm("Deseja ativar login por biometria?")) {
+          if (window.confirm(t('auth.enableBiometric'))) {
             setupBiometricLogin(email, password);
           }
         }, 1000);
@@ -179,7 +187,7 @@ export default function Auth() {
       navigate("/");
     } catch (error: any) {
       console.error("Error:", error);
-      toast.error(error.message || "Erro ao fazer login");
+      toast.error(error.message || t('auth.loginError'));
     } finally {
       setLoading(false);
     }
@@ -200,7 +208,7 @@ export default function Auth() {
           className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6 group"
         >
           <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
-          Voltar para a página inicial
+          {t('auth.backToHome')}
         </Link>
 
         <Card className="p-6 sm:p-8 shadow-xl border-0 bg-card/80 backdrop-blur-sm animate-fade-in">
@@ -213,10 +221,10 @@ export default function Auth() {
             </div>
             <div className="space-y-2">
               <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
-                Bem-vindo ao HoraMed
+                {t('auth.welcome')}
               </h1>
               <p className="text-muted-foreground text-sm sm:text-base">
-                Cuide de quem você ama com tranquilidade
+                {t('auth.tagline')}
               </p>
             </div>
           </div>
@@ -225,25 +233,25 @@ export default function Auth() {
           <div className="flex flex-wrap items-center justify-center gap-3 mb-6 text-xs sm:text-sm">
             <div className="flex items-center gap-1.5 text-muted-foreground">
               <Heart className="h-3.5 w-3.5 text-primary" />
-              <span>Grátis para começar</span>
+              <span>{t('auth.freeToStart')}</span>
             </div>
             <div className="flex items-center gap-1.5 text-muted-foreground">
               <Clock className="h-3.5 w-3.5 text-primary" />
-              <span>7 dias Premium</span>
+              <span>{t('auth.premiumDays')}</span>
             </div>
             <div className="flex items-center gap-1.5 text-muted-foreground">
               <Shield className="h-3.5 w-3.5 text-primary" />
-              <span>Sem cartão</span>
+              <span>{t('auth.noCard')}</span>
             </div>
           </div>
 
           <Tabs defaultValue="login" className="w-full">
             <TabsList className="grid w-full grid-cols-2 mb-6 h-12 bg-muted/50">
               <TabsTrigger value="login" className="text-sm sm:text-base font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm">
-                Entrar
+                {t('auth.login')}
               </TabsTrigger>
               <TabsTrigger value="signup" className="text-sm sm:text-base font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm">
-                Criar conta
+                {t('auth.signup')}
               </TabsTrigger>
             </TabsList>
 
@@ -261,7 +269,7 @@ export default function Auth() {
                   <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
                   <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
                 </svg>
-                Continuar com Google
+                {t('auth.continueWithGoogle')}
               </Button>
 
               {isAvailable && isBiometricEnabled && (
@@ -271,14 +279,14 @@ export default function Auth() {
                     const result = await loginWithBiometric();
                     if (result && typeof result === 'object' && 'email' in result) {
                       setEmail(result.email);
-                      toast.info("Biometria confirmada! Digite sua senha para continuar.");
+                      toast.info(t('auth.biometricConfirmed'));
                     }
                   }}
                   disabled={biometricLoading}
                   className="w-full h-12 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-lg hover:shadow-xl transition-all"
                 >
                   <Fingerprint className="h-5 w-5 mr-2" />
-                  {biometricLoading ? "Autenticando..." : "Entrar com Biometria"}
+                  {biometricLoading ? t('auth.authenticating') : t('auth.loginWithBiometric')}
                 </Button>
               )}
 
@@ -287,17 +295,17 @@ export default function Auth() {
                   <span className="w-full border-t border-border" />
                 </div>
                 <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-card px-3 text-muted-foreground">ou com email</span>
+                  <span className="bg-card px-3 text-muted-foreground">{t('auth.orWithEmail')}</span>
                 </div>
               </div>
 
               <form onSubmit={handleEmailSignIn} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="login-email" className="text-sm font-medium">E-mail</Label>
+                  <Label htmlFor="login-email" className="text-sm font-medium">{t('auth.email')}</Label>
                   <Input
                     id="login-email"
                     type="email"
-                    placeholder="seu@email.com"
+                    placeholder="your@email.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
@@ -306,7 +314,7 @@ export default function Auth() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="login-password" className="text-sm font-medium">Senha</Label>
+                  <Label htmlFor="login-password" className="text-sm font-medium">{t('auth.password')}</Label>
                   <Input
                     id="login-password"
                     type="password"
@@ -324,7 +332,7 @@ export default function Auth() {
                   className="w-full h-11 bg-primary hover:bg-primary/90"
                 >
                   <Mail className="h-4 w-4 mr-2" />
-                  {loading ? "Entrando..." : "Entrar"}
+                  {loading ? t('auth.loggingIn') : t('auth.login')}
                 </Button>
               </form>
             </TabsContent>
@@ -343,7 +351,7 @@ export default function Auth() {
                   <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
                   <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
                 </svg>
-                Criar conta com Google
+                {t('auth.createWithGoogle')}
               </Button>
 
               <div className="relative py-2">
@@ -351,17 +359,17 @@ export default function Auth() {
                   <span className="w-full border-t border-border" />
                 </div>
                 <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-card px-3 text-muted-foreground">ou com email</span>
+                  <span className="bg-card px-3 text-muted-foreground">{t('auth.orWithEmail')}</span>
                 </div>
               </div>
 
               <form onSubmit={handleEmailSignUp} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="signup-email" className="text-sm font-medium">E-mail</Label>
+                  <Label htmlFor="signup-email" className="text-sm font-medium">{t('auth.email')}</Label>
                   <Input
                     id="signup-email"
                     type="email"
-                    placeholder="seu@email.com"
+                    placeholder="your@email.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
@@ -370,7 +378,7 @@ export default function Auth() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="signup-password" className="text-sm font-medium">Senha</Label>
+                  <Label htmlFor="signup-password" className="text-sm font-medium">{t('auth.password')}</Label>
                   <Input
                     id="signup-password"
                     type="password"
@@ -382,7 +390,7 @@ export default function Auth() {
                     className="h-11"
                   />
                   <p className="text-xs text-muted-foreground">
-                    Mínimo 8 caracteres, maiúscula, minúscula e número
+                    {t('auth.passwordMin')}
                   </p>
                 </div>
 
@@ -390,7 +398,7 @@ export default function Auth() {
                   <div className="p-3 bg-green-50 dark:bg-green-950/30 rounded-lg border border-green-200 dark:border-green-900">
                     <p className="text-sm text-green-700 dark:text-green-400 font-medium flex items-center gap-2">
                       <span>🎁</span>
-                      Código de indicação aplicado: {referralCode}
+                      {t('auth.referralCode')}: {referralCode}
                     </p>
                   </div>
                 )}
@@ -406,23 +414,23 @@ export default function Auth() {
                     htmlFor="terms"
                     className="text-sm text-muted-foreground leading-relaxed cursor-pointer"
                   >
-                    Aceito os{" "}
+                    {t('auth.iAccept')}{" "}
                     <Link 
                       to="/termos" 
                       target="_blank"
                       className="text-primary hover:underline font-medium"
                       onClick={(e) => e.stopPropagation()}
                     >
-                      Termos de Uso
+                      {t('auth.termsOfUse')}
                     </Link>
-                    {" "}e{" "}
+                    {" "}{t('auth.andThe')}{" "}
                     <Link 
                       to="/privacidade" 
                       target="_blank"
                       className="text-primary hover:underline font-medium"
                       onClick={(e) => e.stopPropagation()}
                     >
-                      Política de Privacidade
+                      {t('auth.privacyPolicy')}
                     </Link>
                   </label>
                 </div>
@@ -433,21 +441,16 @@ export default function Auth() {
                   className="w-full h-11 bg-primary hover:bg-primary/90 disabled:opacity-50"
                 >
                   <Mail className="h-4 w-4 mr-2" />
-                  {loading ? "Criando conta..." : "Criar conta"}
+                  {loading ? t('auth.creatingAccount') : t('auth.signup')}
                 </Button>
               </form>
             </TabsContent>
           </Tabs>
-
-          {/* Footer text */}
-          <p className="text-xs text-center text-muted-foreground mt-6">
-            Ao continuar, você concorda com nossos termos de serviço e política de privacidade.
-          </p>
         </Card>
 
         {/* Social proof */}
         <p className="text-center text-xs text-muted-foreground mt-6">
-          Mais de 10.000 famílias já confiam no HoraMed
+          {t('auth.socialProof')}
         </p>
       </div>
     </div>
