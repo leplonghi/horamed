@@ -109,8 +109,45 @@ export function WizardStepSchedule({ data, updateData }: WizardStepScheduleProps
 
   return (
     <div className="space-y-6">
-      {/* Frequência */}
+      {/* Duração do tratamento - agora primeiro */}
       <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <div>
+            <Label className="text-sm font-medium">Uso contínuo</Label>
+            <p className="text-xs text-muted-foreground">Sem data de término</p>
+          </div>
+          <Switch
+            checked={data.continuousUse}
+            onCheckedChange={(checked) => updateData({ continuousUse: checked })}
+          />
+        </div>
+
+        {!data.continuousUse && (
+          <div className="grid grid-cols-2 gap-3 p-3 bg-muted/30 rounded-lg">
+            <div className="space-y-1.5">
+              <Label className="text-xs">Início</Label>
+              <Input
+                type="date"
+                value={data.startDate || new Date().toISOString().split('T')[0]}
+                onChange={(e) => updateData({ startDate: e.target.value })}
+                className="h-10 text-sm"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">Término</Label>
+              <Input
+                type="date"
+                value={data.endDate || ""}
+                onChange={(e) => updateData({ endDate: e.target.value })}
+                className="h-10 text-sm"
+              />
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Frequência */}
+      <div className="space-y-3 pt-4 border-t">
         <Label className="text-base font-semibold">Frequência</Label>
         
         <div className="space-y-2">
@@ -171,7 +208,7 @@ export function WizardStepSchedule({ data, updateData }: WizardStepScheduleProps
       )}
 
       {/* Horários */}
-      <div className="space-y-3">
+      <div className="space-y-3 pt-4 border-t">
         <div className="flex items-center justify-between">
           <Label className="text-base font-semibold">Horários</Label>
           <Badge variant="secondary" className="text-xs">
@@ -262,43 +299,6 @@ export function WizardStepSchedule({ data, updateData }: WizardStepScheduleProps
             <Clock className="w-4 h-4 mr-2" />
             Outro horário
           </Button>
-        )}
-      </div>
-
-      {/* Duração do tratamento */}
-      <div className="space-y-3 pt-4 border-t">
-        <div className="flex items-center justify-between">
-          <div>
-            <Label className="text-sm font-medium">Uso contínuo</Label>
-            <p className="text-xs text-muted-foreground">Sem data de término</p>
-          </div>
-          <Switch
-            checked={data.continuousUse}
-            onCheckedChange={(checked) => updateData({ continuousUse: checked })}
-          />
-        </div>
-
-        {!data.continuousUse && (
-          <div className="grid grid-cols-2 gap-3 p-3 bg-muted/30 rounded-lg">
-            <div className="space-y-1.5">
-              <Label className="text-xs">Início</Label>
-              <Input
-                type="date"
-                value={data.startDate || new Date().toISOString().split('T')[0]}
-                onChange={(e) => updateData({ startDate: e.target.value })}
-                className="h-10 text-sm"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs">Término</Label>
-              <Input
-                type="date"
-                value={data.endDate || ""}
-                onChange={(e) => updateData({ endDate: e.target.value })}
-                className="h-10 text-sm"
-              />
-            </div>
-          </div>
         )}
       </div>
     </div>
