@@ -6,11 +6,12 @@ import { Button } from "./ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Calendar as CalendarIcon, Stethoscope, Activity, Pill, CheckCircle2, Clock, Link as LinkIcon, Plus, Filter, ChevronLeft, ChevronRight, RefreshCw } from "lucide-react";
-import { format, startOfMonth, endOfMonth, addMonths, subMonths, isSameDay, isSameMonth, startOfWeek, endOfWeek, eachDayOfInterval, isToday } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { format, startOfMonth, endOfMonth, addMonths, subMonths, isSameDay, startOfWeek, endOfWeek, eachDayOfInterval, isToday } from "date-fns";
+import { ptBR, enUS } from "date-fns/locale";
 import { useNavigate } from "react-router-dom";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "./ui/tabs";
 import { ScrollArea } from "./ui/scroll-area";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface CalendarEvent {
   id: string;
@@ -29,6 +30,8 @@ interface HealthCalendarProps {
 }
 
 export default function HealthCalendar({ onDateSelect }: HealthCalendarProps) {
+  const { t, language } = useLanguage();
+  const dateLocale = language === 'pt' ? ptBR : enUS;
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
   const [events, setEvents] = useState<CalendarEvent[]>([]);
@@ -62,8 +65,8 @@ export default function HealthCalendar({ onDateSelect }: HealthCalendarProps) {
     } catch (error) {
       console.error('Error fetching events:', error);
       toast({
-        title: "Erro ao carregar eventos",
-        description: "Não foi possível carregar os eventos do calendário.",
+        title: t('healthCalendar.loadError'),
+        description: t('healthCalendar.loadErrorDesc'),
         variant: "destructive"
       });
     } finally {
@@ -80,16 +83,16 @@ export default function HealthCalendar({ onDateSelect }: HealthCalendarProps) {
 
   const connectGoogleCalendar = async () => {
     toast({
-      title: "Integração em desenvolvimento",
-      description: "A sincronização com Google Agenda estará disponível em breve.",
+      title: t('healthCalendar.integrationDev'),
+      description: t('healthCalendar.integrationDevDesc'),
     });
   };
 
   const syncWithGoogle = async () => {
     if (!isConnected) {
       toast({
-        title: "Conecte-se ao Google",
-        description: "Você precisa conectar sua conta do Google primeiro.",
+        title: t('healthCalendar.connectFirst'),
+        description: t('healthCalendar.connectFirstDesc'),
         variant: "destructive"
       });
       return;
@@ -103,16 +106,16 @@ export default function HealthCalendar({ onDateSelect }: HealthCalendarProps) {
       if (error) throw error;
 
       toast({
-        title: "Sincronização concluída",
-        description: `${data.eventsCount.total} eventos sincronizados com sucesso.`,
+        title: t('healthCalendar.syncComplete'),
+        description: t('healthCalendar.syncCompleteDesc', { count: String(data.eventsCount.total) }),
       });
 
       fetchEvents(selectedDate);
     } catch (error) {
       console.error('Error syncing:', error);
       toast({
-        title: "Erro na sincronização",
-        description: "Não foi possível sincronizar com o Google Agenda.",
+        title: t('healthCalendar.syncError'),
+        description: t('healthCalendar.syncErrorDesc'),
         variant: "destructive"
       });
     }
@@ -151,10 +154,6 @@ export default function HealthCalendar({ onDateSelect }: HealthCalendarProps) {
 
   const eventDates = filteredEvents.map(e => new Date(e.date));
 
-  const getEventCountByType = (type: string) => {
-    return events.filter(e => e.type === type).length;
-  };
-
   const handlePreviousMonth = () => {
     setCurrentMonth(subMonths(currentMonth, 1));
     setSelectedDate(subMonths(currentMonth, 1));
@@ -173,8 +172,8 @@ export default function HealthCalendar({ onDateSelect }: HealthCalendarProps) {
 
   const weekDays = viewMode === "week" 
     ? eachDayOfInterval({
-        start: startOfWeek(selectedDate, { locale: ptBR }),
-        end: endOfWeek(selectedDate, { locale: ptBR })
+        start: startOfWeek(selectedDate, { locale: dateLocale }),
+        end: endOfWeek(selectedDate, { locale: dateLocale })
       })
     : [];
 
@@ -191,7 +190,7 @@ export default function HealthCalendar({ onDateSelect }: HealthCalendarProps) {
         <CardHeader>
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="flex items-center gap-4">
-              <CardTitle>Calendário de Saúde</CardTitle>
+              <CardTitle>{t('healthCalendar.title')}</CardTitle>
               <Button
                 variant="outline"
                 size="sm"
@@ -204,8 +203,8 @@ export default function HealthCalendar({ onDateSelect }: HealthCalendarProps) {
             <div className="flex flex-wrap items-center gap-2">
               <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as "month" | "week")} className="w-auto">
                 <TabsList>
-                  <TabsTrigger value="month">Mês</TabsTrigger>
-                  <TabsTrigger value="week">Semana</TabsTrigger>
+                  <TabsTrigger value="month">{t('healthCalendar.month')}</TabsTrigger>
+                  <TabsTrigger value="week">{t('healthCalendar.week')}</TabsTrigger>
                 </TabsList>
               </Tabs>
 
@@ -216,7 +215,7 @@ export default function HealthCalendar({ onDateSelect }: HealthCalendarProps) {
                   onClick={connectGoogleCalendar}
                 >
                   <LinkIcon className="h-4 w-4 mr-2" />
-                  Google Agenda
+                  {t('healthCalendar.googleAgenda')}
                 </Button>
               ) : (
                 <Button
@@ -224,7 +223,7 @@ export default function HealthCalendar({ onDateSelect }: HealthCalendarProps) {
                   size="sm"
                   onClick={syncWithGoogle}
                 >
-                  Sincronizar
+                  {t('healthCalendar.sync')}
                 </Button>
               )}
             </div>
@@ -239,10 +238,10 @@ export default function HealthCalendar({ onDateSelect }: HealthCalendarProps) {
             </Button>
             <div className="flex items-center gap-4">
               <h3 className="text-lg font-semibold">
-                {format(currentMonth, "MMMM 'de' yyyy", { locale: ptBR })}
+                {format(currentMonth, "MMMM 'de' yyyy", { locale: dateLocale })}
               </h3>
               <Button variant="outline" size="sm" onClick={handleToday}>
-                Hoje
+                {t('healthCalendar.today')}
               </Button>
             </div>
             <Button variant="outline" size="sm" onClick={handleNextMonth}>
@@ -258,7 +257,7 @@ export default function HealthCalendar({ onDateSelect }: HealthCalendarProps) {
               onClick={() => setFilterType("all")}
             >
               <Filter className="h-3 w-3 mr-2" />
-              Todos
+              {t('healthCalendar.all')}
             </Button>
             <Button
               variant={filterType === "consulta" ? "default" : "outline"}
@@ -266,7 +265,7 @@ export default function HealthCalendar({ onDateSelect }: HealthCalendarProps) {
               onClick={() => setFilterType("consulta")}
             >
               <Stethoscope className="h-3 w-3 mr-2" />
-              Consultas
+              {t('healthCalendar.consultations')}
             </Button>
             <Button
               variant={filterType === "exame" ? "default" : "outline"}
@@ -274,7 +273,7 @@ export default function HealthCalendar({ onDateSelect }: HealthCalendarProps) {
               onClick={() => setFilterType("exame")}
             >
               <Activity className="h-3 w-3 mr-2" />
-              Exames
+              {t('healthCalendar.exams')}
             </Button>
             <Button
               variant={filterType === "medicamento" ? "default" : "outline"}
@@ -282,7 +281,7 @@ export default function HealthCalendar({ onDateSelect }: HealthCalendarProps) {
               onClick={() => setFilterType("medicamento")}
             >
               <Pill className="h-3 w-3 mr-2" />
-              Medicamentos
+              {t('healthCalendar.medications')}
             </Button>
           </div>
 
@@ -296,7 +295,7 @@ export default function HealthCalendar({ onDateSelect }: HealthCalendarProps) {
                   month={currentMonth}
                   onMonthChange={setCurrentMonth}
                   className="rounded-md border w-full"
-                  locale={ptBR}
+                  locale={dateLocale}
                   modifiers={{
                     hasEvent: eventDates,
                     isToday: [new Date()]
@@ -311,22 +310,22 @@ export default function HealthCalendar({ onDateSelect }: HealthCalendarProps) {
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <h3 className="font-semibold text-lg">
-                    {format(selectedDate, "d 'de' MMMM", { locale: ptBR })}
+                    {format(selectedDate, "d 'de' MMMM", { locale: dateLocale })}
                   </h3>
                   <Badge variant="secondary">
-                    {selectedDateEvents.length} {selectedDateEvents.length === 1 ? 'evento' : 'eventos'}
+                    {selectedDateEvents.length} {selectedDateEvents.length === 1 ? t('cofreDoc.event') : t('cofreDoc.events')}
                   </Badge>
                 </div>
                 
                 <ScrollArea className="h-[400px] pr-4">
                   {loading ? (
-                    <p className="text-muted-foreground text-center py-8">Carregando eventos...</p>
+                    <p className="text-muted-foreground text-center py-8">{t('healthCalendar.loading')}</p>
                   ) : selectedDateEvents.length === 0 ? (
                     <div className="text-center py-8 space-y-3">
-                      <p className="text-muted-foreground">Nenhum evento neste dia.</p>
+                      <p className="text-muted-foreground">{t('healthCalendar.noEvents')}</p>
                       <Button size="sm" onClick={() => navigate('/saude/consultas')}>
                         <Plus className="h-4 w-4 mr-2" />
-                        Adicionar Evento
+                        {t('healthCalendar.addEvent')}
                       </Button>
                     </div>
                   ) : (
@@ -367,7 +366,7 @@ export default function HealthCalendar({ onDateSelect }: HealthCalendarProps) {
                                 )}
                                 <div className="flex items-center gap-2">
                                   <Badge variant="outline" className="text-xs">
-                                    {format(new Date(event.date), "HH:mm", { locale: ptBR })}
+                                    {format(new Date(event.date), "HH:mm", { locale: dateLocale })}
                                   </Badge>
                                 </div>
                               </div>
@@ -396,7 +395,7 @@ export default function HealthCalendar({ onDateSelect }: HealthCalendarProps) {
                       <CardContent className="p-3">
                         <div className="text-center space-y-2">
                           <p className="text-xs text-muted-foreground">
-                            {format(day, "EEE", { locale: ptBR })}
+                            {format(day, "EEE", { locale: dateLocale })}
                           </p>
                           <p className={`text-lg font-bold ${isToday(day) ? 'text-primary' : ''}`}>
                             {format(day, "d")}
@@ -416,13 +415,13 @@ export default function HealthCalendar({ onDateSelect }: HealthCalendarProps) {
               <Card>
                 <CardHeader>
                   <CardTitle className="text-base">
-                    Eventos de {format(selectedDate, "EEEE, d 'de' MMMM", { locale: ptBR })}
+                    {t('healthCalendar.eventsFor')} {format(selectedDate, "EEEE, d 'de' MMMM", { locale: dateLocale })}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <ScrollArea className="h-[300px]">
                     {selectedDateEvents.length === 0 ? (
-                      <p className="text-muted-foreground text-center py-8">Nenhum evento neste dia.</p>
+                      <p className="text-muted-foreground text-center py-8">{t('healthCalendar.noEvents')}</p>
                     ) : (
                       <div className="space-y-3">
                         {selectedDateEvents.map(event => (
@@ -434,7 +433,7 @@ export default function HealthCalendar({ onDateSelect }: HealthCalendarProps) {
                                   <p className="font-medium">{event.title}</p>
                                   <p className="text-sm text-muted-foreground">{event.description}</p>
                                   <Badge variant="outline" className="text-xs mt-2">
-                                    {format(new Date(event.date), "HH:mm", { locale: ptBR })}
+                                    {format(new Date(event.date), "HH:mm", { locale: dateLocale })}
                                   </Badge>
                                 </div>
                               </div>
