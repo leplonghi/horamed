@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { X, Send, Heart } from "lucide-react";
+import { X, Send } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,6 +7,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useHealthAgent } from "@/hooks/useHealthAgent";
 import { useLocation } from "react-router-dom";
 import { Card } from "@/components/ui/card";
+import claraAvatar from "@/assets/clara-avatar.png";
 
 interface Message {
   role: "user" | "assistant";
@@ -82,41 +83,30 @@ export default function HealthAIButton() {
 
   return (
     <>
-      {/* Floating Clara Button - Enhanced with label and pulse */}
+      {/* Floating Clara Avatar Button - positioned to avoid overlap */}
       <AnimatePresence>
         {!isOpen && (
           <motion.button 
             onClick={() => setIsOpen(true)} 
-            className="fixed bottom-36 right-4 z-40 flex items-center gap-2 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-primary-foreground rounded-full pl-4 pr-5 py-2.5 shadow-xl"
-            initial={{ scale: 0, opacity: 0, x: 100 }}
-            animate={{ 
-              scale: 1, 
-              opacity: 1, 
-              x: 0,
-              boxShadow: [
-                "0 10px 30px -10px hsl(var(--primary) / 0.4)",
-                "0 10px 50px -10px hsl(var(--primary) / 0.6)",
-                "0 10px 30px -10px hsl(var(--primary) / 0.4)",
-              ],
-            }}
-            exit={{ scale: 0, opacity: 0, x: 100 }}
-            whileHover={{ scale: 1.05 }}
+            className="fixed bottom-20 right-4 z-30"
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0, opacity: 0 }}
+            whileHover={{ scale: 1.08 }}
             whileTap={{ scale: 0.95 }}
-            transition={{ 
-              duration: 0.3,
-              boxShadow: {
-                duration: 2,
-                repeat: Infinity,
-                ease: "easeInOut",
-              },
-            }}
+            transition={{ duration: 0.2 }}
             aria-label="Clara - Assistente de Saúde"
           >
             <div className="relative">
-              <Heart className="h-5 w-5" />
-              <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-green-400 rounded-full animate-pulse" />
+              <div className="w-12 h-12 rounded-full overflow-hidden ring-2 ring-primary/30 shadow-lg">
+                <img 
+                  src={claraAvatar} 
+                  alt="Clara" 
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-background" />
             </div>
-            <span className="font-medium text-sm">Clara</span>
           </motion.button>
         )}
       </AnimatePresence>
@@ -135,8 +125,8 @@ export default function HealthAIButton() {
               <div className="bg-primary p-4 rounded-t-lg">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-primary-foreground/20 flex items-center justify-center">
-                      <Heart className="h-5 w-5 text-primary-foreground" />
+                    <div className="w-10 h-10 rounded-full overflow-hidden ring-2 ring-primary-foreground/30">
+                      <img src={claraAvatar} alt="Clara" className="w-full h-full object-cover" />
                     </div>
                     <div>
                       <h3 className="font-semibold text-primary-foreground">Clara</h3>
