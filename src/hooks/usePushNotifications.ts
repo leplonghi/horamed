@@ -650,9 +650,23 @@ export const usePushNotifications = () => {
     }
   };
 
-  const checkPermissions = async () => {
-    const permStatus = await PushNotifications.checkPermissions();
-    return permStatus.receive === "granted";
+  const checkPermissions = async (): Promise<boolean> => {
+    // On web, check browser Notification API
+    if (!isNativePlatform) {
+      if (!('Notification' in window)) {
+        return false;
+      }
+      return Notification.permission === 'granted';
+    }
+    
+    // On native, use Capacitor
+    try {
+      const permStatus = await PushNotifications.checkPermissions();
+      return permStatus.receive === "granted";
+    } catch (error) {
+      console.error("Error checking permissions:", error);
+      return false;
+    }
   };
 
   const scheduleDailySummary = async () => {
