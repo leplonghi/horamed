@@ -17,15 +17,17 @@ export const useAdaptiveSuggestions = () => {
   const [suggestions, setSuggestions] = useState<AdaptiveSuggestion[]>([]);
 
   useEffect(() => {
+    let isMounted = true;
+    
     const analyzeBehavior = async () => {
       try {
         const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
+        if (!user || !isMounted) return;
 
         const sevenDaysAgo = new Date();
         sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-        // Get recent dose history
+        // Get recent dose history - fixed query without invalid 'time' column
         const { data: doses, error } = await supabase
           .from('dose_instances')
           .select(`
@@ -36,15 +38,15 @@ export const useAdaptiveSuggestions = () => {
             item_id,
             items!inner (
               user_id,
-              name,
-              time
+              name
             )
           `)
           .gte('due_at', sevenDaysAgo.toISOString())
-          .order('due_at', { ascending: false });
+          .order('due_at', { ascending: false })
+          .limit(100);
 
-        if (error || !doses) {
-          console.error('Error fetching dose history:', error);
+        if (error || !doses || !isMounted) {
+          if (error) console.error('Error fetching dose history:', error);
           return;
         }
 
@@ -53,15 +55,16 @@ export const useAdaptiveSuggestions = () => {
         // Group by medication
         const byMedication = doses.reduce((acc, dose) => {
           const itemData = Array.isArray(dose.items) ? dose.items[0] : dose.items;
+          if (!itemData) return acc;
           if (!acc[dose.item_id]) {
-            acc[dose.item_id] = { doses: [], name: itemData.name, scheduledTime: itemData.time };
+            acc[dose.item_id] = { doses: [], name: itemData.name };
           }
           acc[dose.item_id].doses.push(dose);
           return acc;
-        }, {} as Record<string, { doses: any[], name: string, scheduledTime: string }>);
+        }, {} as Record<string, { doses: any[], name: string }>);
 
         // Analyze each medication
-        Object.entries(byMedication).forEach(([itemId, { doses: medDoses, name, scheduledTime }]) => {
+        Object.entries(byMedication).forEach(([itemId, { doses: medDoses, name }]) => {
           // Check for consistent delays
           const delays = medDoses
             .filter(d => d.status === 'taken' && d.taken_at && d.due_at)
@@ -82,7 +85,6 @@ export const useAdaptiveSuggestions = () => {
               message: `Você costuma tomar ${name} com ${avgDelayHours}h${avgDelayMinutes}min de atraso. Quer ajustar o horário?`,
               itemId,
               itemName: name,
-              suggestedTime: scheduledTime,
             });
           }
 
@@ -114,18 +116,21 @@ export const useAdaptiveSuggestions = () => {
           }
         });
 
-        setSuggestions(newSuggestions);
+        if (isMounted) {
+          setSuggestions(newSuggestions);
+        }
       } catch (error) {
         console.error('Error analyzing behavior:', error);
       }
     };
 
-    analyzeBehavior();
+    // Delay initial analysis to avoid blocking initial load
+    const timeout = setTimeout(analyzeBehavior, 5000);
 
-    // Re-analyze daily
-    const interval = setInterval(analyzeBehavior, 24 * 60 * 60 * 1000);
-
-    return () => clearInterval(interval);
+    return () => {
+      isMounted = false;
+      clearTimeout(timeout);
+    };
   }, []);
 
   return { suggestions };

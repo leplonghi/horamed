@@ -21,10 +21,22 @@ export function usePrescriptionControl(profileId?: string) {
     queryFn: async () => {
       const now = new Date();
       
+      // First, get the receita category UUID
+      const { data: categoriaReceita } = await supabase
+        .from("categorias_saude")
+        .select("id")
+        .eq("slug", "receita")
+        .single();
+
+      if (!categoriaReceita) {
+        console.warn("Categoria receita not found");
+        return [];
+      }
+      
       let query = supabase
         .from("documentos_saude")
         .select("id, title, issued_at, expires_at, meta, created_at")
-        .eq("categoria_id", "receita")
+        .eq("categoria_id", categoriaReceita.id)
         .order("created_at", { ascending: false });
 
       if (profileId) {
@@ -97,10 +109,22 @@ export function useExpiredPrescriptions(profileId?: string) {
     queryFn: async () => {
       const now = new Date();
       
+      // First, get the receita category UUID
+      const { data: categoriaReceita } = await supabase
+        .from("categorias_saude")
+        .select("id")
+        .eq("slug", "receita")
+        .single();
+
+      if (!categoriaReceita) {
+        console.warn("Categoria receita not found");
+        return [];
+      }
+      
       let query = supabase
         .from("documentos_saude")
         .select("id, title, issued_at, expires_at, meta")
-        .eq("categoria_id", "receita")
+        .eq("categoria_id", categoriaReceita.id)
         .not("expires_at", "is", null)
         .order("expires_at", { ascending: true });
 
