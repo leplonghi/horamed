@@ -291,7 +291,7 @@ export default function Today() {
                   />
                   <motion.circle
                     cx="56" cy="56" r="50"
-                    stroke="hsl(var(--primary))"
+                    stroke={progressPercent === 100 ? "hsl(var(--success))" : "hsl(var(--primary))"}
                     strokeWidth="8"
                     fill="none"
                     strokeLinecap="round"
@@ -301,12 +301,16 @@ export default function Today() {
                   />
                 </svg>
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <span className="stat-number text-foreground">{progressPercent}%</span>
+                  {progressPercent === 100 ? (
+                    <Check className="w-10 h-10 text-success" />
+                  ) : (
+                    <span className="stat-number text-foreground">{progressPercent}%</span>
+                  )}
                 </div>
               </div>
               <div className="flex items-center gap-1.5 mt-3">
-                <p className="text-sm text-muted-foreground">
-                  {pendingDoses.length === 0 ? "Tudo em dia" : `${completedDoses} de ${totalDoses} doses`}
+                <p className={`text-sm ${progressPercent === 100 ? 'text-success font-medium' : 'text-muted-foreground'}`}>
+                  {progressPercent === 100 ? "Tudo em dia! 🎉" : `${completedDoses} de ${totalDoses} doses`}
                 </p>
                 <HelpTooltip content={microcopy.help.today.progress} iconSize="sm" />
               </div>
@@ -471,18 +475,18 @@ export default function Today() {
             </motion.section>
           )}
 
-          {/* All done celebration - Clean */}
-          {hasAnyItems && doses.length > 0 && pendingDoses.length === 0 && (
+          {/* No events today - only show when there are items but no doses scheduled */}
+          {hasAnyItems && doses.length === 0 && (
             <motion.div 
               initial={{ opacity: 0, y: 10 }} 
               animate={{ opacity: 1, y: 0 }}
               className="text-center py-10"
             >
-              <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-success/10 flex items-center justify-center">
-                <Check className="w-7 h-7 text-success" />
+              <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-muted/30 flex items-center justify-center">
+                <Clock className="w-7 h-7 text-muted-foreground" />
               </div>
-              <h3 className="text-lg font-medium text-success">Tudo em dia</h3>
-              <p className="text-muted-foreground text-sm mt-1">Todas as doses foram tomadas</p>
+              <h3 className="text-lg font-medium text-muted-foreground">Nenhum evento hoje</h3>
+              <p className="text-muted-foreground/70 text-sm mt-1">Seus medicamentos não têm doses agendadas para hoje</p>
             </motion.div>
           )}
 
@@ -629,7 +633,7 @@ function DoseCard({ dose, onTake, onSkip, isOverdue, isTaking, delay = 0 }: Dose
           relative rounded-2xl p-4 backdrop-blur-sm transition-colors duration-300
           shadow-[var(--shadow-sm)] touch-pan-y select-none
           ${isOverdue 
-            ? 'bg-destructive/5 ring-1 ring-destructive/20' 
+            ? 'bg-destructive/8 ring-2 ring-destructive/30 border-l-4 border-l-destructive' 
             : 'bg-card'
           }
         `}
