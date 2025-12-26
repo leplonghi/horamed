@@ -403,18 +403,18 @@ export default function MedicamentosHub() {
                 </p>
               </div>
             </div>
-            <Button
-              size="default"
-              className="rounded-xl hover-lift gap-2 shadow-md"
-              onClick={() => setWizardOpen(true)}
-            >
-              <Plus className="h-4 w-4" />
-              <span className="hidden sm:inline">Adicionar</span>
-            </Button>
+            <div className="flex flex-col items-end gap-1">
+              <Button
+                size="default"
+                className="rounded-xl hover-lift gap-2 shadow-md"
+                onClick={() => setWizardOpen(true)}
+              >
+                <Plus className="h-4 w-4" />
+                <span className="hidden sm:inline">Adicionar</span>
+              </Button>
+              <span className="text-[10px] text-muted-foreground sm:hidden">Novo remédio</span>
+            </div>
           </div>
-
-          {/* Clara Contextual */}
-          <ContextualClara context="medications" />
 
           {/* Section Tabs - Redesign com labels claros */}
           <Tabs value={activeSection} onValueChange={setActiveSection} className="w-full">
