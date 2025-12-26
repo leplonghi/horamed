@@ -607,6 +607,8 @@ export default function AddMedicationWizard() {
               </div>
             </CardContent>
           </Card>
+            </>
+          )}
         </div>
       </div>
     </>
