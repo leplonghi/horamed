@@ -1,10 +1,10 @@
-import { useState, useEffect } from "react";
 import { Heart, Plus, Upload, Pill, Calendar, TrendingUp, Package, ChevronRight, Sparkles } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 type PageContext = "today" | "medications" | "stock" | "cofre" | "progress" | "calendar" | "health" | "default";
 
@@ -23,69 +23,70 @@ interface ContextualClaraProps {
   onOpenClara?: () => void;
 }
 
-const contextConfig: Record<PageContext, { message: string; actions: QuickAction[] }> = {
-  today: {
-    message: "Como posso ajudar com suas doses de hoje?",
-    actions: [
-      { id: "add-dose", label: "Nova dose", icon: Plus, route: "/adicionar-medicamento", color: "text-primary bg-primary/10" },
-      { id: "view-stock", label: "Ver estoque", icon: Package, route: "/medicamentos?tab=estoque", color: "text-amber-500 bg-amber-500/10" },
-    ],
-  },
-  medications: {
-    message: "Sua rotina de saúde organizada. Precisa de algo?",
-    actions: [
-      { id: "view-calendar", label: "Ver calendário", icon: Calendar, route: "/agenda", color: "text-blue-500 bg-blue-500/10" },
-      { id: "view-progress", label: "Ver progresso", icon: TrendingUp, route: "/meu-progresso", color: "text-green-500 bg-green-500/10" },
-    ],
-  },
-  stock: {
-    message: "Controle de estoque inteligente. Algo está baixo?",
-    actions: [
-      { id: "view-rotina", label: "Ver rotina", icon: Pill, route: "/medicamentos?tab=rotina", color: "text-primary bg-primary/10" },
-      { id: "add-med", label: "Adicionar item", icon: Plus, route: "/adicionar-medicamento", color: "text-green-500 bg-green-500/10" },
-    ],
-  },
-  cofre: {
-    message: "Sua carteira de saúde digital. O que deseja guardar?",
-    actions: [
-      { id: "upload-doc", label: "Enviar documento", icon: Upload, route: "/carteira/upload", color: "text-primary bg-primary/10" },
-      { id: "manual-doc", label: "Cadastrar manual", icon: Plus, route: "/carteira/criar-manual", color: "text-green-500 bg-green-500/10" },
-    ],
-  },
-  progress: {
-    message: "Acompanhando seu progresso. Quer ver mais detalhes?",
-    actions: [
-      { id: "view-calendar", label: "Ver calendário", icon: Calendar, route: "/agenda", color: "text-primary bg-primary/10" },
-      { id: "view-analytics", label: "Análises", icon: TrendingUp, route: "/dashboard-saude", color: "text-blue-500 bg-blue-500/10" },
-    ],
-  },
-  calendar: {
-    message: "Sua agenda de saúde. Posso ajudar a planejar?",
-    actions: [
-      { id: "add-appointment", label: "Nova consulta", icon: Plus, route: "/carteira/criar-manual", color: "text-primary bg-primary/10" },
-      { id: "view-today", label: "Ver hoje", icon: Calendar, route: "/hoje", color: "text-amber-500 bg-amber-500/10" },
-    ],
-  },
-  health: {
-    message: "Análise de saúde disponível. O que quer explorar?",
-    actions: [
-      { id: "view-insights", label: "Ver insights", icon: Sparkles, route: "/dashboard-saude", color: "text-primary bg-primary/10" },
-      { id: "add-weight", label: "Registrar peso", icon: TrendingUp, route: "/peso/historico", color: "text-green-500 bg-green-500/10" },
-    ],
-  },
-  default: {
-    message: "Olá! Em que posso ajudar?",
-    actions: [
-      { id: "go-today", label: "Ver hoje", icon: Calendar, route: "/hoje", color: "text-primary bg-primary/10" },
-      { id: "add-med", label: "Adicionar", icon: Plus, route: "/adicionar-medicamento", color: "text-green-500 bg-green-500/10" },
-    ],
-  },
-};
-
 export default function ContextualClara({ context, className, onOpenClara }: ContextualClaraProps) {
   const navigate = useNavigate();
+  const { t } = useLanguage();
+  
+  const contextConfig: Record<PageContext, { message: string; actions: QuickAction[] }> = {
+    today: {
+      message: t('clara.todayMessage'),
+      actions: [
+        { id: "add-dose", label: t('clara.newDose'), icon: Plus, route: "/adicionar-medicamento", color: "text-primary bg-primary/10" },
+        { id: "view-stock", label: t('clara.viewStock'), icon: Package, route: "/medicamentos?tab=estoque", color: "text-amber-500 bg-amber-500/10" },
+      ],
+    },
+    medications: {
+      message: t('clara.medsMessage'),
+      actions: [
+        { id: "view-calendar", label: t('clara.viewCalendar'), icon: Calendar, route: "/agenda", color: "text-blue-500 bg-blue-500/10" },
+        { id: "view-progress", label: t('clara.viewProgress'), icon: TrendingUp, route: "/meu-progresso", color: "text-green-500 bg-green-500/10" },
+      ],
+    },
+    stock: {
+      message: t('clara.stockMessage'),
+      actions: [
+        { id: "view-rotina", label: t('clara.viewRoutine'), icon: Pill, route: "/medicamentos?tab=rotina", color: "text-primary bg-primary/10" },
+        { id: "add-med", label: t('clara.addItem'), icon: Plus, route: "/adicionar-medicamento", color: "text-green-500 bg-green-500/10" },
+      ],
+    },
+    cofre: {
+      message: t('clara.cofreMessage'),
+      actions: [
+        { id: "upload-doc", label: t('clara.uploadDoc'), icon: Upload, route: "/carteira/upload", color: "text-primary bg-primary/10" },
+        { id: "manual-doc", label: t('clara.manualDoc'), icon: Plus, route: "/carteira/criar-manual", color: "text-green-500 bg-green-500/10" },
+      ],
+    },
+    progress: {
+      message: t('clara.progressMessage'),
+      actions: [
+        { id: "view-calendar", label: t('clara.viewCalendar'), icon: Calendar, route: "/agenda", color: "text-primary bg-primary/10" },
+        { id: "view-analytics", label: t('clara.analytics'), icon: TrendingUp, route: "/dashboard-saude", color: "text-blue-500 bg-blue-500/10" },
+      ],
+    },
+    calendar: {
+      message: t('clara.calendarMessage'),
+      actions: [
+        { id: "add-appointment", label: t('clara.newAppointment'), icon: Plus, route: "/carteira/criar-manual", color: "text-primary bg-primary/10" },
+        { id: "view-today", label: t('clara.viewToday'), icon: Calendar, route: "/hoje", color: "text-amber-500 bg-amber-500/10" },
+      ],
+    },
+    health: {
+      message: t('clara.healthMessage'),
+      actions: [
+        { id: "view-insights", label: t('clara.viewInsights'), icon: Sparkles, route: "/dashboard-saude", color: "text-primary bg-primary/10" },
+        { id: "add-weight", label: t('clara.logWeight'), icon: TrendingUp, route: "/peso/historico", color: "text-green-500 bg-green-500/10" },
+      ],
+    },
+    default: {
+      message: t('clara.defaultMessage'),
+      actions: [
+        { id: "go-today", label: t('clara.viewToday'), icon: Calendar, route: "/hoje", color: "text-primary bg-primary/10" },
+        { id: "add-med", label: t('clara.add'), icon: Plus, route: "/adicionar-medicamento", color: "text-green-500 bg-green-500/10" },
+      ],
+    },
+  };
+
   const config = contextConfig[context] || contextConfig.default;
-  const [isVisible, setIsVisible] = useState(true);
 
   const handleAction = (action: QuickAction) => {
     if (action.route) {
@@ -94,8 +95,6 @@ export default function ContextualClara({ context, className, onOpenClara }: Con
       action.action();
     }
   };
-
-  if (!isVisible) return null;
 
   return (
     <motion.div

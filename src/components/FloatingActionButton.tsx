@@ -3,10 +3,12 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLocation } from "react-router-dom";
 import QuickActionMenu from "./QuickActionMenu";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function FloatingActionButton() {
   const [showMenu, setShowMenu] = useState(false);
   const location = useLocation();
+  const { t } = useLanguage();
   
   // Hide FAB on auth, onboarding, and pages with their own add button
   const hiddenRoutes = ["/auth", "/onboarding", "/rotina", "/medicamentos"];
@@ -42,7 +44,7 @@ export default function FloatingActionButton() {
               ease: "easeInOut",
             },
           }}
-          aria-label="Adicionar"
+          aria-label={t('common.add')}
         >
           <Plus className="h-6 w-6" />
         </motion.button>

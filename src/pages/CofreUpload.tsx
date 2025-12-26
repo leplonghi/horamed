@@ -10,10 +10,12 @@ import Header from "@/components/Header";
 import Navigation from "@/components/Navigation";
 import UpgradeModal from "@/components/UpgradeModal";
 import { isPDF } from "@/lib/pdfProcessor";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 
 export default function CofreUpload() {
   const navigate = useNavigate();
+  const { t, language } = useLanguage();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   
@@ -30,7 +32,7 @@ export default function CofreUpload() {
     // Check file size
     const maxSize = 20 * 1024 * 1024; // 20MB
     if (file.size > maxSize) {
-      return { valid: false, error: "Arquivo muito grande. Máximo: 20MB" };
+      return { valid: false, error: t('cofre.upload.fileTooBig') };
     }
 
     // For images, check resolution
@@ -50,7 +52,7 @@ export default function CofreUpload() {
           if (img.width < minWidth || img.height < minHeight) {
             resolve({ 
               valid: false, 
-              error: `Imagem muito pequena (${img.width}x${img.height}). Mínimo recomendado: ${minWidth}x${minHeight}px` 
+              error: t('cofre.upload.imageTooSmall', { width: String(img.width), height: String(img.height) })
             });
           } else {
             resolve({ valid: true });
@@ -58,7 +60,7 @@ export default function CofreUpload() {
         };
         
         img.onerror = () => {
-          resolve({ valid: false, error: "Não foi possível ler a imagem" });
+          resolve({ valid: false, error: t('cofre.upload.cannotReadImage') });
         };
         
         reader.readAsDataURL(file);
@@ -123,18 +125,18 @@ export default function CofreUpload() {
 
         setIsExtracting(true);
         setUploading(true);
-        toast.loading("Analisando documento...", { id: "extract" });
+        toast.loading(t('cofre.upload.analyzing'), { id: "extract" });
         
         try {
           // First, upload the file
           const { data: { user } } = await supabase.auth.getUser();
-          if (!user) throw new Error("Usuário não autenticado");
+          if (!user) throw new Error(t('cofre.upload.userNotAuth'));
 
           const fileExt = firstFile.name.split('.').pop();
           const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
           const filePath = `${user.id}/${fileName}`;
 
-          toast.loading("Enviando arquivo...", { id: "extract" });
+          toast.loading(t('cofre.upload.uploading'), { id: "extract" });
 
           const { error: uploadError } = await supabase.storage
             .from('cofre-saude')
@@ -143,7 +145,7 @@ export default function CofreUpload() {
           if (uploadError) throw uploadError;
 
           // Now extract data from the file
-          toast.loading("Analisando conteúdo com IA...", { id: "extract" });
+          toast.loading(t('cofre.upload.aiProcessing'), { id: "extract" });
 
           if (isPDF(firstFile)) {
             console.log('Processando PDF completo...');
@@ -157,7 +159,7 @@ export default function CofreUpload() {
                 if (data) {
                   await saveDocumentAutomatically(data, user.id, filePath, firstFile.type);
                 } else {
-                  throw new Error("Não foi possível extrair dados do PDF");
+                  throw new Error(t('cofre.upload.cannotExtractPdf'));
                 }
               } catch (err) {
                 await supabase.storage.from('cofre-saude').remove([filePath]);
@@ -177,7 +179,7 @@ export default function CofreUpload() {
                   await saveDocumentAutomatically(data, user.id, filePath, firstFile.type);
                 } else {
                   await supabase.storage.from('cofre-saude').remove([filePath]);
-                  throw new Error("Não foi possível extrair informações da imagem");
+                  throw new Error(t('cofre.upload.cannotExtractImage'));
                 }
               } catch (err: any) {
                 await supabase.storage.from('cofre-saude').remove([filePath]);
@@ -190,18 +192,18 @@ export default function CofreUpload() {
           console.error('Erro ao processar documento:', error);
           toast.dismiss("extract");
           
-          let errorMessage = "Não conseguimos processar o documento. ";
+          let errorMessage = "";
           let suggestions = "";
           
           if (error.message?.includes('Invalid') || error.message?.includes('formato')) {
-            errorMessage = "Formato de arquivo inválido.";
-            suggestions = "Use apenas PDF, PNG ou JPEG.";
+            errorMessage = t('cofre.upload.invalidFormat');
+            suggestions = t('cofre.upload.useFormats');
           } else if (error.message?.includes('large') || error.message?.includes('size')) {
-            errorMessage = "Arquivo muito grande.";
-            suggestions = "Reduza o tamanho para menos de 20MB.";
+            errorMessage = t('cofre.upload.fileTooLarge');
+            suggestions = t('cofre.upload.reduceSizeTo');
           } else {
-            errorMessage = "Qualidade insuficiente para leitura.";
-            suggestions = "Dicas: tire foto com boa iluminação, evite sombras, mantenha o documento plano e use resolução mínima de 800x600px.";
+            errorMessage = t('cofre.upload.lowQuality');
+            suggestions = t('cofre.upload.qualityTips');
           }
           
           toast.error(`${errorMessage} ${suggestions}`, { duration: 8000 });
@@ -214,7 +216,7 @@ export default function CofreUpload() {
 
   const saveDocumentAutomatically = async (extractedData: any, userId: string, filePath: string, mimeType: string) => {
     try {
-      toast.loading("Salvando documento...", { id: "extract" });
+      toast.loading(t('cofre.upload.saving'), { id: "extract" });
 
       const { data: categoriaData } = await supabase
         .from('categorias_saude')
@@ -314,15 +316,15 @@ export default function CofreUpload() {
       
       // Show comprehensive success message
       const createdItems = [];
-      if (createdRecords.consulta) createdItems.push("✓ Consulta registrada");
-      if (createdRecords.exame) createdItems.push(`✓ Exame com ${createdRecords.valoresCount || 0} parâmetro(s)`);
-      if (createdRecords.evento) createdItems.push("✓ Lembrete de vacina criado");
+      if (createdRecords.consulta) createdItems.push(t('cofre.upload.consultationSaved'));
+      if (createdRecords.exame) createdItems.push(t('cofre.upload.examSaved', { count: String(createdRecords.valoresCount || 0) }));
+      if (createdRecords.evento) createdItems.push(t('cofre.upload.vaccineReminder'));
       
       if (createdItems.length > 0) {
-        toast.success("✓ Documento salvo com sucesso!", { duration: 4000 });
+        toast.success(t('cofre.upload.docSaved'), { duration: 4000 });
         toast.info(createdItems.join("\n"), { duration: 5000 });
       } else {
-        toast.success("✓ Documento salvo!", { duration: 3000 });
+        toast.success(t('cofre.upload.docSavedShort'), { duration: 3000 });
       }
       
       // Show document summary
@@ -337,7 +339,7 @@ export default function CofreUpload() {
           summary.push(doctorInfo);
         }
       }
-      if (extractedData.issued_at) summary.push(`📅 ${new Date(extractedData.issued_at).toLocaleDateString('pt-BR')}`);
+      if (extractedData.issued_at) summary.push(`📅 ${new Date(extractedData.issued_at).toLocaleDateString(language === 'pt' ? 'pt-BR' : 'en-US')}`);
       
       if (summary.length > 0) {
         toast.info(summary.join(" • "), { duration: 4000 });
@@ -353,7 +355,7 @@ export default function CofreUpload() {
     } catch (error: any) {
       console.error("Erro ao salvar:", error);
       toast.dismiss("extract");
-      toast.error("Erro ao salvar documento");
+      toast.error(t('cofre.upload.saveError'));
       await supabase.storage.from('cofre-saude').remove([filePath]);
     } finally {
       setIsExtracting(false);
@@ -445,7 +447,7 @@ export default function CofreUpload() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      toast.loading("Adicionando medicamentos...", { id: "add-meds" });
+      toast.loading(t('cofre.upload.addingMeds'), { id: "add-meds" });
 
       for (const med of extractedMedications) {
         // Calculate treatment end date if duration is provided
@@ -462,45 +464,48 @@ export default function CofreUpload() {
           .insert({
             user_id: user.id,
             profile_id: activeProfile?.id,
-            name: med.drug_name,
+            name: med.drug_name || med.commercial_name,
             dose_text: med.dose,
             category: 'medicamento',
-            notes: med.duration_days ? `Duração: ${med.duration_days} dias` : null,
-            treatment_duration_days: med.duration_days ? parseInt(med.duration_days) : null,
-            treatment_start_date: new Date().toISOString().split('T')[0],
+            notes: med.instructions,
+            with_food: med.with_food || false,
             treatment_end_date: endDate,
+            treatment_duration_days: med.duration_days ? parseInt(med.duration_days) : null,
           })
           .select()
           .single();
 
-        if (itemError) {
-          console.error("Error creating medication:", itemError);
-          continue;
-        }
+        if (itemError || !newItem) continue;
 
-        // Parse frequency and create schedule
-        if (med.frequency && newItem) {
-          const times = parseFrequencyToTimes(med.frequency);
-          if (times.length > 0) {
-            await supabase.from('schedules').insert({
-              item_id: newItem.id,
-              freq_type: 'daily',
-              times: times,
-              days_of_week: [0, 1, 2, 3, 4, 5, 6],
-            });
-          }
+        // Create schedule based on frequency
+        const times = parseFrequencyToTimes(med.frequency || '');
+        
+        await supabase.from('schedules').insert({
+          item_id: newItem.id,
+          freq_type: 'daily',
+          times: times,
+          is_active: true,
+        });
+
+        // Create stock if package info available
+        if (med.package_quantity) {
+          await supabase.from('stock').insert({
+            item_id: newItem.id,
+            units_total: parseInt(med.package_quantity) || 30,
+            units_left: parseInt(med.package_quantity) || 30,
+            unit_label: med.package_type || (language === 'pt' ? 'comprimidos' : 'tablets'),
+          });
         }
       }
 
       toast.dismiss("add-meds");
-      toast.success(`✓ ${extractedMedications.length} medicamento(s) adicionado(s) à sua rotina!`, { duration: 4000 });
-      toast.info("Você receberá lembretes automáticos nos horários configurados", { duration: 4000 });
+      toast.success(t('cofre.upload.medsAdded'));
       setShowMedicationModal(false);
       navigate('/rotina');
     } catch (error) {
       console.error("Error adding medications:", error);
       toast.dismiss("add-meds");
-      toast.error("Erro ao adicionar medicamentos");
+      toast.error(t('cofre.upload.addMedsError'));
     }
   };
 
@@ -530,19 +535,53 @@ export default function CofreUpload() {
     return times;
   };
 
+  const requirementsTitle = language === 'pt' ? 'Requisitos para melhor extração' : 'Requirements for best extraction';
+  const requirementsImages = language === 'pt' 
+    ? 'mínimo 800x600px, com boa iluminação e sem sombras'
+    : 'minimum 800x600px, with good lighting and no shadows';
+  const requirementsPdfs = language === 'pt'
+    ? 'preferir documentos com texto selecionável'
+    : 'prefer documents with selectable text';
+  const requirementsFocus = language === 'pt'
+    ? 'documento deve estar nítido e plano'
+    : 'document must be sharp and flat';
+  const requirementsSize = language === 'pt'
+    ? 'máximo 20MB por arquivo'
+    : 'maximum 20MB per file';
+  const uploadFileBtn = language === 'pt' ? 'Enviar Arquivo' : 'Upload File';
+  const uploadFileDesc = language === 'pt' ? 'PDF, JPG ou PNG (até 20MB)' : 'PDF, JPG, or PNG (up to 20MB)';
+  const takePhotoBtn = language === 'pt' ? 'Tirar Foto' : 'Take Photo';
+  const takePhotoDesc = language === 'pt' ? 'Fotografar documento direto' : 'Photograph document directly';
+  const aiAnalyzing = language === 'pt' ? 'Analisando documento com IA avançada...' : 'Analyzing document with advanced AI...';
+  const aiProcessing = language === 'pt' ? 'Processando e extraindo informações automaticamente' : 'Processing and extracting information automatically';
+  const autoExtraction = language === 'pt' ? 'Extração e salvamento automáticos:' : 'Automatic extraction and saving:';
+  const aiIdentifies = language === 'pt' ? 'IA identifica exames, receitas, vacinas e consultas' : 'AI identifies exams, prescriptions, vaccines, and consultations';
+  const dataFilled = language === 'pt' ? 'Dados são preenchidos e salvos automaticamente' : 'Data is filled and saved automatically';
+  const medsFound = language === 'pt' ? 'medicamento(s)' : 'medication(s)';
+  const medsFoundDesc = language === 'pt' 
+    ? 'encontrados nesta receita. Vamos criar lembretes automáticos nos horários corretos!'
+    : 'found in this prescription. Let\'s create automatic reminders at the right times!';
+  const doseLabel = language === 'pt' ? 'Dose' : 'Dose';
+  const frequencyLabel = language === 'pt' ? 'Frequência' : 'Frequency';
+  const durationLabel = language === 'pt' ? 'Duração' : 'Duration';
+  const daysLabel = language === 'pt' ? 'dias' : 'days';
+  const adjustInfo = language === 'pt' 
+    ? 'Você poderá ajustar horários e doses depois na página "Rotina"'
+    : 'You can adjust times and doses later on the "Routine" page';
+  const notNowBtn = language === 'pt' ? 'Agora Não' : 'Not Now';
 
   return (
     <div className="min-h-screen bg-background pb-20">
       <Header />
-      <div className="container max-w-2xl mx-auto px-4 py-6 pt-24">{/* pt-24 para compensar o header fixo */}
+      <div className="container max-w-2xl mx-auto px-4 py-6 pt-24">
         <Button variant="ghost" onClick={() => navigate("/carteira")} className="mb-4">
           <ArrowLeft className="w-4 h-4 mr-2" />
-          Voltar
+          {t('common.back')}
         </Button>
 
-        <h1 className="text-3xl font-bold mb-2">Adicionar Documento</h1>
+        <h1 className="text-3xl font-bold mb-2">{t('cofre.upload.title')}</h1>
         <p className="text-muted-foreground mb-6">
-          Envie PDF ou foto. O HoraMed identifica o tipo e extrai os dados automaticamente.
+          {t('cofre.upload.subtitle')}
         </p>
 
         {isExtracting && (
@@ -552,10 +591,10 @@ export default function CofreUpload() {
                 <Loader2 className="w-5 h-5 animate-spin text-primary flex-shrink-0 mt-0.5" />
                 <div className="flex-1">
                   <p className="text-sm font-medium">
-                    Analisando documento com IA avançada...
+                    {aiAnalyzing}
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    Processando e extraindo informações automaticamente
+                    {aiProcessing}
                   </p>
                 </div>
               </div>
@@ -568,13 +607,13 @@ export default function CofreUpload() {
             <div className="space-y-3">
               <h3 className="font-semibold text-sm flex items-center gap-2">
                 <FileText className="h-4 w-4 text-primary" />
-                Requisitos para melhor extração
+                {requirementsTitle}
               </h3>
               <ul className="text-xs text-muted-foreground space-y-1.5 ml-6">
-                <li>• <strong>Imagens:</strong> mínimo 800x600px, com boa iluminação e sem sombras</li>
-                <li>• <strong>PDFs:</strong> preferir documentos com texto selecionável</li>
-                <li>• <strong>Foco:</strong> documento deve estar nítido e plano</li>
-                <li>• <strong>Tamanho:</strong> máximo 20MB por arquivo</li>
+                <li>• <strong>{language === 'pt' ? 'Imagens:' : 'Images:'}</strong> {requirementsImages}</li>
+                <li>• <strong>PDFs:</strong> {requirementsPdfs}</li>
+                <li>• <strong>{language === 'pt' ? 'Foco:' : 'Focus:'}</strong> {requirementsFocus}</li>
+                <li>• <strong>{language === 'pt' ? 'Tamanho:' : 'Size:'}</strong> {requirementsSize}</li>
               </ul>
             </div>
           </CardContent>
@@ -594,9 +633,9 @@ export default function CofreUpload() {
                   <div className="flex flex-col items-center gap-3">
                     <Upload className="w-12 h-12 text-primary" />
                     <div>
-                      <p className="text-lg font-semibold">Enviar Arquivo</p>
+                      <p className="text-lg font-semibold">{uploadFileBtn}</p>
                       <p className="text-xs text-muted-foreground mt-1">
-                        PDF, JPG ou PNG (até 20MB)
+                        {uploadFileDesc}
                       </p>
                     </div>
                   </div>
@@ -607,7 +646,7 @@ export default function CofreUpload() {
                     <span className="w-full border-t" />
                   </div>
                   <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-background px-2 text-muted-foreground">ou</span>
+                    <span className="bg-background px-2 text-muted-foreground">{t('common.or')}</span>
                   </div>
                 </div>
 
@@ -621,9 +660,9 @@ export default function CofreUpload() {
                   <div className="flex flex-col items-center gap-3">
                     <Camera className="w-12 h-12 text-primary" />
                     <div>
-                      <p className="text-lg font-semibold">Tirar Foto</p>
+                      <p className="text-lg font-semibold">{takePhotoBtn}</p>
                       <p className="text-xs text-muted-foreground mt-1">
-                        Fotografar documento direto
+                        {takePhotoDesc}
                       </p>
                     </div>
                   </div>
@@ -634,7 +673,7 @@ export default function CofreUpload() {
                     <span className="w-full border-t" />
                   </div>
                   <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-background px-2 text-muted-foreground">ou</span>
+                    <span className="bg-background px-2 text-muted-foreground">{t('common.or')}</span>
                   </div>
                 </div>
 
@@ -648,9 +687,9 @@ export default function CofreUpload() {
                   <div className="flex flex-col items-center gap-3">
                     <Edit3 className="w-12 h-12 text-primary" />
                     <div>
-                      <p className="text-lg font-semibold">Adicionar Manualmente</p>
+                      <p className="text-lg font-semibold">{t('cofre.upload.addManually')}</p>
                       <p className="text-xs text-muted-foreground mt-1">
-                        Preencher informações sem arquivo
+                        {t('cofre.upload.fillWithoutFile')}
                       </p>
                     </div>
                   </div>
@@ -686,9 +725,9 @@ export default function CofreUpload() {
           </Card>
 
           <div className="text-center text-xs text-muted-foreground space-y-1">
-            <p>✨ <strong>Extração e salvamento automáticos:</strong></p>
-            <p>IA identifica exames, receitas, vacinas e consultas</p>
-            <p>Dados são preenchidos e salvos automaticamente</p>
+            <p>✨ <strong>{autoExtraction}</strong></p>
+            <p>{aiIdentifies}</p>
+            <p>{dataFilled}</p>
           </div>
         </div>
       </div>
@@ -705,17 +744,16 @@ export default function CofreUpload() {
                   <span className="text-2xl">💊</span>
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold">Medicamentos da Receita</h2>
+                  <h2 className="text-xl font-bold">{t('cofre.upload.prescriptionMeds')}</h2>
                   <p className="text-sm text-muted-foreground">
-                    Adicionar à sua rotina de medicamentos
+                    {t('cofre.upload.addToRoutine')}
                   </p>
                 </div>
               </div>
 
               <div className="bg-blue-50 dark:bg-blue-950 p-3 rounded-lg mb-4">
                 <p className="text-sm text-blue-900 dark:text-blue-100">
-                  <strong>{extractedMedications.length} medicamento(s)</strong> encontrados nesta receita.
-                  Vamos criar lembretes automáticos nos horários corretos!
+                  <strong>{extractedMedications.length} {medsFound}</strong> {medsFoundDesc}
                 </p>
               </div>
               
@@ -732,19 +770,19 @@ export default function CofreUpload() {
                           {med.dose && (
                             <div className="flex items-center gap-2 text-muted-foreground">
                               <span className="w-5">💊</span>
-                              <span>Dose: <strong>{med.dose}</strong></span>
+                              <span>{doseLabel}: <strong>{med.dose}</strong></span>
                             </div>
                           )}
                           {med.frequency && (
                             <div className="flex items-center gap-2 text-muted-foreground">
                               <span className="w-5">⏰</span>
-                              <span>Frequência: <strong>{med.frequency}</strong></span>
+                              <span>{frequencyLabel}: <strong>{med.frequency}</strong></span>
                             </div>
                           )}
                           {med.duration_days && (
                             <div className="flex items-center gap-2 text-muted-foreground">
                               <span className="w-5">📅</span>
-                              <span>Duração: <strong>{med.duration_days} dias</strong></span>
+                              <span>{durationLabel}: <strong>{med.duration_days} {daysLabel}</strong></span>
                             </div>
                           )}
                         </div>
@@ -756,7 +794,7 @@ export default function CofreUpload() {
 
               <div className="border-t pt-4">
                 <p className="text-xs text-muted-foreground mb-3 text-center">
-                  ℹ️ Você poderá ajustar horários e doses depois na página "Rotina"
+                  ℹ️ {adjustInfo}
                 </p>
                 <div className="flex gap-3">
                   <Button
@@ -767,13 +805,13 @@ export default function CofreUpload() {
                       navigate('/carteira');
                     }}
                   >
-                    Agora Não
+                    {notNowBtn}
                   </Button>
                   <Button
                     className="flex-1 bg-blue-600 hover:bg-blue-700"
                     onClick={addMedicationsFromPrescription}
                   >
-                    ✓ Adicionar à Rotina
+                    {t('cofre.upload.addToRoutineBtn')}
                   </Button>
                 </div>
               </div>
