@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { CheckCircle2, Clock } from 'lucide-react';
+import { CheckCircle2, Clock, AlertCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useFeedbackToast } from '@/hooks/useFeedbackToast';
+import { useOverdueDoses } from '@/hooks/useOverdueDoses';
 import { cn } from '@/lib/utils';
+
 interface NextDose {
   id: string;
   due_at: string;
@@ -28,9 +30,11 @@ export default function QuickDoseWidget({
 }) {
   const [nextDose, setNextDose] = useState<NextDose | null>(null);
   const [loading, setLoading] = useState(true);
+  const { overdueDoses, markAsTaken: markOverdueAsTaken, hasOverdue } = useOverdueDoses();
   const {
     showFeedback
   } = useFeedbackToast();
+
   useEffect(() => {
     loadNextDose();
 
@@ -38,6 +42,7 @@ export default function QuickDoseWidget({
     const interval = setInterval(loadNextDose, 60 * 1000);
     return () => clearInterval(interval);
   }, []);
+
   const loadNextDose = async () => {
     try {
       const {
@@ -74,6 +79,7 @@ export default function QuickDoseWidget({
       setLoading(false);
     }
   };
+
   const handleQuickTake = async () => {
     if (!nextDose) return;
     try {
@@ -98,10 +104,58 @@ export default function QuickDoseWidget({
       showFeedback('dose-missed');
     }
   };
+
+  const handleOverdueTake = async (doseId: string, itemName: string) => {
+    await markOverdueAsTaken(doseId);
+    showFeedback('dose-taken', { medicationName: itemName });
+    loadNextDose();
+  };
+
   if (loading) {
     return (
       <Card className={cn("p-3 animate-pulse", className)}>
         <div className="h-12 bg-muted rounded" />
+      </Card>
+    );
+  }
+
+  // Show overdue doses with priority
+  if (hasOverdue) {
+    const firstOverdue = overdueDoses[0];
+    return (
+      <Card className={cn(
+        "p-4 bg-gradient-to-br from-red-500/15 to-red-500/5 border-red-500/30 shadow-lg shadow-red-500/10",
+        className
+      )}>
+        <div className="flex items-center gap-3">
+          <div className="h-10 w-10 rounded-full bg-red-500/20 flex items-center justify-center shrink-0">
+            <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-semibold text-red-600 dark:text-red-400">
+                Atrasado {firstOverdue.minutesOverdue}min
+              </span>
+              {overdueDoses.length > 1 && (
+                <span className="text-xs text-red-500/70">
+                  +{overdueDoses.length - 1} {overdueDoses.length - 1 === 1 ? 'outro' : 'outros'}
+                </span>
+              )}
+            </div>
+            <h3 className="font-semibold truncate">{firstOverdue.itemName}</h3>
+            {firstOverdue.doseText && (
+              <p className="text-xs text-muted-foreground truncate">{firstOverdue.doseText}</p>
+            )}
+          </div>
+          <Button
+            onClick={() => handleOverdueTake(firstOverdue.id, firstOverdue.itemName)}
+            size="sm"
+            className="shrink-0 font-semibold bg-red-500 hover:bg-red-600 text-white"
+          >
+            <CheckCircle2 className="h-4 w-4 mr-1" />
+            Tomei
+          </Button>
+        </div>
       </Card>
     );
   }
