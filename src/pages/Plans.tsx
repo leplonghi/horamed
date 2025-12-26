@@ -9,44 +9,46 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getReferralDiscountForUser } from "@/lib/referrals";
-
-const testimonials = [
-  {
-    name: "Maria Silva",
-    role: "Usuária há 8 meses",
-    avatar: "MS",
-    text: "Minha adesão melhorou 95%! O app me salvou de esquecer remédios importantes.",
-    rating: 5
-  },
-  {
-    name: "Dr. João Santos",
-    role: "Cardiologista",
-    avatar: "JS",
-    text: "Recomendo para meus pacientes. Os relatórios são perfeitos para consultas.",
-    rating: 5
-  },
-  {
-    name: "Ana Costa",
-    role: "Cuidadora de idosos",
-    avatar: "AC",
-    text: "Essencial! Gerencio os medicamentos dos meus pais sem estresse.",
-    rating: 5
-  }
-];
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function Plans() {
   const navigate = useNavigate();
+  const { t, language } = useLanguage();
   const [loading, setLoading] = useState(false);
   const [billingCycle, setBillingCycle] = useState<"monthly" | "annual">("monthly");
   const [referralDiscount, setReferralDiscount] = useState(0);
   const { isPremium, subscription } = useSubscription();
+
+  const testimonials = [
+    {
+      name: t('plans.testimonial1.name'),
+      role: t('plans.testimonial1.role'),
+      avatar: "MS",
+      text: t('plans.testimonial1.text'),
+      rating: 5
+    },
+    {
+      name: t('plans.testimonial2.name'),
+      role: t('plans.testimonial2.role'),
+      avatar: "JS",
+      text: t('plans.testimonial2.text'),
+      rating: 5
+    },
+    {
+      name: t('plans.testimonial3.name'),
+      role: t('plans.testimonial3.role'),
+      avatar: "AC",
+      text: t('plans.testimonial3.text'),
+      rating: 5
+    }
+  ];
 
   useEffect(() => {
     loadReferralDiscount();
   }, []);
 
   const loadReferralDiscount = async () => {
-    if (!isPremium) return; // Só usuários premium tem desconto
+    if (!isPremium) return;
     
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -75,7 +77,7 @@ export default function Plans() {
       }
     } catch (error: any) {
       console.error('Checkout error:', error);
-      toast.error("Erro ao iniciar checkout");
+      toast.error(t('plans.checkoutError'));
     } finally {
       setLoading(false);
     }
@@ -93,46 +95,55 @@ export default function Plans() {
       }
     } catch (error: any) {
       console.error('Portal error:', error);
-      toast.error("Erro ao abrir portal de gerenciamento");
+      toast.error(t('plans.portalError'));
     } finally {
       setLoading(false);
     }
   };
 
   const freePlanFeatures = [
-    "1 medicamento ativo",
-    "Notificações básicas",
-    "Acesso limitado ao histórico",
-    "Com anúncios"
+    t('plans.feature.1medication'),
+    t('plans.feature.basicNotifications'),
+    t('plans.feature.limitedHistory'),
+    t('plans.feature.withAds')
   ];
 
   const premiumPlanFeatures = [
-    "💊 Medicamentos ilimitados",
-    "🌿 Acompanhe sua rotina de suplementos e vitaminas",
-    "📋 Histórico médico completo e seguro",
-    "🔬 Análise de exames laboratoriais",
-    "📅 Agenda médica integrada",
-    "📈 Widgets de bem-estar no Hoje e no Progresso",
-    "✨ Análise de interações medicamentosas",
-    "🍎 Análises nutricionais mensais (Premium)",
-    "👨‍👩‍👧‍👦 Múltiplos perfis familiares",
-    "🤖 Uso ilimitado do Assistente Hora para dúvidas de treino, GLP-1 e desempenho",
-    "🤖 OCR de receitas e documentos",
-    "🚫 Sem anúncios",
-    "⚡ Suporte prioritário"
+    t('plans.feature.unlimitedMeds'),
+    t('plans.feature.supplementRoutine'),
+    t('plans.feature.medicalHistory'),
+    t('plans.feature.labExams'),
+    t('plans.feature.medicalAgenda'),
+    t('plans.feature.wellnessWidgets'),
+    t('plans.feature.drugInteractions'),
+    t('plans.feature.nutritionalAnalysis'),
+    t('plans.feature.familyProfiles'),
+    t('plans.feature.unlimitedAI'),
+    t('plans.feature.ocrDocs'),
+    t('plans.feature.noAds'),
+    t('plans.feature.prioritySupport')
   ];
 
   // Pricing - aligned with Stripe products
-  const monthlyPrice = 19.90; // price_1SYEVNAY2hnWxlHujMBQSYTt
-  const annualPrice = 199.90; // price_1SYEWmAY2hnWxlHuNegLluyC
+  const monthlyPrice = 19.90;
+  const annualPrice = 199.90;
   
-  // Aplicar desconto de referrals para usuários premium
   const discountMultiplier = isPremium ? (1 - referralDiscount / 100) : 1;
   const discountedMonthlyPrice = monthlyPrice * discountMultiplier;
   const discountedAnnualPrice = annualPrice * discountMultiplier;
   
   const annualMonthlyEquivalent = (discountedAnnualPrice / 12).toFixed(2);
   const annualSavings = (discountedMonthlyPrice * 12 - discountedAnnualPrice).toFixed(2);
+
+  const formatPrice = (price: number) => {
+    if (language === 'en') {
+      return `$${(price / 5).toFixed(2)}`;
+    }
+    return `R$ ${price.toFixed(2).replace('.', ',')}`;
+  };
+
+  const dailyPrice = billingCycle === "monthly" ? "0.66" : "0.55";
+  const dailyPriceEN = billingCycle === "monthly" ? "0.13" : "0.11";
 
   return (
     <div className="min-h-screen bg-background p-4 pb-24 max-w-4xl mx-auto">
@@ -146,41 +157,40 @@ export default function Plans() {
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
-          <h1 className="text-xl font-bold text-foreground">Planos</h1>
+          <h1 className="text-xl font-bold text-foreground">{t('plans.title')}</h1>
         </div>
 
         {/* Hero Section - Social Proof */}
         <Card className="p-6 bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
           <div className="text-center space-y-4">
             <h2 className="text-2xl font-bold text-foreground">
-              Junte-se a mais de 10.000+ usuários
+              {t('plans.joinUsers')}
             </h2>
             <p className="text-muted-foreground">
-              que transformaram seu cuidado com a saúde
+              {t('plans.transformedCare')}
             </p>
             
-            {/* Métricas de impacto */}
             <div className="grid grid-cols-3 gap-4 pt-4">
               <div className="space-y-1">
                 <div className="flex items-center justify-center gap-1">
                   <TrendingUp className="h-4 w-4 text-primary" />
                   <p className="text-2xl font-bold text-foreground">91%</p>
                 </div>
-                <p className="text-xs text-muted-foreground">Adesão média</p>
+                <p className="text-xs text-muted-foreground">{t('plans.avgAdherence')}</p>
               </div>
               <div className="space-y-1">
                 <div className="flex items-center justify-center gap-1">
                   <Users className="h-4 w-4 text-primary" />
                   <p className="text-2xl font-bold text-foreground">3M+</p>
                 </div>
-                <p className="text-xs text-muted-foreground">Doses registradas</p>
+                <p className="text-xs text-muted-foreground">{t('plans.dosesRecorded')}</p>
               </div>
               <div className="space-y-1">
                 <div className="flex items-center justify-center gap-1">
                   <Star className="h-4 w-4 text-primary" />
                   <p className="text-2xl font-bold text-foreground">4.8</p>
                 </div>
-                <p className="text-xs text-muted-foreground">Avaliação média</p>
+                <p className="text-xs text-muted-foreground">{t('plans.avgRating')}</p>
               </div>
             </div>
           </div>
@@ -193,7 +203,7 @@ export default function Plans() {
             size="sm"
             onClick={() => setBillingCycle("monthly")}
           >
-            Mensal
+            {t('plans.monthly')}
           </Button>
           <Button
             variant={billingCycle === "annual" ? "default" : "ghost"}
@@ -201,9 +211,9 @@ export default function Plans() {
             onClick={() => setBillingCycle("annual")}
             className="relative"
           >
-            Anual
+            {t('plans.annual')}
             <Badge className="ml-2 bg-primary text-primary-foreground text-xs">
-              Economize {annualSavings}
+              {t('plans.save')} {language === 'en' ? `$${(parseFloat(annualSavings) / 5).toFixed(0)}` : annualSavings}
             </Badge>
           </Button>
         </div>
@@ -218,8 +228,8 @@ export default function Plans() {
                   <Shield className="h-5 w-5 text-muted-foreground" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="font-semibold text-foreground text-lg">Gratuito</h3>
-                  <p className="text-sm text-muted-foreground">Para experimentar o app</p>
+                  <h3 className="font-semibold text-foreground text-lg">{t('plans.freePlan')}</h3>
+                  <p className="text-sm text-muted-foreground">{t('plans.freePlanDesc')}</p>
                 </div>
               </div>
 
@@ -233,8 +243,8 @@ export default function Plans() {
               </div>
 
               <div className="pt-2">
-                <p className="text-2xl font-bold text-foreground">R$ 0</p>
-                <p className="text-sm text-muted-foreground">3 dias de teste</p>
+                <p className="text-2xl font-bold text-foreground">{language === 'en' ? '$0' : 'R$ 0'}</p>
+                <p className="text-sm text-muted-foreground">{t('plans.trialDays')}</p>
               </div>
 
               {!isPremium && (
@@ -243,7 +253,7 @@ export default function Plans() {
                   className="w-full"
                   onClick={handleUpgrade}
                 >
-                  Começar agora
+                  {t('plans.startNow')}
                 </Button>
               )}
             </div>
@@ -254,7 +264,7 @@ export default function Plans() {
             <div className="absolute top-3 right-3 flex gap-2">
               <Badge className="bg-destructive text-destructive-foreground">
                 <Sparkles className="h-3 w-3 mr-1" />
-                🔥 Mais popular
+                {t('plans.mostPopular')}
               </Badge>
             </div>
 
@@ -264,8 +274,8 @@ export default function Plans() {
                   <Crown className="h-5 w-5 text-primary" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="font-semibold text-foreground text-lg">Premium</h3>
-                  <p className="text-sm text-muted-foreground">Acesso completo a todos os recursos</p>
+                  <h3 className="font-semibold text-foreground text-lg">{t('plans.premiumPlan')}</h3>
+                  <p className="text-sm text-muted-foreground">{t('plans.premiumPlanDesc')}</p>
                 </div>
               </div>
 
@@ -284,7 +294,7 @@ export default function Plans() {
                   <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-3 mb-2">
                     <p className="text-sm font-medium text-green-600 dark:text-green-400 flex items-center gap-2">
                       <Gift className="h-4 w-4" />
-                      Desconto de {referralDiscount}% por indicações ativo!
+                      {t('plans.referralDiscount', { percent: String(referralDiscount) })}
                     </p>
                   </div>
                 )}
@@ -294,32 +304,32 @@ export default function Plans() {
                     <>
                       {isPremium && referralDiscount > 0 && (
                         <p className="text-lg line-through text-muted-foreground">
-                          R$ {monthlyPrice.toFixed(2).replace('.', ',')}
+                          {formatPrice(monthlyPrice)}
                         </p>
                       )}
                       <p className="text-3xl font-bold text-foreground">
-                        R$ {discountedMonthlyPrice.toFixed(2).replace('.', ',')}
-                        <span className="text-base font-normal text-muted-foreground">/mês</span>
+                        {formatPrice(discountedMonthlyPrice)}
+                        <span className="text-base font-normal text-muted-foreground">{t('common.perMonth')}</span>
                       </p>
-                      <p className="text-sm text-muted-foreground">Cobrado mensalmente</p>
+                      <p className="text-sm text-muted-foreground">{t('plans.chargedMonthly')}</p>
                     </>
                   ) : (
                     <>
                       <div className="space-y-1">
                         {isPremium && referralDiscount > 0 && (
                           <p className="text-lg line-through text-muted-foreground">
-                            R$ {(annualPrice / 12).toFixed(2).replace('.', ',')}/mês
+                            {formatPrice(annualPrice / 12)}{t('common.perMonth')}
                           </p>
                         )}
                         <p className="text-3xl font-bold text-foreground">
-                          R$ {annualMonthlyEquivalent.replace('.', ',')}
-                          <span className="text-base font-normal text-muted-foreground">/mês</span>
+                          {language === 'en' ? `$${(parseFloat(annualMonthlyEquivalent) / 5).toFixed(2)}` : `R$ ${annualMonthlyEquivalent.replace('.', ',')}`}
+                          <span className="text-base font-normal text-muted-foreground">{t('common.perMonth')}</span>
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          R$ {discountedAnnualPrice.toFixed(2).replace('.', ',')} cobrados anualmente
+                          {formatPrice(discountedAnnualPrice)} {t('plans.chargedAnnually')}
                         </p>
                         <Badge variant="secondary" className="gap-1">
-                          ✨ Melhor valor - Economize R$ {annualSavings}
+                          ✨ {t('plans.bestValue')} {language === 'en' ? `$${(parseFloat(annualSavings) / 5).toFixed(0)}` : `R$ ${annualSavings}`}
                         </Badge>
                       </div>
                     </>
@@ -331,16 +341,16 @@ export default function Plans() {
                   <div className="flex items-center gap-2">
                     <Candy className="h-4 w-4 text-primary" />
                     <p className="text-sm font-medium text-foreground">
-                      Apenas R$ {billingCycle === "monthly" ? "0,66" : "0,55"} por dia
+                      {t('plans.perDay', { price: language === 'en' ? dailyPriceEN : dailyPrice })}
                     </p>
                   </div>
                   <p className="text-xs text-muted-foreground pl-6">
-                    Menos que uma bala! 🍬 Cuide da sua saúde com tecnologia de ponta.
+                    {t('plans.cheaperThanCandy')}
                   </p>
                   <div className="flex items-center gap-2 pt-1">
                     <Coffee className="h-4 w-4 text-muted-foreground" />
                     <p className="text-xs text-muted-foreground">
-                      Mais barato que um cafézinho ☕
+                      {t('plans.cheaperThanCoffee')}
                     </p>
                   </div>
                 </div>
@@ -352,7 +362,7 @@ export default function Plans() {
                   className="w-full"
                   onClick={handleManageSubscription}
                 >
-                  Gerenciar Assinatura
+                  {t('subscription.manageSubscription')}
                 </Button>
               ) : (
                 <div className="space-y-3">
@@ -361,14 +371,14 @@ export default function Plans() {
                     onClick={handleUpgrade}
                     disabled={loading}
                   >
-                    {loading ? "Processando..." : "🎁 Experimente 7 dias grátis"}
+                    {loading ? t('plans.processing') : t('plans.try7DaysFree')}
                   </Button>
                   <p className="text-xs text-center text-muted-foreground">
-                    Sem compromisso • Cancele quando quiser
+                    {t('plans.noCommitment')}
                   </p>
                   <div className="bg-muted/50 rounded-lg p-3 text-center">
                     <p className="text-xs text-muted-foreground">
-                      💡 Tem um código de indicação? Use-o durante o cadastro para ganhar benefícios
+                      {t('plans.referralHint')}
                     </p>
                   </div>
                 </div>
@@ -380,7 +390,7 @@ export default function Plans() {
         {/* Testimonials Section */}
         <div className="space-y-4 pt-4">
           <h3 className="text-lg font-semibold text-foreground text-center">
-            O que nossos usuários dizem
+            {t('plans.whatUsersSay')}
           </h3>
           <div className="grid md:grid-cols-3 gap-4">
             {testimonials.map((testimonial, index) => (
@@ -412,15 +422,15 @@ export default function Plans() {
           <div className="flex flex-col md:flex-row items-center justify-center gap-6 text-center">
             <div className="flex items-center gap-2">
               <Shield className="h-5 w-5 text-primary" />
-              <span className="text-sm font-medium text-foreground">Pagamento 100% seguro</span>
+              <span className="text-sm font-medium text-foreground">{t('plans.securePayment')}</span>
             </div>
             <div className="flex items-center gap-2">
               <CheckCircle2 className="h-5 w-5 text-primary" />
-              <span className="text-sm font-medium text-foreground">Aprovado por médicos</span>
+              <span className="text-sm font-medium text-foreground">{t('plans.doctorApproved')}</span>
             </div>
             <div className="flex items-center gap-2">
               <Users className="h-5 w-5 text-primary" />
-              <span className="text-sm font-medium text-foreground">+10.000 usuários satisfeitos</span>
+              <span className="text-sm font-medium text-foreground">{t('plans.satisfiedUsers')}</span>
             </div>
           </div>
         </Card>
@@ -430,9 +440,9 @@ export default function Plans() {
           <div className="flex items-start gap-3">
             <Shield className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
             <div className="space-y-1">
-              <p className="text-sm font-medium text-foreground">Pagamento seguro via Stripe</p>
+              <p className="text-sm font-medium text-foreground">{t('plans.stripePayment')}</p>
               <p className="text-xs text-muted-foreground">
-                Seus dados são protegidos e criptografados. Cancele quando quiser, sem taxas.
+                {t('plans.dataProtection')}
               </p>
             </div>
           </div>

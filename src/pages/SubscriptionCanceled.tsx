@@ -3,9 +3,11 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { XCircle, ArrowLeft, HelpCircle } from "lucide-react";
 import { motion } from "framer-motion";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const SubscriptionCanceled = () => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 flex items-center justify-center p-4">
@@ -21,16 +23,16 @@ const SubscriptionCanceled = () => {
           
           <div className="space-y-2">
             <h1 className="text-2xl font-bold text-foreground">
-              Assinatura cancelada
+              {t('subscription.canceled')}
             </h1>
             <p className="text-muted-foreground">
-              O pagamento não foi concluído. Você pode tentar novamente quando quiser.
+              {t('subscription.paymentNotCompleted')}
             </p>
           </div>
 
           <div className="bg-muted/50 rounded-lg p-4 text-sm text-muted-foreground">
             <p>
-              Você continua com acesso ao plano gratuito com 1 medicamento e funcionalidades básicas.
+              {t('subscription.freeAccessInfo')}
             </p>
           </div>
 
@@ -40,7 +42,7 @@ const SubscriptionCanceled = () => {
               className="w-full"
             >
               <ArrowLeft className="mr-2 w-4 h-4" />
-              Voltar aos planos
+              {t('subscription.backToPlans')}
             </Button>
             
             <Button 
@@ -48,7 +50,7 @@ const SubscriptionCanceled = () => {
               onClick={() => navigate("/hoje")}
               className="w-full"
             >
-              Continuar no plano gratuito
+              {t('subscription.continueFreePlan')}
             </Button>
             
             <Button 
@@ -57,12 +59,12 @@ const SubscriptionCanceled = () => {
               className="w-full text-muted-foreground"
             >
               <HelpCircle className="mr-2 w-4 h-4" />
-              Preciso de ajuda
+              {t('subscription.needHelp')}
             </Button>
           </div>
 
           <p className="text-xs text-muted-foreground">
-            Dúvidas? Entre em contato pelo chat ou email.
+            {t('subscription.questionsContact')}
           </p>
         </Card>
       </motion.div>
