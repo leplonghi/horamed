@@ -19,131 +19,133 @@ import {
 import Navigation from "@/components/Navigation";
 import Header from "@/components/Header";
 import { useNavigate } from "react-router-dom";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function Tutorial() {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState("inicio");
 
   const tutorials = [
     {
       id: "inicio",
-      title: "Primeiros Passos",
+      title: t('tutorial.firstSteps'),
       icon: CheckCircle2,
       sections: [
         {
-          title: "Como adicionar um medicamento?",
+          title: t('tutorial.addMedQ'),
           icon: Plus,
           steps: [
-            "Clique no botão + flutuante no canto inferior direito",
-            "Escolha 'Manual' para digitar ou 'Ler Remédio' para tirar foto",
-            "Preencha o nome, dosagem e categoria",
-            "Configure os horários que você deve tomar",
-            "Ative o controle de estoque (opcional)",
-            "Clique em 'Salvar item'",
+            t('tutorial.addMedStep1'),
+            t('tutorial.addMedStep2'),
+            t('tutorial.addMedStep3'),
+            t('tutorial.addMedStep4'),
+            t('tutorial.addMedStep5'),
+            t('tutorial.addMedStep6'),
           ],
-          tip: "Dica: Use a opção 'Ler Remédio' para fotografar a caixa ou receita e preencher automaticamente!",
+          tip: t('tutorial.addMedTip'),
         },
         {
-          title: "Como confirmar que tomei um medicamento?",
+          title: t('tutorial.confirmDoseQ'),
           icon: CheckCircle2,
           steps: [
-            "Vá para a página 'Hoje' no menu inferior",
-            "Encontre o medicamento na lista",
-            "Clique no botão verde '✓ Tomei'",
-            "O medicamento será marcado como tomado e o estoque será atualizado",
+            t('tutorial.confirmDoseStep1'),
+            t('tutorial.confirmDoseStep2'),
+            t('tutorial.confirmDoseStep3'),
+            t('tutorial.confirmDoseStep4'),
           ],
-          tip: "Você também pode adiar por 15 minutos ou pular a dose se necessário.",
+          tip: t('tutorial.confirmDoseTip'),
         },
       ],
     },
     {
       id: "medicamentos",
-      title: "Gerenciar Medicamentos",
+      title: t('tutorial.manageMeds'),
       icon: Pill,
       sections: [
         {
-          title: "Como editar horários?",
+          title: t('tutorial.editScheduleQ'),
           icon: Clock,
           steps: [
-            "Vá para 'Medicamentos' no menu inferior",
-            "Clique no ícone de lápis ao lado do medicamento",
-            "Edite os horários ou adicione novos",
-            "Clique em 'Atualizar item'",
+            t('tutorial.editScheduleStep1'),
+            t('tutorial.editScheduleStep2'),
+            t('tutorial.editScheduleStep3'),
+            t('tutorial.editScheduleStep4'),
           ],
         },
         {
-          title: "Como funciona o controle de estoque?",
+          title: t('tutorial.stockQ'),
           icon: Package,
           steps: [
-            "Ao adicionar/editar medicamento, ative 'Controlar Estoque'",
-            "Informe a quantidade total que você tem",
-            "Configure o alerta de estoque baixo (em %)",
-            "O sistema desconta automaticamente quando você confirma doses",
-            "Receba alertas quando o estoque estiver acabando",
+            t('tutorial.stockStep1'),
+            t('tutorial.stockStep2'),
+            t('tutorial.stockStep3'),
+            t('tutorial.stockStep4'),
+            t('tutorial.stockStep5'),
           ],
-          tip: "O sistema calcula quantos dias seu estoque vai durar baseado no consumo!",
+          tip: t('tutorial.stockTip'),
         },
         {
-          title: "Duração do tratamento",
+          title: t('tutorial.durationQ'),
           icon: Calendar,
           steps: [
-            "Ao adicionar medicamento, preencha 'Duração do Tratamento'",
-            "Informe a data de início",
-            "Digite quantos dias deve durar (ex: 7, 14, 30 dias)",
-            "Opcionalmente, informe o total de doses",
-            "O sistema calcula automaticamente a data de término",
+            t('tutorial.durationStep1'),
+            t('tutorial.durationStep2'),
+            t('tutorial.durationStep3'),
+            t('tutorial.durationStep4'),
+            t('tutorial.durationStep5'),
           ],
         },
       ],
     },
     {
       id: "carteira",
-      title: "Carteira",
+      title: t('tutorial.wallet'),
       icon: FolderHeart,
       sections: [
         {
-          title: "Como adicionar documentos?",
+          title: t('tutorial.addDocsQ'),
           icon: Camera,
           steps: [
-            "Acesse 'Carteira' no menu inferior",
-            "Clique em 'Adicionar Documento'",
-            "Use OCR para escanear ou selecione arquivo",
-            "Preencha título, categoria e datas",
-            "Configure lembretes (opcional)",
-            "Clique em 'Fazer Upload'",
+            t('tutorial.addDocsStep1'),
+            t('tutorial.addDocsStep2'),
+            t('tutorial.addDocsStep3'),
+            t('tutorial.addDocsStep4'),
+            t('tutorial.addDocsStep5'),
+            t('tutorial.addDocsStep6'),
           ],
         },
         {
-          title: "Como compartilhar com médico?",
+          title: t('tutorial.shareDocQ'),
           icon: Share2,
           steps: [
-            "Abra o documento na Carteira",
-            "Clique em 'Compartilhar'",
-            "Defina o prazo de expiração do link",
-            "Permita ou não o download",
-            "Copie o link e envie para o médico",
-            "Revogue o acesso quando quiser",
+            t('tutorial.shareDocStep1'),
+            t('tutorial.shareDocStep2'),
+            t('tutorial.shareDocStep3'),
+            t('tutorial.shareDocStep4'),
+            t('tutorial.shareDocStep5'),
+            t('tutorial.shareDocStep6'),
           ],
-          tip: "Os links de compartilhamento expiram automaticamente por segurança!",
+          tip: t('tutorial.shareDocTip'),
         },
       ],
     },
     {
       id: "notificacoes",
-      title: "Notificações",
+      title: t('tutorial.notifications'),
       icon: Bell,
       sections: [
         {
-          title: "Como ativar lembretes?",
+          title: t('tutorial.enableNotifQ'),
           icon: Bell,
           steps: [
-            "Vá em Mais → Configurações de Notificações",
-            "Ative as notificações push",
-            "Permita no navegador quando solicitado",
-            "Configure alertas sonoros (opcional)",
-            "Os lembretes aparecerão nos horários configurados",
+            t('tutorial.enableNotifStep1'),
+            t('tutorial.enableNotifStep2'),
+            t('tutorial.enableNotifStep3'),
+            t('tutorial.enableNotifStep4'),
+            t('tutorial.enableNotifStep5'),
           ],
-          tip: "As notificações funcionam mesmo com o app fechado!",
+          tip: t('tutorial.enableNotifTip'),
         },
       ],
     },
@@ -155,8 +157,8 @@ export default function Tutorial() {
       <div className="min-h-screen bg-background pt-20 p-6 pb-24">
         <div className="max-w-4xl mx-auto space-y-6">
           <div>
-            <h1 className="text-3xl font-bold">Central de Ajuda</h1>
-            <p className="text-muted-foreground mt-2">Aprenda a usar todos os recursos do HoraMed</p>
+            <h1 className="text-3xl font-bold">{t('tutorial.title')}</h1>
+            <p className="text-muted-foreground mt-2">{t('tutorial.subtitle')}</p>
           </div>
 
           <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -195,7 +197,7 @@ export default function Tutorial() {
                         <div className="flex gap-3 p-3 bg-primary/5 border border-primary/20 rounded-lg">
                           <AlertCircle className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
                           <p className="text-sm">
-                            <strong>Dica:</strong> {section.tip}
+                            <strong>{t('tutorial.tip')}</strong> {section.tip}
                           </p>
                         </div>
                       )}
@@ -210,11 +212,11 @@ export default function Tutorial() {
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="font-semibold mb-1">Ainda tem dúvidas?</h3>
-                  <p className="text-sm text-muted-foreground">Visite nossa central de ajuda completa</p>
+                  <h3 className="font-semibold mb-1">{t('tutorial.stillHaveQuestions')}</h3>
+                  <p className="text-sm text-muted-foreground">{t('tutorial.visitHelp')}</p>
                 </div>
                 <Button onClick={() => navigate("/ajuda")}>
-                  Ajuda
+                  {t('tutorial.helpBtn')}
                   <ArrowRight className="h-4 w-4 ml-2" />
                 </Button>
               </div>

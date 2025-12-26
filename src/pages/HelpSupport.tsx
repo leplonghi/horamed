@@ -2,7 +2,6 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ArrowLeft, Mail, FileText, ExternalLink, BookOpen, Lightbulb, Play } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { toast } from "sonner";
 import Navigation from "@/components/Navigation";
 import {
   Accordion,
@@ -11,14 +10,15 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function HelpSupport() {
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
   const handleContactSupport = () => {
     window.location.href = "mailto:appmedhora@gmail.com";
   };
-
 
   return (
     <>
@@ -29,8 +29,8 @@ export default function HelpSupport() {
               <ArrowLeft className="h-4 w-4" />
             </Button>
             <div>
-              <h2 className="text-2xl font-bold text-foreground">Ajuda e Suporte</h2>
-              <p className="text-muted-foreground">Aprenda a usar o HoraMed</p>
+              <h2 className="text-2xl font-bold text-foreground">{t('help.title')}</h2>
+              <p className="text-muted-foreground">{t('help.subtitle')}</p>
             </div>
           </div>
 
@@ -38,15 +38,15 @@ export default function HelpSupport() {
             <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="tutorial">
                 <Play className="h-4 w-4 mr-2" />
-                Tutorial
+                {t('help.tabTutorial')}
               </TabsTrigger>
               <TabsTrigger value="dicas">
                 <Lightbulb className="h-4 w-4 mr-2" />
-                Dicas
+                {t('help.tabTips')}
               </TabsTrigger>
               <TabsTrigger value="faq">
                 <FileText className="h-4 w-4 mr-2" />
-                FAQ
+                {t('help.tabFaq')}
               </TabsTrigger>
             </TabsList>
 
@@ -55,158 +55,137 @@ export default function HelpSupport() {
               <Card className="p-6 space-y-4">
                 <div className="flex items-center gap-2">
                   <BookOpen className="h-5 w-5 text-primary" />
-                  <h3 className="font-semibold text-foreground">Como Funciona o HoraMed</h3>
+                  <h3 className="font-semibold text-foreground">{t('help.howItWorks')}</h3>
                 </div>
                 
                 <div className="space-y-4">
                   <div className="space-y-2">
-                    <h4 className="font-semibold text-foreground">📱 Passo 1: Configure seu Perfil</h4>
-                    <p className="text-sm text-muted-foreground">
-                      Vá em "Perfil" e adicione suas informações básicas. Você pode criar múltiplos perfis 
-                      para gerenciar medicamentos de familiares.
-                    </p>
+                    <h4 className="font-semibold text-foreground">{t('help.step1Title')}</h4>
+                    <p className="text-sm text-muted-foreground">{t('help.step1Desc')}</p>
                   </div>
 
                   <div className="space-y-2">
-                    <h4 className="font-semibold text-foreground">💊 Passo 2: Adicione Medicamentos</h4>
-                    <p className="text-sm text-muted-foreground">
-                      Clique em "Adicionar" no menu inferior. Você pode:
-                    </p>
+                    <h4 className="font-semibold text-foreground">{t('help.step2Title')}</h4>
+                    <p className="text-sm text-muted-foreground">{t('help.step2Desc')}</p>
                     <ul className="text-sm text-muted-foreground list-disc list-inside ml-2">
-                      <li>Digitar manualmente as informações</li>
-                      <li>Usar OCR para escanear receitas (Premium)</li>
-                      <li>Definir horários e frequência</li>
+                      <li>{t('help.step2Item1')}</li>
+                      <li>{t('help.step2Item2')}</li>
+                      <li>{t('help.step2Item3')}</li>
                     </ul>
                   </div>
 
                   <div className="space-y-2">
-                    <h4 className="font-semibold text-foreground">⏰ Passo 3: Gerencie seus Horários</h4>
-                    <p className="text-sm text-muted-foreground">
-                      Na página "Rotina", visualize todos os medicamentos e horários configurados. 
-                      Edite ou exclua conforme necessário.
-                    </p>
+                    <h4 className="font-semibold text-foreground">{t('help.step3Title')}</h4>
+                    <p className="text-sm text-muted-foreground">{t('help.step3Desc')}</p>
                   </div>
 
                   <div className="space-y-2">
-                    <h4 className="font-semibold text-foreground">✅ Passo 4: Confirme suas Doses</h4>
-                    <p className="text-sm text-muted-foreground">
-                      Na página "Hoje", veja as doses do dia e marque como tomada, pulada ou atrasada. 
-                      Isso ajuda a acompanhar sua adesão ao tratamento.
-                    </p>
+                    <h4 className="font-semibold text-foreground">{t('help.step4Title')}</h4>
+                    <p className="text-sm text-muted-foreground">{t('help.step4Desc')}</p>
                   </div>
 
                   <div className="space-y-2">
-                    <h4 className="font-semibold text-foreground">📊 Passo 5: Acompanhe seu Progresso</h4>
-                    <p className="text-sm text-muted-foreground">
-                      Use "Gráficos" para visualizar sua adesão ao longo do tempo e identificar padrões.
-                    </p>
+                    <h4 className="font-semibold text-foreground">{t('help.step5Title')}</h4>
+                    <p className="text-sm text-muted-foreground">{t('help.step5Desc')}</p>
                   </div>
                 </div>
               </Card>
 
               <Card className="p-6 space-y-4">
-                <h3 className="font-semibold text-foreground">🎯 Recursos Principais</h3>
+                <h3 className="font-semibold text-foreground">{t('help.mainFeatures')}</h3>
                 
                 <div className="space-y-3">
                   <div className="bg-primary/5 p-3 rounded-lg">
-                    <h4 className="font-semibold text-sm mb-1">Controle de Estoque</h4>
-                    <p className="text-xs text-muted-foreground">
-                      Ative ao adicionar um medicamento para ser alertado quando o estoque estiver baixo.
-                    </p>
+                    <h4 className="font-semibold text-sm mb-1">{t('help.stockControl')}</h4>
+                    <p className="text-xs text-muted-foreground">{t('help.stockControlDesc')}</p>
                   </div>
 
                   <div className="bg-primary/5 p-3 rounded-lg">
-                    <h4 className="font-semibold text-sm mb-1">Histórico de Saúde</h4>
-                    <p className="text-xs text-muted-foreground">
-                      Armazene exames, consultas e documentos médicos na "Carteira de Saúde".
-                    </p>
+                    <h4 className="font-semibold text-sm mb-1">{t('help.healthHistory')}</h4>
+                    <p className="text-xs text-muted-foreground">{t('help.healthHistoryDesc')}</p>
                   </div>
 
                   <div className="bg-primary/5 p-3 rounded-lg">
-                    <h4 className="font-semibold text-sm mb-1">Compartilhamento</h4>
-                    <p className="text-xs text-muted-foreground">
-                      Compartilhe seu histórico com médicos ou cuidadores de forma segura.
-                    </p>
+                    <h4 className="font-semibold text-sm mb-1">{t('help.sharing')}</h4>
+                    <p className="text-xs text-muted-foreground">{t('help.sharingDesc')}</p>
                   </div>
 
                   <div className="bg-primary/5 p-3 rounded-lg">
-                    <h4 className="font-semibold text-sm mb-1">Relatórios Mensais</h4>
-                    <p className="text-xs text-muted-foreground">
-                      Gere PDFs automáticos com resumo da sua adesão e histórico mensal.
-                    </p>
+                    <h4 className="font-semibold text-sm mb-1">{t('help.monthlyReports')}</h4>
+                    <p className="text-xs text-muted-foreground">{t('help.monthlyReportsDesc')}</p>
                   </div>
                 </div>
               </Card>
             </TabsContent>
 
-            {/* Dicas Tab */}
+            {/* Tips Tab */}
             <TabsContent value="dicas" className="space-y-4">
               <Card className="p-6 space-y-4">
                 <div className="flex items-center gap-2">
                   <Lightbulb className="h-5 w-5 text-primary" />
-                  <h3 className="font-semibold text-foreground">Dicas para Melhor Uso</h3>
+                  <h3 className="font-semibold text-foreground">{t('help.tipsTitle')}</h3>
                 </div>
 
                 <Accordion type="single" collapsible className="w-full">
                   <AccordionItem value="tip-1">
-                    <AccordionTrigger>💡 Maximize suas Notificações</AccordionTrigger>
+                    <AccordionTrigger>{t('help.tip1Title')}</AccordionTrigger>
                     <AccordionContent className="space-y-2">
-                      <p>Configure múltiplos lembretes para medicamentos críticos:</p>
+                      <p>{t('help.tip1Intro')}</p>
                       <ul className="list-disc list-inside ml-2 text-sm space-y-1">
-                        <li>Ative sons e vibração em "Configurações de Alarme"</li>
-                        <li>Configure um lembrete 10 minutos antes do horário principal</li>
-                        <li>Use o recurso de "lembrete persistente" para não esquecer</li>
+                        <li>{t('help.tip1Item1')}</li>
+                        <li>{t('help.tip1Item2')}</li>
+                        <li>{t('help.tip1Item3')}</li>
                       </ul>
                     </AccordionContent>
                   </AccordionItem>
 
                   <AccordionItem value="tip-2">
-                    <AccordionTrigger>📝 Organize seu Tratamento</AccordionTrigger>
+                    <AccordionTrigger>{t('help.tip2Title')}</AccordionTrigger>
                     <AccordionContent className="space-y-2">
-                      <p>Use tags e categorias para organizar melhor:</p>
+                      <p>{t('help.tip2Intro')}</p>
                       <ul className="list-disc list-inside ml-2 text-sm space-y-1">
-                        <li>Separe medicamentos contínuos dos temporários</li>
-                        <li>Adicione notas sobre efeitos colaterais observados</li>
-                        <li>Mantenha a Carteira de Saúde atualizada com exames recentes</li>
+                        <li>{t('help.tip2Item1')}</li>
+                        <li>{t('help.tip2Item2')}</li>
+                        <li>{t('help.tip2Item3')}</li>
                       </ul>
                     </AccordionContent>
                   </AccordionItem>
 
                   <AccordionItem value="tip-3">
-                    <AccordionTrigger>⚡ Economize Tempo com OCR</AccordionTrigger>
+                    <AccordionTrigger>{t('help.tip3Title')}</AccordionTrigger>
                     <AccordionContent className="space-y-2">
-                      <p>Para melhores resultados com OCR de receitas:</p>
+                      <p>{t('help.tip3Intro')}</p>
                       <ul className="list-disc list-inside ml-2 text-sm space-y-1">
-                        <li>Tire fotos em boa iluminação</li>
-                        <li>Mantenha a receita reta e sem sombras</li>
-                        <li>Capture apenas uma receita por vez</li>
-                        <li>Sempre revise as informações extraídas</li>
+                        <li>{t('help.tip3Item1')}</li>
+                        <li>{t('help.tip3Item2')}</li>
+                        <li>{t('help.tip3Item3')}</li>
+                        <li>{t('help.tip3Item4')}</li>
                       </ul>
                     </AccordionContent>
                   </AccordionItem>
 
                   <AccordionItem value="tip-4">
-                    <AccordionTrigger>🎯 Melhore sua Adesão</AccordionTrigger>
+                    <AccordionTrigger>{t('help.tip4Title')}</AccordionTrigger>
                     <AccordionContent className="space-y-2">
-                      <p>Estratégias para não esquecer:</p>
+                      <p>{t('help.tip4Intro')}</p>
                       <ul className="list-disc list-inside ml-2 text-sm space-y-1">
-                        <li>Associe medicamentos a rotinas diárias (café da manhã, jantar)</li>
-                        <li>Deixe medicamentos em locais visíveis</li>
-                        <li>Use o gráfico de adesão para identificar padrões de esquecimento</li>
-                        <li>Configure lembretes para reabastecer com antecedência</li>
+                        <li>{t('help.tip4Item1')}</li>
+                        <li>{t('help.tip4Item2')}</li>
+                        <li>{t('help.tip4Item3')}</li>
+                        <li>{t('help.tip4Item4')}</li>
                       </ul>
                     </AccordionContent>
                   </AccordionItem>
 
                   <AccordionItem value="tip-5">
-                    <AccordionTrigger>👨‍⚕️ Prepare-se para Consultas</AccordionTrigger>
+                    <AccordionTrigger>{t('help.tip5Title')}</AccordionTrigger>
                     <AccordionContent className="space-y-2">
-                      <p>Use o app para facilitar consultas médicas:</p>
+                      <p>{t('help.tip5Intro')}</p>
                       <ul className="list-disc list-inside ml-2 text-sm space-y-1">
-                        <li>Gere relatórios PDF antes da consulta</li>
-                        <li>Mostre seu gráfico de adesão ao médico</li>
-                        <li>Anote dúvidas sobre medicamentos nas notas</li>
-                        <li>Compartilhe histórico diretamente com o médico</li>
+                        <li>{t('help.tip5Item1')}</li>
+                        <li>{t('help.tip5Item2')}</li>
+                        <li>{t('help.tip5Item3')}</li>
+                        <li>{t('help.tip5Item4')}</li>
                       </ul>
                     </AccordionContent>
                   </AccordionItem>
@@ -215,8 +194,7 @@ export default function HelpSupport() {
 
               <Card className="p-4 bg-accent/50">
                 <p className="text-sm text-foreground">
-                  <strong>💡 Dica Pro:</strong> Crie o hábito de abrir o app pela manhã para 
-                  revisar as doses do dia. Isso aumenta significativamente a adesão!
+                  <strong>{t('help.proTip')}</strong> {t('help.proTipText')}
                 </p>
               </Card>
             </TabsContent>
@@ -226,88 +204,58 @@ export default function HelpSupport() {
               <Card className="p-6 space-y-4">
                 <div className="flex items-center gap-2">
                   <FileText className="h-5 w-5 text-primary" />
-                  <h3 className="font-semibold text-foreground">Perguntas Frequentes</h3>
+                  <h3 className="font-semibold text-foreground">{t('help.faqTitle')}</h3>
                 </div>
 
                 <Accordion type="single" collapsible className="w-full">
                   <AccordionItem value="faq-1">
-                    <AccordionTrigger>Como adicionar um medicamento?</AccordionTrigger>
-                    <AccordionContent>
-                      Vá para a página "Adicionar" no menu inferior e preencha as informações do medicamento.
-                      Você pode adicionar manualmente ou usar a IA para ler sua receita médica (Premium).
-                    </AccordionContent>
+                    <AccordionTrigger>{t('help.faq1Q')}</AccordionTrigger>
+                    <AccordionContent>{t('help.faq1A')}</AccordionContent>
                   </AccordionItem>
 
                   <AccordionItem value="faq-2">
-                    <AccordionTrigger>Como funciona o OCR de receitas?</AccordionTrigger>
-                    <AccordionContent>
-                      Com o plano Premium, tire uma foto da receita médica e a IA extrairá automaticamente 
-                      nome, dosagem e frequência. Sempre revise as informações antes de salvar.
-                    </AccordionContent>
+                    <AccordionTrigger>{t('help.faq2Q')}</AccordionTrigger>
+                    <AccordionContent>{t('help.faq2A')}</AccordionContent>
                   </AccordionItem>
 
                   <AccordionItem value="faq-3">
-                    <AccordionTrigger>Posso editar um lembrete depois de criar?</AccordionTrigger>
-                    <AccordionContent>
-                      Sim! Vá em "Rotina", encontre o medicamento e clique no ícone de lápis para editar 
-                      horários, dosagens ou frequência.
-                    </AccordionContent>
+                    <AccordionTrigger>{t('help.faq3Q')}</AccordionTrigger>
+                    <AccordionContent>{t('help.faq3A')}</AccordionContent>
                   </AccordionItem>
 
                   <AccordionItem value="faq-4">
-                    <AccordionTrigger>Como funciona o controle de estoque?</AccordionTrigger>
-                    <AccordionContent>
-                      Ative o controle ao adicionar o medicamento e informe a quantidade. O app desconta 
-                      automaticamente a cada dose marcada como tomada e avisa quando estiver acabando.
-                    </AccordionContent>
+                    <AccordionTrigger>{t('help.faq4Q')}</AccordionTrigger>
+                    <AccordionContent>{t('help.faq4A')}</AccordionContent>
                   </AccordionItem>
 
                   <AccordionItem value="faq-5">
-                    <AccordionTrigger>O que é adesão ao tratamento?</AccordionTrigger>
-                    <AccordionContent>
-                      Adesão é o percentual de doses tomadas corretamente. O ideal é manter acima de 80%. 
-                      Acompanhe na página "Hoje" e "Gráficos".
-                    </AccordionContent>
+                    <AccordionTrigger>{t('help.faq5Q')}</AccordionTrigger>
+                    <AccordionContent>{t('help.faq5A')}</AccordionContent>
                   </AccordionItem>
 
                   <AccordionItem value="faq-6">
-                    <AccordionTrigger>Como criar perfis para familiares?</AccordionTrigger>
-                    <AccordionContent>
-                      Vá em "Perfil" → "Gerenciar Perfis" → "Criar Novo Perfil". Você pode alternar entre 
-                      perfis para gerenciar medicamentos de diferentes pessoas.
-                    </AccordionContent>
+                    <AccordionTrigger>{t('help.faq6Q')}</AccordionTrigger>
+                    <AccordionContent>{t('help.faq6A')}</AccordionContent>
                   </AccordionItem>
 
                   <AccordionItem value="faq-7">
-                    <AccordionTrigger>Posso usar o app offline?</AccordionTrigger>
-                    <AccordionContent>
-                      Funcionalidades básicas funcionam offline, mas sincronização, OCR e recursos Premium 
-                      requerem conexão com internet.
-                    </AccordionContent>
+                    <AccordionTrigger>{t('help.faq7Q')}</AccordionTrigger>
+                    <AccordionContent>{t('help.faq7A')}</AccordionContent>
                   </AccordionItem>
 
                   <AccordionItem value="faq-8">
-                    <AccordionTrigger>Como compartilhar meu histórico com o médico?</AccordionTrigger>
-                    <AccordionContent>
-                      Vá em "Carteira de Saúde", selecione documentos e clique em "Compartilhar". Você pode 
-                      gerar um link temporário ou exportar como PDF.
-                    </AccordionContent>
+                    <AccordionTrigger>{t('help.faq8Q')}</AccordionTrigger>
+                    <AccordionContent>{t('help.faq8A')}</AccordionContent>
                   </AccordionItem>
 
                   <AccordionItem value="faq-9">
-                    <AccordionTrigger>O app substitui consultas médicas?</AccordionTrigger>
-                    <AccordionContent>
-                      NÃO! O HoraMed é apenas uma ferramenta de organização. Sempre consulte profissionais 
-                      de saúde para decisões sobre seu tratamento.
-                    </AccordionContent>
+                    <AccordionTrigger>{t('help.faq9Q')}</AccordionTrigger>
+                    <AccordionContent>{t('help.faq9A')}</AccordionContent>
                   </AccordionItem>
 
                   <AccordionItem value="faq-10">
-                    <AccordionTrigger>Como exportar meus dados?</AccordionTrigger>
-                    <AccordionContent>
-                      Vá em "Perfil" → "Privacidade" → "Exportar meus dados". Você receberá um arquivo JSON 
-                      com todas as suas informações (LGPD).
-                    </AccordionContent>
+                    <AccordionTrigger>{t('help.faq10Q')}</AccordionTrigger>
+                    <AccordionContent>{t('help.faq10A')}</AccordionContent>
                   </AccordionItem>
                 </Accordion>
               </Card>
@@ -325,7 +273,7 @@ export default function HelpSupport() {
                   <Mail className="h-5 w-5 text-primary" />
                 </div>
                 <div>
-                  <p className="font-medium text-foreground">Ainda precisa de ajuda?</p>
+                  <p className="font-medium text-foreground">{t('help.needMoreHelp')}</p>
                   <p className="text-sm text-muted-foreground">appmedhora@gmail.com</p>
                 </div>
               </div>
@@ -335,7 +283,7 @@ export default function HelpSupport() {
 
           <Card className="p-4 bg-primary/5 border-primary/20">
             <p className="text-sm text-foreground">
-              <span className="font-semibold">Tempo de resposta:</span> até 72 horas
+              <span className="font-semibold">{t('help.responseTime')}</span> {t('help.responseTimeValue')}
             </p>
           </Card>
 
@@ -345,7 +293,7 @@ export default function HelpSupport() {
             onClick={() => navigate("/terms")}
           >
             <FileText className="h-4 w-4 mr-2" />
-            Ver Termos de Uso e LGPD
+            {t('help.viewTerms')}
           </Button>
         </div>
       </div>

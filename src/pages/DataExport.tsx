@@ -11,12 +11,15 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+import { ptBR, enUS } from 'date-fns/locale';
 import { addHeader, addFooter, addSectionHeader, checkPageBreak } from '@/lib/pdfReportTypes';
 import logoImage from '@/assets/horamed-logo-optimized.webp';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function DataExport() {
   const navigate = useNavigate();
+  const { t, language } = useLanguage();
+  const dateLocale = language === 'pt' ? ptBR : enUS;
   const [exporting, setExporting] = useState(false);
   const [selectedSections, setSelectedSections] = useState({
     profile: true,
@@ -47,13 +50,13 @@ export default function DataExport() {
   const exportData = async () => {
     setExporting(true);
     try {
-      toast.loading('Preparando seus dados...');
+      toast.loading(t('export.preparingData'));
       
       const { data, error } = await supabase.functions.invoke('export-user-data');
 
       if (error) throw error;
 
-      toast.loading('Gerando PDF...');
+      toast.loading(t('export.generatingPdf'));
 
       // Create PDF
       const doc = new jsPDF();
@@ -70,11 +73,11 @@ export default function DataExport() {
       
       doc.setFontSize(16);
       doc.setTextColor(82, 109, 255);
-      doc.text('Exportação de Dados - HoraMed', 105, yPos + 8, { align: 'center' });
+      doc.text(language === 'pt' ? 'Exportação de Dados - HoraMed' : 'Data Export - HoraMed', 105, yPos + 8, { align: 'center' });
       
       doc.setFontSize(8);
       doc.setTextColor(100, 116, 139);
-      doc.text(`Gerado em ${format(new Date(), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}`, 105, yPos + 14, { align: 'center' });
+      doc.text(format(new Date(), language === 'pt' ? "dd/MM/yyyy 'às' HH:mm" : "MM/dd/yyyy 'at' HH:mm", { locale: dateLocale }), 105, yPos + 14, { align: 'center' });
       
       yPos += 25;
 
@@ -86,18 +89,18 @@ export default function DataExport() {
         doc.rect(15, yPos, 180, 6, 'F');
         doc.setFontSize(10);
         doc.setTextColor(255, 255, 255);
-        doc.text('Informacoes do Usuario', 18, yPos + 4);
+        doc.text(language === 'pt' ? 'Informacoes do Usuario' : 'User Information', 18, yPos + 4);
         yPos += 10;
         
         const profileData = [
-          ['Nome', data.profile.full_name || '-'],
-          ['Data de Nascimento', data.profile.birth_date ? format(new Date(data.profile.birth_date), 'dd/MM/yyyy', { locale: ptBR }) : '-'],
-          ['Altura', data.profile.height_cm ? `${data.profile.height_cm} cm` : '-'],
-          ['Peso', data.profile.weight_kg ? `${data.profile.weight_kg} kg` : '-'],
+          [language === 'pt' ? 'Nome' : 'Name', data.profile.full_name || '-'],
+          [language === 'pt' ? 'Data de Nascimento' : 'Birth Date', data.profile.birth_date ? format(new Date(data.profile.birth_date), 'dd/MM/yyyy', { locale: dateLocale }) : '-'],
+          [language === 'pt' ? 'Altura' : 'Height', data.profile.height_cm ? `${data.profile.height_cm} cm` : '-'],
+          [language === 'pt' ? 'Peso' : 'Weight', data.profile.weight_kg ? `${data.profile.weight_kg} kg` : '-'],
         ];
         autoTable(doc, {
           startY: yPos,
-          head: [['Campo', 'Valor']],
+          head: [[language === 'pt' ? 'Campo' : 'Field', language === 'pt' ? 'Valor' : 'Value']],
           body: profileData,
           theme: 'grid',
           headStyles: { 
@@ -127,17 +130,17 @@ export default function DataExport() {
         doc.rect(15, yPos, 180, 6, 'F');
         doc.setFontSize(10);
         doc.setTextColor(255, 255, 255);
-        doc.text('Perfis de Familia', 18, yPos + 4);
+        doc.text(language === 'pt' ? 'Perfis de Familia' : 'Family Profiles', 18, yPos + 4);
         yPos += 10;
         
         const profilesData = data.user_profiles.map((p: any) => [
           p.name || '-',
-          p.relationship || 'Principal',
-          p.birth_date ? format(new Date(p.birth_date), 'dd/MM/yyyy', { locale: ptBR }) : '-',
+          p.relationship || (language === 'pt' ? 'Principal' : 'Primary'),
+          p.birth_date ? format(new Date(p.birth_date), 'dd/MM/yyyy', { locale: dateLocale }) : '-',
         ]);
         autoTable(doc, {
           startY: yPos,
-          head: [['Nome', 'Relação', 'Data de Nascimento']],
+          head: [[language === 'pt' ? 'Nome' : 'Name', language === 'pt' ? 'Relação' : 'Relationship', language === 'pt' ? 'Data de Nascimento' : 'Birth Date']],
           body: profilesData,
           theme: 'grid',
           headStyles: { 
@@ -163,18 +166,18 @@ export default function DataExport() {
         doc.rect(15, yPos, 180, 6, 'F');
         doc.setFontSize(10);
         doc.setTextColor(255, 255, 255);
-        doc.text('Medicamentos', 18, yPos + 4);
+        doc.text(language === 'pt' ? 'Medicamentos' : 'Medications', 18, yPos + 4);
         yPos += 10;
         
         const medsData = data.items.map((item: any) => [
           item.name || '-',
           item.category || '-',
           item.dose_text || '-',
-          item.is_active ? 'Ativo' : 'Inativo',
+          item.is_active ? (language === 'pt' ? 'Ativo' : 'Active') : (language === 'pt' ? 'Inativo' : 'Inactive'),
         ]);
         autoTable(doc, {
           startY: yPos,
-          head: [['Nome', 'Categoria', 'Dosagem', 'Status']],
+          head: [[language === 'pt' ? 'Nome' : 'Name', language === 'pt' ? 'Categoria' : 'Category', language === 'pt' ? 'Dosagem' : 'Dosage', 'Status']],
           body: medsData,
           theme: 'grid',
           headStyles: { 
@@ -200,7 +203,7 @@ export default function DataExport() {
         doc.rect(15, yPos, 180, 6, 'F');
         doc.setFontSize(10);
         doc.setTextColor(255, 255, 255);
-        doc.text('Historico de Doses (Resumo)', 18, yPos + 4);
+        doc.text(language === 'pt' ? 'Historico de Doses (Resumo)' : 'Dose History (Summary)', 18, yPos + 4);
         yPos += 10;
         
         const taken = data.dose_instances.filter((d: any) => d.status === 'taken').length;
@@ -209,15 +212,15 @@ export default function DataExport() {
         const adherenceRate = taken + skipped > 0 ? Math.round((taken / (taken + skipped)) * 100) : 0;
         
         const summaryData = [
-          ['Total de Doses', data.dose_instances.length.toString()],
-          ['Tomadas', taken.toString()],
-          ['Puladas', skipped.toString()],
-          ['Pendentes', pending.toString()],
-          ['Taxa de Compromisso', `${adherenceRate}%`],
+          [language === 'pt' ? 'Total de Doses' : 'Total Doses', data.dose_instances.length.toString()],
+          [language === 'pt' ? 'Tomadas' : 'Taken', taken.toString()],
+          [language === 'pt' ? 'Puladas' : 'Skipped', skipped.toString()],
+          [language === 'pt' ? 'Pendentes' : 'Pending', pending.toString()],
+          [language === 'pt' ? 'Taxa de Compromisso' : 'Adherence Rate', `${adherenceRate}%`],
         ];
         autoTable(doc, {
           startY: yPos,
-          head: [['Métrica', 'Valor']],
+          head: [[language === 'pt' ? 'Métrica' : 'Metric', language === 'pt' ? 'Valor' : 'Value']],
           body: summaryData,
           theme: 'grid',
           headStyles: { 
@@ -247,17 +250,17 @@ export default function DataExport() {
         doc.rect(15, yPos, 180, 6, 'F');
         doc.setFontSize(10);
         doc.setTextColor(255, 255, 255);
-        doc.text('Documentos de Saude', 18, yPos + 4);
+        doc.text(language === 'pt' ? 'Documentos de Saude' : 'Health Documents', 18, yPos + 4);
         yPos += 10;
         
         const docsData = data.documentos_saude.slice(0, 20).map((document: any) => [
-          document.title || 'Sem título',
+          document.title || (language === 'pt' ? 'Sem título' : 'No title'),
           document.categoria_id || '-',
-          document.issued_at ? format(new Date(document.issued_at), 'dd/MM/yyyy', { locale: ptBR }) : '-',
+          document.issued_at ? format(new Date(document.issued_at), 'dd/MM/yyyy', { locale: dateLocale }) : '-',
         ]);
         autoTable(doc, {
           startY: yPos,
-          head: [['Título', 'Categoria', 'Data']],
+          head: [[language === 'pt' ? 'Título' : 'Title', language === 'pt' ? 'Categoria' : 'Category', language === 'pt' ? 'Data' : 'Date']],
           body: docsData,
           theme: 'grid',
           headStyles: { 
@@ -283,22 +286,33 @@ export default function DataExport() {
         doc.rect(15, yPos, 180, 6, 'F');
         doc.setFontSize(10);
         doc.setTextColor(255, 255, 255);
-        doc.text('Insights de Saude', 18, yPos + 4);
+        doc.text(language === 'pt' ? 'Insights de Saude' : 'Health Insights', 18, yPos + 4);
         yPos += 10;
         
-        const severityMap: Record<string, string> = {
+        const severityMap: Record<string, string> = language === 'pt' ? {
           critical: 'Critico',
           warning: 'Atencao',
           info: 'Info'
+        } : {
+          critical: 'Critical',
+          warning: 'Warning',
+          info: 'Info'
         };
         
-        const typeMap: Record<string, string> = {
+        const typeMap: Record<string, string> = language === 'pt' ? {
           drug_interaction: 'Interacao Medicamentosa',
           adherence_pattern: 'Padrao de Adesao',
           stock_alert: 'Alerta de Estoque',
           schedule_conflict: 'Conflito de Horario',
           side_effect: 'Efeito Colateral',
           renewal_needed: 'Renovacao Necessaria'
+        } : {
+          drug_interaction: 'Drug Interaction',
+          adherence_pattern: 'Adherence Pattern',
+          stock_alert: 'Stock Alert',
+          schedule_conflict: 'Schedule Conflict',
+          side_effect: 'Side Effect',
+          renewal_needed: 'Renewal Needed'
         };
         
         const insightsData = data.health_insights.slice(0, 10).map((insight: any) => [
@@ -308,7 +322,7 @@ export default function DataExport() {
         ]);
         autoTable(doc, {
           startY: yPos,
-          head: [['Título', 'Severidade', 'Tipo']],
+          head: [[language === 'pt' ? 'Título' : 'Title', language === 'pt' ? 'Severidade' : 'Severity', language === 'pt' ? 'Tipo' : 'Type']],
           body: insightsData,
           theme: 'grid',
           headStyles: { 
@@ -334,21 +348,21 @@ export default function DataExport() {
       doc.rect(15, yPos, 180, 6, 'F');
       doc.setFontSize(10);
       doc.setTextColor(255, 255, 255);
-      doc.text('Resumo da Exportacao', 18, yPos + 4);
+      doc.text(language === 'pt' ? 'Resumo da Exportacao' : 'Export Summary', 18, yPos + 4);
       yPos += 10;
       
-      const summaryData = [
-        ['Total de Perfis', (data.user_profiles?.length || 0).toString()],
-        ['Total de Medicamentos', (data.items?.length || 0).toString()],
-        ['Total de Doses', (data.dose_instances?.length || 0).toString()],
-        ['Total de Documentos', (data.documentos_saude?.length || 0).toString()],
-        ['Total de Insights', (data.health_insights?.length || 0).toString()],
-        ['Data da Exportação', format(new Date(), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })],
+      const finalSummaryData = [
+        [language === 'pt' ? 'Total de Perfis' : 'Total Profiles', (data.user_profiles?.length || 0).toString()],
+        [language === 'pt' ? 'Total de Medicamentos' : 'Total Medications', (data.items?.length || 0).toString()],
+        [language === 'pt' ? 'Total de Doses' : 'Total Doses', (data.dose_instances?.length || 0).toString()],
+        [language === 'pt' ? 'Total de Documentos' : 'Total Documents', (data.documentos_saude?.length || 0).toString()],
+        [language === 'pt' ? 'Total de Insights' : 'Total Insights', (data.health_insights?.length || 0).toString()],
+        [language === 'pt' ? 'Data da Exportação' : 'Export Date', format(new Date(), language === 'pt' ? "dd/MM/yyyy 'às' HH:mm" : "MM/dd/yyyy 'at' HH:mm", { locale: dateLocale })],
       ];
       autoTable(doc, {
         startY: yPos,
-        head: [['Item', 'Quantidade']],
-        body: summaryData,
+        head: [['Item', language === 'pt' ? 'Quantidade' : 'Quantity']],
+        body: finalSummaryData,
         theme: 'grid',
         headStyles: { 
           fillColor: [240, 240, 245],
@@ -374,25 +388,32 @@ export default function DataExport() {
         doc.setFontSize(7);
         doc.setTextColor(100, 116, 139);
         doc.text(
-          `Página ${i} de ${pageCount} | HoraMed - Gestão de Saúde`,
+          language === 'pt' 
+            ? `Página ${i} de ${pageCount} | HoraMed - Gestão de Saúde`
+            : `Page ${i} of ${pageCount} | HoraMed - Health Management`,
           105,
           287,
           { align: 'center' }
         );
         doc.setFontSize(6);
         doc.setTextColor(150, 150, 150);
-        doc.text('Documento gerado em conformidade com a LGPD. Mantenha em local seguro.', 105, 292, { align: 'center' });
+        doc.text(
+          language === 'pt'
+            ? 'Documento gerado em conformidade com a LGPD. Mantenha em local seguro.'
+            : 'Document generated in compliance with GDPR. Keep in a secure location.',
+          105, 292, { align: 'center' }
+        );
       }
 
       // Save PDF
-      doc.save(`horamed-dados-${format(new Date(), 'yyyy-MM-dd')}.pdf`);
+      doc.save(`horamed-${language === 'pt' ? 'dados' : 'data'}-${format(new Date(), 'yyyy-MM-dd')}.pdf`);
 
       toast.dismiss();
-      toast.success('PDF exportado com sucesso!');
+      toast.success(t('export.pdfSuccess'));
     } catch (error: any) {
       console.error('Erro ao exportar dados:', error);
       toast.dismiss();
-      toast.error('Erro ao exportar dados: ' + (error.message || 'Erro desconhecido'));
+      toast.error(t('export.pdfError') + ' ' + (error.message || 'Unknown error'));
     } finally {
       setExporting(false);
     }
@@ -402,48 +423,47 @@ export default function DataExport() {
     <div className="min-h-screen bg-background">
       <Header />
       
-      <div className="container max-w-4xl mx-auto px-4 py-6 pt-24 space-y-6">{/* pt-24 para compensar o header fixo */}
+      <div className="container max-w-4xl mx-auto px-4 py-6 pt-24 space-y-6">
         <Button variant="ghost" onClick={() => navigate(-1)} className="mb-4">
           <ArrowLeft className="w-4 h-4 mr-2" />
-          Voltar
+          {t('common.back')}
         </Button>
         <div>
           <h1 className="text-3xl font-bold flex items-center gap-2">
             <Database className="h-8 w-8 text-primary" />
-            Exportação de Dados
+            {t('export.title')}
           </h1>
           <p className="text-muted-foreground mt-1">
-            Conforme a LGPD, você tem direito a uma cópia de todos os seus dados
+            {t('export.subtitle')}
           </p>
         </div>
 
         <Alert>
           <Shield className="h-4 w-4" />
-          <AlertTitle>Conformidade LGPD</AlertTitle>
+          <AlertTitle>{t('export.lgpdCompliance')}</AlertTitle>
           <AlertDescription>
-            Este recurso permite que você exporte todos os dados pessoais armazenados no HoraMed,
-            incluindo perfis, medicamentos, histórico de doses, documentos e mais.
+            {t('export.lgpdDesc')}
           </AlertDescription>
         </Alert>
 
         <Card>
           <CardHeader>
-            <CardTitle>Dados Incluídos na Exportação</CardTitle>
+            <CardTitle>{t('export.dataIncluded')}</CardTitle>
             <CardDescription>
-              O arquivo PDF conterá as seguintes informações organizadas de forma clara:
+              {t('export.dataIncludedDesc')}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-3">
               <div className="flex items-center justify-between pb-2 border-b">
-                <p className="text-sm font-semibold">Selecione os dados para exportar:</p>
+                <p className="text-sm font-semibold">{t('export.selectData')}</p>
                 <Button 
                   variant="ghost" 
                   size="sm" 
                   onClick={toggleAll}
                   className="h-8 text-xs"
                 >
-                  {Object.values(selectedSections).every(v => v) ? 'Desmarcar todos' : 'Selecionar todos'}
+                  {Object.values(selectedSections).every(v => v) ? t('export.unselectAll') : t('export.selectAll')}
                 </Button>
               </div>
               
@@ -455,7 +475,7 @@ export default function DataExport() {
                     onCheckedChange={() => toggleSection('profile')}
                   />
                   <label htmlFor="profile" className="text-sm cursor-pointer flex-1">
-                    Perfil principal e informações pessoais
+                    {t('export.profileInfo')}
                   </label>
                 </div>
 
@@ -466,7 +486,7 @@ export default function DataExport() {
                     onCheckedChange={() => toggleSection('profiles')}
                   />
                   <label htmlFor="profiles" className="text-sm cursor-pointer flex-1">
-                    Perfis adicionais (família)
+                    {t('export.familyProfiles')}
                   </label>
                 </div>
 
@@ -477,7 +497,7 @@ export default function DataExport() {
                     onCheckedChange={() => toggleSection('medications')}
                   />
                   <label htmlFor="medications" className="text-sm cursor-pointer flex-1">
-                    Medicamentos e suplementos
+                    {t('export.medsSupplements')}
                   </label>
                 </div>
 
@@ -488,7 +508,7 @@ export default function DataExport() {
                     onCheckedChange={() => toggleSection('doses')}
                   />
                   <label htmlFor="doses" className="text-sm cursor-pointer flex-1">
-                    Histórico de doses e horários
+                    {t('export.doseHistory')}
                   </label>
                 </div>
 
@@ -499,7 +519,7 @@ export default function DataExport() {
                     onCheckedChange={() => toggleSection('documents')}
                   />
                   <label htmlFor="documents" className="text-sm cursor-pointer flex-1">
-                    Documentos de saúde e exames
+                    {t('export.healthDocs')}
                   </label>
                 </div>
 
@@ -510,7 +530,7 @@ export default function DataExport() {
                     onCheckedChange={() => toggleSection('insights')}
                   />
                   <label htmlFor="insights" className="text-sm cursor-pointer flex-1">
-                    Insights e análises de saúde
+                    {t('export.healthInsights')}
                   </label>
                 </div>
               </div>
@@ -526,22 +546,22 @@ export default function DataExport() {
                 {exporting ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Exportando...
+                    {t('export.exporting')}
                   </>
                 ) : (
                   <>
                     <FileDown className="mr-2 h-4 w-4" />
-                    Exportar em PDF
+                    {t('export.exportPdf')}
                   </>
                 )}
               </Button>
               {!Object.values(selectedSections).some(v => v) && (
                 <p className="text-xs text-destructive text-center mt-2">
-                  Selecione ao menos uma seção para exportar
+                  {t('export.selectAtLeast')}
                 </p>
               )}
               <p className="text-xs text-muted-foreground text-center mt-2">
-                O arquivo será baixado em formato PDF com design profissional
+                {t('export.pdfDownload')}
               </p>
             </div>
           </CardContent>
@@ -549,8 +569,7 @@ export default function DataExport() {
 
         <Alert variant="default">
           <AlertDescription className="text-xs">
-            <strong>Nota:</strong> Este arquivo contém informações sensíveis. 
-            Mantenha-o em local seguro e não compartilhe publicamente.
+            <strong>{language === 'pt' ? 'Nota:' : 'Note:'}</strong> {t('export.sensitiveNote')}
           </AlertDescription>
         </Alert>
       </div>
