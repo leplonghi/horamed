@@ -48,8 +48,8 @@ export function ConditionalWizardStep({
     >
       <div
         className={cn(
-          "relative rounded-2xl border-2 transition-all duration-300",
-          isActive && "border-primary bg-card shadow-lg shadow-primary/5",
+          "relative rounded-xl border-2 transition-all duration-300",
+          isActive && "border-primary bg-card shadow-md shadow-primary/5",
           isComplete && !isActive && "border-primary/40 bg-primary/5",
           !isActive && !isComplete && "border-border/50 bg-muted/20"
         )}
@@ -59,21 +59,21 @@ export function ConditionalWizardStep({
           type="button"
           onClick={onToggle}
           className={cn(
-            "w-full flex items-center gap-3 p-4 text-left transition-all",
-            isActive && "pb-2"
+            "w-full flex items-center gap-2.5 p-3 text-left transition-all",
+            isActive && "pb-1.5"
           )}
         >
           {/* Step Number/Check Circle */}
           <div
             className={cn(
-              "flex h-10 w-10 shrink-0 items-center justify-center rounded-full font-bold text-sm transition-all",
+              "flex h-8 w-8 shrink-0 items-center justify-center rounded-full font-bold text-xs transition-all",
               isComplete && "bg-primary text-primary-foreground",
-              isActive && !isComplete && "bg-primary text-primary-foreground ring-4 ring-primary/20",
+              isActive && !isComplete && "bg-primary text-primary-foreground ring-2 ring-primary/20",
               !isActive && !isComplete && "bg-muted text-muted-foreground"
             )}
           >
             {isComplete ? (
-              <Check className="h-5 w-5" strokeWidth={3} />
+              <Check className="h-4 w-4" strokeWidth={3} />
             ) : (
               stepNumber
             )}
@@ -81,11 +81,11 @@ export function ConditionalWizardStep({
 
           {/* Title and Description */}
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2">
-              <span className="text-lg">{icon}</span>
+            <div className="flex items-center gap-1.5">
+              <span className="text-base">{icon}</span>
               <h3
                 className={cn(
-                  "font-semibold text-base",
+                  "font-semibold text-sm",
                   isActive && "text-primary",
                   isComplete && !isActive && "text-foreground"
                 )}
@@ -96,7 +96,7 @@ export function ConditionalWizardStep({
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <HelpCircle className="h-4 w-4 text-muted-foreground/70 hover:text-primary transition-colors" />
+                      <HelpCircle className="h-3.5 w-3.5 text-muted-foreground/70 hover:text-primary transition-colors" />
                     </TooltipTrigger>
                     <TooltipContent side="top" className="max-w-[280px]">
                       <p className="text-xs">{helpText}</p>
@@ -108,11 +108,11 @@ export function ConditionalWizardStep({
 
             {/* Summary when collapsed and complete, or description when active/incomplete */}
             {isComplete && !isActive && summary ? (
-              <p className="text-sm text-primary font-medium mt-0.5 truncate">
+              <p className="text-xs text-primary font-medium truncate">
                 ✓ {summary}
               </p>
             ) : (
-              <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
+              <p className="text-[11px] text-muted-foreground line-clamp-1">
                 {description}
               </p>
             )}
@@ -120,13 +120,13 @@ export function ConditionalWizardStep({
 
           {/* Expand/Collapse Icon */}
           <div className={cn(
-            "p-1.5 rounded-full transition-colors",
+            "p-1 rounded-full transition-colors",
             isActive ? "bg-primary/10" : "bg-muted/50"
           )}>
             {isActive ? (
-              <ChevronUp className="h-4 w-4 text-primary" />
+              <ChevronUp className="h-3.5 w-3.5 text-primary" />
             ) : (
-              <ChevronDown className="h-4 w-4 text-muted-foreground" />
+              <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
             )}
           </div>
         </button>
@@ -141,8 +141,8 @@ export function ConditionalWizardStep({
               transition={{ duration: 0.3, ease: "easeInOut" }}
               className="overflow-hidden"
             >
-              <div className="px-4 pb-4 pt-2">
-                <div className="ml-[52px] space-y-4">
+              <div className="px-3 pb-3 pt-1">
+                <div className="ml-[42px] space-y-3">
                   {children}
                 </div>
               </div>
