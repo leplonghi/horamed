@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, isAfter, startOfDay } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { ptBR, enUS } from "date-fns/locale";
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface DayProgress {
   date: Date;
@@ -18,6 +19,8 @@ interface DayProgress {
 export function MonthlyProgressCalendar({ profileId }: { profileId?: string }) {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDay, setSelectedDay] = useState<DayProgress | null>(null);
+  const { t, language } = useLanguage();
+  const dateLocale = language === 'pt' ? ptBR : enUS;
 
   const monthStart = startOfMonth(currentMonth);
   const monthEnd = endOfMonth(currentMonth);
@@ -87,7 +90,9 @@ export function MonthlyProgressCalendar({ profileId }: { profileId?: string }) {
 
   const days = eachDayOfInterval({ start: monthStart, end: monthEnd });
   const firstDayOfWeek = monthStart.getDay();
-  const weekDays = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+  const weekDays = language === 'pt' 
+    ? ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"]
+    : ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
   const handlePrevMonth = () => setCurrentMonth(subMonths(currentMonth, 1));
   const handleNextMonth = () => setCurrentMonth(addMonths(currentMonth, 1));
@@ -98,13 +103,13 @@ export function MonthlyProgressCalendar({ profileId }: { profileId?: string }) {
       <div className="space-y-4">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold">
-            {format(currentMonth, "MMMM yyyy", { locale: ptBR })}
+          <h2 className="text-2xl font-bold capitalize">
+            {format(currentMonth, "MMMM yyyy", { locale: dateLocale })}
           </h2>
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={handleToday}>
               <CalendarIcon className="h-4 w-4 mr-2" />
-              Hoje
+              {t('time.today')}
             </Button>
             <Button variant="outline" size="icon" onClick={handlePrevMonth}>
               <ChevronLeft className="h-4 w-4" />
@@ -203,13 +208,13 @@ export function MonthlyProgressCalendar({ profileId }: { profileId?: string }) {
         {selectedDay && (
           <Card className="p-4 bg-muted/50">
             <h3 className="font-semibold mb-2">
-              {format(selectedDay.date, "d 'de' MMMM 'de' yyyy", { locale: ptBR })}
+              {format(selectedDay.date, language === 'pt' ? "d 'de' MMMM 'de' yyyy" : "MMMM d, yyyy", { locale: dateLocale })}
             </h3>
             <div className="space-y-1 text-sm">
-              <p>Total de doses: {selectedDay.total}</p>
-              <p>Doses tomadas: {selectedDay.taken}</p>
+              <p>{language === 'pt' ? 'Total de doses' : 'Total doses'}: {selectedDay.total}</p>
+              <p>{language === 'pt' ? 'Doses tomadas' : 'Doses taken'}: {selectedDay.taken}</p>
               <p className="font-medium">
-                Progresso: {Math.round(selectedDay.rate)}%
+                {language === 'pt' ? 'Progresso' : 'Progress'}: {Math.round(selectedDay.rate)}%
               </p>
             </div>
           </Card>

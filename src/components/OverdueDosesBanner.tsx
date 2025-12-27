@@ -5,10 +5,12 @@ import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export function OverdueDosesBanner() {
   const { overdueDoses, markAsTaken, hasOverdue } = useOverdueDoses();
   const [loadingIds, setLoadingIds] = useState<Set<string>>(new Set());
+  const { t, language } = useLanguage();
 
   if (!hasOverdue) return null;
 
@@ -24,22 +26,28 @@ export function OverdueDosesBanner() {
     
     if (count === 1) {
       if (mostOverdue.minutesOverdue > 60) {
-        return `⚠️ ${mostOverdue.profileName} não tomou ${mostOverdue.itemName} há mais de 1 hora!`;
+        return language === 'pt' 
+          ? `⚠️ ${mostOverdue.profileName} não tomou ${mostOverdue.itemName} há mais de 1 hora!`
+          : `⚠️ ${mostOverdue.profileName} hasn't taken ${mostOverdue.itemName} for over 1 hour!`;
       }
-      return `${mostOverdue.profileName} precisa tomar ${mostOverdue.itemName}`;
+      return language === 'pt'
+        ? `${mostOverdue.profileName} precisa tomar ${mostOverdue.itemName}`
+        : `${mostOverdue.profileName} needs to take ${mostOverdue.itemName}`;
     }
-    return `${count} doses atrasadas precisam de atenção`;
+    return language === 'pt'
+      ? `${count} doses atrasadas precisam de atenção`
+      : `${count} overdue doses need attention`;
   };
 
   const handleMarkAsTaken = async (doseId: string, itemName: string) => {
     setLoadingIds(prev => new Set(prev).add(doseId));
     try {
       await markAsTaken(doseId);
-      toast.success(`${itemName} confirmado!`, {
-        description: "Dose registrada com sucesso"
+      toast.success(language === 'pt' ? `${itemName} confirmado!` : `${itemName} confirmed!`, {
+        description: language === 'pt' ? "Dose registrada com sucesso" : "Dose recorded successfully"
       });
     } catch (error) {
-      toast.error("Erro ao confirmar dose");
+      toast.error(language === 'pt' ? "Erro ao confirmar dose" : "Error confirming dose");
     } finally {
       setLoadingIds(prev => {
         const next = new Set(prev);
@@ -97,7 +105,7 @@ export function OverdueDosesBanner() {
                 ) : (
                   <Check className="h-4 w-4" />
                 )}
-                Confirmar
+                {t('common.confirm')}
               </Button>
             )}
           </div>

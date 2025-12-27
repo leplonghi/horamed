@@ -2,7 +2,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Clock, CheckCircle2, XCircle, SkipForward, Calendar } from "lucide-react";
 import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { ptBR, enUS } from "date-fns/locale";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface DoseActionModalProps {
   open: boolean;
@@ -27,6 +28,9 @@ export default function DoseActionModal({
   dose, 
   onAction 
 }: DoseActionModalProps) {
+  const { t, language } = useLanguage();
+  const dateLocale = language === 'pt' ? ptBR : enUS;
+  
   if (!dose) return null;
 
   const dueTime = new Date(dose.due_at);
@@ -51,14 +55,14 @@ export default function DoseActionModal({
             <div className="flex items-center justify-center gap-2 text-muted-foreground">
               <Clock className="h-4 w-4" />
               <span className="text-sm">
-                Previsto: {format(dueTime, "HH:mm", { locale: ptBR })}
+                {language === 'pt' ? 'Previsto' : 'Scheduled'}: {format(dueTime, "HH:mm", { locale: dateLocale })}
               </span>
             </div>
             <div className="text-lg font-semibold">
-              Agora: {format(now, "HH:mm", { locale: ptBR })}
+              {language === 'pt' ? 'Agora' : 'Now'}: {format(now, "HH:mm", { locale: dateLocale })}
               {minutesLate > 0 && (
                 <span className="text-sm text-warning ml-2">
-                  ({minutesLate} min atrasado)
+                  ({minutesLate} min {language === 'pt' ? 'atrasado' : 'late'})
                 </span>
               )}
             </div>
@@ -75,7 +79,7 @@ export default function DoseActionModal({
           {dose.stock && dose.stock.length > 0 && (
             <div className="text-center">
               <p className="text-sm text-muted-foreground">
-                📦 Estoque: {dose.stock[0].units_left} unidades
+                📦 {t('dose.stock')}: {dose.stock[0].units_left} {t('dose.unitsShort')}
               </p>
             </div>
           )}
@@ -88,7 +92,7 @@ export default function DoseActionModal({
               size="lg"
             >
               <CheckCircle2 className="h-5 w-5 mr-2" />
-              ✓ TOMEI AGORA ({format(now, "HH:mm")})
+              ✓ {language === 'pt' ? 'TOMEI AGORA' : 'TOOK IT NOW'} ({format(now, "HH:mm")})
             </Button>
 
             <div className="grid grid-cols-2 gap-3">
@@ -98,8 +102,10 @@ export default function DoseActionModal({
                 className="h-12"
               >
                 <Calendar className="h-4 w-4 mr-2" />
-                Já tomei
-                <span className="text-xs block text-muted-foreground">(escolher horário)</span>
+                {language === 'pt' ? 'Já tomei' : 'Already took'}
+                <span className="text-xs block text-muted-foreground">
+                  ({language === 'pt' ? 'escolher horário' : 'choose time'})
+                </span>
               </Button>
 
               <Button
@@ -108,7 +114,7 @@ export default function DoseActionModal({
                 className="h-12"
               >
                 <SkipForward className="h-4 w-4 mr-2" />
-                Pular
+                {t('today.skip')}
               </Button>
             </div>
 
@@ -118,7 +124,7 @@ export default function DoseActionModal({
               className="w-full"
             >
               <XCircle className="h-4 w-4 mr-2" />
-              Esqueci / Não vou tomar
+              {language === 'pt' ? 'Esqueci / Não vou tomar' : "Forgot / Won't take"}
             </Button>
           </div>
         </div>

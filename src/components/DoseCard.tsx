@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, Clock, XCircle, SkipForward, AlertCircle, Info, Utensils } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { ptBR, enUS } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import DoseActionButton from "./DoseActionButton";
 import MedicationInfoSheet from "./MedicationInfoSheet";
@@ -12,6 +12,7 @@ import { useMedicationInfo } from "@/hooks/useMedicationInfo";
 import HelpTooltip from "@/components/HelpTooltip";
 import { microcopy } from "@/lib/microcopy";
 import { getUniqueItemColors } from "@/lib/categoryColors";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface DoseCardProps {
   dose: {
@@ -37,6 +38,8 @@ interface DoseCardProps {
 export default function DoseCard({ dose, onTake, onMore }: DoseCardProps) {
   const [showInfo, setShowInfo] = useState(false);
   const { info, isLoading, error, fetchInfo, clearInfo } = useMedicationInfo();
+  const { t, language } = useLanguage();
+  const dateLocale = language === 'pt' ? ptBR : enUS;
 
   const dueTime = new Date(dose.due_at);
   const now = new Date();
@@ -65,21 +68,21 @@ export default function DoseCard({ dose, onTake, onMore }: DoseCardProps) {
       case 'taken':
         return {
           icon: CheckCircle2,
-          label: "Tomado",
+          label: t('dose.taken'),
           color: "bg-success/10 border-success/20 text-success",
           badgeColor: "bg-success text-success-foreground",
         };
       case 'missed':
         return {
           icon: XCircle,
-          label: "Esquecido",
+          label: t('dose.missed'),
           color: "bg-destructive/10 border-destructive/20 text-destructive",
           badgeColor: "bg-destructive text-destructive-foreground",
         };
       case 'skipped':
         return {
           icon: SkipForward,
-          label: "Pulado",
+          label: t('dose.skipped'),
           color: "bg-muted border-border text-muted-foreground",
           badgeColor: "bg-muted text-muted-foreground",
         };
@@ -87,7 +90,7 @@ export default function DoseCard({ dose, onTake, onMore }: DoseCardProps) {
         if (isPast && !isCurrent) {
           return {
             icon: AlertCircle,
-            label: "Atrasado",
+            label: t('dose.late'),
             color: "bg-red-500/15 border-red-500/40 text-red-600 dark:text-red-400",
             badgeColor: "bg-red-500 text-white",
           };
@@ -95,14 +98,14 @@ export default function DoseCard({ dose, onTake, onMore }: DoseCardProps) {
         if (isCurrent) {
           return {
             icon: Clock,
-            label: "Agora",
+            label: t('dose.now'),
             color: "bg-primary/10 border-primary/30 text-primary",
             badgeColor: "bg-primary text-primary-foreground",
           };
         }
         return {
           icon: Clock,
-          label: "Pendente",
+          label: t('dose.pending'),
           color: "bg-card border-border text-foreground",
           badgeColor: "bg-secondary text-secondary-foreground",
         };
@@ -148,13 +151,13 @@ export default function DoseCard({ dose, onTake, onMore }: DoseCardProps) {
                   <h4 className="font-semibold text-foreground truncate">
                     {dose.items.name}
                   </h4>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-6 w-6 shrink-0"
-                    onClick={handleShowInfo}
-                    title="Ver informações do medicamento"
-                  >
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6 shrink-0"
+                      onClick={handleShowInfo}
+                      title={t('dose.viewMedInfo')}
+                    >
                     <Info className="h-4 w-4 text-muted-foreground" />
                   </Button>
                 </div>
@@ -165,7 +168,7 @@ export default function DoseCard({ dose, onTake, onMore }: DoseCardProps) {
                       <>
                         <span className="mx-1">•</span>
                         <Utensils className="h-3 w-3" />
-                        <span className="text-xs">com alimento</span>
+                        <span className="text-xs">{t('dose.withFood')}</span>
                         <HelpTooltip content={microcopy.help.today.withFood} iconSize="sm" />
                       </>
                     )}
@@ -180,25 +183,25 @@ export default function DoseCard({ dose, onTake, onMore }: DoseCardProps) {
             <div className="flex items-center gap-3 text-sm text-muted-foreground mb-3">
               <span className="flex items-center gap-1">
                 <Clock className="h-3.5 w-3.5" />
-                {format(dueTime, "HH:mm", { locale: ptBR })}
+                {format(dueTime, "HH:mm", { locale: dateLocale })}
               </span>
               {dose.status === 'scheduled' && (
                 <span className="text-xs">
-                  {isPast && !isCurrent && `⚠️ ${formatDistanceToNow(dueTime, { locale: ptBR, addSuffix: true })}`}
-                  {isCurrent && "⏰ É agora!"}
-                  {isFuture && `🕒 ${formatDistanceToNow(dueTime, { locale: ptBR, addSuffix: true })}`}
+                  {isPast && !isCurrent && `⚠️ ${formatDistanceToNow(dueTime, { locale: dateLocale, addSuffix: true })}`}
+                  {isCurrent && `⏰ ${t('dose.itsNow')}`}
+                  {isFuture && `🕒 ${formatDistanceToNow(dueTime, { locale: dateLocale, addSuffix: true })}`}
                 </span>
               )}
               {dose.taken_at && (
                 <span className="text-success text-xs">
-                  ✓ às {format(new Date(dose.taken_at), "HH:mm", { locale: ptBR })}
+                  ✓ {language === 'pt' ? 'às' : 'at'} {format(new Date(dose.taken_at), "HH:mm", { locale: dateLocale })}
                 </span>
               )}
             </div>
 
             {dose.stock && dose.stock.length > 0 && (
               <p className="text-xs text-muted-foreground mb-3">
-                📦 Estoque: {dose.stock[0].units_left} unidades
+                📦 {t('dose.stock')}: {dose.stock[0].units_left} {t('dose.unitsShort')}
               </p>
             )}
 

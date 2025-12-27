@@ -1429,6 +1429,19 @@ const translations: Record<Language, Record<string, string>> = {
     'weight.errorSaving': 'Erro ao salvar peso',
     'weight.invalidWeight': 'Por favor, informe um peso válido',
     
+    // Dose Card
+    'dose.taken': 'Tomado',
+    'dose.missed': 'Esquecido',
+    'dose.skipped': 'Pulado',
+    'dose.late': 'Atrasado',
+    'dose.now': 'Agora',
+    'dose.pending': 'Pendente',
+    'dose.itsNow': 'É agora!',
+    'dose.stock': 'Estoque',
+    'dose.unitsShort': 'unidades',
+    'dose.withFood': 'com alimento',
+    'dose.viewMedInfo': 'Ver informações do medicamento',
+    
     // PWA Install Prompt
     'pwa.installTitle': 'Instalar HoraMed',
     'pwa.installDesc': 'Acesse mais rápido, receba lembretes e use mesmo offline.',
@@ -2846,6 +2859,19 @@ const translations: Record<Language, Record<string, string>> = {
     'weight.weightUpdatedDiff': 'Weight updated! {diff} kg since last measurement.',
     'weight.errorSaving': 'Error saving weight',
     'weight.invalidWeight': 'Please enter a valid weight',
+    
+    // Dose Card
+    'dose.taken': 'Taken',
+    'dose.missed': 'Missed',
+    'dose.skipped': 'Skipped',
+    'dose.late': 'Late',
+    'dose.now': 'Now',
+    'dose.pending': 'Pending',
+    'dose.itsNow': "It's now!",
+    'dose.stock': 'Stock',
+    'dose.unitsShort': 'units',
+    'dose.withFood': 'with food',
+    'dose.viewMedInfo': 'View medication info',
     
     // PWA Install Prompt
     'pwa.installTitle': 'Install HoraMed',
