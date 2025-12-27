@@ -21,6 +21,7 @@ import { PushNotifications } from "@capacitor/push-notifications";
 import { LocalNotifications } from "@capacitor/local-notifications";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const isNative = Capacitor.isNativePlatform();
 const platform = Capacitor.getPlatform();
@@ -33,6 +34,7 @@ interface PermissionStatus {
 
 export default function NotificationSetup() {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [permissions, setPermissions] = useState<PermissionStatus>({
     push: 'unknown',
     local: 'unknown',
@@ -50,17 +52,15 @@ export default function NotificationSetup() {
     
     try {
       if (isNative) {
-        // Check push notification permission
         const pushStatus = await PushNotifications.checkPermissions();
         const localStatus = await LocalNotifications.checkPermissions();
         
         setPermissions({
           push: pushStatus.receive as any,
           local: localStatus.display as any,
-          battery: 'unknown' // Can't check programmatically
+          battery: 'unknown'
         });
       } else {
-        // Web - check Notification API
         if ('Notification' in window) {
           setPermissions({
             push: Notification.permission as any,
@@ -84,21 +84,21 @@ export default function NotificationSetup() {
         
         if (pushResult.receive === 'granted' && localResult.display === 'granted') {
           await PushNotifications.register();
-          toast.success('✓ Notificações ativadas!');
+          toast.success(t('notifSetup.notifEnabled'));
           await checkPermissions();
         } else {
-          toast.error('Permissão negada. Ative manualmente nas configurações do celular.');
+          toast.error(t('notifSetup.permissionDenied'));
         }
       } else {
         const result = await Notification.requestPermission();
         if (result === 'granted') {
-          toast.success('✓ Notificações ativadas!');
+          toast.success(t('notifSetup.notifEnabled'));
         }
         await checkPermissions();
       }
     } catch (error) {
       console.error('Error requesting permissions:', error);
-      toast.error('Erro ao solicitar permissões');
+      toast.error(t('notifSetup.permissionError'));
     }
   };
 
@@ -109,27 +109,27 @@ export default function NotificationSetup() {
           notifications: [
             {
               id: 99999,
-              title: '🔔 Teste de Notificação',
-              body: 'Se você está vendo isso, as notificações estão funcionando!',
-              schedule: { at: new Date(Date.now() + 3000) }, // 3 seconds from now
+              title: '🔔 ' + t('notifSetup.testNotif'),
+              body: t('notifSetup.testDesc'),
+              schedule: { at: new Date(Date.now() + 3000) },
               channelId: 'horamed-medicamentos'
             }
           ]
         });
-        toast.success('Notificação de teste agendada para 3 segundos!');
+        toast.success(t('notifSetup.testScheduled'));
       } else {
         if (Notification.permission === 'granted') {
-          new Notification('🔔 Teste de Notificação', {
-            body: 'Se você está vendo isso, as notificações estão funcionando!',
+          new Notification('🔔 ' + t('notifSetup.testNotif'), {
+            body: t('notifSetup.testDesc'),
             icon: '/favicon.png'
           });
-          toast.success('Notificação enviada!');
+          toast.success(t('notifSetup.testSentSuccess'));
         }
       }
       setTestSent(true);
     } catch (error) {
       console.error('Error sending test:', error);
-      toast.error('Erro ao enviar teste');
+      toast.error(t('notifSetup.testError'));
     }
   };
 
@@ -153,7 +153,7 @@ export default function NotificationSetup() {
             <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
               <ArrowLeft className="h-5 w-5" />
             </Button>
-            <h1 className="text-xl font-bold">Configurar Notificações</h1>
+            <h1 className="text-xl font-bold">{t('notifSetup.title')}</h1>
           </div>
           
           <div className="text-center space-y-2">
@@ -161,10 +161,10 @@ export default function NotificationSetup() {
               <BellRing className="h-8 w-8 text-primary" />
             </div>
             <h2 className="text-2xl font-bold">
-              Nunca perca uma dose
+              {t('notifSetup.neverMiss')}
             </h2>
             <p className="text-muted-foreground">
-              Configure as notificações para receber lembretes mesmo com o app fechado
+              {t('notifSetup.configureDesc')}
             </p>
           </div>
         </div>
@@ -178,16 +178,16 @@ export default function NotificationSetup() {
               <>
                 <CheckCircle2 className="h-8 w-8 text-green-500" />
                 <div>
-                  <h3 className="font-semibold text-green-700 dark:text-green-400">Notificações ativas!</h3>
-                  <p className="text-sm text-green-600 dark:text-green-500">Você receberá lembretes mesmo com o app fechado</p>
+                  <h3 className="font-semibold text-green-700 dark:text-green-400">{t('notifSetup.active')}</h3>
+                  <p className="text-sm text-green-600 dark:text-green-500">{t('notifSetup.activeDesc')}</p>
                 </div>
               </>
             ) : (
               <>
                 <AlertTriangle className="h-8 w-8 text-amber-500" />
                 <div>
-                  <h3 className="font-semibold text-amber-700 dark:text-amber-400">Configuração necessária</h3>
-                  <p className="text-sm text-amber-600 dark:text-amber-500">Siga os passos abaixo para ativar os lembretes</p>
+                  <h3 className="font-semibold text-amber-700 dark:text-amber-400">{t('notifSetup.configNeeded')}</h3>
+                  <p className="text-sm text-amber-600 dark:text-amber-500">{t('notifSetup.configNeededDesc')}</p>
                 </div>
               </>
             )}
@@ -205,24 +205,24 @@ export default function NotificationSetup() {
               )}
             </div>
             <div className="flex-1">
-              <h3 className="font-semibold mb-1">Permitir notificações</h3>
+              <h3 className="font-semibold mb-1">{t('notifSetup.allowNotif')}</h3>
               <p className="text-sm text-muted-foreground mb-3">
-                Autorize o app a enviar lembretes de medicamentos
+                {t('notifSetup.authorizeApp')}
               </p>
               
               <div className="flex items-center gap-2 mb-3">
                 {getStatusIcon(permissions.local)}
                 <span className="text-sm">
-                  {permissions.local === 'granted' ? 'Permitido' : 
-                   permissions.local === 'denied' ? 'Negado - ative nas configurações' : 
-                   'Não configurado'}
+                  {permissions.local === 'granted' ? t('notifSetup.allowed') : 
+                   permissions.local === 'denied' ? t('notifSetup.denied') : 
+                   t('notifSetup.notConfigured')}
                 </span>
               </div>
 
               {permissions.local !== 'granted' && (
                 <Button onClick={requestPermissions} className="w-full">
                   <Bell className="h-4 w-4 mr-2" />
-                  Permitir Notificações
+                  {t('notifSetup.allowBtn')}
                 </Button>
               )}
             </div>
@@ -237,26 +237,26 @@ export default function NotificationSetup() {
                 <span className="font-bold text-primary">2</span>
               </div>
               <div className="flex-1">
-                <h3 className="font-semibold mb-1">Desativar economia de bateria</h3>
+                <h3 className="font-semibold mb-1">{t('notifSetup.disableBattery')}</h3>
                 <p className="text-sm text-muted-foreground mb-3">
-                  <strong>Muito importante!</strong> Sem isso, o Android pode bloquear notificações com o app fechado.
+                  <strong>{t('notifSetup.batteryImportant')}</strong> {t('notifSetup.batteryDesc')}
                 </p>
                 
                 <Alert className="mb-3">
                   <Info className="h-4 w-4" />
                   <AlertDescription className="text-xs">
-                    Vá em <strong>Configurações → Apps → HoraMed → Bateria → Sem restrições</strong>
+                    {t('notifSetup.batteryPath')}
                   </AlertDescription>
                 </Alert>
 
                 <div className="space-y-2 text-sm bg-muted/50 p-3 rounded-lg">
-                  <p className="font-medium">Passo a passo:</p>
+                  <p className="font-medium">{t('notifSetup.stepByStep')}</p>
                   <ol className="list-decimal list-inside space-y-1 text-muted-foreground">
-                    <li>Abra <strong>Configurações</strong> do celular</li>
-                    <li>Toque em <strong>Apps</strong> ou <strong>Aplicativos</strong></li>
-                    <li>Encontre <strong>HoraMed</strong></li>
-                    <li>Toque em <strong>Bateria</strong></li>
-                    <li>Selecione <strong>Sem restrições</strong> ou <strong>Não otimizado</strong></li>
+                    <li>{t('notifSetup.step1')}</li>
+                    <li>{t('notifSetup.step2')}</li>
+                    <li>{t('notifSetup.step3')}</li>
+                    <li>{t('notifSetup.step4')}</li>
+                    <li>{t('notifSetup.step5')}</li>
                   </ol>
                 </div>
 
@@ -264,11 +264,11 @@ export default function NotificationSetup() {
                   variant="outline" 
                   className="w-full mt-3"
                   onClick={() => {
-                    toast.info('Abra as configurações do celular e siga os passos acima');
+                    toast.info(t('notifSetup.openSettingsInfo'));
                   }}
                 >
                   <Settings className="h-4 w-4 mr-2" />
-                  Abrir Configurações do App
+                  {t('notifSetup.openSettings')}
                 </Button>
               </div>
             </div>
@@ -286,9 +286,9 @@ export default function NotificationSetup() {
               )}
             </div>
             <div className="flex-1">
-              <h3 className="font-semibold mb-1">Testar notificação</h3>
+              <h3 className="font-semibold mb-1">{t('notifSetup.testNotif')}</h3>
               <p className="text-sm text-muted-foreground mb-3">
-                Envie uma notificação de teste para confirmar que está funcionando
+                {t('notifSetup.testDesc')}
               </p>
               
               <Button 
@@ -298,12 +298,12 @@ export default function NotificationSetup() {
                 disabled={permissions.local !== 'granted'}
               >
                 <BellRing className="h-4 w-4 mr-2" />
-                {testSent ? 'Enviar novamente' : 'Enviar notificação de teste'}
+                {testSent ? t('notifSetup.sendAgain') : t('notifSetup.sendTest')}
               </Button>
 
               {testSent && (
                 <p className="text-xs text-green-600 mt-2 text-center">
-                  ✓ Notificação enviada! Aguarde 3 segundos.
+                  {t('notifSetup.testSent')}
                 </p>
               )}
             </div>
@@ -315,20 +315,20 @@ export default function NotificationSetup() {
           <Card className="p-4 bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-900">
             <h3 className="font-semibold mb-2 flex items-center gap-2">
               <Smartphone className="h-4 w-4" />
-              Dicas para iPhone
+              {t('notifSetup.iosTips')}
             </h3>
             <ul className="text-sm text-muted-foreground space-y-2">
               <li className="flex items-start gap-2">
                 <ChevronRight className="h-4 w-4 mt-0.5 shrink-0" />
-                <span>Mantenha o <strong>Modo Foco</strong> desativado ou adicione o HoraMed às exceções</span>
+                <span>{t('notifSetup.iosTip1')}</span>
               </li>
               <li className="flex items-start gap-2">
                 <ChevronRight className="h-4 w-4 mt-0.5 shrink-0" />
-                <span>Em <strong>Ajustes → Notificações → HoraMed</strong>, ative "Notificações Urgentes"</span>
+                <span>{t('notifSetup.iosTip2')}</span>
               </li>
               <li className="flex items-start gap-2">
                 <ChevronRight className="h-4 w-4 mt-0.5 shrink-0" />
-                <span>Ative <strong>Sons</strong> e <strong>Alertas</strong> para não perder nenhum lembrete</span>
+                <span>{t('notifSetup.iosTip3')}</span>
               </li>
             </ul>
           </Card>
@@ -339,9 +339,9 @@ export default function NotificationSetup() {
           <Alert>
             <Smartphone className="h-4 w-4" />
             <AlertDescription>
-              Para notificações com o app fechado, instale o HoraMed no seu celular.{' '}
+              {t('notifSetup.webInfo')}{' '}
               <Button variant="link" className="p-0 h-auto" onClick={() => navigate('/install')}>
-                Saiba como instalar
+                {t('notifSetup.learnInstall')}
               </Button>
             </AlertDescription>
           </Alert>
@@ -353,7 +353,7 @@ export default function NotificationSetup() {
           className="w-full"
           size="lg"
         >
-          {allPermissionsGranted ? 'Configurações avançadas' : 'Continuar'}
+          {allPermissionsGranted ? t('notifSetup.advancedSettings') : t('notifSetup.continue')}
           <ChevronRight className="h-4 w-4 ml-2" />
         </Button>
       </div>

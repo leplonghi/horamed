@@ -107,35 +107,35 @@ export default function AddItemWizard() {
   const getDetailsSummary = () => {
     const parts = [];
     if (formData.doseText) parts.push(formData.doseText);
-    if (formData.withFood) parts.push("🍽️ Com comida");
-    if (parts.length === 0) return "📝 Sem detalhes adicionais";
+    if (formData.withFood) parts.push(`🍽️ ${t('wizardStep.withFood')}`);
+    if (parts.length === 0) return `📝 ${t('wizardStep.noDetails')}`;
     return `📝 ${parts.join(" • ")}`;
   };
 
   const getCategorySummary = () => {
     const labels: Record<Category, string> = {
-      medicamento: "💊 Medicamento",
-      vitamina: "🧪 Vitamina",
-      suplemento: "🌿 Suplemento",
-      outro: "📦 Outro"
+      medicamento: `💊 ${t('wizard.medication')}`,
+      vitamina: `🧪 ${t('wizard.vitamin')}`,
+      suplemento: `🌿 ${t('wizard.supplement')}`,
+      outro: `📦 ${t('wizard.other')}`
     };
     return labels[formData.category];
   };
 
   const getFrequencySummary = () => {
-    if (formData.frequency === "daily") return "📅 Todos os dias";
-    if (formData.frequency === "weekly") return "🗓️ Semanalmente";
+    if (formData.frequency === "daily") return `📅 ${t('wizardStep.everyDay')}`;
+    if (formData.frequency === "weekly") return `🗓️ ${t('wizardStep.weekly')}`;
     const days = formData.daysOfWeek.length;
-    return `📆 ${days} dias por semana`;
+    return `📆 ${days} ${t('wizardStep.daysPerWeek')}`;
   };
 
   const getTimesSummary = () => {
     const count = formData.times.length;
-    return `⏰ ${count}x ao dia (${formData.times.join(", ")})`;
+    return `⏰ ${count}${t('wizardStep.timesPerDay')} (${formData.times.join(", ")})`;
   };
 
   const getStockSummary = () => {
-    if (!formData.stock.enabled) return "📦 Sem controle";
+    if (!formData.stock.enabled) return `📦 ${t('wizardStep.noStock')}`;
     return `📦 ${formData.stock.unitsTotal} ${formData.stock.unitLabel}`;
   };
 
@@ -143,7 +143,7 @@ export default function AddItemWizard() {
 
   const handleSave = async () => {
     if (!formData.name) {
-      toast.error("Nome do medicamento é obrigatório");
+      toast.error(t('wizardStep.nameRequired'));
       return;
     }
 
@@ -245,11 +245,11 @@ export default function AddItemWizard() {
         });
       }
 
-      toast.success(`${formData.name} adicionado com sucesso!`);
+      toast.success(`${formData.name} ${t('wizardStep.addedSuccess')}`);
       navigate("/medicamentos");
     } catch (error) {
       console.error("Error saving:", error);
-      toast.error("Erro ao salvar medicamento");
+      toast.error(t('wizardStep.saveError'));
     } finally {
       setLoading(false);
     }
@@ -259,8 +259,8 @@ export default function AddItemWizard() {
     {
       id: "name",
       number: 1,
-      title: "Nome do Medicamento",
-      description: "Qual medicamento você vai tomar?",
+      title: t('wizardStep.name'),
+      description: t('wizardStep.nameDesc'),
       icon: "💊",
       isComplete: completedSteps.has("name"),
       isActive: activeStep === "name",
@@ -277,8 +277,8 @@ export default function AddItemWizard() {
     {
       id: "category",
       number: 2,
-      title: "Tipo",
-      description: "É um medicamento, vitamina ou suplemento?",
+      title: t('wizardStep.type'),
+      description: t('wizardStep.typeDesc'),
       icon: "📋",
       isComplete: completedSteps.has("category"),
       isActive: activeStep === "category",
@@ -295,14 +295,14 @@ export default function AddItemWizard() {
     {
       id: "continuous",
       number: 3,
-      title: "Duração",
-      description: "É uso contínuo ou temporário?",
+      title: t('wizardStep.duration'),
+      description: t('wizardStep.durationDesc'),
       icon: "📅",
       isComplete: completedSteps.has("continuous"),
       isActive: activeStep === "continuous",
       isLocked: !completedSteps.has("category"),
       summary: completedSteps.has("continuous") 
-        ? (formData.isContinuous ? "♾️ Uso contínuo" : `📅 ${formData.treatmentDays} dias`) 
+        ? (formData.isContinuous ? `♾️ ${t('wizardStep.continuousUse')}` : `📅 ${formData.treatmentDays} ${t('wizardStep.daysCount')}`) 
         : undefined,
       content: (
         <StepContinuous
@@ -319,8 +319,8 @@ export default function AddItemWizard() {
     {
       id: "frequency",
       number: 4,
-      title: "Frequência",
-      description: "Com que frequência você toma?",
+      title: t('wizardStep.frequency'),
+      description: t('wizardStep.frequencyDesc'),
       icon: "🔄",
       isComplete: completedSteps.has("frequency"),
       isActive: activeStep === "frequency",
@@ -339,8 +339,8 @@ export default function AddItemWizard() {
     {
       id: "times",
       number: 5,
-      title: "Horários",
-      description: "Quais horários você toma?",
+      title: t('wizardStep.times'),
+      description: t('wizardStep.timesDesc'),
       icon: "⏰",
       isComplete: completedSteps.has("times"),
       isActive: activeStep === "times",
@@ -357,8 +357,8 @@ export default function AddItemWizard() {
     {
       id: "details",
       number: 6,
-      title: "Detalhes",
-      description: "Dosagem e observações",
+      title: t('wizardStep.details'),
+      description: t('wizardStep.detailsDesc'),
       icon: "📝",
       isComplete: completedSteps.has("details"),
       isActive: activeStep === "details",
@@ -379,8 +379,8 @@ export default function AddItemWizard() {
     {
       id: "stock",
       number: 7,
-      title: "Estoque",
-      description: "Controlar quantidade disponível?",
+      title: t('wizardStep.stock'),
+      description: t('wizardStep.stockDesc'),
       icon: "📦",
       isComplete: completedSteps.has("stock"),
       isActive: activeStep === "stock",
@@ -398,7 +398,7 @@ export default function AddItemWizard() {
         />
       )
     },
-  ], [formData, activeStep, completedSteps, dosesPerDay]);
+  ], [formData, activeStep, completedSteps, dosesPerDay, t]);
 
   const allStepsComplete = completedSteps.has("stock");
 
@@ -419,10 +419,10 @@ export default function AddItemWizard() {
             <div className="flex-1">
               <h1 className="text-xl font-bold flex items-center gap-2">
                 <Sparkles className="h-5 w-5 text-primary" />
-                Adicionar Item
+                {t('wizardStep.addItem')}
               </h1>
               <p className="text-sm text-muted-foreground">
-                Preencha cada etapa para configurar
+                {t('wizardStep.fillSteps')}
               </p>
             </div>
             <img src={logo} alt="HoraMed" className="h-8 w-auto opacity-50" />
@@ -478,37 +478,37 @@ export default function AddItemWizard() {
 
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between py-2 border-b border-primary/10">
-                    <span className="text-muted-foreground">Duração</span>
+                    <span className="text-muted-foreground">{t('wizardStep.duration')}</span>
                     <span className="font-medium">
-                      {formData.isContinuous ? "Uso contínuo" : `${formData.treatmentDays} dias`}
+                      {formData.isContinuous ? t('wizardStep.continuousUse') : `${formData.treatmentDays} ${t('wizardStep.daysCount')}`}
                     </span>
                   </div>
                   <div className="flex justify-between py-2 border-b border-primary/10">
-                    <span className="text-muted-foreground">Frequência</span>
+                    <span className="text-muted-foreground">{t('wizardStep.frequency')}</span>
                     <span className="font-medium">{getFrequencySummary().replace(/📅|🗓️|📆/g, "").trim()}</span>
                   </div>
                   <div className="flex justify-between py-2 border-b border-primary/10">
-                    <span className="text-muted-foreground">Horários</span>
+                    <span className="text-muted-foreground">{t('wizardStep.times')}</span>
                     <span className="font-medium">{formData.times.join(", ")}</span>
                   </div>
                   {formData.doseText && (
                     <div className="flex justify-between py-2 border-b border-primary/10">
-                      <span className="text-muted-foreground">Dosagem</span>
+                      <span className="text-muted-foreground">{language === 'pt' ? 'Dosagem' : 'Dosage'}</span>
                       <span className="font-medium">{formData.doseText}</span>
                     </div>
                   )}
                   {formData.withFood && (
                     <div className="flex justify-between py-2 border-b border-primary/10">
-                      <span className="text-muted-foreground">Com alimentação</span>
-                      <span className="font-medium">Sim</span>
+                      <span className="text-muted-foreground">{t('addItem.takeWithFood')}</span>
+                      <span className="font-medium">{t('common.yes')}</span>
                     </div>
                   )}
                   <div className="flex justify-between py-2">
-                    <span className="text-muted-foreground">Estoque</span>
+                    <span className="text-muted-foreground">{t('wizardStep.stock')}</span>
                     <span className="font-medium">
                       {formData.stock.enabled 
                         ? `${formData.stock.unitsTotal} ${formData.stock.unitLabel}` 
-                        : "Não controlado"}
+                        : language === 'pt' ? 'Não controlado' : 'Not tracked'}
                     </span>
                   </div>
                 </div>
@@ -524,7 +524,7 @@ export default function AddItemWizard() {
                     onClick={() => goToStep(step.id)}
                     className="text-xs"
                   >
-                    {step.icon} Editar {step.title.toLowerCase()}
+                    {step.icon} {t('wizardStep.editLower')} {step.title.toLowerCase()}
                   </Button>
                 ))}
               </div>
@@ -539,12 +539,12 @@ export default function AddItemWizard() {
                 {loading ? (
                   <span className="flex items-center gap-2">
                     <span className="animate-spin">⏳</span>
-                    Salvando...
+                    {t('wizardStep.saving')}
                   </span>
                 ) : (
                   <span className="flex items-center gap-2">
                     <Check className="h-5 w-5" />
-                    Salvar Medicamento
+                    {t('wizardStep.saveMedication')}
                   </span>
                 )}
               </Button>
