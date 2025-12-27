@@ -178,13 +178,36 @@ export default function MedicationWizard({ open, onOpenChange, editItemId }: Med
       if (error) throw error;
 
       if (data?.name) {
-        toast.success("Medicamento identificado!");
-        setMedicationData(prev => ({
-          ...prev,
-          name: data.name,
-          category: data.category || "medicamento",
-        }));
-        setCurrentStep(1);
+        // Create the medication immediately and redirect to edit
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error("Usuário não autenticado");
+
+        const { data: newItem, error: itemError } = await supabase
+          .from('items')
+          .insert({
+            user_id: user.id,
+            profile_id: activeProfile?.id,
+            name: data.name,
+            category: data.category || "medicamento",
+            is_active: true,
+            notification_type: "push",
+          })
+          .select()
+          .single();
+
+        if (itemError) throw itemError;
+
+        // Create default schedule
+        await supabase.from('schedules').insert({
+          item_id: newItem.id,
+          times: ["08:00"],
+          freq_type: "daily",
+          is_active: true,
+        });
+
+        toast.success("Medicamento criado! Complete as informações.");
+        onOpenChange(false);
+        navigate(`/adicionar?edit=${newItem.id}`);
       } else {
         toast.error("Não foi possível identificar o medicamento");
         setCurrentStep(1);
