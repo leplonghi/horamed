@@ -30,7 +30,7 @@ const Profile = lazy(() => import("./pages/Profile"));
 const Auth = lazy(() => import("./pages/Auth"));
 const AddItem = lazy(() => import("./pages/AddItem"));
 const AddItemRedirect = lazy(() => import("./pages/AddItemRedirect"));
-const AddMedicationWizard = lazy(() => import("./pages/AddMedicationWizard"));
+const AddMedicationWizard = lazy(() => import("./pages/AddItemWizard"));
 const StockDetails = lazy(() => import("./pages/StockDetails"));
 const MedicationHistory = lazy(() => import("./pages/MedicationHistory"));
 const AnalyticsDetails = lazy(() => import("./pages/AnalyticsDetails"));
