@@ -3,9 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Slider } from "@/components/ui/slider";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Bell, Smartphone, Watch, AlertTriangle, ChevronRight, Settings2 } from "lucide-react";
+import { ArrowLeft, Bell, Smartphone, Watch, ChevronRight, Settings2, Bug } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -16,6 +14,8 @@ import { useMedicationAlarm } from "@/hooks/useMedicationAlarm";
 import { Capacitor } from "@capacitor/core";
 import { LocalNotifications } from "@capacitor/local-notifications";
 import { PushNotifications } from "@capacitor/push-notifications";
+import { NotificationDiagnostics } from "@/components/NotificationDiagnostics";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 export default function NotificationSettings() {
   const navigate = useNavigate();
@@ -26,9 +26,10 @@ export default function NotificationSettings() {
     wearableSync: true,
     sound: "beep",
     vibration: true,
-    alertMinutes: [15, 5, 0], // Alert 15min before, 5min before, and at time
+    alertMinutes: [15, 5, 0],
   });
   const [loading, setLoading] = useState(false);
+  const [showDiagnostics, setShowDiagnostics] = useState(false);
 
   useEffect(() => {
     loadSettings();
@@ -365,6 +366,26 @@ export default function NotificationSettings() {
             </Button>
           </div>
 
+          {/* Diagnostics Section */}
+          <Collapsible open={showDiagnostics} onOpenChange={setShowDiagnostics}>
+            <CollapsibleTrigger asChild>
+              <Card className="cursor-pointer hover:bg-muted/50 transition-colors">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Bug className="h-5 w-5 text-orange-500" />
+                      <span className="font-medium text-sm">Diagnóstico de Notificações</span>
+                    </div>
+                    <ChevronRight className={`h-5 w-5 transition-transform ${showDiagnostics ? "rotate-90" : ""}`} />
+                  </div>
+                </CardContent>
+              </Card>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="mt-2">
+              <NotificationDiagnostics />
+            </CollapsibleContent>
+          </Collapsible>
+
           <Card className="bg-gradient-to-br from-primary/5 to-accent/5 border-primary/20">
             <CardContent className="p-5">
               <div className="flex items-start gap-3">
@@ -378,15 +399,15 @@ export default function NotificationSettings() {
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="text-primary mt-0.5">✓</span>
-                      <span>Funcionam mesmo com o app fechado</span>
+                      <span>Funcionam mesmo com o app fechado (precisa de permissão)</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="text-primary mt-0.5">✓</span>
-                      <span>Sincronizam automaticamente com seu smartwatch</span>
+                      <span>Email enviado como backup quando o push falha</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="text-primary mt-0.5">✓</span>
-                      <span>Reprogramadas diariamente de forma automática</span>
+                      <span>Reprogramadas automaticamente a cada hora</span>
                     </li>
                   </ul>
                 </div>
