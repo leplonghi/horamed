@@ -15,6 +15,7 @@ import StepContinuous from "@/components/medication-wizard/StepContinuous";
 import StepFrequency from "@/components/medication-wizard/StepFrequency";
 import StepTimes from "@/components/medication-wizard/StepTimes";
 import StepStock from "@/components/medication-wizard/StepStock";
+import StepDetails from "@/components/medication-wizard/StepDetails";
 import Navigation from "@/components/Navigation";
 import logo from "@/assets/horamed-logo-web.webp";
 
@@ -30,6 +31,9 @@ interface FormData {
   frequency: FrequencyType;
   daysOfWeek: number[];
   times: string[];
+  doseText: string;
+  withFood: boolean;
+  notes: string;
   stock: {
     enabled: boolean;
     unitsTotal: number;
@@ -46,6 +50,9 @@ const INITIAL_DATA: FormData = {
   frequency: "daily",
   daysOfWeek: [],
   times: ["08:00"],
+  doseText: "",
+  withFood: false,
+  notes: "",
   stock: {
     enabled: false,
     unitsTotal: 0,
@@ -88,13 +95,21 @@ export default function AddItemWizard() {
 
   const goToStep = (stepId: string) => {
     // Can only go to completed steps or the next available
-    const stepOrder = ["name", "category", "continuous", "frequency", "times", "stock"];
+    const stepOrder = ["name", "category", "continuous", "frequency", "times", "details", "stock"];
     const stepIndex = stepOrder.indexOf(stepId);
     const lastCompletedIndex = Math.max(...stepOrder.map((s, i) => completedSteps.has(s) ? i : -1));
     
     if (stepIndex <= lastCompletedIndex + 1) {
       setActiveStep(stepId);
     }
+  };
+
+  const getDetailsSummary = () => {
+    const parts = [];
+    if (formData.doseText) parts.push(formData.doseText);
+    if (formData.withFood) parts.push("🍽️ Com comida");
+    if (parts.length === 0) return "📝 Sem detalhes adicionais";
+    return `📝 ${parts.join(" • ")}`;
   };
 
   const getCategorySummary = () => {
@@ -150,6 +165,9 @@ export default function AddItemWizard() {
           profile_id: activeProfile?.id || null,
           name: formData.name,
           category: formData.category,
+          dose_text: formData.doseText || null,
+          with_food: formData.withFood,
+          notes: formData.notes || null,
           treatment_duration_days: formData.isContinuous ? null : formData.treatmentDays,
           treatment_start_date: formData.isContinuous ? null : formData.startDate,
           treatment_end_date: treatmentEndDate,
@@ -332,19 +350,41 @@ export default function AddItemWizard() {
         <StepTimes
           times={formData.times}
           onTimesChange={(times) => setFormData(prev => ({ ...prev, times }))}
-          onComplete={() => completeStep("times", "stock")}
+          onComplete={() => completeStep("times", "details")}
+        />
+      )
+    },
+    {
+      id: "details",
+      number: 6,
+      title: "Detalhes",
+      description: "Dosagem e observações",
+      icon: "📝",
+      isComplete: completedSteps.has("details"),
+      isActive: activeStep === "details",
+      isLocked: !completedSteps.has("times"),
+      summary: completedSteps.has("details") ? getDetailsSummary() : undefined,
+      content: (
+        <StepDetails
+          doseText={formData.doseText}
+          withFood={formData.withFood}
+          notes={formData.notes}
+          onDoseTextChange={(value) => setFormData(prev => ({ ...prev, doseText: value }))}
+          onWithFoodChange={(value) => setFormData(prev => ({ ...prev, withFood: value }))}
+          onNotesChange={(value) => setFormData(prev => ({ ...prev, notes: value }))}
+          onComplete={() => completeStep("details", "stock")}
         />
       )
     },
     {
       id: "stock",
-      number: 6,
+      number: 7,
       title: "Estoque",
       description: "Controlar quantidade disponível?",
       icon: "📦",
       isComplete: completedSteps.has("stock"),
       isActive: activeStep === "stock",
-      isLocked: !completedSteps.has("times"),
+      isLocked: !completedSteps.has("details"),
       summary: completedSteps.has("stock") ? getStockSummary() : undefined,
       content: (
         <StepStock
@@ -389,11 +429,11 @@ export default function AddItemWizard() {
           </div>
 
           {/* Progress indicator */}
-          <div className="flex items-center justify-between px-2">
-            {[1, 2, 3, 4, 5, 6].map((num, i) => (
+          <div className="flex items-center justify-between px-1">
+            {[1, 2, 3, 4, 5, 6, 7].map((num, i) => (
               <div key={num} className="flex items-center">
                 <div className={`
-                  w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-all
+                  w-7 h-7 rounded-full flex items-center justify-center text-xs font-medium transition-all
                   ${completedSteps.has(steps[i]?.id) 
                     ? "bg-primary text-primary-foreground" 
                     : activeStep === steps[i]?.id 
@@ -401,10 +441,10 @@ export default function AddItemWizard() {
                       : "bg-muted text-muted-foreground"
                   }
                 `}>
-                  {completedSteps.has(steps[i]?.id) ? <Check className="h-4 w-4" /> : num}
+                  {completedSteps.has(steps[i]?.id) ? <Check className="h-3 w-3" /> : num}
                 </div>
-                {i < 5 && (
-                  <div className={`w-6 h-1 mx-1 rounded ${
+                {i < 6 && (
+                  <div className={`w-4 h-0.5 mx-0.5 rounded ${
                     completedSteps.has(steps[i]?.id) ? "bg-primary" : "bg-muted"
                   }`} />
                 )}
@@ -451,6 +491,18 @@ export default function AddItemWizard() {
                     <span className="text-muted-foreground">Horários</span>
                     <span className="font-medium">{formData.times.join(", ")}</span>
                   </div>
+                  {formData.doseText && (
+                    <div className="flex justify-between py-2 border-b border-primary/10">
+                      <span className="text-muted-foreground">Dosagem</span>
+                      <span className="font-medium">{formData.doseText}</span>
+                    </div>
+                  )}
+                  {formData.withFood && (
+                    <div className="flex justify-between py-2 border-b border-primary/10">
+                      <span className="text-muted-foreground">Com alimentação</span>
+                      <span className="font-medium">Sim</span>
+                    </div>
+                  )}
                   <div className="flex justify-between py-2">
                     <span className="text-muted-foreground">Estoque</span>
                     <span className="font-medium">
