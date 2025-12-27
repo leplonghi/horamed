@@ -44,6 +44,16 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
@@ -106,6 +116,8 @@ export default function MedicamentosHub() {
   const [editingItem, setEditingItem] = useState<string | null>(null);
   const [adjustmentAmount, setAdjustmentAmount] = useState<number>(0);
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<{id: string, name: string} | null>(null);
 
   const setActiveSection = (section: string) => {
     setSearchParams({ tab: section });
@@ -179,17 +191,25 @@ export default function MedicamentosHub() {
     return matchesTab && matchesSearch;
   });
 
-  const deleteItem = async (id: string) => {
-    if (!confirm(t('meds.confirmDelete'))) return;
+  const openDeleteConfirm = (id: string, name: string) => {
+    setItemToDelete({ id, name });
+    setDeleteConfirmOpen(true);
+  };
+
+  const confirmDeleteItem = async () => {
+    if (!itemToDelete) return;
 
     try {
-      const { error } = await supabase.from("items").delete().eq("id", id);
+      const { error } = await supabase.from("items").delete().eq("id", itemToDelete.id);
       if (error) throw error;
       toast.success(t('meds.deleteSuccess'));
       fetchItems();
     } catch (error) {
       console.error("Error deleting item:", error);
       toast.error(t('common.error'));
+    } finally {
+      setDeleteConfirmOpen(false);
+      setItemToDelete(null);
     }
   };
 
@@ -334,7 +354,7 @@ export default function MedicamentosHub() {
                       variant="ghost"
                       size="icon"
                       className="h-7 w-7 rounded-lg hover:bg-destructive/10"
-                      onClick={() => deleteItem(item.id)}
+                      onClick={() => openDeleteConfirm(item.id, item.name)}
                     >
                       <Trash2 className="h-3 w-3 text-muted-foreground" />
                     </Button>
@@ -802,6 +822,27 @@ export default function MedicamentosHub() {
         onOpenChange={setShowUpgradeModal}
         feature="ocr"
       />
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('meds.confirmDeleteTitle')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('meds.confirmDeleteDesc').replace('{name}', itemToDelete?.name || '')}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={confirmDeleteItem}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {t('common.delete')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <Navigation />
     </>
