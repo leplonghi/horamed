@@ -1,45 +1,34 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import MedicationWizard from "@/components/medication-wizard/MedicationWizard";
 
 /**
- * Legacy AddItem page - now redirects to unified wizard
- * For editing, redirects to AddItem page with edit param
+ * Redirects to the unified AddItemWizard page
  */
 export default function AddItemRedirect() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const [wizardOpen, setWizardOpen] = useState(true);
   
   const editId = searchParams.get("edit");
+  const name = searchParams.get("name");
+  const category = searchParams.get("category");
 
-  // If editing, redirect to the proper edit page
   useEffect(() => {
     if (editId) {
+      // Redirect to edit page
       navigate(`/edit/${editId}?edit=${editId}`, { replace: true });
+    } else {
+      // Redirect to new wizard with any prefill params
+      const params = new URLSearchParams();
+      if (name) params.set("name", name);
+      if (category) params.set("category", category);
+      const queryString = params.toString();
+      navigate(`/adicionar-medicamento${queryString ? `?${queryString}` : ""}`, { replace: true });
     }
-  }, [editId, navigate]);
-
-  // If user closes wizard, go back to Rotina
-  const handleClose = (open: boolean) => {
-    setWizardOpen(open);
-    if (!open) {
-      navigate('/rotina');
-    }
-  };
-
-  // If editing, show loading while redirecting
-  if (editId) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
+  }, [editId, name, category, navigate]);
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center">
-      <MedicationWizard open={wizardOpen} onOpenChange={handleClose} />
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
     </div>
   );
 }
