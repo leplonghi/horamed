@@ -606,7 +606,7 @@ export default function MedicationWizard({ open, onOpenChange, editItemId }: Med
 
           {/* Navigation Buttons - fixo no footer */}
           {currentStep > 0 && (
-            <div className="flex gap-3 p-4 sm:px-6 border-t bg-background shrink-0">
+            <div className="flex gap-3 p-4 pb-6 sm:px-6 sm:pb-4 border-t bg-background shrink-0 safe-area-inset-bottom">
               <Button
                 variant="outline"
                 onClick={currentStep === 1 ? () => setCurrentStep(0) : handleBack}
@@ -641,7 +641,7 @@ export default function MedicationWizard({ open, onOpenChange, editItemId }: Med
           
           {/* Cancel button only on step 0 */}
           {currentStep === 0 && !processingOCR && (
-            <div className="p-4 sm:px-6 border-t bg-background shrink-0">
+            <div className="p-4 pb-6 sm:px-6 sm:pb-4 border-t bg-background shrink-0 safe-area-inset-bottom">
               <Button
                 variant="ghost"
                 onClick={() => onOpenChange(false)}

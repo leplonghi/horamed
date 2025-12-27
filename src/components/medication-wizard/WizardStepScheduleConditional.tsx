@@ -166,7 +166,7 @@ export function WizardStepScheduleConditional({ data, updateData }: WizardStepSc
   };
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 pb-4">
       {/* Progress indicator */}
       <div className="flex items-center gap-1.5 mb-4 px-1">
         {[1, 2, 3, 4, 5].map((step) => {
