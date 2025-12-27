@@ -5,8 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, ArrowRight, Check, Loader2, Sparkles, Calendar, Package, ChevronDown, Camera, Upload, Edit3 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { WizardStepIdentity } from "./WizardStepIdentity";
-import { WizardStepSchedule } from "./WizardStepSchedule";
-import { WizardStepStock } from "./WizardStepStock";
+import { WizardStepScheduleConditional } from "./WizardStepScheduleConditional";
 import { useUserProfiles } from "@/hooks/useUserProfiles";
 import { useSubscription } from "@/hooks/useSubscription";
 import { supabase } from "@/integrations/supabase/client";
@@ -32,6 +31,7 @@ interface MedicationData {
   unitLabel: string;
   lowStockThreshold: number;
   notificationType: "silent" | "push" | "alarm";
+  controlStock: boolean;
 }
 
 interface MedicationWizardProps {
@@ -51,6 +51,7 @@ const INITIAL_DATA: MedicationData = {
   unitLabel: "comprimidos",
   lowStockThreshold: 5,
   notificationType: "push",
+  controlStock: false,
 };
 
 export default function MedicationWizard({ open, onOpenChange, editItemId }: MedicationWizardProps) {
@@ -72,7 +73,6 @@ export default function MedicationWizard({ open, onOpenChange, editItemId }: Med
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(isEditing);
   const [showPaywall, setShowPaywall] = useState(false);
-  const [showStock, setShowStock] = useState(false);
   const [medicationData, setMedicationData] = useState<MedicationData>(INITIAL_DATA);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [processingOCR, setProcessingOCR] = useState(false);
@@ -131,11 +131,12 @@ export default function MedicationWizard({ open, onOpenChange, editItemId }: Med
         unitLabel: stock?.unit_label || "comprimidos",
         lowStockThreshold: 5,
         notificationType: (item.notification_type as "silent" | "push" | "alarm") || "push",
+        controlStock: !!(stock?.units_total),
       });
       
-      // Mostrar estoque se já existir
+      // Se já existir estoque, marcar controlStock como true nos dados
       if (stock?.units_total) {
-        setShowStock(true);
+        setMedicationData(prev => ({ ...prev, controlStock: true }));
       }
     } catch (error) {
       console.error("Error loading item:", error);
@@ -343,7 +344,7 @@ export default function MedicationWizard({ open, onOpenChange, editItemId }: Med
         if (scheduleError) throw scheduleError;
 
         // Atualizar estoque apenas se configurado
-        if (showStock) {
+        if (medicationData.controlStock) {
           await supabase.from("stock").delete().eq("item_id", itemIdToEdit);
           await supabase.from('stock').insert({
             item_id: itemIdToEdit,
@@ -389,7 +390,7 @@ export default function MedicationWizard({ open, onOpenChange, editItemId }: Med
         if (scheduleError) throw scheduleError;
 
         // Criar estoque apenas se configurado
-        if (showStock) {
+        if (medicationData.controlStock) {
           const { error: stockError } = await supabase
             .from('stock')
             .insert({
@@ -411,7 +412,6 @@ export default function MedicationWizard({ open, onOpenChange, editItemId }: Med
       
       setCurrentStep(1);
       setMedicationData(INITIAL_DATA);
-      setShowStock(false);
       
     } catch (error: any) {
       console.error('Error saving medication:', error);
@@ -598,36 +598,7 @@ export default function MedicationWizard({ open, onOpenChange, editItemId }: Med
                   <WizardStepIdentity data={medicationData} updateData={updateData} />
                 )}
                 {currentStep === 2 && (
-                  <div className="space-y-4">
-                    <WizardStepSchedule data={medicationData} updateData={updateData} />
-                    
-                    {/* Estoque opcional - colapsável */}
-                    <Collapsible open={showStock} onOpenChange={setShowStock}>
-                      <CollapsibleTrigger asChild>
-                        <Button 
-                          variant="outline" 
-                          className="w-full justify-between"
-                          type="button"
-                        >
-                          <div className="flex items-center gap-2">
-                            <Package className="w-4 h-4" />
-                            <span>{t('wizard.controlStock')}</span>
-                          </div>
-                          <ChevronDown className={cn(
-                            "w-4 h-4 transition-transform",
-                            showStock && "rotate-180"
-                          )} />
-                        </Button>
-                      </CollapsibleTrigger>
-                      <CollapsibleContent className="pt-4">
-                        <WizardStepStock 
-                          data={medicationData} 
-                          updateData={updateData}
-                          dosesPerDay={medicationData.times.length}
-                        />
-                      </CollapsibleContent>
-                    </Collapsible>
-                  </div>
+                  <WizardStepScheduleConditional data={medicationData} updateData={updateData} />
                 )}
               </motion.div>
             </AnimatePresence>
