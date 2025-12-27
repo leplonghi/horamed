@@ -17,12 +17,14 @@ import { toast } from "sonner";
 import Header from "@/components/Header";
 import Navigation from "@/components/Navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function CofreDocumentoEdit() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { data: documento, isLoading } = useDocumento(id);
+  const { t, language } = useLanguage();
 
   const [formData, setFormData] = useState({
     title: "",
@@ -153,11 +155,11 @@ export default function CofreDocumentoEdit() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["documento", id] });
       queryClient.invalidateQueries({ queryKey: ["documentos"] });
-      toast.success("Documento atualizado com sucesso!");
+      toast.success(t('cofreEdit.updateSuccess'));
       navigate(`/carteira/${id}`);
     },
     onError: () => {
-      toast.error("Erro ao atualizar documento");
+      toast.error(t('cofreEdit.updateError'));
     },
   });
 
@@ -184,7 +186,7 @@ export default function CofreDocumentoEdit() {
       <div className="min-h-screen bg-background pb-20">
         <Header />
         <div className="container max-w-2xl mx-auto px-4 py-6 pt-24">
-          <p>Documento não encontrado</p>
+          <p>{t('cofreEdit.notFound')}</p>
         </div>
         <Navigation />
       </div>
@@ -197,38 +199,38 @@ export default function CofreDocumentoEdit() {
       <div className="container max-w-2xl mx-auto px-4 py-6 pt-24">
         <Button variant="ghost" onClick={() => navigate(`/carteira/${id}`)} className="mb-4">
           <ArrowLeft className="w-4 h-4 mr-2" />
-          Voltar
+          {t('cofreEdit.back')}
         </Button>
 
         <Card>
           <CardHeader>
-            <CardTitle>Editar Documento</CardTitle>
+            <CardTitle>{t('cofreEdit.title')}</CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Informações Básicas */}
               <div className="space-y-4">
-                <h3 className="font-semibold text-lg">Informações Básicas</h3>
+                <h3 className="font-semibold text-lg">{t('cofreEdit.basicInfo')}</h3>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="title">Título *</Label>
+                  <Label htmlFor="title">{t('cofreEdit.titleLabel')}</Label>
                   <Input
                     id="title"
                     value={formData.title}
                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                    placeholder="Digite o título do documento"
+                    placeholder={t('cofreEdit.titlePlaceholder')}
                     required
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="categoria">Categoria</Label>
+                  <Label htmlFor="categoria">{t('cofreEdit.category')}</Label>
                   <Select
                     value={formData.categoria_id}
                     onValueChange={(value) => setFormData({ ...formData, categoria_id: value })}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Selecione uma categoria" />
+                      <SelectValue placeholder={t('cofreEdit.selectCategory')} />
                     </SelectTrigger>
                     <SelectContent>
                       {categorias?.map((cat) => (
@@ -242,7 +244,7 @@ export default function CofreDocumentoEdit() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="issued_at">Data de Emissão</Label>
+                    <Label htmlFor="issued_at">{t('cofreEdit.issuedAt')}</Label>
                     <Input
                       id="issued_at"
                       type="date"
@@ -252,7 +254,7 @@ export default function CofreDocumentoEdit() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="expires_at">Validade</Label>
+                    <Label htmlFor="expires_at">{t('cofreEdit.expiresAt')}</Label>
                     <Input
                       id="expires_at"
                       type="date"
@@ -264,18 +266,18 @@ export default function CofreDocumentoEdit() {
 
                 {documento?.categorias_saude?.slug === 'receitas' && (
                   <div className="space-y-2">
-                    <Label htmlFor="prescription_type">Tipo de Receita</Label>
+                    <Label htmlFor="prescription_type">{t('cofreEdit.prescriptionType')}</Label>
                     <Select
                       value={formData.prescription_type}
                       onValueChange={(value) => setFormData({ ...formData, prescription_type: value })}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="Selecione o tipo" />
+                        <SelectValue placeholder={t('cofreEdit.selectType')} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="simples">Simples</SelectItem>
-                        <SelectItem value="controlada">Controlada</SelectItem>
-                        <SelectItem value="especial">Especial</SelectItem>
+                        <SelectItem value="simples">{t('cofreEdit.simple')}</SelectItem>
+                        <SelectItem value="controlada">{t('cofreEdit.controlled')}</SelectItem>
+                        <SelectItem value="especial">{t('cofreEdit.special')}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -729,14 +731,14 @@ export default function CofreDocumentoEdit() {
               <div className="flex gap-2 pt-4">
                 <Button type="submit" disabled={updateMutation.isPending} className="flex-1">
                   <Save className="w-4 h-4 mr-2" />
-                  {updateMutation.isPending ? "Salvando..." : "Salvar Alterações"}
+                  {updateMutation.isPending ? t('cofreEdit.saving') : t('cofreEdit.save')}
                 </Button>
                 <Button
                   type="button"
                   variant="outline"
           onClick={() => navigate(`/carteira/${id}`)}
                 >
-                  Cancelar
+                  {t('common.cancel')}
                 </Button>
               </div>
             </form>

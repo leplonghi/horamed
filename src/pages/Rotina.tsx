@@ -175,21 +175,21 @@ export default function Rotina() {
   }, [items, activeTab, searchTerm, sortBy, language]);
 
   const deleteItem = async (id: string) => {
-    if (!confirm("Tem certeza que deseja excluir este item?")) return;
+    if (!confirm(t('meds.confirmDelete'))) return;
 
     try {
       const { error } = await supabase.from("items").delete().eq("id", id);
       if (error) throw error;
-      toast.success("Item excluído com sucesso");
+      toast.success(t('meds.deleteSuccess'));
       fetchItems();
     } catch (error) {
       console.error("Error deleting item:", error);
-      toast.error("Erro ao excluir item");
+      toast.error(language === 'pt' ? "Erro ao excluir item" : "Error deleting item");
     }
   };
 
   const getScheduleSummary = (schedule: any) => {
-    if (!schedule.times || schedule.times.length === 0) return "Sem horários";
+    if (!schedule.times || schedule.times.length === 0) return language === 'pt' ? "Sem horários" : "No times";
     const times = Array.isArray(schedule.times) ? schedule.times : [schedule.times];
     return times.join(", ");
   };
