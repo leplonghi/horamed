@@ -284,81 +284,61 @@ export default function MedicamentosHub() {
     return (
       <motion.div
         key={item.id}
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: index * 0.03 }}
+        transition={{ delay: index * 0.02 }}
       >
-        <Card className={`overflow-hidden border-l-4 ${categoryConfig.bgColor} ${categoryConfig.borderColor} border hover:shadow-lg transition-all duration-300`}>
-          <CardContent className="p-4">
-            <div className="flex items-start gap-3">
-              {/* Icon */}
-              <div className={`p-2.5 rounded-xl ${categoryConfig.iconBg} flex-shrink-0`}>
-                <CategoryIcon className={`h-5 w-5 ${categoryConfig.color}`} />
+        <Card className={`overflow-hidden border-l-3 ${categoryConfig.bgColor} ${categoryConfig.borderColor} border hover:shadow-md transition-all duration-200`}>
+          <CardContent className="p-2.5 sm:p-4">
+            <div className="flex items-center gap-2 sm:gap-3">
+              {/* Icon - smaller on mobile */}
+              <div className={`p-1.5 sm:p-2.5 rounded-lg sm:rounded-xl ${categoryConfig.iconBg} flex-shrink-0`}>
+                <CategoryIcon className={`h-4 w-4 sm:h-5 sm:w-5 ${categoryConfig.color}`} />
               </div>
               
-              {/* Content */}
-              <div className="flex-1 min-w-0 space-y-2">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="min-w-0">
-                    <h3 className="font-semibold text-foreground truncate">
+              {/* Content - compact layout */}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between gap-1">
+                  <div className="min-w-0 flex-1">
+                    <h3 className="text-sm font-semibold text-foreground truncate">
                       {item.name}
                     </h3>
-                    {item.dose_text && (
-                      <p className="text-sm text-muted-foreground">{item.dose_text}</p>
-                    )}
+                    <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+                      {item.dose_text && <span>{item.dose_text}</span>}
+                      {item.schedules && item.schedules.length > 0 && (
+                        <span className="flex items-center gap-0.5">
+                          <Calendar className="h-3 w-3" />
+                          {getScheduleSummary(item.schedules[0])}
+                        </span>
+                      )}
+                      {item.stock && item.stock.length > 0 && (
+                        <span className="flex items-center gap-0.5">
+                          <Package className="h-3 w-3" />
+                          {item.stock[0].units_left}
+                        </span>
+                      )}
+                    </div>
                   </div>
                   
-                  {/* Actions - compact on mobile */}
-                  <div className="flex gap-0.5 flex-shrink-0">
+                  {/* Actions - compact */}
+                  <div className="flex gap-0 flex-shrink-0">
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-8 w-8 rounded-lg hover:bg-primary/10"
+                      className="h-7 w-7 rounded-lg hover:bg-primary/10"
                       onClick={() => navigate(`/adicionar?edit=${item.id}`)}
                     >
-                      <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
+                      <Pencil className="h-3 w-3 text-muted-foreground" />
                     </Button>
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-8 w-8 rounded-lg hover:bg-destructive/10"
+                      className="h-7 w-7 rounded-lg hover:bg-destructive/10"
                       onClick={() => deleteItem(item.id)}
                     >
-                      <Trash2 className="h-3.5 w-3.5 text-muted-foreground" />
+                      <Trash2 className="h-3 w-3 text-muted-foreground" />
                     </Button>
                   </div>
-                </div>
-                
-                {/* Tags & Info */}
-                <div className="flex flex-wrap items-center gap-1.5">
-                  <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${categoryConfig.badgeColor}`}>
-                    {CATEGORY_ICONS[item.category]} {CATEGORY_LABELS[item.category]}
-                  </span>
-                  {supplementTags.map((tag, idx) => (
-                    <SupplementTag key={idx} type={tag as any} />
-                  ))}
-                </div>
-                
-                {/* Schedule & Stock info */}
-                <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
-                  {item.schedules && item.schedules.length > 0 && (
-                    <div className="flex items-center gap-1">
-                      <Calendar className="h-3.5 w-3.5" />
-                      <span>{getScheduleSummary(item.schedules[0])}</span>
-                    </div>
-                  )}
-                  {item.with_food && (
-                    <div className="flex items-center gap-1">
-                      <UtensilsCrossed className="h-3.5 w-3.5" />
-                      <span>{t('meds.withFood')}</span>
-                    </div>
-                  )}
-                  {item.stock && item.stock.length > 0 && (
-                    <div className="flex items-center gap-1">
-                      <Package className="h-3.5 w-3.5" />
-                      <span>{item.stock[0].units_left} {item.stock[0].unit_label}</span>
-                    </div>
-                  )}
                 </div>
               </div>
             </div>
@@ -386,167 +366,126 @@ export default function MedicamentosHub() {
   return (
     <>
       <Header />
-      <div className="min-h-screen bg-gradient-subtle pt-20 p-4 sm:p-6 pb-24">
-        <div className="max-w-4xl mx-auto space-y-6">
-          {/* Header */}
-          <div className="flex items-center justify-between">
+      <div className="min-h-screen bg-gradient-subtle pt-16 sm:pt-20 px-3 sm:p-6 pb-20">
+        <div className="max-w-4xl mx-auto space-y-3 sm:space-y-6">
+          {/* Header - Compact for mobile */}
+          <div className="flex items-center justify-between py-2">
             <div className="flex items-center gap-2">
-              <div className="p-2.5 bg-gradient-to-br from-primary/20 to-primary/10 rounded-xl">
-                <Pill className="h-6 w-6 text-primary" />
+              <div className="p-2 sm:p-2.5 bg-gradient-to-br from-primary/20 to-primary/10 rounded-xl">
+                <Pill className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
               </div>
               <div>
-                <h2 className="text-xl sm:text-2xl font-bold text-foreground">
+                <h2 className="text-lg sm:text-2xl font-bold text-foreground">
                   {t('meds.title')}
                 </h2>
-              <p className="text-xs text-muted-foreground hidden sm:block">
+                <p className="text-xs text-muted-foreground hidden sm:block">
                   {t('meds.manageDesc')}
                 </p>
               </div>
             </div>
-            <div className="flex flex-col items-end gap-1">
-              <Button
-                size="default"
-                className="rounded-xl hover-lift gap-2 shadow-md"
-                onClick={() => setWizardOpen(true)}
-              >
-                <Plus className="h-4 w-4" />
-                <span className="hidden sm:inline">{t('common.add')}</span>
-              </Button>
-              <span className="text-[10px] text-muted-foreground sm:hidden">{t('meds.newMed')}</span>
-            </div>
+            <Button
+              size="sm"
+              className="rounded-xl hover-lift gap-1.5 shadow-md h-9"
+              onClick={() => setWizardOpen(true)}
+            >
+              <Plus className="h-4 w-4" />
+              <span className="hidden sm:inline">{t('common.add')}</span>
+            </Button>
           </div>
 
-          {/* Section Tabs - Redesign com labels claros */}
+          {/* Section Tabs - Compact horizontal for mobile */}
           <Tabs value={activeSection} onValueChange={setActiveSection} className="w-full">
-            <TabsList className="w-full grid grid-cols-3 h-auto p-1.5 rounded-2xl bg-muted/60 backdrop-blur-sm gap-1">
+            <TabsList className="w-full grid grid-cols-3 h-10 sm:h-auto p-1 sm:p-1.5 rounded-xl sm:rounded-2xl bg-muted/60 backdrop-blur-sm gap-0.5 sm:gap-1">
               <TabsTrigger 
                 value="rotina" 
-                className="rounded-xl py-3 px-2 data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-md flex flex-col items-center gap-1 transition-all"
+                className="rounded-lg sm:rounded-xl py-1.5 sm:py-3 px-2 data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-md flex items-center sm:flex-col justify-center gap-1.5 sm:gap-1 transition-all"
               >
-                <div className="p-1.5 rounded-lg bg-primary/10 group-data-[state=active]:bg-primary/20">
-                  <Pill className="h-4 w-4 text-primary" />
-                </div>
-                <span className="text-xs font-medium">{t('meds.myMeds')}</span>
+                <Pill className="h-4 w-4 text-primary" />
+                <span className="text-[11px] sm:text-xs font-medium">{t('meds.myMeds')}</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="estoque" 
-                className="rounded-xl py-3 px-2 data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-md flex flex-col items-center gap-1 transition-all"
+                className="rounded-lg sm:rounded-xl py-1.5 sm:py-3 px-2 data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-md flex items-center sm:flex-col justify-center gap-1.5 sm:gap-1 transition-all"
               >
-                <div className="p-1.5 rounded-lg bg-amber-500/10">
-                  <Package className="h-4 w-4 text-amber-600" />
-                </div>
-                <span className="text-xs font-medium">{t('meds.stock')}</span>
+                <Package className="h-4 w-4 text-amber-600" />
+                <span className="text-[11px] sm:text-xs font-medium">{t('meds.stock')}</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="historico" 
-                className="rounded-xl py-3 px-2 data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-md flex flex-col items-center gap-1 transition-all"
+                className="rounded-lg sm:rounded-xl py-1.5 sm:py-3 px-2 data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-md flex items-center sm:flex-col justify-center gap-1.5 sm:gap-1 transition-all"
               >
-                <div className="p-1.5 rounded-lg bg-purple-500/10">
-                  <History className="h-4 w-4 text-purple-600" />
-                </div>
-                <span className="text-xs font-medium">{t('meds.history')}</span>
+                <History className="h-4 w-4 text-purple-600" />
+                <span className="text-[11px] sm:text-xs font-medium">{t('meds.history')}</span>
               </TabsTrigger>
             </TabsList>
 
-            {/* Tabs Help - Tooltip contextual */}
-            <div className="flex justify-center mt-3">
-              <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                {activeSection === "rotina" && (
-                  <>
-                    <span>{microcopy.help.medications.tabs.rotina}</span>
-                    <HelpTooltip content="Aqui você cadastra horários e doses de cada item." iconSize="sm" />
-                  </>
-                )}
-                {activeSection === "estoque" && (
-                  <>
-                    <span>{microcopy.help.medications.tabs.estoque}</span>
-                    <HelpTooltip content={microcopy.help.stock.refill} iconSize="sm" />
-                  </>
-                )}
-                {activeSection === "historico" && (
-                  <>
-                    <span>{microcopy.help.medications.tabs.historico}</span>
-                    <HelpTooltip content="Útil para mostrar ao médico durante consultas." iconSize="sm" />
-                  </>
-                )}
-              </div>
-            </div>
-
             {/* ROTINA TAB */}
-            <TabsContent value="rotina" className="space-y-6 mt-6">
-              <TutorialHint
-                id="rotina_page"
-                title="Organize sua rotina de saúde 💊"
-                message="Aqui você cadastra todos os seus medicamentos, vitaminas e suplementos. Defina horários, doses e durações."
-              />
-
-              <AdBanner />
-
-              {/* Search */}
+            <TabsContent value="rotina" className="space-y-3 sm:space-y-6 mt-3 sm:mt-6">
+              {/* Search - Compact */}
               <div className="relative">
-                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder={t('common.search') + "..."}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-11 rounded-full border-2 focus:border-primary transition-all h-12"
+                  className="pl-9 rounded-full border focus:border-primary transition-all h-10"
                 />
               </div>
 
               {/* Category Tabs - Compact single line */}
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList className="w-full grid grid-cols-4 h-auto gap-1 p-1 rounded-xl bg-muted/50">
+                <TabsList className="w-full grid grid-cols-4 h-8 gap-0.5 p-0.5 rounded-lg bg-muted/50">
                   <TabsTrigger 
                     value="todos" 
-                    className="rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-2 py-2 text-xs transition-all"
+                    className="rounded-md data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-1.5 py-1 text-[11px] transition-all"
                   >
-                    <Pill className="h-3.5 w-3.5 mr-1" />
-                    <span className="hidden sm:inline">Todos</span> ({items.length})
+                    <Pill className="h-3 w-3 mr-0.5" />
+                    ({items.length})
                   </TabsTrigger>
                   <TabsTrigger 
                     value="medicamento" 
-                    className="rounded-lg px-2 py-2 text-xs transition-all"
+                    className="rounded-md px-1.5 py-1 text-[11px] transition-all"
                   >
                     💊 ({getCategoryCount("medicamento")})
                   </TabsTrigger>
                   <TabsTrigger 
                     value="vitamina" 
-                    className="rounded-lg px-2 py-2 text-xs transition-all"
+                    className="rounded-md px-1.5 py-1 text-[11px] transition-all"
                   >
                     ❤️ ({getCategoryCount("vitamina")})
                   </TabsTrigger>
                   <TabsTrigger 
                     value="suplemento" 
-                    className="rounded-lg px-2 py-2 text-xs transition-all"
+                    className="rounded-md px-1.5 py-1 text-[11px] transition-all"
                   >
                     ⚡ ({getCategoryCount("suplemento")})
                   </TabsTrigger>
                 </TabsList>
 
-                <TabsContent value={activeTab} className="space-y-4 mt-6">
+                <TabsContent value={activeTab} className="space-y-2 sm:space-y-4 mt-3 sm:mt-6">
                   {filteredItems.length === 0 ? (
                     <motion.div
                       initial={{ opacity: 0, scale: 0.95 }}
                       animate={{ opacity: 1, scale: 1 }}
-                      className="rounded-2xl bg-card/80 backdrop-blur-sm p-8 text-center border-2 border-dashed"
+                      className="rounded-xl bg-card/80 backdrop-blur-sm p-6 text-center border-2 border-dashed"
                       style={{ boxShadow: 'var(--shadow-sm)' }}
                     >
-                      <div className="inline-flex p-4 rounded-full bg-muted/50 mb-4">
-                        <Pill className="h-10 w-10 text-muted-foreground" />
+                      <div className="inline-flex p-3 rounded-full bg-muted/50 mb-3">
+                        <Pill className="h-8 w-8 text-muted-foreground" />
                       </div>
-                      <p className="text-muted-foreground font-medium">
+                      <p className="text-sm text-muted-foreground font-medium">
                         {searchTerm ? "Nenhum item encontrado" : "Nenhum item cadastrado ainda"}
                       </p>
-                      <p className="text-sm text-muted-foreground mt-2">
+                      <p className="text-xs text-muted-foreground mt-1">
                         Use o botão + para adicionar seu primeiro item
                       </p>
                     </motion.div>
                   ) : (
                     <>
                       {filteredItems.filter(item => item.category === 'medicamento').length > 0 && (
-                        <div className="space-y-3">
-                          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-2">
-                            <Pill className="h-4 w-4" />
+                        <div className="space-y-1.5 sm:space-y-3">
+                          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
+                            <Pill className="h-3.5 w-3.5" />
                             Medicamentos
                           </h3>
                           {filteredItems
@@ -556,9 +495,9 @@ export default function MedicamentosHub() {
                       )}
 
                       {filteredItems.filter(item => item.category === 'vitamina' || item.category === 'suplemento').length > 0 && (
-                        <div className="space-y-3 mt-6">
-                          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-2">
-                            <Sparkles className="h-4 w-4" />
+                        <div className="space-y-1.5 sm:space-y-3 mt-3 sm:mt-6">
+                          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
+                            <Sparkles className="h-3.5 w-3.5" />
                             Suplementos & Vitaminas
                           </h3>
                           {filteredItems
@@ -568,8 +507,8 @@ export default function MedicamentosHub() {
                       )}
 
                       {filteredItems.filter(item => item.category === 'outro').length > 0 && (
-                        <div className="space-y-3 mt-6">
-                          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                        <div className="space-y-1.5 sm:space-y-3 mt-3 sm:mt-6">
+                          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
                             Outros
                           </h3>
                           {filteredItems
