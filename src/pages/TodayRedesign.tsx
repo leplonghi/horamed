@@ -490,10 +490,15 @@ export default function TodayRedesign() {
     setMotivationalQuote(quotes[Math.floor(Math.random() * quotes.length)]);
     loadData(selectedDate);
     loadEventCounts();
-  }, [loadData, loadEventCounts, selectedDate, activeProfile, userName, language, t]);
+  }, [loadData, loadEventCounts, selectedDate, activeProfile?.id, userName, language, t]);
+
+  // Agendar notificações apenas uma vez
   useEffect(() => {
     scheduleNotificationsForNextDay();
+  }, [scheduleNotificationsForNextDay]);
 
+  // Realtime subscription para atualizações de doses/consultas/eventos
+  useEffect(() => {
     const channel = supabase
       .channel("timeline-changes")
       .on(
@@ -516,7 +521,8 @@ export default function TodayRedesign() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [loadData, selectedDate, scheduleNotificationsForNextDay]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeProfile?.id, selectedDate]);
   const markAsTaken = async (doseId: string, itemId: string, itemName: string) => {
     try {
       const {

@@ -186,9 +186,17 @@ export default function Today() {
   }, [activeProfile?.id, dataLoaded, getProfileCache]);
 
   // Carregar quando o perfil ativo muda (evita chamadas duplicadas)
-  useEffect(() => { loadData(); }, [activeProfile?.id]);
+  useEffect(() => {
+    loadData();
+  }, [activeProfile?.id]);
+
+  // Agendar notificações apenas uma vez
   useEffect(() => {
     scheduleNotificationsForNextDay();
+  }, [scheduleNotificationsForNextDay]);
+
+  // Realtime subscription para atualizações de doses
+  useEffect(() => {
     const channel = supabase
       .channel("today-doses")
       .on(
@@ -200,7 +208,8 @@ export default function Today() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [loadData, scheduleNotificationsForNextDay]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeProfile?.id]);
 
   const markAsTaken = async (dose: DoseItem) => {
     setTakingDose(dose.id);
