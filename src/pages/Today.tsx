@@ -353,9 +353,9 @@ export default function Today() {
 
           {/* Tutorial for new users */}
           <TutorialHint
-            id={microcopy.tutorials.today.id}
-            title={microcopy.tutorials.today.title}
-            message={microcopy.tutorials.today.message}
+            id={t('tutorials.today.id')}
+            title={t('tutorials.today.title')}
+            message={t('tutorials.today.message')}
           />
 
           {/* Empty State - Clean */}

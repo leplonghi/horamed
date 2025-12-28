@@ -166,9 +166,9 @@ export default function StockManagement() {
 
         {/* Tutorial Hint */}
         <TutorialHint
-          id={microcopy.tutorials.stock.id}
-          title={microcopy.tutorials.stock.title}
-          message={microcopy.tutorials.stock.message}
+          id={t('tutorials.stock.id')}
+          title={t('tutorials.stock.title')}
+          message={t('tutorials.stock.message')}
         />
 
         {/* Empty State */}
