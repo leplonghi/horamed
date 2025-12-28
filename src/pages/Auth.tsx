@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,8 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { useNavigate, Link } from "react-router-dom";
 import { Mail, Fingerprint, Heart, Shield, Clock, ArrowLeft } from "lucide-react";
-import logo from "@/assets/horamed-logo-transparent.png";
-import { z } from "zod";
+import logo from "@/assets/horamed-logo-web.webp";
 import { useBiometricAuth } from "@/hooks/useBiometricAuth";
 import { useAuth } from "@/contexts/AuthContext";
 import { APP_DOMAIN } from "@/lib/domainConfig";
@@ -44,7 +43,7 @@ export default function Auth() {
     }
   }, [user, navigate]);
 
-  const handleGoogleLogin = async () => {
+  const handleGoogleLogin = useCallback(async () => {
     try {
       setLoading(true);
       
@@ -73,7 +72,7 @@ export default function Auth() {
       toast.error(error.message || t('auth.googleError'));
       setLoading(false);
     }
-  };
+  }, [t]);
 
   const handleEmailSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
