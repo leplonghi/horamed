@@ -38,17 +38,17 @@ export default function StepDetails({
       <div className="space-y-2">
         <Label htmlFor="dose" className="flex items-center gap-2 text-sm font-medium">
           <Pill className="h-4 w-4 text-primary" />
-          {language === 'pt' ? 'Dosagem' : 'Dosage'}
+          {t('addItem.concentration')}
         </Label>
         <Input
           id="dose"
-          placeholder={language === 'pt' ? 'Ex: 500mg, 1 comprimido, 10 gotas...' : 'E.g.: 500mg, 1 tablet, 10 drops...'}
+          placeholder={t('addItem.concentrationPlaceholder')}
           value={doseText}
           onChange={(e) => onDoseTextChange(e.target.value)}
           className="h-12"
         />
         <p className="text-xs text-muted-foreground">
-          {language === 'pt' ? 'Informe a dose que você toma por vez' : 'Enter the dose you take each time'}
+          {t('addItem.concentrationHint')}
         </p>
       </div>
 
@@ -61,7 +61,7 @@ export default function StepDetails({
           <div>
             <p className="font-medium">{t('addItem.takeWithFood')}</p>
             <p className="text-xs text-muted-foreground">
-              {language === 'pt' ? 'Ajuda a lembrar de comer antes' : 'Helps remember to eat beforehand'}
+              {t('addItem.takeWithFoodHint')}
             </p>
           </div>
         </div>

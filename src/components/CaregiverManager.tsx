@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { UserPlus, Trash2, Copy, CheckCircle, Clock } from 'lucide-react';
 import { useCaregivers } from '@/hooks/useCaregivers';
 import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function CaregiverManager() {
   const { caregivers, loading, inviteCaregiver, revokeCaregiver } = useCaregivers();
@@ -15,12 +16,13 @@ export default function CaregiverManager() {
   const [emailOrPhone, setEmailOrPhone] = useState('');
   const [role, setRole] = useState<'viewer' | 'helper'>('viewer');
   const [inviting, setInviting] = useState(false);
+  const { t } = useLanguage();
 
   const handleInvite = async () => {
     if (!emailOrPhone.trim()) {
       toast({
-        title: 'Campo obrigatório',
-        description: 'Digite um email ou telefone',
+        title: t('caregiver.fieldRequired'),
+        description: t('caregiver.enterEmailOrPhone'),
         variant: 'destructive'
       });
       return;
@@ -33,8 +35,8 @@ export default function CaregiverManager() {
       // Copiar link
       await navigator.clipboard.writeText(result.inviteUrl);
       toast({
-        title: 'Link copiado!',
-        description: 'Compartilhe o link com o cuidador'
+        title: t('caregiver.linkCopied'),
+        description: t('caregiver.shareLink')
       });
 
       setEmailOrPhone('');
@@ -46,34 +48,34 @@ export default function CaregiverManager() {
   };
 
   if (loading) {
-    return <div className="text-center py-8">Carregando...</div>;
+    return <div className="text-center py-8">{t('caregiver.loading')}</div>;
   }
 
   return (
     <div className="space-y-6">
       <Card className="p-6">
-        <h3 className="text-lg font-semibold mb-4">Convidar Cuidador</h3>
+        <h3 className="text-lg font-semibold mb-4">{t('caregiver.inviteTitle')}</h3>
         
         <div className="space-y-4">
           <div>
-            <Label htmlFor="contact">Email ou Telefone</Label>
+            <Label htmlFor="contact">{t('caregiver.emailOrPhone')}</Label>
             <Input
               id="contact"
               value={emailOrPhone}
               onChange={(e) => setEmailOrPhone(e.target.value)}
-              placeholder="email@exemplo.com ou (11) 98765-4321"
+              placeholder={t('caregiver.emailOrPhonePlaceholder')}
             />
           </div>
 
           <div>
-            <Label htmlFor="role">Permissão</Label>
+            <Label htmlFor="role">{t('caregiver.permission')}</Label>
             <Select value={role} onValueChange={(v) => setRole(v as 'viewer' | 'helper')}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="viewer">Visualizador (somente leitura)</SelectItem>
-                <SelectItem value="helper">Ajudante (pode marcar doses)</SelectItem>
+                <SelectItem value="viewer">{t('caregiver.viewer')}</SelectItem>
+                <SelectItem value="helper">{t('caregiver.helper')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -84,17 +86,17 @@ export default function CaregiverManager() {
             className="w-full"
           >
             <UserPlus className="mr-2 h-4 w-4" />
-            {inviting ? 'Enviando...' : 'Gerar Convite'}
+            {inviting ? t('caregiver.sendingInvite') : t('caregiver.generateInvite')}
           </Button>
         </div>
       </Card>
 
       <Card className="p-6">
-        <h3 className="text-lg font-semibold mb-4">Cuidadores Ativos</h3>
+        <h3 className="text-lg font-semibold mb-4">{t('caregiver.activeCaregivers')}</h3>
         
         {caregivers.length === 0 ? (
           <p className="text-muted-foreground text-center py-4">
-            Nenhum cuidador cadastrado ainda
+            {t('caregiver.noCaregivers')}
           </p>
         ) : (
           <div className="space-y-3">
@@ -107,17 +109,17 @@ export default function CaregiverManager() {
                   <p className="font-medium">{caregiver.email_or_phone}</p>
                   <div className="flex items-center gap-2 mt-1">
                     <Badge variant={caregiver.role === 'helper' ? 'default' : 'secondary'}>
-                      {caregiver.role === 'helper' ? 'Ajudante' : 'Visualizador'}
+                      {caregiver.role === 'helper' ? t('caregiver.helperRole') : t('caregiver.viewerRole')}
                     </Badge>
                     {caregiver.accepted_at ? (
                       <Badge variant="outline" className="gap-1">
                         <CheckCircle className="h-3 w-3" />
-                        Ativo
+                        {t('caregiver.activeStatus')}
                       </Badge>
                     ) : (
                       <Badge variant="outline" className="gap-1">
                         <Clock className="h-3 w-3" />
-                        Pendente
+                        {t('caregiver.pendingStatus')}
                       </Badge>
                     )}
                   </div>
@@ -138,9 +140,9 @@ export default function CaregiverManager() {
 
       <Card className="p-4 bg-muted/50">
         <p className="text-sm text-muted-foreground">
-          <strong>Visualizadores</strong> recebem notificações apenas em exceções (doses perdidas, estoque crítico).
+          <strong>{t('caregiver.viewerRole')}:</strong> {t('caregiver.viewerInfo')}
           <br />
-          <strong>Ajudantes</strong> podem também marcar doses como tomadas.
+          <strong>{t('caregiver.helperRole')}:</strong> {t('caregiver.helperInfo')}
         </p>
       </Card>
     </div>

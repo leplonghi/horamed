@@ -8,6 +8,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 type Category = "medicamento" | "vitamina" | "suplemento" | "outro";
 
@@ -17,55 +18,57 @@ interface StepCategoryProps {
   onComplete: () => void;
 }
 
-const categories = [
-  {
-    value: "medicamento" as Category,
-    label: "Medicamento",
-    description: "Remédios prescritos ou de farmácia",
-    tooltip: "Medicamentos com receita médica ou de venda livre (OTC)",
-    icon: Pill,
-    color: "text-blue-600 dark:text-blue-400",
-    bg: "bg-blue-100 dark:bg-blue-900/30",
-    borderActive: "border-blue-500 bg-blue-50 dark:bg-blue-900/40 ring-2 ring-blue-500/20"
-  },
-  {
-    value: "vitamina" as Category,
-    label: "Vitamina",
-    description: "Vitaminas e complexos",
-    tooltip: "Vitamina D, B12, complexo B, multivitamínicos, etc.",
-    icon: FlaskConical,
-    color: "text-orange-600 dark:text-orange-400",
-    bg: "bg-orange-100 dark:bg-orange-900/30",
-    borderActive: "border-orange-500 bg-orange-50 dark:bg-orange-900/40 ring-2 ring-orange-500/20"
-  },
-  {
-    value: "suplemento" as Category,
-    label: "Suplemento",
-    description: "Suplementos alimentares",
-    tooltip: "Whey, creatina, ômega-3, colágeno, probióticos, etc.",
-    icon: Leaf,
-    color: "text-green-600 dark:text-green-400",
-    bg: "bg-green-100 dark:bg-green-900/30",
-    borderActive: "border-green-500 bg-green-50 dark:bg-green-900/40 ring-2 ring-green-500/20"
-  },
-  {
-    value: "outro" as Category,
-    label: "Outro",
-    description: "Outros itens de saúde",
-    tooltip: "Qualquer outro item que você queira monitorar",
-    icon: Package,
-    color: "text-purple-600 dark:text-purple-400",
-    bg: "bg-purple-100 dark:bg-purple-900/30",
-    borderActive: "border-purple-500 bg-purple-50 dark:bg-purple-900/40 ring-2 ring-purple-500/20"
-  },
-];
-
 export default function StepCategory({ category, onCategoryChange, onComplete }: StepCategoryProps) {
+  const { t } = useLanguage();
+  
+  const categories = [
+    {
+      value: "medicamento" as Category,
+      label: t('category.medication'),
+      description: t('category.medicationDesc'),
+      tooltip: t('category.medicationTooltip'),
+      icon: Pill,
+      color: "text-blue-600 dark:text-blue-400",
+      bg: "bg-blue-100 dark:bg-blue-900/30",
+      borderActive: "border-blue-500 bg-blue-50 dark:bg-blue-900/40 ring-2 ring-blue-500/20"
+    },
+    {
+      value: "vitamina" as Category,
+      label: t('category.vitamin'),
+      description: t('category.vitaminDesc'),
+      tooltip: t('category.vitaminTooltip'),
+      icon: FlaskConical,
+      color: "text-orange-600 dark:text-orange-400",
+      bg: "bg-orange-100 dark:bg-orange-900/30",
+      borderActive: "border-orange-500 bg-orange-50 dark:bg-orange-900/40 ring-2 ring-orange-500/20"
+    },
+    {
+      value: "suplemento" as Category,
+      label: t('category.supplement'),
+      description: t('category.supplementDesc'),
+      tooltip: t('category.supplementTooltip'),
+      icon: Leaf,
+      color: "text-green-600 dark:text-green-400",
+      bg: "bg-green-100 dark:bg-green-900/30",
+      borderActive: "border-green-500 bg-green-50 dark:bg-green-900/40 ring-2 ring-green-500/20"
+    },
+    {
+      value: "outro" as Category,
+      label: t('category.other'),
+      description: t('category.otherDesc'),
+      tooltip: t('category.otherTooltip'),
+      icon: Package,
+      color: "text-purple-600 dark:text-purple-400",
+      bg: "bg-purple-100 dark:bg-purple-900/30",
+      borderActive: "border-purple-500 bg-purple-50 dark:bg-purple-900/40 ring-2 ring-purple-500/20"
+    },
+  ];
+
   return (
     <TooltipProvider>
       <div className="space-y-4">
         <StepTooltip type="info">
-          Escolha o tipo do item. Isso ajuda a organizar seus medicamentos e mostrar informações relevantes para cada categoria.
+          {t('category.info')}
         </StepTooltip>
 
         <div className="grid grid-cols-2 gap-3">
@@ -115,7 +118,7 @@ export default function StepCategory({ category, onCategoryChange, onComplete }:
           onClick={onComplete}
           className="w-full h-12 text-base font-semibold"
         >
-          Continuar
+          {t('category.continue')}
         </Button>
       </div>
     </TooltipProvider>

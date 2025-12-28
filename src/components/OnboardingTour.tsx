@@ -3,50 +3,52 @@ import { Button } from "./ui/button";
 import { Card, CardContent } from "./ui/card";
 import { X, ArrowRight, ArrowLeft, Check } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface OnboardingStep {
-  title: string;
-  description: string;
+  titleKey: string;
+  descriptionKey: string;
   target?: string;
   position?: "top" | "bottom" | "left" | "right";
   action?: () => void;
 }
 
-const steps: OnboardingStep[] = [
-  {
-    title: "Bem-vindo ao HoraMed! 👋",
-    description: "Vamos fazer um tour rápido para você conhecer o aplicativo e começar a organizar sua saúde de forma simples.",
-  },
-  {
-    title: "Página Hoje - Seu dia a dia",
-    description: "Aqui você vê suas doses do dia com horários. Toque em ✓ quando tomar, em ⏰ para adiar 15min, ou → para pular. Simples assim!",
-    action: () => window.location.href = "/hoje",
-  },
-  {
-    title: "Rotina - Seus medicamentos",
-    description: "Cadastre remédios, vitaminas e suplementos. Escolha os horários e pronto! O app avisa você automaticamente.",
-    action: () => window.location.href = "/rotina",
-  },
-  {
-    title: "Progresso - Acompanhe sua evolução",
-    description: "Veja seu compromisso com a saúde, sequências de dias sem perder doses, e conquiste medalhas! Cada dia conta.",
-    action: () => window.location.href = "/progresso",
-  },
-  {
-    title: "Carteira de Saúde - Documentos seguros",
-    description: "Guarde receitas, exames e vacinas em um só lugar. Tire foto e o app lê automaticamente! Compartilhe com médicos quando precisar.",
-    action: () => window.location.href = "/carteira",
-  },
-  {
-    title: "Está pronto! 🎉",
-    description: "Comece adicionando seu primeiro medicamento. Use o botão + sempre que precisar adicionar algo novo. Boa saúde!",
-  },
-];
-
 export default function OnboardingTour() {
   const [isVisible, setIsVisible] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(false);
+  const { t } = useLanguage();
+
+  const steps: OnboardingStep[] = [
+    {
+      titleKey: 'tour.welcome',
+      descriptionKey: 'tour.welcomeDesc',
+    },
+    {
+      titleKey: 'tour.todayTitle',
+      descriptionKey: 'tour.todayDesc',
+      action: () => window.location.href = "/hoje",
+    },
+    {
+      titleKey: 'tour.routineTitle',
+      descriptionKey: 'tour.routineDesc',
+      action: () => window.location.href = "/rotina",
+    },
+    {
+      titleKey: 'tour.progressTitle',
+      descriptionKey: 'tour.progressDesc',
+      action: () => window.location.href = "/progresso",
+    },
+    {
+      titleKey: 'tour.walletTitle',
+      descriptionKey: 'tour.walletDesc',
+      action: () => window.location.href = "/carteira",
+    },
+    {
+      titleKey: 'tour.readyTitle',
+      descriptionKey: 'tour.readyDesc',
+    },
+  ];
 
   useEffect(() => {
     checkOnboardingStatus();
@@ -133,14 +135,14 @@ export default function OnboardingTour() {
 
           {/* Step indicator */}
           <div className="text-sm text-muted-foreground text-center">
-            Passo {currentStep + 1} de {steps.length}
+            {t('tour.step')} {currentStep + 1} {t('tour.of')} {steps.length}
           </div>
 
           {/* Content */}
           <div className="space-y-3 py-4">
-            <h2 className="text-2xl font-bold text-center">{step.title}</h2>
+            <h2 className="text-2xl font-bold text-center">{t(step.titleKey)}</h2>
             <p className="text-muted-foreground text-center leading-relaxed">
-              {step.description}
+              {t(step.descriptionKey)}
             </p>
           </div>
 
@@ -151,7 +153,7 @@ export default function OnboardingTour() {
               onClick={handleSkip}
               className="text-muted-foreground"
             >
-              Pular tutorial
+              {t('tour.skipTutorial')}
             </Button>
 
             <div className="flex gap-2">
@@ -169,11 +171,11 @@ export default function OnboardingTour() {
                 {currentStep === steps.length - 1 ? (
                   <>
                     <Check className="h-4 w-4 mr-2" />
-                    Começar
+                    {t('tour.start')}
                   </>
                 ) : (
                   <>
-                    Próximo
+                    {t('tour.next')}
                     <ArrowRight className="h-4 w-4 ml-2" />
                   </>
                 )}
