@@ -13,6 +13,7 @@ import { Alert, AlertDescription } from "./ui/alert";
 import { AffiliateCard } from "./fitness/AffiliateCard";
 import { getRecommendations, dismissRecommendation } from "@/lib/affiliateEngine";
 import { Badge } from "./ui/badge";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Message {
   role: "user" | "assistant";
@@ -20,13 +21,9 @@ interface Message {
 }
 
 export default function HealthAssistantChat() {
+  const { t } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      role: "assistant",
-      content: "Olá, sou a Clara. Estou aqui para ajudar você a organizar sua rotina de saúde. Como posso ajudar?",
-    },
-  ]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showPaywall, setShowPaywall] = useState(false);
@@ -35,16 +32,25 @@ export default function HealthAssistantChat() {
   const [affiliateProduct, setAffiliateProduct] = useState<any>(null);
   const [showAffiliate, setShowAffiliate] = useState(false);
 
+  // Initialize greeting message with translation
+  useEffect(() => {
+    if (messages.length === 0) {
+      setMessages([{
+        role: "assistant",
+        content: t('chat.greeting'),
+      }]);
+    }
+  }, [t]);
+
   const quickChips = [
-    "Organizar rotina",
-    "Ver estoque",
-    "Dúvida sobre dose",
-    "Ajustar horários"
+    t('chat.organizeRoutine'),
+    t('chat.viewStock'),
+    t('chat.doseQuestion'),
+    t('chat.adjustSchedules')
   ];
 
   useEffect(() => {
     if (scrollRef.current) {
-      // Use requestAnimationFrame to batch layout reads and avoid forced reflow
       requestAnimationFrame(() => {
         if (scrollRef.current) {
           scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -80,31 +86,29 @@ export default function HealthAssistantChat() {
 
       if (!response.ok) {
         if (response.status === 429) {
-          toast.error("Limite de requisições atingido. Tente novamente em alguns instantes.");
+          toast.error(t('chat.rateLimitError'));
           setIsLoading(false);
           return;
         }
         if (response.status === 402) {
-          toast.error("Créditos insuficientes. Por favor, adicione créditos à sua conta.");
+          toast.error(t('chat.creditsError'));
           setIsLoading(false);
           return;
         }
-        throw new Error("Erro ao processar resposta");
+        throw new Error(t('chat.processingError'));
       }
 
       const data = await response.json();
-      const assistantContent = data.response || "Desculpe, não consegui processar sua pergunta.";
+      const assistantContent = data.response || t('chat.fallbackResponse');
       
       setMessages((prev) => [...prev, { role: "assistant", content: assistantContent }]);
 
-      // Record successful AI usage
       await aiLimits.recordAIUsage({
         message_length: userMessage.length,
         response_length: assistantContent.length,
       });
 
-      // Check for fitness-related queries and show affiliate recommendation
-      const fitnessKeywords = ["treino", "academia", "performance", "energia", "sono", "glp-1", "ozempic", "mounjaro", "bariátrica"];
+      const fitnessKeywords = ["treino", "academia", "performance", "energia", "sono", "glp-1", "ozempic", "mounjaro", "bariátrica", "workout", "gym", "energy", "sleep"];
       const isFitnessQuery = fitnessKeywords.some(keyword => userMessage.toLowerCase().includes(keyword));
       
       if (isFitnessQuery) {
@@ -117,7 +121,7 @@ export default function HealthAssistantChat() {
 
     } catch (error) {
       console.error("Chat error:", error);
-      toast.error("Erro ao processar mensagem. Tente novamente.");
+      toast.error(t('chat.messageError'));
     } finally {
       setIsLoading(false);
     }
@@ -126,7 +130,6 @@ export default function HealthAssistantChat() {
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
 
-    // Check AI limits for Free users
     if (!aiLimits.canUseAI) {
       setShowPaywall(true);
       return;
@@ -170,7 +173,7 @@ export default function HealthAssistantChat() {
             </div>
             <div>
               <h3 className="font-semibold text-sm sm:text-base">Clara</h3>
-              <p className="text-xs opacity-80">Assistente HoraMed</p>
+              <p className="text-xs opacity-80">{t('chat.assistant')}</p>
             </div>
           </div>
           <Button
@@ -190,11 +193,11 @@ export default function HealthAssistantChat() {
             <AlertDescription className="text-xs">
               {aiLimits.canUseAI ? (
                 <span>
-                  Você tem <strong>{aiLimits.remainingToday}</strong> de {aiLimits.dailyLimit} consultas restantes hoje
+                  {t('chat.youHave')} <strong>{aiLimits.remainingToday}</strong> {t('chat.of')} {aiLimits.dailyLimit} {t('chat.queriesRemaining')}
                 </span>
               ) : (
                 <span className="text-red-600 font-medium">
-                  Limite diário atingido. Assine Premium para consultas ilimitadas.
+                  {t('chat.dailyLimitReached')}
                 </span>
               )}
             </AlertDescription>
@@ -270,7 +273,7 @@ export default function HealthAssistantChat() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyPress={handleKeyPress}
-              placeholder={aiLimits.canUseAI ? "Digite sua mensagem..." : "Limite diário atingido"}
+              placeholder={aiLimits.canUseAI ? t('chat.placeholder') : t('chat.limitReached')}
               disabled={isLoading || !aiLimits.canUseAI}
               className="flex-1 text-base sm:text-sm"
             />

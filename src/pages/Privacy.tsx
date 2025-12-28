@@ -20,10 +20,12 @@ import Navigation from "@/components/Navigation";
 import ConsentManager from "@/components/ConsentManager";
 import { useAuditLog } from "@/hooks/useAuditLog";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function Privacy() {
   const navigate = useNavigate();
   const { signOut } = useAuth();
+  const { t } = useLanguage();
   const [loading, setLoading] = useState(false);
   const { logAction } = useAuditLog();
 
@@ -33,7 +35,6 @@ export default function Privacy() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Log account deletion attempt
       await logAction({
         action: "delete_account",
         resource: "user",
@@ -41,23 +42,18 @@ export default function Privacy() {
         metadata: { email: user.email }
       });
 
-      // Delete all user data in correct order (respecting foreign keys)
-      // First delete dependent records
       await supabase.from("dose_instances").delete().match({ item_id: user.id });
       await supabase.from("schedules").delete().match({ item_id: user.id });
       await supabase.from("stock").delete().match({ item_id: user.id });
       
-      // Delete health vault data
       await supabase.from("compartilhamentos_doc").delete().eq("user_id", user.id);
       await supabase.from("eventos_saude").delete().eq("user_id", user.id);
       await supabase.from("documentos_saude").delete().eq("user_id", user.id);
       
-      // Delete profiles and health data
       await supabase.from("user_profiles").delete().eq("user_id", user.id);
       await supabase.from("health_history").delete().eq("user_id", user.id);
       await supabase.from("health_insights").delete().eq("user_id", user.id);
       
-      // Then delete main records
       await supabase.from("items").delete().eq("user_id", user.id);
       await supabase.from("medical_exams").delete().eq("user_id", user.id);
       await supabase.from("notification_preferences").delete().eq("user_id", user.id);
@@ -65,15 +61,14 @@ export default function Privacy() {
       await supabase.from("consents").delete().eq("user_id", user.id);
       await supabase.from("profiles").delete().eq("user_id", user.id);
       
-      // Sign out and clear all data
       await signOut();
       localStorage.removeItem("biometric_refresh_token");
       localStorage.removeItem("biometric_expiry");
       localStorage.removeItem("biometric_enabled");
-      toast.success("Conta deletada com sucesso");
+      toast.success(t('privacy.deleteSuccess'));
     } catch (error) {
       console.error("Error deleting account:", error);
-      toast.error("Erro ao deletar conta");
+      toast.error(t('privacy.deleteError'));
     } finally {
       setLoading(false);
     }
@@ -90,59 +85,58 @@ export default function Privacy() {
             <div>
               <h2 className="text-2xl font-bold text-foreground flex items-center gap-2">
                 <Shield className="h-6 w-6" />
-                Privacidade e Segurança
+                {t('privacy.title')}
               </h2>
-              <p className="text-muted-foreground">Gerencie seus dados e privacidade</p>
+              <p className="text-muted-foreground">{t('privacy.subtitle')}</p>
             </div>
           </div>
 
           <Card className="p-6 space-y-4">
             <div>
-              <h3 className="font-semibold text-foreground mb-2">Privacidade e LGPD</h3>
+              <h3 className="font-semibold text-foreground mb-2">{t('privacy.lgpdTitle')}</h3>
               <p className="text-sm text-muted-foreground">
-                O HoraMed está em total conformidade com a Lei Geral de Proteção de Dados (LGPD - Lei nº 13.709/2018). 
-                Todos os seus dados são armazenados de forma segura e criptografada.
+                {t('privacy.lgpdDesc')}
               </p>
             </div>
 
             <div className="space-y-3">
               <div>
-                <h4 className="font-medium text-foreground mb-2">🛡️ Proteção de Dados</h4>
+                <h4 className="font-medium text-foreground mb-2">🛡️ {t('privacy.dataProtection')}</h4>
                 <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside ml-2">
-                  <li>Dados médicos criptografados</li>
-                  <li>Criptografia HTTPS em trânsito</li>
-                  <li>Controle de acesso e autenticação</li>
-                  <li>Nunca comercializamos seus dados</li>
-                  <li>Compartilhamento limitado ao necessário</li>
+                  <li>{t('privacy.dataEncrypted')}</li>
+                  <li>{t('privacy.httpsEncryption')}</li>
+                  <li>{t('privacy.accessControl')}</li>
+                  <li>{t('privacy.noDataSale')}</li>
+                  <li>{t('privacy.limitedSharing')}</li>
                 </ul>
               </div>
 
               <div>
-                <h4 className="font-medium text-foreground mb-2">📋 Dados Coletados</h4>
+                <h4 className="font-medium text-foreground mb-2">📋 {t('privacy.dataCollected')}</h4>
                 <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside ml-2">
-                  <li><strong>Cadastro:</strong> Nome, e-mail, senha protegida</li>
-                  <li><strong>Perfis familiares:</strong> Nome, data de nascimento, relação</li>
-                  <li><strong>Saúde (sensíveis):</strong> Medicamentos, doses, documentos</li>
-                  <li><strong>Uso:</strong> Logs de ações, dispositivo, notificações</li>
-                  <li><strong>Assinatura:</strong> Status via lojas (não dados de cartão)</li>
+                  <li><strong>{t('privacy.registration')}:</strong> {t('privacy.registrationData')}</li>
+                  <li><strong>{t('privacy.familyProfiles')}:</strong> {t('privacy.familyProfilesData')}</li>
+                  <li><strong>{t('privacy.healthSensitive')}:</strong> {t('privacy.healthData')}</li>
+                  <li><strong>{t('privacy.usage')}:</strong> {t('privacy.usageData')}</li>
+                  <li><strong>{t('privacy.subscription')}:</strong> {t('privacy.subscriptionData')}</li>
                 </ul>
               </div>
 
               <div>
-                <h4 className="font-medium text-foreground mb-2">✅ Seus Direitos LGPD</h4>
+                <h4 className="font-medium text-foreground mb-2">✅ {t('privacy.lgpdRights')}</h4>
                 <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside ml-2">
-                  <li><strong>Acesso:</strong> Ver todos os dados coletados</li>
-                  <li><strong>Correção:</strong> Atualizar dados incorretos</li>
-                  <li><strong>Portabilidade:</strong> Exportar em formato legível</li>
-                  <li><strong>Eliminação:</strong> Deletar permanentemente</li>
-                  <li><strong>Revogação:</strong> Cancelar consentimentos</li>
+                  <li><strong>{t('privacy.access')}:</strong> {t('privacy.accessDesc')}</li>
+                  <li><strong>{t('privacy.correction')}:</strong> {t('privacy.correctionDesc')}</li>
+                  <li><strong>{t('privacy.portability')}:</strong> {t('privacy.portabilityDesc')}</li>
+                  <li><strong>{t('privacy.elimination')}:</strong> {t('privacy.eliminationDesc')}</li>
+                  <li><strong>{t('privacy.revocation')}:</strong> {t('privacy.revocationDesc')}</li>
                 </ul>
               </div>
 
               <div className="bg-primary/5 p-3 rounded-lg border border-primary/20">
-                <p className="text-sm font-semibold text-foreground mb-2">📄 Documento Legal Completo</p>
+                <p className="text-sm font-semibold text-foreground mb-2">📄 {t('privacy.legalDocument')}</p>
                 <p className="text-xs text-muted-foreground mb-3">
-                  Para informações detalhadas sobre Termos de Uso, Assinaturas, Cookies e Segurança, consulte o documento legal completo.
+                  {t('privacy.legalDocumentDesc')}
                 </p>
                 <Button 
                   variant="outline" 
@@ -150,7 +144,7 @@ export default function Privacy() {
                   className="w-full"
                   onClick={() => navigate("/termos")}
                 >
-                  Ver Documento Legal Completo
+                  {t('privacy.viewLegalDocument')}
                 </Button>
               </div>
             </div>
@@ -160,9 +154,9 @@ export default function Privacy() {
 
           <Card className="p-6 space-y-4">
             <div>
-              <h3 className="font-semibold text-foreground mb-2">Gerenciar Dados</h3>
+              <h3 className="font-semibold text-foreground mb-2">{t('privacy.manageData')}</h3>
               <p className="text-sm text-muted-foreground mb-4">
-                Você tem controle total sobre seus dados pessoais e de saúde.
+                {t('privacy.manageDataDesc')}
               </p>
               
               <CardContent className="p-4">
@@ -172,10 +166,10 @@ export default function Privacy() {
                   onClick={() => navigate('/exportar')}
                 >
                   <Download className="h-4 w-4 mr-2" />
-                  Exportar Meus Dados
+                  {t('privacy.exportMyData')}
                 </Button>
                 <p className="text-xs text-muted-foreground mt-2 ml-1">
-                  Baixe todos os seus dados (LGPD)
+                  {t('privacy.downloadAllData')}
                 </p>
               </CardContent>
             </div>
@@ -183,9 +177,9 @@ export default function Privacy() {
 
           <Card className="p-6 space-y-4 border-destructive/50">
             <div>
-              <h3 className="font-semibold text-destructive mb-2">Zona de Perigo</h3>
+              <h3 className="font-semibold text-destructive mb-2">{t('privacy.dangerZone')}</h3>
               <p className="text-sm text-muted-foreground mb-4">
-                Ações irreversíveis que afetarão permanentemente sua conta.
+                {t('privacy.dangerZoneDesc')}
               </p>
               
               <AlertDialog>
@@ -195,25 +189,24 @@ export default function Privacy() {
                     className="w-full justify-start gap-2"
                   >
                     <Trash2 className="h-4 w-4" />
-                    Deletar minha conta
+                    {t('privacy.deleteAccount')}
                   </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
-                    <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
+                    <AlertDialogTitle>{t('privacy.deleteConfirmTitle')}</AlertDialogTitle>
                     <AlertDialogDescription>
-                      Esta ação não pode ser desfeita. Isso irá deletar permanentemente sua conta
-                      e remover todos os seus dados dos nossos servidores.
+                      {t('privacy.deleteConfirmDesc')}
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
-                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                    <AlertDialogCancel>{t('privacy.cancel')}</AlertDialogCancel>
                     <AlertDialogAction
                       onClick={handleDeleteAccount}
                       disabled={loading}
                       className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                     >
-                      {loading ? "Deletando..." : "Sim, deletar conta"}
+                      {loading ? t('privacy.deleting') : t('privacy.confirmDelete')}
                     </AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
