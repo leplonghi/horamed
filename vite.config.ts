@@ -87,8 +87,18 @@ export default defineConfig(({ mode }) => ({
     },
   },
   build: {
-    // Capacitor packages não devem ser externalizados para build web
-    // Apenas para builds mobile nativos
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'react-vendor': ['react', 'react-dom'],
+          'router': ['react-router-dom'],
+          'ui': ['@radix-ui/react-dialog', '@radix-ui/react-tabs', '@radix-ui/react-toast', '@radix-ui/react-popover'],
+          'charts': ['recharts'],
+          'motion': ['framer-motion'],
+          'date': ['date-fns', 'date-fns-tz'],
+        },
+      },
+    },
   },
   optimizeDeps: {
     exclude: ["@capacitor/core", "@capacitor/app"],
