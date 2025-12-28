@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import horamedLogo from '@/assets/horamed-logo-web.webp';
+import horamedLogo from '@/assets/horamed-logo-transparent.png';
 
 interface SplashScreenProps {
   onComplete: () => void;
