@@ -10,6 +10,7 @@ import {
 import { Button } from "./ui/button";
 import { createClient } from "@supabase/supabase-js";
 import { toast } from "sonner";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface PendingDose {
   id: string;
@@ -19,6 +20,7 @@ interface PendingDose {
 export default function DailySummaryModal() {
   const [isOpen, setIsOpen] = useState(false);
   const [pendingDoses, setPendingDoses] = useState<PendingDose[]>([]);
+  const { t, language } = useLanguage();
 
   useEffect(() => {
     // Check at 10 PM (22:00)
@@ -72,7 +74,7 @@ export default function DailySummaryModal() {
         setPendingDoses(
           doses.map(d => ({
             id: d.id,
-            name: itemMap.get(d.item_id) || "Medicamento"
+            name: itemMap.get(d.item_id) || (language === 'pt' ? "Medicamento" : "Medication")
           }))
         );
         setIsOpen(true);
@@ -99,11 +101,11 @@ export default function DailySummaryModal() {
 
       if (error) throw error;
 
-      toast.success("✅ Todas as doses marcadas como tomadas!");
+      toast.success(t('dailySummary.allMarkedTaken'));
       setIsOpen(false);
     } catch (error) {
       console.error("Error marking doses as taken:", error);
-      toast.error("Erro ao marcar doses");
+      toast.error(t('dailySummary.errorMarking'));
     }
   };
 
@@ -121,11 +123,11 @@ export default function DailySummaryModal() {
 
       if (error) throw error;
 
-      toast("⚠️ Doses marcadas como não tomadas");
+      toast(t('dailySummary.markedMissed'));
       setIsOpen(false);
     } catch (error) {
       console.error("Error marking doses as missed:", error);
-      toast.error("Erro ao marcar doses");
+      toast.error(t('dailySummary.errorMarking'));
     }
   };
 
@@ -135,9 +137,12 @@ export default function DailySummaryModal() {
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>🌙 Antes de dormir...</DialogTitle>
+          <DialogTitle>{t('dailySummary.title')}</DialogTitle>
           <DialogDescription className="pt-2">
-            Você ainda tem {pendingDoses.length} dose{pendingDoses.length > 1 ? 's' : ''} sem marcar hoje:
+            {t('dailySummary.description', { 
+              count: String(pendingDoses.length),
+              plural: pendingDoses.length > 1 ? 's' : ''
+            })}
           </DialogDescription>
         </DialogHeader>
 
@@ -152,28 +157,28 @@ export default function DailySummaryModal() {
           ))}
           {pendingDoses.length > 3 && (
             <div className="text-sm text-muted-foreground text-center">
-              E mais {pendingDoses.length - 3}...
+              {t('dailySummary.andMore', { count: String(pendingDoses.length - 3) })}
             </div>
           )}
         </div>
 
         <DialogFooter className="flex-col gap-2 sm:flex-col">
           <Button onClick={handleMarkAllTaken} className="w-full">
-            ✓ Tomei todas
+            {t('dailySummary.tookAll')}
           </Button>
           <Button 
             onClick={handleMarkAllMissed} 
             variant="outline"
             className="w-full"
           >
-            Não tomei
+            {t('dailySummary.didNotTake')}
           </Button>
           <Button 
             onClick={() => setIsOpen(false)} 
             variant="ghost"
             className="w-full"
           >
-            Deixar assim
+            {t('dailySummary.leaveAsIs')}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Package, ShoppingCart, AlertCircle, CheckCircle2 } from "lucide-react";
 import { motion } from "framer-motion";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface TravelCalculation {
   medication: {
@@ -24,6 +25,7 @@ interface TravelPackingListProps {
 }
 
 export function TravelPackingList({ calculations, tripDays }: TravelPackingListProps) {
+  const { t } = useLanguage();
   const needsToBuy = calculations.filter(c => c.needsToBuy > 0);
   const readyToPack = calculations.filter(c => c.needsToBuy === 0);
 
@@ -39,7 +41,7 @@ export function TravelPackingList({ calculations, tripDays }: TravelPackingListP
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-destructive">
                 <ShoppingCart className="h-5 w-5" />
-                Precisa Comprar
+                {t('travelPacking.needsToBuy')}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
@@ -63,10 +65,10 @@ export function TravelPackingList({ calculations, tripDays }: TravelPackingListP
                     </p>
                     <div className="flex items-center gap-4 text-sm">
                       <span className="text-muted-foreground">
-                        Estoque: <span className="font-medium">{item.currentStock}</span>
+                        {t('travelPacking.stock')}: <span className="font-medium">{item.currentStock}</span>
                       </span>
                       <span className="text-muted-foreground">
-                        Necessário: <span className="font-medium">{item.totalRequired}</span>
+                        {t('travelPacking.needed')}: <span className="font-medium">{item.totalRequired}</span>
                       </span>
                     </div>
                   </div>
@@ -75,7 +77,7 @@ export function TravelPackingList({ calculations, tripDays }: TravelPackingListP
                     <p className="text-lg font-bold text-destructive">
                       {item.needsToBuy}
                     </p>
-                    <p className="text-xs text-muted-foreground">faltam</p>
+                    <p className="text-xs text-muted-foreground">{t('travelPacking.missing')}</p>
                   </div>
                 </motion.div>
               ))}
@@ -94,7 +96,7 @@ export function TravelPackingList({ calculations, tripDays }: TravelPackingListP
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Package className="h-5 w-5" />
-                Lista de Bagagem
+                {t('travelPacking.packingList')}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
@@ -121,7 +123,7 @@ export function TravelPackingList({ calculations, tripDays }: TravelPackingListP
                     </div>
                     <div className="text-right">
                       <p className="text-lg font-bold">{item.totalRequired}</p>
-                      <p className="text-xs text-muted-foreground">unidades</p>
+                      <p className="text-xs text-muted-foreground">{t('travelPacking.units')}</p>
                     </div>
                   </div>
                   <div className="pl-6">
@@ -129,7 +131,7 @@ export function TravelPackingList({ calculations, tripDays }: TravelPackingListP
                       💡 {item.packingNotes}
                     </p>
                     <p className="text-xs text-muted-foreground mt-1">
-                      {item.dailyDoses}x por dia × {tripDays} dias (+2 dias de margem)
+                      {item.dailyDoses}{t('travelPacking.perDay')} × {tripDays} {t('travelPacking.daysMargin')}
                     </p>
                   </div>
                   {index < readyToPack.length - 1 && <Separator className="mt-3" />}

@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { CriticalAlert } from "@/hooks/useCriticalAlerts";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface CriticalAlertBannerProps {
   alerts: CriticalAlert[];
@@ -11,23 +12,25 @@ interface CriticalAlertBannerProps {
   onDismissAll: () => void;
 }
 
-const getActionLink = (alert: CriticalAlert): { label: string; path: string } | null => {
-  switch (alert.type) {
-    case "zero_stock":
-      return { label: "Gerenciar Estoque", path: "/estoque" };
-    case "missed_essential":
-      return { label: "Ver Medicações", path: "/hoje" };
-    case "duplicate_dose":
-      return { label: "Ver Histórico", path: "/historico" };
-    case "drug_interaction":
-      return { label: "Ver Perfil", path: "/perfil" };
-    default:
-      return null;
-  }
-};
-
 export default function CriticalAlertBanner({ alerts, onDismiss, onDismissAll }: CriticalAlertBannerProps) {
+  const { t } = useLanguage();
+
   if (alerts.length === 0) return null;
+
+  const getActionLink = (alert: CriticalAlert): { label: string; path: string } | null => {
+    switch (alert.type) {
+      case "zero_stock":
+        return { label: t('criticalAlert.manageStock'), path: "/estoque" };
+      case "missed_essential":
+        return { label: t('criticalAlert.viewMedications'), path: "/hoje" };
+      case "duplicate_dose":
+        return { label: t('criticalAlert.viewHistory'), path: "/historico" };
+      case "drug_interaction":
+        return { label: t('criticalAlert.viewProfile'), path: "/perfil" };
+      default:
+        return null;
+    }
+  };
 
   const getSeverityConfig = (severity: CriticalAlert["severity"]) => {
     switch (severity) {
@@ -69,7 +72,10 @@ export default function CriticalAlertBanner({ alerts, onDismiss, onDismissAll }:
             <ShieldAlert className="h-3 w-3 text-destructive" />
           </div>
           <h2 className="text-xs font-bold text-destructive">
-            {alerts.length} Ação{alerts.length > 1 ? 'ões' : ''} Urgente{alerts.length > 1 ? 's' : ''}
+            {t('criticalAlert.urgentActions', { 
+              count: String(alerts.length),
+              plural: alerts.length > 1 ? 's' : ''
+            })}
           </h2>
         </div>
         <Button
@@ -78,7 +84,7 @@ export default function CriticalAlertBanner({ alerts, onDismiss, onDismissAll }:
           onClick={onDismissAll}
           className="h-6 text-[10px] px-2 hover:bg-destructive/10 text-destructive/70 hover:text-destructive"
         >
-          Limpar tudo
+          {t('criticalAlert.clearAll')}
         </Button>
       </div>
 
@@ -118,7 +124,7 @@ export default function CriticalAlertBanner({ alerts, onDismiss, onDismissAll }:
                         size="sm"
                         className="h-7 text-xs px-2.5 border-current/20 hover:bg-background/50 whitespace-nowrap"
                       >
-                        Confirmar
+                        {t('criticalAlert.confirm')}
                       </Button>
                     </Link>
                   )}

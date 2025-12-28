@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { TrendingDown, TrendingUp, Minus, Activity, Clock, Info, Scale, ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface WeightInsightsCardProps {
   profileId?: string;
@@ -12,6 +13,7 @@ interface WeightInsightsCardProps {
 export default function WeightInsightsCard({ profileId }: WeightInsightsCardProps) {
   const { data, isLoading } = useWeightInsights(profileId);
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
   if (isLoading) {
     return (
@@ -71,10 +73,10 @@ export default function WeightInsightsCard({ profileId }: WeightInsightsCardProp
           </div>
           <div className="flex-1">
             <p className="font-medium text-foreground">
-              Acompanhamento ativo
+              {t('weightInsights.activeTracking')}
             </p>
             <p className="text-sm text-muted-foreground">
-              Correlacionando com {data.medications.map(m => m.name).join(', ')}
+              {t('weightInsights.correlatingWith', { medications: data.medications.map(m => m.name).join(', ') })}
             </p>
           </div>
         </div>
@@ -129,7 +131,7 @@ export default function WeightInsightsCard({ profileId }: WeightInsightsCardProp
       {/* Frequency guidance */}
       <div className="p-3 rounded-xl bg-muted/50 border border-border/50">
         <p className="text-xs text-muted-foreground text-center">
-          Para acompanhar tendências, o ideal é registrar o peso uma vez por semana.
+          {t('weightInsights.guidanceTip')}
         </p>
       </div>
 
@@ -140,7 +142,7 @@ export default function WeightInsightsCard({ profileId }: WeightInsightsCardProp
         onClick={() => navigate(`/peso/historico${profileId ? `?profile=${profileId}` : ''}`)}
       >
         <Scale className="h-4 w-4 mr-2" />
-        Registrar peso
+        {t('weightInsights.logWeight')}
         <ArrowRight className="h-4 w-4 ml-auto" />
       </Button>
     </motion.div>

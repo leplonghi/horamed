@@ -5,16 +5,18 @@ import { Button } from "@/components/ui/button";
 import { useExpiredPrescriptions } from "@/hooks/usePrescriptionControl";
 import { useUserProfiles } from "@/hooks/useUserProfiles";
 import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { ptBR, enUS } from "date-fns/locale";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export function ExpiredPrescriptionsAlert() {
   const { activeProfile } = useUserProfiles();
   const { data: expiredPrescriptions, isLoading } = useExpiredPrescriptions(activeProfile?.id);
   const [dismissed, setDismissed] = useState<string[]>([]);
   const navigate = useNavigate();
+  const { t, language } = useLanguage();
 
   if (isLoading || !expiredPrescriptions || expiredPrescriptions.length === 0) {
     return null;
@@ -31,7 +33,7 @@ export function ExpiredPrescriptionsAlert() {
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-destructive">
           <AlertTriangle className="h-5 w-5" />
-          Receitas Vencidas
+          {t('expiredPrescriptions.title')}
           <Badge variant="destructive" className="ml-auto">
             {visiblePrescriptions.length}
           </Badge>
@@ -41,7 +43,7 @@ export function ExpiredPrescriptionsAlert() {
         <Alert className="border-destructive/30 bg-background">
           <AlertTriangle className="h-4 w-4 text-destructive" />
           <AlertDescription className="text-sm">
-            Você tem receitas vencidas que não foram utilizadas. Solicite novas receitas ao seu médico para poder comprar os medicamentos.
+            {t('expiredPrescriptions.description')}
           </AlertDescription>
         </Alert>
 
@@ -73,14 +75,17 @@ export function ExpiredPrescriptionsAlert() {
                 ))}
                 {prescription.medications.length > 2 && (
                   <p className="text-xs text-muted-foreground">
-                    + {prescription.medications.length - 2} mais
+                    {t('expiredPrescriptions.andMore', { count: String(prescription.medications.length - 2) })}
                   </p>
                 )}
               </div>
               <div className="flex items-center gap-2">
                 <div className="flex items-center gap-1 text-xs text-destructive">
                   <Calendar className="h-3 w-3" />
-                  Venceu há {prescription.daysExpired} {prescription.daysExpired === 1 ? 'dia' : 'dias'}
+                  {t('expiredPrescriptions.expiredAgo', { 
+                    days: String(prescription.daysExpired),
+                    daysLabel: prescription.daysExpired === 1 ? t('expiredPrescriptions.day') : t('expiredPrescriptions.days')
+                  })}
                 </div>
               </div>
             </div>
@@ -95,18 +100,17 @@ export function ExpiredPrescriptionsAlert() {
             className="flex-1"
           >
             <FileText className="h-4 w-4 mr-2" />
-            Ver na Carteira
+            {t('expiredPrescriptions.viewInWallet')}
           </Button>
           <Button
             variant="default"
             size="sm"
             onClick={() => {
-              // Aqui poderia abrir um modal para agendar consulta
               navigate("/consultas");
             }}
             className="flex-1"
           >
-            Agendar Consulta
+            {t('expiredPrescriptions.scheduleAppointment')}
           </Button>
         </div>
       </CardContent>

@@ -26,28 +26,28 @@ export function OverdueDosesBanner() {
     
     if (count === 1) {
       if (mostOverdue.minutesOverdue > 60) {
-        return language === 'pt' 
-          ? `⚠️ ${mostOverdue.profileName} não tomou ${mostOverdue.itemName} há mais de 1 hora!`
-          : `⚠️ ${mostOverdue.profileName} hasn't taken ${mostOverdue.itemName} for over 1 hour!`;
+        return t('overdueBanner.overdueFor1Hour', { 
+          profile: mostOverdue.profileName, 
+          item: mostOverdue.itemName 
+        });
       }
-      return language === 'pt'
-        ? `${mostOverdue.profileName} precisa tomar ${mostOverdue.itemName}`
-        : `${mostOverdue.profileName} needs to take ${mostOverdue.itemName}`;
+      return t('overdueBanner.needsToTake', { 
+        profile: mostOverdue.profileName, 
+        item: mostOverdue.itemName 
+      });
     }
-    return language === 'pt'
-      ? `${count} doses atrasadas precisam de atenção`
-      : `${count} overdue doses need attention`;
+    return t('overdueBanner.dosesNeedAttention', { count: String(count) });
   };
 
   const handleMarkAsTaken = async (doseId: string, itemName: string) => {
     setLoadingIds(prev => new Set(prev).add(doseId));
     try {
       await markAsTaken(doseId);
-      toast.success(language === 'pt' ? `${itemName} confirmado!` : `${itemName} confirmed!`, {
-        description: language === 'pt' ? "Dose registrada com sucesso" : "Dose recorded successfully"
+      toast.success(t('overdueBanner.confirmed', { item: itemName }), {
+        description: t('overdueBanner.doseRecorded')
       });
     } catch (error) {
-      toast.error(language === 'pt' ? "Erro ao confirmar dose" : "Error confirming dose");
+      toast.error(t('overdueBanner.confirmError'));
     } finally {
       setLoadingIds(prev => {
         const next = new Set(prev);

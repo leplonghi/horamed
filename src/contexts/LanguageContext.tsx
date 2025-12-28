@@ -1795,6 +1795,60 @@ const translations: Record<Language, Record<string, string>> = {
     'smartActions.seeMore': 'Ver mais {count} {label}',
     'smartActions.suggestion': 'sugestão',
     'smartActions.suggestions': 'sugestões',
+    
+    // Weight insights card
+    'weightInsights.activeTracking': 'Acompanhamento ativo',
+    'weightInsights.correlatingWith': 'Correlacionando com {medications}',
+    'weightInsights.guidanceTip': 'Para acompanhar tendências, o ideal é registrar o peso uma vez por semana.',
+    'weightInsights.logWeight': 'Registrar peso',
+    
+    // Overdue doses banner (remaining)
+    'overdueBanner.overdueFor1Hour': '⚠️ {profile} não tomou {item} há mais de 1 hora!',
+    'overdueBanner.needsToTake': '{profile} precisa tomar {item}',
+    'overdueBanner.dosesNeedAttention': '{count} doses atrasadas precisam de atenção',
+    'overdueBanner.confirmed': '{item} confirmado!',
+    'overdueBanner.doseRecorded': 'Dose registrada com sucesso',
+    'overdueBanner.confirmError': 'Erro ao confirmar dose',
+    
+    // Expired prescriptions alert
+    'expiredPrescriptions.title': 'Receitas Vencidas',
+    'expiredPrescriptions.description': 'Você tem receitas vencidas que não foram utilizadas. Solicite novas receitas ao seu médico para poder comprar os medicamentos.',
+    'expiredPrescriptions.andMore': '+ {count} mais',
+    'expiredPrescriptions.expiredAgo': 'Venceu há {days} {daysLabel}',
+    'expiredPrescriptions.day': 'dia',
+    'expiredPrescriptions.days': 'dias',
+    'expiredPrescriptions.viewInWallet': 'Ver na Carteira',
+    'expiredPrescriptions.scheduleAppointment': 'Agendar Consulta',
+    
+    // Daily summary modal
+    'dailySummary.title': '🌙 Antes de dormir...',
+    'dailySummary.description': 'Você ainda tem {count} dose{plural} sem marcar hoje:',
+    'dailySummary.andMore': 'E mais {count}...',
+    'dailySummary.tookAll': '✓ Tomei todas',
+    'dailySummary.didNotTake': 'Não tomei',
+    'dailySummary.leaveAsIs': 'Deixar assim',
+    'dailySummary.allMarkedTaken': '✅ Todas as doses marcadas como tomadas!',
+    'dailySummary.markedMissed': '⚠️ Doses marcadas como não tomadas',
+    'dailySummary.errorMarking': 'Erro ao marcar doses',
+    
+    // Travel packing list
+    'travelPacking.needsToBuy': 'Precisa Comprar',
+    'travelPacking.packingList': 'Lista de Bagagem',
+    'travelPacking.stock': 'Estoque',
+    'travelPacking.needed': 'Necessário',
+    'travelPacking.missing': 'faltam',
+    'travelPacking.units': 'unidades',
+    'travelPacking.perDay': 'x por dia',
+    'travelPacking.daysMargin': 'dias (+2 dias de margem)',
+    
+    // Critical alert banner
+    'criticalAlert.urgentActions': '{count} Ação{plural} Urgente{plural}',
+    'criticalAlert.clearAll': 'Limpar tudo',
+    'criticalAlert.manageStock': 'Gerenciar Estoque',
+    'criticalAlert.viewMedications': 'Ver Medicações',
+    'criticalAlert.viewHistory': 'Ver Histórico',
+    'criticalAlert.viewProfile': 'Ver Perfil',
+    'criticalAlert.confirm': 'Confirmar',
   },
   en: {
     // Navigation
@@ -3571,6 +3625,60 @@ const translations: Record<Language, Record<string, string>> = {
     'smartActions.seeMore': 'See {count} more {label}',
     'smartActions.suggestion': 'suggestion',
     'smartActions.suggestions': 'suggestions',
+    
+    // Weight insights card
+    'weightInsights.activeTracking': 'Active tracking',
+    'weightInsights.correlatingWith': 'Correlating with {medications}',
+    'weightInsights.guidanceTip': 'To track trends, we recommend logging your weight once a week.',
+    'weightInsights.logWeight': 'Log weight',
+    
+    // Overdue doses banner (remaining)
+    'overdueBanner.overdueFor1Hour': "⚠️ {profile} hasn't taken {item} for over 1 hour!",
+    'overdueBanner.needsToTake': '{profile} needs to take {item}',
+    'overdueBanner.dosesNeedAttention': '{count} overdue doses need attention',
+    'overdueBanner.confirmed': '{item} confirmed!',
+    'overdueBanner.doseRecorded': 'Dose recorded successfully',
+    'overdueBanner.confirmError': 'Error confirming dose',
+    
+    // Expired prescriptions alert
+    'expiredPrescriptions.title': 'Expired Prescriptions',
+    'expiredPrescriptions.description': 'You have expired prescriptions that were not used. Request new prescriptions from your doctor to purchase the medications.',
+    'expiredPrescriptions.andMore': '+ {count} more',
+    'expiredPrescriptions.expiredAgo': 'Expired {days} {daysLabel} ago',
+    'expiredPrescriptions.day': 'day',
+    'expiredPrescriptions.days': 'days',
+    'expiredPrescriptions.viewInWallet': 'View in Wallet',
+    'expiredPrescriptions.scheduleAppointment': 'Schedule Appointment',
+    
+    // Daily summary modal
+    'dailySummary.title': '🌙 Before you sleep...',
+    'dailySummary.description': 'You still have {count} dose{plural} unmarked today:',
+    'dailySummary.andMore': 'And {count} more...',
+    'dailySummary.tookAll': '✓ I took all',
+    'dailySummary.didNotTake': "I didn't take",
+    'dailySummary.leaveAsIs': 'Leave as is',
+    'dailySummary.allMarkedTaken': '✅ All doses marked as taken!',
+    'dailySummary.markedMissed': '⚠️ Doses marked as not taken',
+    'dailySummary.errorMarking': 'Error marking doses',
+    
+    // Travel packing list
+    'travelPacking.needsToBuy': 'Needs to Buy',
+    'travelPacking.packingList': 'Packing List',
+    'travelPacking.stock': 'Stock',
+    'travelPacking.needed': 'Needed',
+    'travelPacking.missing': 'missing',
+    'travelPacking.units': 'units',
+    'travelPacking.perDay': 'x per day',
+    'travelPacking.daysMargin': 'days (+2 days margin)',
+    
+    // Critical alert banner
+    'criticalAlert.urgentActions': '{count} Urgent Action{plural}',
+    'criticalAlert.clearAll': 'Clear all',
+    'criticalAlert.manageStock': 'Manage Stock',
+    'criticalAlert.viewMedications': 'View Medications',
+    'criticalAlert.viewHistory': 'View History',
+    'criticalAlert.viewProfile': 'View Profile',
+    'criticalAlert.confirm': 'Confirm',
   }
 };
 
