@@ -77,7 +77,7 @@ const More = lazy(() => import("./pages/More"));
 const WeeklyCalendar = lazy(() => import("./pages/WeeklyCalendar"));
 const CaregiverAccept = lazy(() => import("./pages/CaregiverAccept"));
 const ConsultationCardView = lazy(() => import("./pages/ConsultationCardView"));
-const Admin = lazy(() => import("./pages/Admin"));
+// Admin route removed - feature flags managed via Supabase Dashboard only
 const NotFound = lazy(() => import("./pages/NotFound"));
 const HealthAIButton = lazy(() => import("./components/HealthAIButton"));
 const PWAInstallPrompt = lazy(() => import("./components/PWAInstallPrompt"));
@@ -204,8 +204,7 @@ function AppContent() {
           <Route path="/cuidador/aceitar/:token" element={<CaregiverAccept />} />
           <Route path="/consulta/:token" element={<ConsultationCardView />} />
           
-          {/* Admin */}
-          <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
+          {/* Admin route removed - feature flags managed via Supabase Dashboard only */}
           
           {/* Catch all */}
           <Route path="*" element={<NotFound />} />
