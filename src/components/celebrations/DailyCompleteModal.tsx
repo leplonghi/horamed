@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import ConfettiExplosion from "./ConfettiExplosion";
 import StreakAnimation from "./StreakAnimation";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Props {
   open: boolean;
@@ -18,6 +19,8 @@ export default function DailyCompleteModal({
   streak,
   milestone,
 }: Props) {
+  const { t } = useLanguage();
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md border-none bg-gradient-to-br from-background to-primary/5">
@@ -51,7 +54,7 @@ export default function DailyCompleteModal({
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
             >
-              Parabéns! 🎉
+              {t('dailyComplete.congrats')}
             </motion.h2>
             <motion.p
               className="text-muted-foreground"
@@ -59,7 +62,7 @@ export default function DailyCompleteModal({
               animate={{ opacity: 1 }}
               transition={{ delay: 0.3 }}
             >
-              Você completou todas as doses de hoje!
+              {t('dailyComplete.completedAll')}
             </motion.p>
           </div>
 
@@ -71,8 +74,8 @@ export default function DailyCompleteModal({
           >
             <StreakAnimation streak={streak} />
             <div className="text-center">
-              <p className="text-2xl font-bold text-foreground">{streak} dias</p>
-              <p className="text-sm text-muted-foreground">de compromisso</p>
+              <p className="text-2xl font-bold text-foreground">{streak} {t('dailyComplete.days')}</p>
+              <p className="text-sm text-muted-foreground">{t('dailyComplete.commitment')}</p>
             </div>
           </motion.div>
 
@@ -96,7 +99,7 @@ export default function DailyCompleteModal({
             className="w-full"
             onClick={() => onOpenChange(false)}
           >
-            Continuar
+            {t('dailyComplete.continue')}
           </Button>
         </div>
       </DialogContent>
