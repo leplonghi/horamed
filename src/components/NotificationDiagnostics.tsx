@@ -16,6 +16,7 @@ import {
   RefreshCw,
   TestTube
 } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface DiagnosticResult {
   name: string;
@@ -27,6 +28,7 @@ export function NotificationDiagnostics() {
   const [diagnostics, setDiagnostics] = useState<DiagnosticResult[]>([]);
   const [isRunning, setIsRunning] = useState(false);
   const [pushToken, setPushToken] = useState<string | null>(null);
+  const { t, language } = useLanguage();
 
   const isNative = Capacitor.isNativePlatform();
 
@@ -37,24 +39,24 @@ export function NotificationDiagnostics() {
     try {
       // 1. Check platform
       results.push({
-        name: "Plataforma",
+        name: t('notifDiag.platform'),
         status: "success",
-        message: isNative ? `Nativo (${Capacitor.getPlatform()})` : "Web/PWA"
+        message: isNative ? `${t('notifDiag.native')} (${Capacitor.getPlatform()})` : t('notifDiag.webPwa')
       });
 
       // 2. Check user authentication
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         results.push({
-          name: "Autenticação",
+          name: t('notifDiag.auth'),
           status: "success",
-          message: `Usuário autenticado`
+          message: t('notifDiag.userAuth')
         });
       } else {
         results.push({
-          name: "Autenticação",
+          name: t('notifDiag.auth'),
           status: "error",
-          message: "Não autenticado - faça login primeiro"
+          message: t('notifDiag.notAuth')
         });
         setDiagnostics(results);
         setIsRunning(false);
@@ -67,37 +69,37 @@ export function NotificationDiagnostics() {
         const localPerm = await LocalNotifications.checkPermissions();
         
         results.push({
-          name: "Permissão Push",
+          name: t('notifDiag.pushPerm'),
           status: pushPerm.receive === "granted" ? "success" : "error",
           message: pushPerm.receive === "granted" 
-            ? "Concedida ✓" 
-            : `Não concedida (${pushPerm.receive}) - Toque para solicitar`
+            ? t('notifDiag.granted')
+            : `${t('notifDiag.notGranted')} (${pushPerm.receive}) - ${t('notifDiag.tapToRequest')}`
         });
 
         results.push({
-          name: "Permissão Local",
+          name: t('notifDiag.localPerm'),
           status: localPerm.display === "granted" ? "success" : "error",
           message: localPerm.display === "granted" 
-            ? "Concedida ✓" 
-            : `Não concedida (${localPerm.display})`
+            ? t('notifDiag.granted')
+            : `${t('notifDiag.notGranted')} (${localPerm.display})`
         });
       } else {
         if ("Notification" in window) {
           const permission = Notification.permission;
           results.push({
-            name: "Permissão Web",
+            name: t('notifDiag.webPerm'),
             status: permission === "granted" ? "success" : permission === "denied" ? "error" : "warning",
             message: permission === "granted" 
-              ? "Concedida ✓" 
+              ? t('notifDiag.granted')
               : permission === "denied" 
-                ? "Bloqueada - Desbloqueie nas configurações do navegador" 
-                : "Não solicitada - Toque para solicitar"
+                ? t('notifDiag.blocked')
+                : t('notifDiag.notRequested')
           });
         } else {
           results.push({
-            name: "Suporte a Notificações",
+            name: t('notifDiag.notifSupport'),
             status: "error",
-            message: "Navegador não suporta notificações"
+            message: t('notifDiag.browserNoSupport')
           });
         }
       }
@@ -112,28 +114,28 @@ export function NotificationDiagnostics() {
       if (preferences?.push_token) {
         setPushToken(preferences.push_token);
         results.push({
-          name: "Token Push no Banco",
+          name: t('notifDiag.tokenInDb'),
           status: "success",
-          message: `Salvo ✓ (${preferences.push_token.substring(0, 15)}...)`
+          message: `${t('notifDiag.tokenSaved')} (${preferences.push_token.substring(0, 15)}...)`
         });
       } else {
         results.push({
-          name: "Token Push no Banco",
+          name: t('notifDiag.tokenInDb'),
           status: "error",
-          message: "Não encontrado - O app precisa registrar o token"
+          message: t('notifDiag.tokenNotFound')
         });
       }
 
       results.push({
-        name: "Push Habilitado",
+        name: t('notifDiag.pushEnabled'),
         status: preferences?.push_enabled ? "success" : "warning",
-        message: preferences?.push_enabled ? "Sim ✓" : "Não - Ative nas configurações"
+        message: preferences?.push_enabled ? `${t('common.yes')} ✓` : t('notifDiag.activeInSettings')
       });
 
       results.push({
-        name: "Email Habilitado",
+        name: t('notifDiag.emailEnabled'),
         status: preferences?.email_enabled ? "success" : "warning",
-        message: preferences?.email_enabled ? "Sim ✓" : "Não"
+        message: preferences?.email_enabled ? `${t('common.yes')} ✓` : t('common.no')
       });
 
       // 5. Check scheduled notifications in database
@@ -145,9 +147,9 @@ export function NotificationDiagnostics() {
         .limit(5);
 
       results.push({
-        name: "Notificações Agendadas",
+        name: t('notifDiag.scheduledNotifs'),
         status: (count || 0) > 0 ? "success" : "warning",
-        message: `${count || 0} notificações pendentes`
+        message: `${count || 0} ${t('notifDiag.pendingNotifs')}`
       });
 
       // 6. Check recent notifications
@@ -161,32 +163,32 @@ export function NotificationDiagnostics() {
       if (recent && recent.length > 0) {
         const lastNotif = recent[0];
         results.push({
-          name: "Última Notificação",
+          name: t('notifDiag.lastNotif'),
           status: lastNotif.delivery_status === "delivered" ? "success" : 
                   lastNotif.delivery_status === "failed" ? "error" : "warning",
-          message: `${lastNotif.delivery_status} - ${new Date(lastNotif.created_at).toLocaleString("pt-BR")}`
+          message: `${lastNotif.delivery_status} - ${new Date(lastNotif.created_at).toLocaleString(language === 'pt' ? 'pt-BR' : 'en-US')}`
         });
       } else {
         results.push({
-          name: "Histórico",
+          name: t('notifDiag.history'),
           status: "warning",
-          message: "Nenhuma notificação enviada ainda"
+          message: t('notifDiag.noNotifSent')
         });
       }
 
       // 7. Check cron jobs (via edge function call)
       results.push({
-        name: "Cron Jobs",
+        name: t('notifDiag.cronJobs'),
         status: "success",
-        message: "Configurados (a cada minuto + a cada hora)"
+        message: t('notifDiag.cronConfigured')
       });
 
     } catch (error) {
       console.error("Diagnostic error:", error);
       results.push({
-        name: "Erro",
+        name: t('notifDiag.error'),
         status: "error",
-        message: error instanceof Error ? error.message : "Erro desconhecido"
+        message: error instanceof Error ? error.message : t('errors.unknown')
       });
     }
 
@@ -200,21 +202,21 @@ export function NotificationDiagnostics() {
         const result = await PushNotifications.requestPermissions();
         if (result.receive === "granted") {
           await PushNotifications.register();
-          toast.success("Permissão concedida! Registrando...");
+          toast.success(t('notifDiag.permGranted'));
         } else {
-          toast.error("Permissão negada. Ative nas configurações do dispositivo.");
+          toast.error(t('notifDiag.permDenied'));
         }
       } else {
         const permission = await Notification.requestPermission();
         if (permission === "granted") {
-          toast.success("Permissões de notificação concedidas!");
+          toast.success(t('notifDiag.webPermGranted'));
         } else {
-          toast.error("Permissão negada");
+          toast.error(t('notifDiag.webPermDenied'));
         }
       }
       await runDiagnostics();
     } catch (error) {
-      toast.error("Erro ao solicitar permissão");
+      toast.error(t('errors.requestPermission'));
     }
   };
 
@@ -224,43 +226,43 @@ export function NotificationDiagnostics() {
         await LocalNotifications.schedule({
           notifications: [{
             id: Date.now(),
-            title: "🧪 Teste de Notificação",
-            body: "Se você está vendo isso, as notificações estão funcionando!",
+            title: t('notifDiag.testTitle'),
+            body: t('notifDiag.testBody'),
             schedule: { at: new Date(Date.now() + 3000) }, // 3 seconds from now
             sound: "default",
           }]
         });
-        toast.success("Notificação de teste agendada para 3 segundos!");
+        toast.success(t('notifDiag.testScheduled'));
       } else {
         if (Notification.permission === "granted") {
-          new Notification("🧪 Teste de Notificação", {
-            body: "Se você está vendo isso, as notificações estão funcionando!",
+          new Notification(t('notifDiag.testTitle'), {
+            body: t('notifDiag.testBody'),
             icon: "/favicon.png",
           });
-          toast.success("Notificação de teste enviada!");
+          toast.success(t('notifDiag.testSent'));
         } else {
-          toast.error("Permissão de notificação não concedida");
+          toast.error(t('notifDiag.webPermNotGranted'));
         }
       }
     } catch (error) {
-      toast.error("Erro ao enviar notificação de teste");
+      toast.error(t('errors.sendTest'));
     }
   };
 
   const forceRegisterToken = async () => {
     try {
       if (!isNative) {
-        toast.info("Registro de token disponível apenas no app nativo");
+        toast.info(t('notifDiag.tokenOnlyNative'));
         return;
       }
 
-      toast.info("Registrando token...");
+      toast.info(t('notifDiag.registering'));
       await PushNotifications.register();
       
       // Wait a bit for the registration callback
       setTimeout(runDiagnostics, 2000);
     } catch (error) {
-      toast.error("Erro ao registrar");
+      toast.error(t('errors.register'));
     }
   };
 
@@ -287,7 +289,7 @@ export function NotificationDiagnostics() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Smartphone className="h-5 w-5 text-primary" />
-            <CardTitle className="text-lg">Diagnóstico de Notificações</CardTitle>
+            <CardTitle className="text-lg">{t('notifDiag.title')}</CardTitle>
           </div>
           <Button 
             variant="outline" 
@@ -296,7 +298,7 @@ export function NotificationDiagnostics() {
             disabled={isRunning}
           >
             <RefreshCw className={`h-4 w-4 mr-1 ${isRunning ? "animate-spin" : ""}`} />
-            Atualizar
+            {t('notifDiag.refresh')}
           </Button>
         </div>
       </CardHeader>
@@ -319,27 +321,27 @@ export function NotificationDiagnostics() {
         <div className="flex flex-wrap gap-2 pt-3 border-t">
           <Button size="sm" variant="outline" onClick={requestPermission}>
             <Bell className="h-4 w-4 mr-1" />
-            Solicitar Permissão
+            {t('notifDiag.requestPerm')}
           </Button>
           <Button size="sm" variant="outline" onClick={sendTestNotification}>
             <TestTube className="h-4 w-4 mr-1" />
-            Testar Notificação
+            {t('notifDiag.testNotif')}
           </Button>
           {isNative && (
             <Button size="sm" variant="outline" onClick={forceRegisterToken}>
               <RefreshCw className="h-4 w-4 mr-1" />
-              Forçar Registro
+              {t('notifDiag.forceRegister')}
             </Button>
           )}
         </div>
 
         <div className="text-xs text-muted-foreground p-2 bg-blue-50 dark:bg-blue-950/30 rounded-lg">
-          <strong>💡 Dica:</strong> Para notificações funcionarem com o app fechado, você precisa:
+          <strong>💡 {t('notifDiag.tip')}:</strong> {t('notifDiag.tipText')}
           <ol className="list-decimal ml-4 mt-1 space-y-0.5">
-            <li>Conceder permissão de notificações</li>
-            <li>Ter um token registrado no banco</li>
-            <li>Não ter o app em modo economia de bateria</li>
-            <li>Permitir execução em segundo plano</li>
+            <li>{t('notifDiag.tipStep1')}</li>
+            <li>{t('notifDiag.tipStep2')}</li>
+            <li>{t('notifDiag.tipStep3')}</li>
+            <li>{t('notifDiag.tipStep4')}</li>
           </ol>
         </div>
       </CardContent>

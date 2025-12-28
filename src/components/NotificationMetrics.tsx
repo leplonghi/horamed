@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { AlertCircle, CheckCircle2, Clock, XCircle } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface NotificationMetric {
   notification_type: string;
@@ -12,6 +13,7 @@ interface NotificationMetric {
 export default function NotificationMetrics() {
   const [metrics, setMetrics] = useState<NotificationMetric[]>([]);
   const [loading, setLoading] = useState(true);
+  const { t } = useLanguage();
 
   useEffect(() => {
     loadMetrics();
@@ -70,7 +72,7 @@ export default function NotificationMetrics() {
   if (loading) {
     return (
       <Card className="p-6">
-        <p className="text-sm text-muted-foreground">Carregando métricas...</p>
+        <p className="text-sm text-muted-foreground">{t('notifMetrics.loading')}</p>
       </Card>
     );
   }
@@ -78,16 +80,16 @@ export default function NotificationMetrics() {
   return (
     <Card className="p-6 space-y-4">
       <div>
-        <h3 className="text-lg font-semibold mb-1">Métricas de Notificações</h3>
+        <h3 className="text-lg font-semibold mb-1">{t('notifMetrics.title')}</h3>
         <p className="text-sm text-muted-foreground">
-          Taxa de entrega: <span className="font-semibold text-foreground">{deliveryRate}%</span>
+          {t('notifMetrics.deliveryRate')}: <span className="font-semibold text-foreground">{deliveryRate}%</span>
           {total > 0 && ` (${totalDelivered}/${total})`}
         </p>
       </div>
 
       <div className="space-y-2">
         {metrics.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Nenhuma métrica ainda</p>
+          <p className="text-sm text-muted-foreground">{t('notifMetrics.noMetrics')}</p>
         ) : (
           metrics.map((metric, idx) => (
             <div key={idx} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">

@@ -140,7 +140,7 @@ export default function MedicationWizard({ open, onOpenChange, editItemId }: Med
       }
     } catch (error) {
       console.error("Error loading item:", error);
-      toast.error("Erro ao carregar medicamento");
+      toast.error(t('wizard.loadError'));
       onOpenChange(false);
     } finally {
       setIsLoading(false);
@@ -206,16 +206,16 @@ export default function MedicationWizard({ open, onOpenChange, editItemId }: Med
           is_active: true,
         });
 
-        toast.success("Medicamento criado! Complete as informações.");
+        toast.success(t('wizard.createdComplete'));
         onOpenChange(false);
         navigate(`/adicionar?edit=${newItem.id}`);
       } else {
-        toast.error("Não foi possível identificar o medicamento");
+        toast.error(t('wizard.couldNotIdentify'));
         setCurrentStep(1);
       }
     } catch (error) {
       console.error("Error processing image:", error);
-      toast.error("Erro ao processar imagem. Preencha manualmente.");
+      toast.error(t('wizard.imageError'));
       setCurrentStep(1);
     } finally {
       setProcessingOCR(false);
@@ -280,7 +280,7 @@ export default function MedicationWizard({ open, onOpenChange, editItemId }: Med
   const handleNext = async () => {
     if (currentStep === 1) {
       if (!medicationData.name.trim()) {
-        toast.error("Digite o nome do medicamento");
+        toast.error(t('wizard.enterMedName'));
         return;
       }
       const canProceed = await checkMedicationLimit();
@@ -291,7 +291,7 @@ export default function MedicationWizard({ open, onOpenChange, editItemId }: Med
     
     if (currentStep === 2) {
       if (medicationData.times.length === 0) {
-        toast.error("Adicione pelo menos um horário");
+        toast.error(t('wizard.addOneTime'));
         return;
       }
       // Salvar diretamente - estoque é opcional
@@ -355,7 +355,7 @@ export default function MedicationWizard({ open, onOpenChange, editItemId }: Med
           });
         }
 
-        toast.success(`${medicationData.name} atualizado!`);
+        toast.success(`${medicationData.name} ${t('wizard.updated')}`);
       } else {
         const { data: newItem, error: itemError } = await supabase
           .from('items')
@@ -404,7 +404,7 @@ export default function MedicationWizard({ open, onOpenChange, editItemId }: Med
           if (stockError) throw stockError;
         }
 
-        toast.success(`${medicationData.name} adicionado!`);
+        toast.success(`${medicationData.name} ${t('wizard.added')}`);
       }
       
       onOpenChange(false);
@@ -415,7 +415,7 @@ export default function MedicationWizard({ open, onOpenChange, editItemId }: Med
       
     } catch (error: any) {
       console.error('Error saving medication:', error);
-      toast.error(error.message || "Erro ao salvar medicamento");
+      toast.error(error.message || t('wizard.saveError'));
     } finally {
       setIsSubmitting(false);
     }
@@ -657,7 +657,7 @@ export default function MedicationWizard({ open, onOpenChange, editItemId }: Med
       <UpgradeModal
         open={showUpgradeModal}
         onOpenChange={setShowUpgradeModal}
-        feature="OCR de receitas"
+        feature={t('wizard.ocrFeature')}
       />
 
       <PaywallDialog
