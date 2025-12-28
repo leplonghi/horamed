@@ -39,7 +39,7 @@ export default function NextDoseWidget({ dose, onTake, className }: NextDoseWidg
           <div className="flex items-center gap-2 text-primary">
             <Pill className="h-5 w-5" />
             <span className="text-sm font-semibold uppercase tracking-wide">
-              {isNow ? (language === 'pt' ? "⏰ É AGORA!" : "⏰ IT'S NOW!") : (language === 'pt' ? "Próxima Dose" : "Next Dose")}
+              {isNow ? t('nextDose.itsNow') : t('nextDose.title')}
             </span>
           </div>
 

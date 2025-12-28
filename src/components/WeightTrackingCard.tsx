@@ -5,9 +5,10 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { Scale, Plus, History } from "lucide-react";
 import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { ptBR, enUS } from "date-fns/locale";
 import WeightRegistrationModal from "./WeightRegistrationModal";
 import { useNavigate } from "react-router-dom";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface WeightTrackingCardProps {
   userId: string;
@@ -17,6 +18,8 @@ interface WeightTrackingCardProps {
 export default function WeightTrackingCard({ userId, profileId }: WeightTrackingCardProps) {
   const [modalOpen, setModalOpen] = useState(false);
   const navigate = useNavigate();
+  const { t, language } = useLanguage();
+  const dateLocale = language === 'pt' ? ptBR : enUS;
 
   const { data: latestWeight, refetch } = useQuery({
     queryKey: ["latest-weight", userId, profileId],
@@ -48,29 +51,29 @@ export default function WeightTrackingCard({ userId, profileId }: WeightTracking
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-lg">
             <Scale className="h-5 w-5 text-primary" />
-            Acompanhamento de peso
+            {t('weightCard.title')}
           </CardTitle>
           <CardDescription>
-            Registre seu peso regularmente para acompanhar a evolução
+            {t('weightCard.description')}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1">
-              <p className="text-sm text-muted-foreground">Peso atual</p>
+              <p className="text-sm text-muted-foreground">{t('weightCard.current')}</p>
               {latestWeight ? (
                 <p className="text-3xl font-bold text-primary">
                   {latestWeight.weight_kg} <span className="text-lg font-normal">kg</span>
                 </p>
               ) : (
-                <p className="text-sm text-muted-foreground italic">Ainda não registrado</p>
+                <p className="text-sm text-muted-foreground italic">{t('weightCard.notRegistered')}</p>
               )}
             </div>
             <div className="space-y-1">
-              <p className="text-sm text-muted-foreground">Última medição</p>
+              <p className="text-sm text-muted-foreground">{t('weightCard.lastMeasurement')}</p>
               {latestWeight ? (
                 <p className="text-sm font-medium">
-                  {format(new Date(latestWeight.recorded_at), "dd/MM/yyyy", { locale: ptBR })}
+                  {format(new Date(latestWeight.recorded_at), language === 'pt' ? "dd/MM/yyyy" : "MM/dd/yyyy", { locale: dateLocale })}
                 </p>
               ) : (
                 <p className="text-sm text-muted-foreground italic">-</p>
@@ -83,12 +86,11 @@ export default function WeightTrackingCard({ userId, profileId }: WeightTracking
             onClick={() => setModalOpen(true)}
           >
             <Plus className="h-5 w-5" />
-            Registrar novo peso
+            {t('weightCard.registerNew')}
           </Button>
 
           <p className="text-xs text-muted-foreground leading-relaxed">
-            Use este espaço para registrar o peso sempre que se pesar. Assim, o HoraMed mostra a
-            evolução e coloca no relatório para o médico.
+            {t('weightCard.tip')}
           </p>
 
           <Button
@@ -97,7 +99,7 @@ export default function WeightTrackingCard({ userId, profileId }: WeightTracking
             onClick={() => navigate(`/peso/historico${profileId ? `?profile=${profileId}` : ""}`)}
           >
             <History className="h-3 w-3" />
-            Ver histórico de peso
+            {t('weightCard.viewHistory')}
           </Button>
         </CardContent>
       </Card>

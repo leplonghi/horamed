@@ -1723,6 +1723,31 @@ const translations: Record<Language, Record<string, string>> = {
     'cofreEdit.updateSuccess': 'Documento atualizado com sucesso!',
     'cofreEdit.updateError': 'Erro ao atualizar documento',
     'cofreEdit.notFound': 'Documento não encontrado',
+    
+    // Weight tracking card
+    'weightCard.title': 'Acompanhamento de peso',
+    'weightCard.description': 'Registre seu peso regularmente para acompanhar a evolução',
+    'weightCard.current': 'Peso atual',
+    'weightCard.notRegistered': 'Ainda não registrado',
+    'weightCard.lastMeasurement': 'Última medição',
+    'weightCard.registerNew': 'Registrar novo peso',
+    'weightCard.tip': 'Use este espaço para registrar o peso sempre que se pesar. Assim, o HoraMed mostra a evolução e coloca no relatório para o médico.',
+    'weightCard.viewHistory': 'Ver histórico de peso',
+    
+    // Streak badge
+    'streak.sequence': 'Sequência',
+    'streak.record': 'Recorde',
+    'streak.improving': 'Melhorando',
+    'streak.days': 'dias',
+    
+    // Monthly calendar
+    'calendar.totalDoses': 'Total de doses',
+    'calendar.dosesTaken': 'Doses tomadas',
+    'calendar.progress': 'Progresso',
+    
+    // Next dose widget
+    'nextDose.itsNow': '⏰ É AGORA!',
+    'nextDose.title': 'Próxima Dose',
   },
   en: {
     // Navigation
@@ -3427,6 +3452,31 @@ const translations: Record<Language, Record<string, string>> = {
     'cofreEdit.updateSuccess': 'Document updated successfully!',
     'cofreEdit.updateError': 'Error updating document',
     'cofreEdit.notFound': 'Document not found',
+    
+    // Weight tracking card
+    'weightCard.title': 'Weight Tracking',
+    'weightCard.description': 'Log your weight regularly to track your progress',
+    'weightCard.current': 'Current weight',
+    'weightCard.notRegistered': 'Not yet registered',
+    'weightCard.lastMeasurement': 'Last measurement',
+    'weightCard.registerNew': 'Log new weight',
+    'weightCard.tip': 'Use this space to log your weight whenever you weigh yourself. HoraMed will show your progress and include it in reports for your doctor.',
+    'weightCard.viewHistory': 'View weight history',
+    
+    // Streak badge
+    'streak.sequence': 'Streak',
+    'streak.record': 'Record',
+    'streak.improving': 'Improving',
+    'streak.days': 'days',
+    
+    // Monthly calendar
+    'calendar.totalDoses': 'Total doses',
+    'calendar.dosesTaken': 'Doses taken',
+    'calendar.progress': 'Progress',
+    
+    // Next dose widget
+    'nextDose.itsNow': "⏰ IT'S NOW!",
+    'nextDose.title': 'Next Dose',
   }
 };
 

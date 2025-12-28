@@ -211,10 +211,10 @@ export function MonthlyProgressCalendar({ profileId }: { profileId?: string }) {
               {format(selectedDay.date, language === 'pt' ? "d 'de' MMMM 'de' yyyy" : "MMMM d, yyyy", { locale: dateLocale })}
             </h3>
             <div className="space-y-1 text-sm">
-              <p>{language === 'pt' ? 'Total de doses' : 'Total doses'}: {selectedDay.total}</p>
-              <p>{language === 'pt' ? 'Doses tomadas' : 'Doses taken'}: {selectedDay.taken}</p>
+              <p>{t('calendar.totalDoses')}: {selectedDay.total}</p>
+              <p>{t('calendar.dosesTaken')}: {selectedDay.taken}</p>
               <p className="font-medium">
-                {language === 'pt' ? 'Progresso' : 'Progress'}: {Math.round(selectedDay.rate)}%
+                {t('calendar.progress')}: {Math.round(selectedDay.rate)}%
               </p>
             </div>
           </Card>
