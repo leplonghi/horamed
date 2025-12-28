@@ -6,24 +6,26 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import logo from "@/assets/horamed-logo-web.webp";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Props {
   onStart: () => void;
   onSkip: () => void;
 }
 
-const benefits = [
-  { icon: Bell, text: "Lembretes inteligentes" },
-  { icon: FileText, text: "Documentos organizados" },
-  { icon: Users, text: "Gerenciar toda família" },
-];
-
 export default function OnboardingWelcome({ onStart, onSkip }: Props) {
   const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const { t } = useLanguage();
+
+  const benefits = [
+    { icon: Bell, text: t('onboardingWelcome.smartReminders') },
+    { icon: FileText, text: t('onboardingWelcome.organizedDocs') },
+    { icon: Users, text: t('onboardingWelcome.manageFamily') },
+  ];
 
   const handleStart = () => {
     if (!acceptedTerms) {
-      toast.error("Você precisa aceitar os Termos de Uso para continuar");
+      toast.error(t('onboardingWelcome.acceptTerms'));
       return;
     }
     onStart();
@@ -47,10 +49,10 @@ export default function OnboardingWelcome({ onStart, onSkip }: Props) {
           transition={{ delay: 0.3 }}
         >
           <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-3">
-            Bem-vindo ao HoraMed
+            {t('onboardingWelcome.welcome')}
           </h1>
           <p className="text-xl text-muted-foreground">
-            Sua saúde no horário certo
+            {t('onboardingWelcome.tagline')}
           </p>
         </motion.div>
 
@@ -99,14 +101,14 @@ export default function OnboardingWelcome({ onStart, onSkip }: Props) {
             htmlFor="onboarding-terms"
             className="text-sm text-muted-foreground leading-tight cursor-pointer"
           >
-            Li e aceito os{" "}
+            {t('onboardingWelcome.acceptTermsLabel')}{" "}
             <Link 
               to="/termos" 
               target="_blank"
               className="text-primary hover:underline font-medium"
               onClick={(e) => e.stopPropagation()}
             >
-              Termos de Uso e Política de Privacidade
+              {t('onboardingWelcome.termsLink')}
             </Link>
           </label>
         </div>
@@ -118,14 +120,14 @@ export default function OnboardingWelcome({ onStart, onSkip }: Props) {
           className="w-full text-lg h-14 shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <Heart className="h-5 w-5 mr-2" />
-          Vamos começar!
+          {t('onboardingWelcome.letsStart')}
         </Button>
 
         <button
           onClick={onSkip}
           className="w-full text-sm text-muted-foreground hover:text-foreground transition-colors"
         >
-          Já sou usuário? Pular
+          {t('onboardingWelcome.alreadyUser')}
         </button>
       </motion.div>
     </div>

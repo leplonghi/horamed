@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import logo from "@/assets/horamed-logo-web.webp";
 import { useHapticFeedback } from "@/hooks/useHapticFeedback";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface QuickOnboardingProps {
   onComplete?: () => void;
@@ -22,6 +23,7 @@ interface QuickOnboardingProps {
 export default function QuickOnboarding({ onComplete }: QuickOnboardingProps) {
   const navigate = useNavigate();
   const { triggerLight, triggerSuccess } = useHapticFeedback();
+  const { t } = useLanguage();
   const [step, setStep] = useState(0);
   const [selectedGoal, setSelectedGoal] = useState<string | null>(null);
 
@@ -29,29 +31,29 @@ export default function QuickOnboarding({ onComplete }: QuickOnboardingProps) {
     { 
       id: "medications", 
       icon: Pill, 
-      title: "Lembrar medicamentos", 
-      desc: "Nunca mais esquecer uma dose",
+      title: t('quickOnboarding.rememberMeds'), 
+      desc: t('quickOnboarding.neverForget'),
       color: "bg-blue-500/10 text-blue-500"
     },
     { 
       id: "documents", 
       icon: FileText, 
-      title: "Organizar documentos", 
-      desc: "Receitas, exames e vacinas",
+      title: t('quickOnboarding.organizeDocs'), 
+      desc: t('quickOnboarding.prescExamsVax'),
       color: "bg-green-500/10 text-green-500"
     },
     { 
       id: "family", 
       icon: Users, 
-      title: "Cuidar da família", 
-      desc: "Gerenciar saúde de todos",
+      title: t('quickOnboarding.careFamily'), 
+      desc: t('quickOnboarding.manageAll'),
       color: "bg-purple-500/10 text-purple-500"
     },
     { 
       id: "all", 
       icon: Sparkles, 
-      title: "Tudo isso!", 
-      desc: "Quero o pacote completo",
+      title: t('quickOnboarding.allThis'), 
+      desc: t('quickOnboarding.fullPackage'),
       color: "bg-primary/10 text-primary"
     },
   ];
@@ -134,10 +136,10 @@ export default function QuickOnboarding({ onComplete }: QuickOnboardingProps) {
               <div className="text-center space-y-3">
                 <img src={logo} alt="HoraMed" className="h-16 w-auto mx-auto" />
                 <h1 className="text-2xl font-bold text-foreground">
-                  O que você quer fazer primeiro?
+                  {t('quickOnboarding.whatFirst')}
                 </h1>
                 <p className="text-muted-foreground">
-                  Escolha uma opção para personalizarmos sua experiência
+                  {t('quickOnboarding.chooseOption')}
                 </p>
               </div>
 
@@ -169,7 +171,7 @@ export default function QuickOnboarding({ onComplete }: QuickOnboardingProps) {
                 onClick={handleSkip}
                 className="w-full text-center text-sm text-muted-foreground hover:text-foreground transition-colors"
               >
-                Pular e explorar sozinho
+                {t('quickOnboarding.skipExplore')}
               </button>
             </motion.div>
           )}
@@ -195,19 +197,19 @@ export default function QuickOnboarding({ onComplete }: QuickOnboardingProps) {
 
                 <div className="space-y-2">
                   <h2 className="text-2xl font-bold text-foreground">
-                    Tudo pronto! 🎉
+                    {t('quickOnboarding.allReady')}
                   </h2>
                   <p className="text-muted-foreground">
-                    Sua conta está configurada. Agora vamos adicionar seu primeiro item.
+                    {t('quickOnboarding.accountConfigured')}
                   </p>
                 </div>
 
                 {/* Features List */}
                 <div className="text-left space-y-3">
                   {[
-                    "7 dias de Premium grátis",
-                    "Lembretes ilimitados",
-                    "Carteira de saúde digital",
+                    t('quickOnboarding.7daysFree'),
+                    t('quickOnboarding.unlimitedReminders'),
+                    t('quickOnboarding.digitalWallet'),
                   ].map((feature, i) => (
                     <div key={i} className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
                       <Check className="w-5 h-5 text-primary flex-shrink-0" />
@@ -222,7 +224,7 @@ export default function QuickOnboarding({ onComplete }: QuickOnboardingProps) {
                   onClick={handleComplete}
                   className="w-full h-14 text-lg font-semibold"
                 >
-                  {selectedGoal === "documents" ? "Enviar documento" : "Adicionar medicamento"}
+                  {selectedGoal === "documents" ? t('quickOnboarding.sendDocument') : t('quickOnboarding.addMedication')}
                   <ArrowRight className="w-5 h-5 ml-2" />
                 </Button>
 
@@ -230,7 +232,7 @@ export default function QuickOnboarding({ onComplete }: QuickOnboardingProps) {
                   onClick={() => navigate("/hoje")}
                   className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  Explorar o app primeiro
+                  {t('quickOnboarding.exploreFirst')}
                 </button>
               </Card>
             </motion.div>
