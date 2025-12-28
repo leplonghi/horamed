@@ -370,7 +370,6 @@ export default function Today() {
                 onDateSelect={(date) => {
                   navigate(`/agenda?date=${format(date, 'yyyy-MM-dd')}`);
                 }}
-                doseCounts={{}}
               />
             </div>
           )}
