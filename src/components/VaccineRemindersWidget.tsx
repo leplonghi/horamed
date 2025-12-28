@@ -16,13 +16,8 @@ export function VaccineRemindersWidget() {
   const dateLocale = language === 'pt' ? ptBR : enUS;
   const dateFormat = language === 'pt' ? "dd 'de' MMMM" : "MMMM dd";
 
-  // Don't show anything if no active profile yet
-  if (!activeProfile) {
-    return null;
-  }
-
-  // Don't show skeleton if no data exists
-  if (!isLoading && (!reminders || reminders.length === 0)) {
+  // Don't show anything if no active profile, still loading, or no reminders
+  if (!activeProfile || isLoading || !reminders || reminders.length === 0) {
     return null;
   }
 
@@ -31,23 +26,6 @@ export function VaccineRemindersWidget() {
     if (daysUntil === 1) return t('vaccines.tomorrow');
     return `${daysUntil} ${t('vaccines.days')}`;
   };
-
-  // Only show skeleton when actively loading and profile exists
-  if (isLoading) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Syringe className="h-5 w-5" />
-            {t('vaccines.upcoming')}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Skeleton className="h-20 w-full" />
-        </CardContent>
-      </Card>
-    );
-  }
 
   return (
     <Card>
