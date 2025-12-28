@@ -10,8 +10,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Scale, CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { ptBR, enUS } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface WeightRegistrationModalProps {
   open: boolean;
@@ -30,17 +31,19 @@ export default function WeightRegistrationModal({
   const [notes, setNotes] = useState("");
   const [date, setDate] = useState<Date>(new Date());
   const [loading, setLoading] = useState(false);
+  const { t, language } = useLanguage();
+  const dateLocale = language === 'pt' ? ptBR : enUS;
 
   const handleSave = async () => {
     if (!weight || parseFloat(weight) <= 0) {
-      toast.error("Por favor, informe um peso válido");
+      toast.error(t('weightModal.invalidWeight'));
       return;
     }
 
     setLoading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Usuário não autenticado");
+      if (!user) throw new Error(t('weightModal.notAuthenticated'));
 
       const weightValue = parseFloat(weight);
 
@@ -75,13 +78,13 @@ export default function WeightRegistrationModal({
       if (error) throw error;
 
       // Calculate difference
-      let message = "Peso registrado com sucesso!";
+      let message = t('weightModal.success');
       if (previousLog?.weight_kg) {
         const diff = weightValue - previousLog.weight_kg;
         if (diff > 0) {
-          message = `Peso atualizado! +${diff.toFixed(1)} kg desde a última medição.`;
+          message = t('weightModal.successGain', { diff: diff.toFixed(1) });
         } else if (diff < 0) {
-          message = `Peso atualizado! ${diff.toFixed(1)} kg desde a última medição.`;
+          message = t('weightModal.successLoss', { diff: diff.toFixed(1) });
         }
       }
 
@@ -93,7 +96,7 @@ export default function WeightRegistrationModal({
       onSuccess?.();
     } catch (error: any) {
       console.error("Error saving weight:", error);
-      toast.error("Erro ao salvar peso");
+      toast.error(t('weightModal.error'));
     } finally {
       setLoading(false);
     }
@@ -105,17 +108,17 @@ export default function WeightRegistrationModal({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Scale className="h-5 w-5 text-primary" />
-            Registrar novo peso
+            {t('weightModal.title')}
           </DialogTitle>
           <DialogDescription>
-            Use este espaço para registrar o peso sempre que se pesar
+            {t('weightModal.description')}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-4">
           <div className="space-y-2">
             <Label htmlFor="date" className="text-base font-medium">
-              Data da medição *
+              {t('weightModal.date')} *
             </Label>
             <Popover>
               <PopoverTrigger asChild>
@@ -127,7 +130,7 @@ export default function WeightRegistrationModal({
                   )}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
-                  {date ? format(date, "PPP", { locale: ptBR }) : <span>Selecione a data</span>}
+                  {date ? format(date, "PPP", { locale: dateLocale }) : <span>{t('weightModal.selectDate')}</span>}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
@@ -138,7 +141,7 @@ export default function WeightRegistrationModal({
                   disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
                   initialFocus
                   className={cn("p-3 pointer-events-auto")}
-                  locale={ptBR}
+                  locale={dateLocale}
                 />
               </PopoverContent>
             </Popover>
@@ -146,7 +149,7 @@ export default function WeightRegistrationModal({
 
           <div className="space-y-2">
             <Label htmlFor="weight" className="text-base font-medium">
-              Peso (kg) *
+              {t('weightModal.weight')} *
             </Label>
             <Input
               id="weight"
@@ -156,7 +159,7 @@ export default function WeightRegistrationModal({
               max="500"
               value={weight}
               onChange={(e) => setWeight(e.target.value)}
-              placeholder="Ex: 70.5"
+              placeholder={language === 'pt' ? "Ex: 70.5" : "E.g.: 70.5"}
               className="text-2xl h-14 text-center"
               inputMode="decimal"
               autoFocus
@@ -165,13 +168,13 @@ export default function WeightRegistrationModal({
 
           <div className="space-y-2">
             <Label htmlFor="notes" className="text-sm">
-              Observações (opcional)
+              {t('weightModal.notes')}
             </Label>
             <Textarea
               id="notes"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="Ex: Após café da manhã, com roupa leve..."
+              placeholder={t('weightModal.notesPlaceholder')}
               rows={3}
               className="text-sm"
             />
@@ -185,7 +188,7 @@ export default function WeightRegistrationModal({
             onClick={() => onOpenChange(false)}
             disabled={loading}
           >
-            Cancelar
+            {t('common.cancel')}
           </Button>
           <Button
             type="button"
@@ -194,7 +197,7 @@ export default function WeightRegistrationModal({
             className="gap-2"
           >
             <Scale className="h-4 w-4" />
-            {loading ? "Salvando..." : "Salvar peso"}
+            {loading ? t('weightModal.saving') : t('weightModal.save')}
           </Button>
         </DialogFooter>
       </DialogContent>

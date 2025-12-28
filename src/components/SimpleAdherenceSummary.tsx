@@ -1,17 +1,22 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { TrendingUp } from "lucide-react";
 import { motion } from "framer-motion";
+import { useLanguage } from "@/contexts/LanguageContext";
+
 interface SimpleAdherenceSummaryProps {
   taken: number;
   total: number;
   period?: string;
 }
+
 export default function SimpleAdherenceSummary({
   taken,
   total,
-  period = "Este mês"
+  period
 }: SimpleAdherenceSummaryProps) {
+  const { t } = useLanguage();
   const percentage = total > 0 ? Math.round(taken / total * 100) : 0;
+  const displayPeriod = period || t('time.thisMonth');
   
   const getColor = () => {
     if (total === 0) return "text-muted-foreground";
@@ -21,26 +26,26 @@ export default function SimpleAdherenceSummary({
   };
   
   const getMessage = () => {
-    if (total === 0) return "Nenhuma dose programada";
-    if (percentage >= 90) return "Excelente! Continue assim";
-    if (percentage >= 70) return "Bom progresso!";
-    if (percentage > 0) return "Cada dose conta";
-    return "O dia está começando";
+    if (total === 0) return t('adherence.noDoses');
+    if (percentage >= 90) return t('adherence.excellent');
+    if (percentage >= 70) return t('adherence.goodProgress');
+    if (percentage > 0) return t('adherence.everyDoseCounts');
+    return t('adherence.dayStarting');
   };
-  return <motion.div initial={{
-    opacity: 0,
-    y: 20
-  }} animate={{
-    opacity: 1,
-    y: 0
-  }}>
+
+  const getYouTookMessage = () => {
+    return t('adherence.youTook', { taken: String(taken), total: String(total) });
+  };
+
+  return (
+    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
       <Card className="h-full bg-gradient-to-br from-primary/5 to-background border-2 border-primary/20">
         <CardContent className="h-full p-6 flex items-center">
           <div className="flex items-center justify-between w-full">
             <div className="flex-1">
-              <p className="text-muted-foreground mb-1 text-base font-medium">{period}</p>
+              <p className="text-muted-foreground mb-1 text-base font-medium">{displayPeriod}</p>
               <p className="text-xl font-bold text-foreground">
-                Você tomou {taken} de {total} doses
+                {getYouTookMessage()}
               </p>
               <p className={`text-sm font-medium mt-1 ${getColor()}`}>
                 {getMessage()}
@@ -55,5 +60,6 @@ export default function SimpleAdherenceSummary({
           </div>
         </CardContent>
       </Card>
-    </motion.div>;
+    </motion.div>
+  );
 }
