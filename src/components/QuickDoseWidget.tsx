@@ -165,15 +165,11 @@ export default function QuickDoseWidget({
 
   if (!nextDose) {
     return (
-      <Card className={cn("p-4 bg-gradient-to-br from-green-500/10 to-green-500/5 border-green-500/20", className)}>
-        <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-full bg-green-500/20 flex items-center justify-center">
-            <CheckCircle2 className="h-5 w-5 text-green-500" />
-          </div>
-          <div>
-            <h3 className="font-semibold text-green-600 dark:text-green-400">{t('quickDose.allGood')}</h3>
-            <p className="text-xs text-muted-foreground">{t('quickDose.noPending2h')}</p>
-          </div>
+      <Card className={cn("px-3 py-2 bg-gradient-to-br from-green-500/10 to-green-500/5 border-green-500/20", className)}>
+        <div className="flex items-center gap-2">
+          <CheckCircle2 className="h-4 w-4 text-green-500 shrink-0" />
+          <span className="text-sm font-medium text-green-600 dark:text-green-400">{t('quickDose.allGood')}</span>
+          <span className="text-xs text-muted-foreground">· {t('quickDose.noPending2h')}</span>
         </div>
       </Card>
     );
