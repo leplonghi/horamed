@@ -36,6 +36,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import GuidedTour from "@/components/GuidedTour";
 import ImprovedClaraButton from "@/components/ImprovedClaraButton";
 import HealthAssistantChat from "@/components/HealthAssistantChat";
+import MiniWeekCalendar from "@/components/MiniWeekCalendar";
 
 interface DoseItem {
   id: string;
@@ -359,6 +360,19 @@ export default function Today() {
                 <HelpTooltip content={microcopy.help.today.progress} iconSize="sm" />
               </div>
             </motion.div>
+          )}
+
+          {/* Mini Week Calendar */}
+          {hasAnyItems && (
+            <div className="mb-6">
+              <MiniWeekCalendar
+                selectedDate={new Date()}
+                onDateSelect={(date) => {
+                  navigate(`/agenda?date=${format(date, 'yyyy-MM-dd')}`);
+                }}
+                doseCounts={{}}
+              />
+            </div>
           )}
 
           {/* Critical Alerts */}
