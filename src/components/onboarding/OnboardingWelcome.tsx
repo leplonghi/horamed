@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
-import logo from "@/assets/horamed-logo-web.webp";
+import logo from "@/assets/horamed-logo-transparent.png";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Props {
