@@ -533,36 +533,34 @@ export default function Today() {
             </motion.section>
           )}
 
-          {/* No events today - only show when there are items but no scheduled/upcoming doses AND no overdue doses */}
+          {/* No events today - Compact version */}
           {hasAnyItems && doses.length === 0 && (
             <motion.div 
-              initial={{ opacity: 0, y: 10 }} 
+              initial={{ opacity: 0, y: 5 }} 
               animate={{ opacity: 1, y: 0 }}
-              className="text-center py-10"
+              className="flex items-center gap-3 px-4 py-3 rounded-xl bg-success/10 border border-success/20"
             >
-              <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-muted/30 flex items-center justify-center">
-                <Clock className="w-7 h-7 text-muted-foreground" />
+              <div className="w-8 h-8 rounded-lg bg-success/20 flex items-center justify-center flex-shrink-0">
+                <Check className="w-4 h-4 text-success" />
               </div>
-              <h3 className="text-lg font-medium text-muted-foreground">{t('today.noDoses')}</h3>
-              <p className="text-muted-foreground/70 text-sm mt-1">
-                {t('today.noScheduledDoses')}
-              </p>
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-success">{t('today.allGood')}</p>
+                <p className="text-xs text-muted-foreground">{t('today.noScheduledDoses')}</p>
+              </div>
             </motion.div>
           )}
 
-          {/* Show message only when no upcoming doses but NOT when there are overdue doses */}
+          {/* All doses done - Compact version */}
           {hasAnyItems && upcomingDoses.length === 0 && overdueDoses.length === 0 && takenDoses.length > 0 && (
             <motion.div 
-              initial={{ opacity: 0, y: 10 }} 
+              initial={{ opacity: 0, y: 5 }} 
               animate={{ opacity: 1, y: 0 }}
-              className="text-center py-6"
+              className="flex items-center gap-3 px-4 py-3 rounded-xl bg-success/10 border border-success/20"
             >
-              <div className="w-12 h-12 mx-auto mb-3 rounded-2xl bg-success/10 flex items-center justify-center">
-                <Check className="w-6 h-6 text-success" />
+              <div className="w-8 h-8 rounded-lg bg-success/20 flex items-center justify-center flex-shrink-0">
+                <Check className="w-4 h-4 text-success" />
               </div>
-              <h3 className="text-base font-medium text-muted-foreground">
-                {t('today.noPendingDoses')}
-              </h3>
+              <p className="text-sm font-medium text-success">{t('today.noPendingDoses')}</p>
             </motion.div>
           )}
 
