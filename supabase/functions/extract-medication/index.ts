@@ -1,31 +1,128 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Rate limits per plan (daily extractions)
+const RATE_LIMITS = {
+  free: 10,
+  premium: 100,
+};
+
+// Max file size in MB
+const MAX_FILE_SIZE_MB = 10;
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const startTime = Date.now();
+
   try {
+    // 1. Authenticate user
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      {
+        global: {
+          headers: { Authorization: req.headers.get('Authorization')! },
+        },
+      }
+    );
+
+    const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
+    if (authError || !user) {
+      console.error("Auth error:", authError);
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // 2. Parse and validate input
     const { image } = await req.json();
-    
-    if (!image) {
+    if (!image || typeof image !== 'string') {
       return new Response(
         JSON.stringify({ error: "Image is required" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
+    // 3. Validate file size
+    const base64Data = image.split(',')[1] || image;
+    const sizeInBytes = (base64Data.length * 3) / 4;
+    const maxSizeBytes = MAX_FILE_SIZE_MB * 1024 * 1024;
+
+    if (sizeInBytes > maxSizeBytes) {
+      console.warn(`File too large: ${(sizeInBytes / 1024 / 1024).toFixed(2)}MB from user ${user.id}`);
+      return new Response(
+        JSON.stringify({ 
+          error: `Arquivo muito grande. Tamanho máximo: ${MAX_FILE_SIZE_MB}MB`,
+          size_mb: (sizeInBytes / 1024 / 1024).toFixed(2)
+        }),
+        { status: 413, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // 4. Validate MIME type
+    if (image.startsWith('data:')) {
+      const mimeMatch = image.match(/^data:([^;]+);/);
+      const mimeType = mimeMatch ? mimeMatch[1] : '';
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+      
+      if (mimeType && !allowedTypes.includes(mimeType)) {
+        return new Response(
+          JSON.stringify({ 
+            error: `Tipo de arquivo inválido: ${mimeType}. Permitidos: JPEG, PNG, WebP`,
+            received_type: mimeType
+          }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    }
+
+    // 5. Check rate limit
+    const today = new Date().toISOString().split('T')[0];
+    const { count } = await supabaseClient
+      .from('document_extraction_logs')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .eq('extraction_type', 'medication')
+      .gte('created_at', today);
+
+    const { data: sub } = await supabaseClient
+      .from('subscriptions')
+      .select('plan_type')
+      .eq('user_id', user.id)
+      .single();
+
+    const planType = sub?.plan_type || 'free';
+    const dailyLimit = planType === 'premium' ? RATE_LIMITS.premium : RATE_LIMITS.free;
+    
+    if (count !== null && count >= dailyLimit) {
+      console.warn(`Rate limit exceeded for user ${user.id}: ${count}/${dailyLimit}`);
+      return new Response(
+        JSON.stringify({ 
+          error: 'Limite diário de extrações atingido',
+          limit: dailyLimit,
+          used: count
+        }),
+        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // 6. Process medication image
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY not configured");
     }
 
-    // Call Lovable AI with vision to extract medication info
+    console.log(`Processing medication for user ${user.id}`);
+
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -91,6 +188,17 @@ Exemplo:
       const errorText = await response.text();
       console.error("AI API error:", response.status, errorText);
       
+      // Log failure
+      await supabaseClient.from('document_extraction_logs').insert({
+        user_id: user.id,
+        extraction_type: 'medication',
+        status: 'failed',
+        file_path: 'inline',
+        mime_type: 'image/jpeg',
+        processing_time_ms: Date.now() - startTime,
+        error_message: `API error: ${response.status}`
+      });
+      
       if (response.status === 429) {
         return new Response(
           JSON.stringify({ error: "Muitas requisições. Tente novamente em alguns instantes." }),
@@ -102,9 +210,8 @@ Exemplo:
     }
 
     const data = await response.json();
-    console.log("AI response:", data);
-
     const content = data.choices?.[0]?.message?.content;
+    
     if (!content) {
       return new Response(
         JSON.stringify({ error: "No content in AI response" }),
@@ -112,10 +219,8 @@ Exemplo:
       );
     }
 
-    // Parse the JSON response from AI
     let result;
     try {
-      // Extract JSON from markdown code block if present
       const jsonMatch = content.match(/```json\n([\s\S]*?)\n```/) || content.match(/\{[\s\S]*\}/);
       const jsonStr = jsonMatch ? (jsonMatch[1] || jsonMatch[0]) : content;
       result = JSON.parse(jsonStr);
@@ -126,6 +231,16 @@ Exemplo:
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+
+    // 7. Log successful extraction
+    await supabaseClient.from('document_extraction_logs').insert({
+      user_id: user.id,
+      extraction_type: 'medication',
+      status: 'success',
+      file_path: 'inline',
+      mime_type: 'image/jpeg',
+      processing_time_ms: Date.now() - startTime
+    });
 
     return new Response(
       JSON.stringify(result),
