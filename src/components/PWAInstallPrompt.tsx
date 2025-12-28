@@ -18,18 +18,17 @@ export default function PWAInstallPrompt() {
     hidePrompt,
   } = usePWAInstall();
 
-  // Auto-show prompt after a positive action (e.g., after login, after completing a dose)
-  // This effect checks on mount and when canInstall changes
+  // Auto-show prompt immediately on first visit
   useEffect(() => {
-    // Small delay to not be intrusive on page load
+    // Shorter delay for immediate prompt
     const timer = setTimeout(() => {
-      if (canInstall && !isInstalled) {
+      if ((canInstall || isIOS) && !isInstalled) {
         requestShowPrompt();
       }
-    }, 3000);
+    }, 1500); // Show after 1.5 seconds
 
     return () => clearTimeout(timer);
-  }, [canInstall, isInstalled, requestShowPrompt]);
+  }, [canInstall, isIOS, isInstalled, requestShowPrompt]);
 
   // Don't render if installed or shouldn't show
   if (isInstalled || !showPrompt) {
