@@ -3,20 +3,22 @@ import { Pill, AlertCircle, Crown, Check } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useHapticFeedback } from "@/hooks/useHapticFeedback";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Props {
   value: string;
   onChange: (value: string) => void;
 }
 
-const options = [
-  { value: "1-2", label: "1-2 itens", icon: Pill, description: "Uso básico", badge: "" },
-  { value: "3-5", label: "3-5 itens", icon: Pill, description: "Uso moderado", badge: "" },
-  { value: "6+", label: "6+ itens", icon: AlertCircle, description: "Uso complexo", badge: "Premium recomendado" },
-];
-
 export default function OnboardingStep2({ value, onChange }: Props) {
   const { triggerLight } = useHapticFeedback();
+  const { t } = useLanguage();
+
+  const options = [
+    { value: "1-2", label: t('onboardingStep2.1to2'), icon: Pill, description: t('onboardingStep2.basic'), badge: "" },
+    { value: "3-5", label: t('onboardingStep2.3to5'), icon: Pill, description: t('onboardingStep2.moderate'), badge: "" },
+    { value: "6+", label: t('onboardingStep2.6plus'), icon: AlertCircle, description: t('onboardingStep2.complex'), badge: t('onboardingStep2.premiumRec') },
+  ];
 
   const handleSelect = (optionValue: string) => {
     triggerLight();
@@ -32,7 +34,7 @@ export default function OnboardingStep2({ value, onChange }: Props) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
         >
-          Quantos remédios você toma?
+          {t('onboardingStep2.title')}
         </motion.h1>
         <motion.p
           className="text-muted-foreground text-lg"
@@ -40,7 +42,7 @@ export default function OnboardingStep2({ value, onChange }: Props) {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2 }}
         >
-          Isso nos ajuda a configurar melhor o app
+          {t('onboardingStep2.subtitle')}
         </motion.p>
       </div>
 

@@ -12,6 +12,7 @@ import OnboardingStep3 from "./OnboardingStep3";
 import OnboardingStep4 from "./OnboardingStep4";
 import OnboardingDemo from "./OnboardingDemo";
 import { useHapticFeedback } from "@/hooks/useHapticFeedback";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface OnboardingData {
   userType: string;
@@ -22,6 +23,7 @@ interface OnboardingData {
 export default function SmartOnboarding() {
   const navigate = useNavigate();
   const { triggerLight, triggerSuccess } = useHapticFeedback();
+  const { t } = useLanguage();
   const [currentStep, setCurrentStep] = useState(0); // Start at welcome screen
   const [showDemo, setShowDemo] = useState(false);
   const [data, setData] = useState<OnboardingData>({
@@ -145,7 +147,7 @@ export default function SmartOnboarding() {
         {currentStep > 0 && currentStep < 4 && (
           <div className="space-y-2">
             <div className="flex justify-between text-sm text-muted-foreground">
-              <span>Passo {currentStep} de 3</span>
+              <span>{t('smartOnboarding.step')} {currentStep} {t('smartOnboarding.of')} 3</span>
               <span>{Math.round((currentStep / 3) * 100)}%</span>
             </div>
             <Progress value={(currentStep / 3) * 100} className="h-2" />
@@ -196,7 +198,7 @@ export default function SmartOnboarding() {
           <div className="flex gap-4">
             {currentStep > 1 && (
               <Button variant="outline" onClick={handleBack} className="flex-1">
-                Voltar
+                {t('smartOnboarding.back')}
               </Button>
             )}
             <Button
@@ -204,7 +206,7 @@ export default function SmartOnboarding() {
               disabled={!canProceed()}
               className="flex-1"
             >
-              Próximo
+              {t('smartOnboarding.next')}
             </Button>
           </div>
         )}

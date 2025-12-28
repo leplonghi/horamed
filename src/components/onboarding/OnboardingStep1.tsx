@@ -2,21 +2,23 @@ import { motion } from "framer-motion";
 import { User, Users, Heart, Baby, Check } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { useHapticFeedback } from "@/hooks/useHapticFeedback";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Props {
   value: string;
   onChange: (value: string) => void;
 }
 
-const options = [
-  { value: "myself", label: "Eu mesmo", icon: User, description: "Gerenciar meus medicamentos" },
-  { value: "parent", label: "Meu pai/mãe", icon: Heart, description: "Cuidar de um familiar idoso" },
-  { value: "child", label: "Meu filho(a)", icon: Baby, description: "Acompanhar tratamento infantil" },
-  { value: "family", label: "Toda família", icon: Users, description: "Organizar múltiplos perfis" },
-];
-
 export default function OnboardingStep1({ value, onChange }: Props) {
   const { triggerLight } = useHapticFeedback();
+  const { t } = useLanguage();
+
+  const options = [
+    { value: "myself", label: t('onboardingStep1.myself'), icon: User, description: t('onboardingStep1.myselfDesc') },
+    { value: "parent", label: t('onboardingStep1.parent'), icon: Heart, description: t('onboardingStep1.parentDesc') },
+    { value: "child", label: t('onboardingStep1.child'), icon: Baby, description: t('onboardingStep1.childDesc') },
+    { value: "family", label: t('onboardingStep1.family'), icon: Users, description: t('onboardingStep1.familyDesc') },
+  ];
 
   const handleSelect = (optionValue: string) => {
     triggerLight();
@@ -32,7 +34,7 @@ export default function OnboardingStep1({ value, onChange }: Props) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
         >
-          Quem vai usar o app?
+          {t('onboardingStep1.title')}
         </motion.h1>
         <motion.p
           className="text-muted-foreground text-lg"
@@ -40,7 +42,7 @@ export default function OnboardingStep1({ value, onChange }: Props) {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2 }}
         >
-          Vamos personalizar sua experiência
+          {t('onboardingStep1.subtitle')}
         </motion.p>
       </div>
 

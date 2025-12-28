@@ -2,21 +2,23 @@ import { motion } from "framer-motion";
 import { Bell, FileText, Users, Sparkles, Check } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { useHapticFeedback } from "@/hooks/useHapticFeedback";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Props {
   value: string;
   onChange: (value: string) => void;
 }
 
-const options = [
-  { value: "reminders", label: "Esquecer horários", icon: Bell, description: "Nunca mais esquecer uma dose" },
-  { value: "documents", label: "Organizar documentos", icon: FileText, description: "Carteira digital de saúde" },
-  { value: "family", label: "Saúde da família", icon: Users, description: "Cuidar de quem amo" },
-  { value: "all", label: "Tudo isso", icon: Sparkles, description: "Experiência completa" },
-];
-
 export default function OnboardingStep3({ value, onChange }: Props) {
   const { triggerLight } = useHapticFeedback();
+  const { t } = useLanguage();
+
+  const options = [
+    { value: "reminders", label: t('onboardingStep3.forgetTimes'), icon: Bell, description: t('onboardingStep3.neverForget') },
+    { value: "documents", label: t('onboardingStep3.organizeDocs'), icon: FileText, description: t('onboardingStep3.digitalWallet') },
+    { value: "family", label: t('onboardingStep3.familyHealth'), icon: Users, description: t('onboardingStep3.careForLoved') },
+    { value: "all", label: t('onboardingStep3.allThis'), icon: Sparkles, description: t('onboardingStep3.fullExperience') },
+  ];
 
   const handleSelect = (optionValue: string) => {
     triggerLight();
@@ -32,7 +34,7 @@ export default function OnboardingStep3({ value, onChange }: Props) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
         >
-          O que mais te preocupa?
+          {t('onboardingStep3.title')}
         </motion.h1>
         <motion.p
           className="text-muted-foreground text-lg"
@@ -40,7 +42,7 @@ export default function OnboardingStep3({ value, onChange }: Props) {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2 }}
         >
-          Vamos focar no que importa para você
+          {t('onboardingStep3.subtitle')}
         </motion.p>
       </div>
 
