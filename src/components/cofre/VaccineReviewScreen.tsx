@@ -9,7 +9,8 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useUserProfiles } from "@/hooks/useUserProfiles";
 import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { ptBR, enUS } from "date-fns/locale";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface VaccineReviewScreenProps {
   documentId: string;
@@ -27,19 +28,21 @@ export default function VaccineReviewScreen({ documentId, extractedData, onCompl
 
   const { activeProfile } = useUserProfiles();
   const navigate = useNavigate();
+  const { t, language } = useLanguage();
+  const dateLocale = language === 'pt' ? ptBR : enUS;
 
   const handleSave = async () => {
     if (!vaccineName) {
-      toast.error("Nome da vacina é obrigatório");
+      toast.error(t('vaccine.nameRequired'));
       return;
     }
 
     setProcessing(true);
-    toast.loading("Salvando vacina...", { id: "save-vaccine" });
+    toast.loading(t('vaccine.saving'), { id: "save-vaccine" });
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Não autenticado");
+      if (!user) throw new Error(t('errors.notAuthenticated'));
 
       // Update document
       await supabase
@@ -71,17 +74,24 @@ export default function VaccineReviewScreen({ documentId, extractedData, onCompl
         });
 
       toast.dismiss("save-vaccine");
-      toast.success("✓ Vacina salva na Carteira de Vacinação!");
+      toast.success(t('vaccine.savedSuccess'));
 
       navigate("/carteira-vacina");
 
     } catch (error: any) {
-      console.error('Erro ao salvar vacina:', error);
+      console.error('Error saving vaccine:', error);
       toast.dismiss("save-vaccine");
-      toast.error("Erro ao salvar vacina. Tente novamente.");
+      toast.error(t('vaccine.saveError'));
     } finally {
       setProcessing(false);
     }
+  };
+
+  const formatDateDisplay = (dateStr: string) => {
+    if (language === 'pt') {
+      return format(new Date(dateStr), "dd 'de' MMMM 'de' yyyy", { locale: ptBR });
+    }
+    return format(new Date(dateStr), "MMMM d, yyyy", { locale: enUS });
   };
 
   return (
@@ -89,9 +99,9 @@ export default function VaccineReviewScreen({ documentId, extractedData, onCompl
       <div className="container max-w-3xl mx-auto px-4 pt-6 pb-6 space-y-6">
         {/* Header */}
         <div className="space-y-2">
-          <h1 className="heading-page">Revise sua vacina</h1>
+          <h1 className="heading-page">{t('vaccine.reviewTitle')}</h1>
           <p className="text-description">
-            Confirme os dados da vacina antes de salvar
+            {t('vaccine.reviewDesc')}
           </p>
         </div>
 
@@ -109,7 +119,7 @@ export default function VaccineReviewScreen({ documentId, extractedData, onCompl
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-medium">📅</span>
                   <span className="text-sm">
-                    {format(new Date(extractedData.issued_at), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                    {formatDateDisplay(extractedData.issued_at)}
                   </span>
                 </div>
               )}
@@ -120,29 +130,29 @@ export default function VaccineReviewScreen({ documentId, extractedData, onCompl
         {/* Form */}
         <Card>
           <CardHeader>
-            <CardTitle>Informações da vacina</CardTitle>
+            <CardTitle>{t('vaccine.info')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label>Nome da vacina *</Label>
+              <Label>{t('vaccine.name')} *</Label>
               <Input
                 value={vaccineName}
                 onChange={(e) => setVaccineName(e.target.value)}
-                placeholder="Ex: Influenza, Hepatite B"
+                placeholder={t('vaccine.namePlaceholder')}
               />
             </div>
 
             <div className="space-y-2">
-              <Label>Dose</Label>
+              <Label>{t('vaccine.dose')}</Label>
               <Input
                 value={doseNumber}
                 onChange={(e) => setDoseNumber(e.target.value)}
-                placeholder="Ex: 1ª dose, 2ª dose, reforço"
+                placeholder={t('vaccine.dosePlaceholder')}
               />
             </div>
 
             <div className="space-y-2">
-              <Label>Data de aplicação</Label>
+              <Label>{t('vaccine.applicationDate')}</Label>
               <Input
                 type="date"
                 value={applicationDate}
@@ -151,20 +161,20 @@ export default function VaccineReviewScreen({ documentId, extractedData, onCompl
             </div>
 
             <div className="space-y-2">
-              <Label>Local de aplicação (opcional)</Label>
+              <Label>{t('vaccine.location')} ({t('wizard.optional')})</Label>
               <Input
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
-                placeholder="Ex: UBS, Clínica"
+                placeholder={t('vaccine.locationPlaceholder')}
               />
             </div>
 
             <div className="space-y-2">
-              <Label>Profissional (opcional)</Label>
+              <Label>{t('vaccine.professional')} ({t('wizard.optional')})</Label>
               <Input
                 value={professional}
                 onChange={(e) => setProfessional(e.target.value)}
-                placeholder="Nome do profissional"
+                placeholder={t('vaccine.professionalPlaceholder')}
               />
             </div>
           </CardContent>
@@ -176,7 +186,7 @@ export default function VaccineReviewScreen({ documentId, extractedData, onCompl
           disabled={processing || !vaccineName}
         >
           <Check className="mr-2 h-5 w-5" />
-          Salvar na Carteira de Vacinação
+          {t('vaccine.saveToWallet')}
         </Button>
       </div>
     </div>

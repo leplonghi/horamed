@@ -5,6 +5,7 @@ import { Clock, Pill, Info } from "lucide-react";
 import { motion } from "framer-motion";
 import MedicationInfoSheet from "./MedicationInfoSheet";
 import { useMedicationInfo } from "@/hooks/useMedicationInfo";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface SimpleDoseCardProps {
   time: string;
@@ -27,6 +28,7 @@ export default function SimpleDoseCard({
 }: SimpleDoseCardProps) {
   const [showInfo, setShowInfo] = useState(false);
   const { info, isLoading, error, fetchInfo, clearInfo } = useMedicationInfo();
+  const { t } = useLanguage();
 
   const statusColors = {
     pending: "border-l-yellow-500 bg-yellow-50/50 dark:bg-yellow-950/10",
@@ -73,7 +75,7 @@ export default function SimpleDoseCard({
                       size="icon"
                       className="h-6 w-6 shrink-0"
                       onClick={handleShowInfo}
-                      title="Ver informações do medicamento"
+                      title={t('doseCard.viewMedInfo')}
                     >
                       <Info className="h-4 w-4 text-muted-foreground" />
                     </Button>
@@ -97,21 +99,21 @@ export default function SimpleDoseCard({
                   onClick={onTake}
                   className="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold h-11"
                 >
-                  ✓ Tomar agora
+                  ✓ {t('doseCard.takeNow')}
                 </Button>
                 <Button
                   onClick={onSkip}
                   variant="outline"
                   className="h-11 px-4"
                 >
-                  Pular
+                  {t('doseCard.skip')}
                 </Button>
                 <Button
                   onClick={onSnooze}
                   variant="outline"
                   className="h-11 px-4"
                 >
-                  Adiar
+                  {t('doseCard.snooze')}
                 </Button>
               </div>
             )}
@@ -119,7 +121,7 @@ export default function SimpleDoseCard({
             {status === "taken" && (
               <div className="text-center py-2">
                 <span className="text-sm font-medium text-green-700 dark:text-green-400">
-                  ✓ Tomado
+                  ✓ {t('doseCard.taken')}
                 </span>
               </div>
             )}
@@ -127,7 +129,7 @@ export default function SimpleDoseCard({
             {status === "missed" && (
               <div className="text-center py-2">
                 <span className="text-sm font-medium text-red-700 dark:text-red-400">
-                  Perdido
+                  {t('doseCard.missed')}
                 </span>
               </div>
             )}

@@ -10,6 +10,7 @@ import { useUserProfiles } from "@/hooks/useUserProfiles";
 import { useDocumentLimits } from "@/hooks/useDocumentLimits";
 import PaywallDialog from "@/components/PaywallDialog";
 import PrescriptionBulkAddWizard from "./PrescriptionBulkAddWizard";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 type DocumentType = "receita" | "exame" | "vacina" | "outro";
 
@@ -35,38 +36,39 @@ export default function AddHealthDocumentModal({ open, onOpenChange, onSuccess }
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const { activeProfile } = useUserProfiles();
   const { canAddDocument, remaining, isPremium, isLoading: limitsLoading } = useDocumentLimits();
+  const { t } = useLanguage();
 
   const documentTypes = [
     {
       id: "receita" as DocumentType,
       icon: FileText,
       emoji: "💊",
-      label: "Receita",
-      description: "Prescrições médicas",
+      label: t('document.prescription'),
+      description: t('document.prescriptionDesc'),
       color: "from-blue-500/10 to-blue-600/10 hover:from-blue-500/20 hover:to-blue-600/20 border-blue-500/30"
     },
     {
       id: "exame" as DocumentType,
       icon: FlaskConical,
       emoji: "🧪",
-      label: "Exame",
-      description: "Resultados de laboratório",
+      label: t('document.exam'),
+      description: t('document.examDesc'),
       color: "from-green-500/10 to-green-600/10 hover:from-green-500/20 hover:to-green-600/20 border-green-500/30"
     },
     {
       id: "vacina" as DocumentType,
       icon: Syringe,
       emoji: "💉",
-      label: "Vacina",
-      description: "Carteira de vacinação",
+      label: t('document.vaccineDoc'),
+      description: t('document.vaccineDocDesc'),
       color: "from-purple-500/10 to-purple-600/10 hover:from-purple-500/20 hover:to-purple-600/20 border-purple-500/30"
     },
     {
       id: "outro" as DocumentType,
       icon: FolderOpen,
       emoji: "📋",
-      label: "Outro",
-      description: "Outros documentos",
+      label: t('document.other'),
+      description: t('document.otherDesc'),
       color: "from-gray-500/10 to-gray-600/10 hover:from-gray-500/20 hover:to-gray-600/20 border-gray-500/30"
     }
   ];
@@ -82,7 +84,7 @@ export default function AddHealthDocumentModal({ open, onOpenChange, onSuccess }
 
     // Validate file size (20MB max)
     if (file.size > 20 * 1024 * 1024) {
-      toast.error("Arquivo muito grande. Máximo: 20MB");
+      toast.error(t('document.fileTooLarge'));
       return;
     }
 
@@ -136,14 +138,14 @@ export default function AddHealthDocumentModal({ open, onOpenChange, onSuccess }
 
     setStep("processing");
     setProcessing(true);
-    setProgress({ current: 0, total: 1, message: "Lendo documento..." });
+    setProgress({ current: 0, total: 1, message: t('document.reading') });
 
     try {
       // Upload file first
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Usuário não autenticado");
+      if (!user) throw new Error(t('errors.notAuthenticated'));
 
-      setProgress({ current: 0, total: 3, message: "Enviando arquivo..." });
+      setProgress({ current: 0, total: 3, message: t('document.uploading') });
 
       const fileExt = currentFile.name.split('.').pop();
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
@@ -155,7 +157,7 @@ export default function AddHealthDocumentModal({ open, onOpenChange, onSuccess }
 
       if (uploadError) throw uploadError;
 
-      setProgress({ current: 1, total: 3, message: "Analisando com IA..." });
+      setProgress({ current: 1, total: 3, message: t('document.analyzing') });
 
       let extractedData;
 
@@ -167,7 +169,7 @@ export default function AddHealthDocumentModal({ open, onOpenChange, onSuccess }
           setProgress({ 
             current: 1 + (i / pages.length), 
             total: 3, 
-            message: `Lendo página ${i + 1} de ${pages.length}...` 
+            message: t('document.readingPage', { current: String(i + 1), total: String(pages.length) })
           });
           
           const pageData = await extractFromImage(pages[i].imageData);
@@ -187,10 +189,10 @@ export default function AddHealthDocumentModal({ open, onOpenChange, onSuccess }
       }
 
       if (!extractedData) {
-        throw new Error("Não conseguimos ler este documento automaticamente");
+        throw new Error(t('document.readError'));
       }
 
-      setProgress({ current: 2, total: 3, message: "Salvando documento..." });
+      setProgress({ current: 2, total: 3, message: t('document.saving') });
 
       // Get category ID
       const { data: categoriaData } = await supabase
@@ -222,7 +224,7 @@ export default function AddHealthDocumentModal({ open, onOpenChange, onSuccess }
 
       if (insertError) throw insertError;
 
-      setProgress({ current: 3, total: 3, message: "Pronto!" });
+      setProgress({ current: 3, total: 3, message: t('document.done') });
       
       // If it's a prescription with medications, show wizard
       if (selectedType === "receita" && extractedData.prescriptions && extractedData.prescriptions.length > 0) {
@@ -231,11 +233,11 @@ export default function AddHealthDocumentModal({ open, onOpenChange, onSuccess }
         setShowMedicationsWizard(true);
         
         toast.success(
-          `📄 Receita salva! ${extractedData.prescriptions.length} medicamento(s) detectado(s).`,
+          t('document.savedWithMeds', { count: String(extractedData.prescriptions.length) }),
           { duration: 5000 }
         );
       } else {
-        toast.success("Documento salvo! Agora vamos revisar os dados.");
+        toast.success(t('document.savedReview'));
       }
       
       // Reset and close
@@ -245,13 +247,13 @@ export default function AddHealthDocumentModal({ open, onOpenChange, onSuccess }
       }, 500);
 
     } catch (error: any) {
-      console.error('Erro ao processar:', error);
+      console.error('Error processing:', error);
       
       // Show friendly error with fallback option
       toast.error(
-        error.message?.includes('ler') 
-          ? "Não consegui ler automaticamente este documento. Você ainda pode guardá-lo na sua Carteira de Saúde como arquivo simples e tentar novamente mais tarde."
-          : "Erro ao processar documento. Tente novamente."
+        error.message?.includes('ler') || error.message?.includes('read')
+          ? t('document.readError')
+          : t('document.processError')
       );
       
       setStep("upload");
@@ -275,9 +277,9 @@ export default function AddHealthDocumentModal({ open, onOpenChange, onSuccess }
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle className="text-2xl">
-              {step === "select-type" && "O que você quer adicionar?"}
-              {step === "upload" && `Adicionar ${documentTypes.find(t => t.id === selectedType)?.label}`}
-              {step === "processing" && "Processando documento..."}
+              {step === "select-type" && t('document.whatToAdd')}
+              {step === "upload" && `${t('document.add')} ${documentTypes.find(dt => dt.id === selectedType)?.label}`}
+              {step === "processing" && t('document.processing')}
             </DialogTitle>
           </DialogHeader>
 
@@ -288,7 +290,7 @@ export default function AddHealthDocumentModal({ open, onOpenChange, onSuccess }
                 <div className="flex items-center gap-2 text-sm">
                   <AlertCircle className="h-4 w-4 shrink-0" />
                   <p className="text-muted-foreground">
-                    Documentos: {5 - remaining}/5 usados no plano gratuito
+                    {t('document.freeUsed', { used: String(5 - remaining) })}
                   </p>
                 </div>
               </CardContent>
@@ -330,8 +332,8 @@ export default function AddHealthDocumentModal({ open, onOpenChange, onSuccess }
                   onClick={() => cameraInputRef.current?.click()}
                 >
                   <Camera className="h-8 w-8" />
-                  <span>Tirar Foto</span>
-                  <span className="text-xs text-muted-foreground">Digitalizar documento</span>
+                  <span>{t('document.takePhoto')}</span>
+                  <span className="text-xs text-muted-foreground">{t('document.scanDoc')}</span>
                 </Button>
 
                 <Button
@@ -340,8 +342,8 @@ export default function AddHealthDocumentModal({ open, onOpenChange, onSuccess }
                   onClick={() => fileInputRef.current?.click()}
                 >
                   <Upload className="h-8 w-8" />
-                  <span>Arquivo</span>
-                  <span className="text-xs text-muted-foreground">Galeria ou PDF</span>
+                  <span>{t('document.file')}</span>
+                  <span className="text-xs text-muted-foreground">{t('document.fileDesc')}</span>
                 </Button>
 
                 <input
@@ -368,7 +370,7 @@ export default function AddHealthDocumentModal({ open, onOpenChange, onSuccess }
                     <div className="w-full h-64 bg-muted flex flex-col items-center justify-center gap-3">
                       <FileText className="w-16 h-16 text-primary" />
                       <div className="text-center">
-                        <p className="font-medium">PDF Selecionado</p>
+                        <p className="font-medium">{t('document.pdfSelected')}</p>
                         <p className="text-sm text-muted-foreground">{currentFile?.name}</p>
                       </div>
                     </div>
@@ -397,7 +399,7 @@ export default function AddHealthDocumentModal({ open, onOpenChange, onSuccess }
                   className="w-full h-12 text-base"
                   disabled={processing}
                 >
-                  Continuar
+                  {t('document.continue')}
                 </Button>
               </div>
             )}
@@ -412,7 +414,7 @@ export default function AddHealthDocumentModal({ open, onOpenChange, onSuccess }
               <div className="text-center space-y-2">
                 <p className="text-lg font-semibold">{progress.message}</p>
                 <p className="text-sm text-muted-foreground">
-                  Aguarde alguns instantes...
+                  {t('document.waitMoment')}
                 </p>
               </div>
             </div>
