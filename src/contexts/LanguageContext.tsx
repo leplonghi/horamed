@@ -1748,6 +1748,53 @@ const translations: Record<Language, Record<string, string>> = {
     // Next dose widget
     'nextDose.itsNow': '⏰ É AGORA!',
     'nextDose.title': 'Próxima Dose',
+    
+    // Weight registration modal
+    'weightModal.title': 'Registrar novo peso',
+    'weightModal.description': 'Use este espaço para registrar o peso sempre que se pesar',
+    'weightModal.date': 'Data da medição',
+    'weightModal.selectDate': 'Selecione a data',
+    'weightModal.weight': 'Peso (kg)',
+    'weightModal.notes': 'Observações (opcional)',
+    'weightModal.notesPlaceholder': 'Ex: Após café da manhã, com roupa leve...',
+    'weightModal.save': 'Salvar peso',
+    'weightModal.saving': 'Salvando...',
+    'weightModal.invalidWeight': 'Por favor, informe um peso válido',
+    'weightModal.notAuthenticated': 'Usuário não autenticado',
+    'weightModal.success': 'Peso registrado com sucesso!',
+    'weightModal.successGain': 'Peso atualizado! +{diff} kg desde a última medição.',
+    'weightModal.successLoss': 'Peso atualizado! {diff} kg desde a última medição.',
+    'weightModal.error': 'Erro ao salvar peso',
+    
+    // Clara suggestions widget
+    'claraSuggests.attention': 'Atenção',
+    'claraSuggests.overdue': 'Você tem {count} dose{plural} atrasada{plural}. Posso ajudar a organizar?',
+    'claraSuggests.viewDoses': 'Ver doses',
+    'claraSuggests.lowStock': 'Estoque baixo',
+    'claraSuggests.lowStockMsg': '{items} está acabando. Que tal repor?',
+    'claraSuggests.andMore': 'e mais {count}',
+    'claraSuggests.viewStock': 'Ver estoque',
+    'claraSuggests.congrats': 'Parabéns!',
+    'claraSuggests.streakMsg': '{count} dias seguidos! Continue assim, você está indo muito bem.',
+    'claraSuggests.tip': 'Dica',
+    'claraSuggests.suggests': 'Clara sugere',
+    'claraSuggests.tips.water': 'Tomar água junto com os medicamentos ajuda na absorção.',
+    'claraSuggests.tips.schedule': 'Manter horários regulares ajuda seu corpo a criar rotina.',
+    'claraSuggests.tips.help': 'Precisa de ajuda? Estou aqui para você.',
+    
+    // Simple adherence summary
+    'adherence.noDoses': 'Nenhuma dose programada',
+    'adherence.excellent': 'Excelente! Continue assim',
+    'adherence.goodProgress': 'Bom progresso!',
+    'adherence.everyDoseCounts': 'Cada dose conta',
+    'adherence.dayStarting': 'O dia está começando',
+    'adherence.youTook': 'Você tomou {taken} de {total} doses',
+    
+    // Smart action cards
+    'smartActions.title': 'Ações Sugeridas',
+    'smartActions.seeMore': 'Ver mais {count} {label}',
+    'smartActions.suggestion': 'sugestão',
+    'smartActions.suggestions': 'sugestões',
   },
   en: {
     // Navigation
@@ -3477,6 +3524,53 @@ const translations: Record<Language, Record<string, string>> = {
     // Next dose widget
     'nextDose.itsNow': "⏰ IT'S NOW!",
     'nextDose.title': 'Next Dose',
+    
+    // Weight registration modal
+    'weightModal.title': 'Log new weight',
+    'weightModal.description': 'Use this space to log your weight whenever you weigh yourself',
+    'weightModal.date': 'Measurement date',
+    'weightModal.selectDate': 'Select date',
+    'weightModal.weight': 'Weight (kg)',
+    'weightModal.notes': 'Notes (optional)',
+    'weightModal.notesPlaceholder': 'E.g.: After breakfast, with light clothing...',
+    'weightModal.save': 'Save weight',
+    'weightModal.saving': 'Saving...',
+    'weightModal.invalidWeight': 'Please enter a valid weight',
+    'weightModal.notAuthenticated': 'User not authenticated',
+    'weightModal.success': 'Weight logged successfully!',
+    'weightModal.successGain': 'Weight updated! +{diff} kg since last measurement.',
+    'weightModal.successLoss': 'Weight updated! {diff} kg since last measurement.',
+    'weightModal.error': 'Error saving weight',
+    
+    // Clara suggestions widget
+    'claraSuggests.attention': 'Attention',
+    'claraSuggests.overdue': 'You have {count} overdue dose{plural}. Can I help organize?',
+    'claraSuggests.viewDoses': 'View doses',
+    'claraSuggests.lowStock': 'Low stock',
+    'claraSuggests.lowStockMsg': '{items} is running out. Time to refill?',
+    'claraSuggests.andMore': 'and {count} more',
+    'claraSuggests.viewStock': 'View stock',
+    'claraSuggests.congrats': 'Congrats!',
+    'claraSuggests.streakMsg': '{count} days in a row! Keep it up, you are doing great.',
+    'claraSuggests.tip': 'Tip',
+    'claraSuggests.suggests': 'Clara suggests',
+    'claraSuggests.tips.water': 'Drinking water with medications helps absorption.',
+    'claraSuggests.tips.schedule': 'Keeping regular schedules helps your body build a routine.',
+    'claraSuggests.tips.help': 'Need help? I am here for you.',
+    
+    // Simple adherence summary
+    'adherence.noDoses': 'No doses scheduled',
+    'adherence.excellent': 'Excellent! Keep it up',
+    'adherence.goodProgress': 'Good progress!',
+    'adherence.everyDoseCounts': 'Every dose counts',
+    'adherence.dayStarting': 'The day is just starting',
+    'adherence.youTook': 'You took {taken} of {total} doses',
+    
+    // Smart action cards
+    'smartActions.title': 'Suggested Actions',
+    'smartActions.seeMore': 'See {count} more {label}',
+    'smartActions.suggestion': 'suggestion',
+    'smartActions.suggestions': 'suggestions',
   }
 };
 

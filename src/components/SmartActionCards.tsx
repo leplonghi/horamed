@@ -5,11 +5,13 @@ import { ChevronRight, Loader2 } from "lucide-react";
 import { useSmartMedicationSuggestions } from "@/hooks/useSmartMedicationSuggestions";
 import { useUserProfiles } from "@/hooks/useUserProfiles";
 import { motion } from "framer-motion";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export function SmartActionCards() {
   const navigate = useNavigate();
   const { activeProfile } = useUserProfiles();
   const { data: suggestions, isLoading } = useSmartMedicationSuggestions(activeProfile?.id);
+  const { t } = useLanguage();
 
   if (isLoading) {
     return (
@@ -36,11 +38,14 @@ export function SmartActionCards() {
     }
   };
 
+  const remaining = suggestions.length - 3;
+  const remainingLabel = remaining === 1 ? t('smartActions.suggestion') : t('smartActions.suggestions');
+
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-2">
         <div className="h-1 w-1 rounded-full bg-primary animate-pulse" />
-        <h3 className="heading-section">Ações Sugeridas</h3>
+        <h3 className="heading-section">{t('smartActions.title')}</h3>
       </div>
       
       <div className="space-y-3">
@@ -82,7 +87,7 @@ export function SmartActionCards() {
           className="w-full text-subtitle"
           onClick={() => navigate('/medications')}
         >
-          Ver mais {suggestions.length - 3} {suggestions.length - 3 === 1 ? 'sugestão' : 'sugestões'}
+          {t('smartActions.seeMore', { count: String(remaining), label: remainingLabel })}
         </Button>
       )}
     </div>

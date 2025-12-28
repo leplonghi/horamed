@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ClaraSuggestion {
   id: string;
@@ -32,29 +33,31 @@ export default function ClaraSuggestions({
   onCheckStock,
   onOpenClara,
 }: ClaraSuggestionsProps) {
+  const { t, language } = useLanguage();
   const suggestions: ClaraSuggestion[] = [];
 
   // Doses atrasadas - prioritário
   if (overdueDoses > 0) {
+    const plural = overdueDoses > 1 ? 's' : '';
     suggestions.push({
       id: 'overdue',
       type: 'overdue',
-      title: 'Atenção',
-      message: `Você tem ${overdueDoses} dose${overdueDoses > 1 ? 's' : ''} atrasada${overdueDoses > 1 ? 's' : ''}. Posso ajudar a organizar?`,
-      action: onTakeOverdue ? { label: 'Ver doses', onClick: onTakeOverdue } : undefined,
+      title: t('claraSuggests.attention'),
+      message: t('claraSuggests.overdue', { count: String(overdueDoses), plural }),
+      action: onTakeOverdue ? { label: t('claraSuggests.viewDoses'), onClick: onTakeOverdue } : undefined,
     });
   }
 
   // Estoque baixo
   if (lowStockItems.length > 0) {
     const itemNames = lowStockItems.slice(0, 2).join(', ');
-    const more = lowStockItems.length > 2 ? ` e mais ${lowStockItems.length - 2}` : '';
+    const more = lowStockItems.length > 2 ? ` ${t('claraSuggests.andMore', { count: String(lowStockItems.length - 2) })}` : '';
     suggestions.push({
       id: 'low_stock',
       type: 'low_stock',
-      title: 'Estoque baixo',
-      message: `${itemNames}${more} está acabando. Que tal repor?`,
-      action: onCheckStock ? { label: 'Ver estoque', onClick: onCheckStock } : undefined,
+      title: t('claraSuggests.lowStock'),
+      message: t('claraSuggests.lowStockMsg', { items: itemNames + more }),
+      action: onCheckStock ? { label: t('claraSuggests.viewStock'), onClick: onCheckStock } : undefined,
     });
   }
 
@@ -63,23 +66,23 @@ export default function ClaraSuggestions({
     suggestions.push({
       id: 'streak',
       type: 'streak',
-      title: 'Parabéns!',
-      message: `${currentStreak} dias seguidos! Continue assim, você está indo muito bem.`,
+      title: t('claraSuggests.congrats'),
+      message: t('claraSuggests.streakMsg', { count: String(currentStreak) }),
     });
   }
 
   // Dica geral se não houver sugestões
   if (suggestions.length === 0) {
     const tips = [
-      'Tomar água junto com os medicamentos ajuda na absorção.',
-      'Manter horários regulares ajuda seu corpo a criar rotina.',
-      'Precisa de ajuda? Estou aqui para você.',
+      t('claraSuggests.tips.water'),
+      t('claraSuggests.tips.schedule'),
+      t('claraSuggests.tips.help'),
     ];
     const randomTip = tips[Math.floor(Math.random() * tips.length)];
     suggestions.push({
       id: 'tip',
       type: 'tip',
-      title: 'Dica',
+      title: t('claraSuggests.tip'),
       message: randomTip,
     });
   }
@@ -118,7 +121,7 @@ export default function ClaraSuggestions({
         <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center">
           <Heart className="w-3.5 h-3.5 text-primary" />
         </div>
-        <span className="text-sm font-medium text-muted-foreground">Clara sugere</span>
+        <span className="text-sm font-medium text-muted-foreground">{t('claraSuggests.suggests')}</span>
       </div>
 
       <AnimatePresence mode="popLayout">
