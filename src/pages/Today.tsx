@@ -21,6 +21,7 @@ import MilestoneReward from "@/components/gamification/MilestoneReward";
 import AchievementShareDialog from "@/components/gamification/AchievementShareDialog";
 import { useAchievements } from "@/hooks/useAchievements";
 import { useUserProfiles } from "@/hooks/useUserProfiles";
+import { useProfileCacheContext } from "@/contexts/ProfileCacheContext";
 import { useSmartRedirect } from "@/hooks/useSmartRedirect";
 import { SideEffectQuickLog } from "@/components/SideEffectQuickLog";
 import { Check, Clock, AlertTriangle, Pill, Plus, Flame, X, Utensils } from "lucide-react";
@@ -58,6 +59,7 @@ export default function Today() {
   const criticalAlerts = useCriticalAlerts();
   const { showFeedback } = useFeedbackToast();
   const { activeProfile } = useUserProfiles();
+  const { getProfileCache } = useProfileCacheContext();
   const { t, language } = useLanguage();
   useSmartRedirect();
   
@@ -113,7 +115,17 @@ export default function Today() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Only show loading on first load
+      // Aplicar cache do perfil imediatamente para evitar "ghost text" na troca
+      if (activeProfile) {
+        const cached = getProfileCache(activeProfile.id);
+        if (cached) {
+          setHasAnyItems((cached.medications?.length || 0) > 0);
+          setDoses((cached.todayDoses || []) as any);
+          setDataLoaded(true);
+        }
+      }
+
+      // Only show loading on first load (sem cache)
       if (!dataLoaded) setLoading(true);
 
       const { data: profileData } = await supabase
@@ -171,17 +183,24 @@ export default function Today() {
     } finally {
       setLoading(false);
     }
-  }, [activeProfile, dataLoaded]);
+  }, [activeProfile?.id, dataLoaded, getProfileCache]);
 
-  useEffect(() => { loadData(); }, [loadData]);
-  useEffect(() => { if (activeProfile) loadData(); }, [activeProfile?.id]);
+  // Carregar quando o perfil ativo muda (evita chamadas duplicadas)
+  useEffect(() => { loadData(); }, [activeProfile?.id]);
   useEffect(() => {
     scheduleNotificationsForNextDay();
-    const channel = supabase.channel('today-doses')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'dose_instances' }, () => loadData())
+    const channel = supabase
+      .channel("today-doses")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "dose_instances" },
+        () => loadData()
+      )
       .subscribe();
-    return () => { supabase.removeChannel(channel); };
-  }, []);
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [loadData, scheduleNotificationsForNextDay]);
 
   const markAsTaken = async (dose: DoseItem) => {
     setTakingDose(dose.id);

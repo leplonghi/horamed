@@ -24,6 +24,7 @@ import MilestoneReward from "@/components/gamification/MilestoneReward";
 import AchievementShareDialog from "@/components/gamification/AchievementShareDialog";
 import { useAchievements } from "@/hooks/useAchievements";
 import { useUserProfiles } from "@/hooks/useUserProfiles";
+import { useProfileCacheContext } from "@/contexts/ProfileCacheContext";
 import QuickDoseWidget from "@/components/QuickDoseWidget";
 import { useSmartRedirect } from "@/hooks/useSmartRedirect";
 import { useAdaptiveSuggestions } from "@/hooks/useAdaptiveSuggestions";
@@ -75,6 +76,7 @@ export default function TodayRedesign() {
   const {
     activeProfile
   } = useUserProfiles();
+  const { getProfileCache } = useProfileCacheContext();
   const { t, language } = useLanguage();
   useSmartRedirect();
   const {
@@ -82,13 +84,14 @@ export default function TodayRedesign() {
   } = useAdaptiveSuggestions();
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [timelineItems, setTimelineItems] = useState<TimelineItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [dataLoaded, setDataLoaded] = useState(false);
   const [greeting, setGreeting] = useState("");
   const [motivationalQuote, setMotivationalQuote] = useState("");
   const [userName, setUserName] = useState("");
   const [todayStats, setTodayStats] = useState({
     total: 0,
-    taken: 0
+    taken: 0,
   });
   const [eventCounts, setEventCounts] = useState<Record<string, number>>({});
   const [hasAnyItems, setHasAnyItems] = useState(true);
@@ -243,18 +246,58 @@ export default function TodayRedesign() {
     } catch (error) {
       console.error("Error loading event counts:", error);
     }
-  }, [selectedDate, activeProfile]);
+  }, [selectedDate, activeProfile?.id]);
   const loadData = useCallback(async (date: Date) => {
     try {
       const {
-        data: {
-          user
-        }
+        data: { user },
       } = await supabase.auth.getUser();
       if (!user) return;
-      const {
-        data: profileData
-      } = await supabase.from("profiles").select("nickname, full_name").eq("user_id", user.id).maybeSingle();
+
+      // Evita "ghost" na troca de perfil: aplica cache do perfil (apenas hoje)
+      const isToday = format(date, "yyyy-MM-dd") === format(new Date(), "yyyy-MM-dd");
+      if (activeProfile?.id && isToday) {
+        const cached = getProfileCache(activeProfile.id);
+        if (cached) {
+          setHasAnyItems((cached.medications?.length || 0) > 0);
+
+          const cachedDoses = (cached.todayDoses || []) as any[];
+          const cachedItems: TimelineItem[] = cachedDoses.map((dose: any) => ({
+            id: dose.id,
+            time: format(new Date(dose.due_at), "HH:mm"),
+            type: "medication",
+            title: dose.items?.name,
+            subtitle: dose.items?.dose_text || undefined,
+            status:
+              dose.status === "taken"
+                ? "done"
+                : dose.status === "missed"
+                ? "missed"
+                : "pending",
+            itemId: dose.item_id,
+            onMarkDone: () => markAsTaken(dose.id, dose.item_id, dose.items?.name),
+            onSnooze: () => snoozeDose(dose.id, dose.items?.name),
+          }));
+
+          setTimelineItems(cachedItems);
+          setTodayStats({
+            total: cachedDoses.length,
+            taken: cachedDoses.filter((d: any) => d.status === "taken").length,
+          });
+
+          setDataLoaded(true);
+          setLoading(false);
+        }
+      }
+
+      if (!dataLoaded) setLoading(true);
+
+      const { data: profileData } = await supabase
+        .from("profiles")
+        .select("nickname, full_name")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
       if (profileData) {
         setUserName(profileData.nickname || profileData.full_name || "");
       }
@@ -344,22 +387,21 @@ export default function TodayRedesign() {
       });
       items.sort((a, b) => a.time.localeCompare(b.time));
       setTimelineItems(items);
-      const isToday = format(date, "yyyy-MM-dd") === format(new Date(), "yyyy-MM-dd");
-      if (isToday && doses) {
+      const isToday2 = format(date, "yyyy-MM-dd") === format(new Date(), "yyyy-MM-dd");
+      if (isToday2 && doses) {
         const total = doses.length;
         const taken = doses.filter((d: any) => d.status === "taken").length;
-        setTodayStats({
-          total,
-          taken
-        });
+        setTodayStats({ total, taken });
       }
+
+      setDataLoaded(true);
     } catch (error) {
       console.error("Error loading data:", error);
-      toast.error(t('todayRedesign.loadError'));
+      toast.error(t("todayRedesign.loadError"));
     } finally {
       setLoading(false);
     }
-  }, [activeProfile, t]);
+  }, [activeProfile?.id, t, getProfileCache, dataLoaded]);
   useEffect(() => {
     const hour = new Date().getHours();
     let quotes: string[] = [];
@@ -450,31 +492,31 @@ export default function TodayRedesign() {
     loadEventCounts();
   }, [loadData, loadEventCounts, selectedDate, activeProfile, userName, language, t]);
   useEffect(() => {
-    if (activeProfile) {
-      setLoading(true);
-      loadData(selectedDate);
-      loadEventCounts();
-    }
-  }, [activeProfile?.id]);
-  useEffect(() => {
     scheduleNotificationsForNextDay();
-    const channel = supabase.channel('timeline-changes').on('postgres_changes', {
-      event: '*',
-      schema: 'public',
-      table: 'dose_instances'
-    }, () => loadData(selectedDate)).on('postgres_changes', {
-      event: '*',
-      schema: 'public',
-      table: 'consultas_medicas'
-    }, () => loadData(selectedDate)).on('postgres_changes', {
-      event: '*',
-      schema: 'public',
-      table: 'eventos_saude'
-    }, () => loadData(selectedDate)).subscribe();
+
+    const channel = supabase
+      .channel("timeline-changes")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "dose_instances" },
+        () => loadData(selectedDate)
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "consultas_medicas" },
+        () => loadData(selectedDate)
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "eventos_saude" },
+        () => loadData(selectedDate)
+      )
+      .subscribe();
+
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [loadData, selectedDate, scheduleNotificationsForNextDay]);
   const markAsTaken = async (doseId: string, itemId: string, itemName: string) => {
     try {
       const {

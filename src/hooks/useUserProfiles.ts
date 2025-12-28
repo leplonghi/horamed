@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
-import { useProfileCache } from './useProfileCache';
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { useProfileCacheContext } from "@/contexts/ProfileCacheContext";
 
 export interface UserProfile {
   id: string;
@@ -32,7 +32,7 @@ export function useUserProfiles() {
   });
   
   const [loading, setLoading] = useState(!profiles.length);
-  const { prefetchAllProfiles } = useProfileCache();
+  const { prefetchAllProfiles } = useProfileCacheContext();
 
   useEffect(() => {
     loadProfiles();
