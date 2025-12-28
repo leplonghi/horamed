@@ -2103,6 +2103,30 @@ const translations: Record<Language, Record<string, string>> = {
     'profileSelector.parent': 'Pai/Mãe',
     'profileSelector.spouse': 'Cônjuge',
     'profileSelector.other': 'Outro',
+    
+    // Tutorial Hint component
+    'tutorialHint.swipeToDismiss': 'Arraste para dispensar',
+    'tutorialHint.gotIt': 'Entendi',
+    
+    // Tutorials (microcopy)
+    'tutorials.today.id': 'today_page',
+    'tutorials.today.title': 'Seu dia de saúde 💊',
+    'tutorials.today.message': 'Aqui você vê todas as doses do dia. Toque no botão ✓ para confirmar que tomou, ou segure para mais opções. Mantenha sua sequência de dias!',
+    'tutorials.cofre.id': 'carteira_page',
+    'tutorials.cofre.title': 'Carteira de saúde 🏥',
+    'tutorials.cofre.message': 'Guarde exames, receitas, vacinas e consultas. Compartilhe com médicos quando precisar. Tudo seguro e organizado.',
+    'tutorials.progress.id': 'progress_page',
+    'tutorials.progress.title': 'Seu progresso 📈',
+    'tutorials.progress.message': 'Acompanhe sua evolução com estatísticas, sequências e conquistas. Cada dose tomada conta para o seu sucesso!',
+    'tutorials.stock.id': 'stock_page',
+    'tutorials.stock.title': 'Controle de estoque 📦',
+    'tutorials.stock.message': 'O sistema calcula automaticamente quando seus medicamentos vão acabar. Atualize o estoque quando comprar mais e nunca fique sem.',
+    'tutorials.estoque.id': 'estoque_tab',
+    'tutorials.estoque.title': 'Controle de estoque inteligente 📦',
+    'tutorials.estoque.message': 'O app calcula quando cada medicamento vai acabar. Atualize quando comprar mais e receba alertas antes de ficar sem.',
+    'tutorials.historico.id': 'historico_tab',
+    'tutorials.historico.title': 'Histórico completo 📊',
+    'tutorials.historico.message': 'Veja todas as doses tomadas, horários e padrões. Ideal para mostrar ao seu médico nas consultas.',
   },
   en: {
     // Navigation
@@ -4187,6 +4211,30 @@ const translations: Record<Language, Record<string, string>> = {
     'profileSelector.parent': 'Parent',
     'profileSelector.spouse': 'Spouse',
     'profileSelector.other': 'Other',
+    
+    // Tutorial Hint component
+    'tutorialHint.swipeToDismiss': 'Swipe to dismiss',
+    'tutorialHint.gotIt': 'Got it',
+    
+    // Tutorials (microcopy)
+    'tutorials.today.id': 'today_page',
+    'tutorials.today.title': 'Your health day 💊',
+    'tutorials.today.message': 'Here you see all doses for the day. Tap the ✓ button to confirm you took it, or hold for more options. Keep your streak going!',
+    'tutorials.cofre.id': 'carteira_page',
+    'tutorials.cofre.title': 'Health wallet 🏥',
+    'tutorials.cofre.message': 'Store exams, prescriptions, vaccines and consultations. Share with doctors when needed. Everything secure and organized.',
+    'tutorials.progress.id': 'progress_page',
+    'tutorials.progress.title': 'Your progress 📈',
+    'tutorials.progress.message': 'Track your evolution with statistics, streaks and achievements. Every dose taken counts towards your success!',
+    'tutorials.stock.id': 'stock_page',
+    'tutorials.stock.title': 'Stock control 📦',
+    'tutorials.stock.message': 'The system automatically calculates when your medications will run out. Update stock when you buy more and never run out.',
+    'tutorials.estoque.id': 'estoque_tab',
+    'tutorials.estoque.title': 'Smart stock control 📦',
+    'tutorials.estoque.message': 'The app calculates when each medication will run out. Update when you buy more and receive alerts before running out.',
+    'tutorials.historico.id': 'historico_tab',
+    'tutorials.historico.title': 'Complete history 📊',
+    'tutorials.historico.message': 'See all doses taken, times and patterns. Ideal for showing your doctor at appointments.',
   }
 };
 

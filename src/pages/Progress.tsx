@@ -166,9 +166,9 @@ export default function Progress() {
         </motion.div>
 
         <TutorialHint
-          id={microcopy.tutorials.progress.id}
-          title={microcopy.tutorials.progress.title}
-          message={microcopy.tutorials.progress.message}
+          id={t('tutorials.progress.id')}
+          title={t('tutorials.progress.title')}
+          message={t('tutorials.progress.message')}
         />
 
         {user?.id && (

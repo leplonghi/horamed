@@ -292,9 +292,9 @@ export default function Cofre() {
         )}
 
         <TutorialHint 
-          id={microcopy.tutorials.cofre.id} 
-          title={microcopy.tutorials.cofre.title} 
-          message={microcopy.tutorials.cofre.message} 
+          id={t('tutorials.cofre.id')} 
+          title={t('tutorials.cofre.title')} 
+          message={t('tutorials.cofre.message')} 
         />
 
         {/* Search and Filter */}

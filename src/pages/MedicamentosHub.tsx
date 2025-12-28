@@ -561,9 +561,9 @@ export default function MedicamentosHub() {
             {/* ESTOQUE TAB */}
             <TabsContent value="estoque" className="space-y-6 mt-6">
               <TutorialHint
-                id={microcopy.tutorials.estoque.id}
-                title={microcopy.tutorials.estoque.title}
-                message={microcopy.tutorials.estoque.message}
+                id={t('tutorials.estoque.id')}
+                title={t('tutorials.estoque.title')}
+                message={t('tutorials.estoque.message')}
               />
 
               <Card className="bg-gradient-to-r from-primary/5 to-primary/10 border-primary/20">
@@ -574,30 +574,27 @@ export default function MedicamentosHub() {
                     </div>
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
-                        <p className="font-medium text-foreground">Como funciona?</p>
-                        <HelpTooltip content={microcopy.help.stock.projection} iconSize="sm" />
+                        <p className="font-medium text-foreground">{t('stock.howItWorks')}</p>
+                        <HelpTooltip content={t('tutorials.estoque.message')} iconSize="sm" />
                       </div>
-                      <p className="text-sm text-muted-foreground leading-relaxed">
-                        Cada vez que você marca uma dose como <strong>tomada</strong>, o estoque diminui automaticamente. 
-                        O app calcula quantos dias ainda vão durar!
-                      </p>
+                      <p className="text-sm text-muted-foreground leading-relaxed" dangerouslySetInnerHTML={{ __html: t('stock.howItWorksDesc') }} />
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
               {stockLoading ? (
-                <div className="animate-pulse text-center text-muted-foreground py-8">Carregando estoque...</div>
+                <div className="animate-pulse text-center text-muted-foreground py-8">{t('stock.loading')}</div>
               ) : (!stockProjections || stockProjections.length === 0) ? (
                 <Card className="p-12 text-center">
                   <Package className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="font-semibold text-lg mb-2">Nenhum estoque configurado</h3>
+                  <h3 className="font-semibold text-lg mb-2">{t('stock.noStockConfigured')}</h3>
                   <p className="text-muted-foreground mb-6">
-                    Configure o controle de estoque ao adicionar medicamentos
+                    {t('stock.noStockDesc')}
                   </p>
                   <Button onClick={() => setActiveSection("rotina")}>
                     <Plus className="h-4 w-4 mr-2" />
-                    Adicionar medicamento
+                    {t('meds.addMedication')}
                   </Button>
                 </Card>
               ) : (
@@ -770,23 +767,23 @@ export default function MedicamentosHub() {
             {/* HISTÓRICO TAB */}
             <TabsContent value="historico" className="space-y-6 mt-6">
               <TutorialHint
-                id={microcopy.tutorials.historico.id}
-                title={microcopy.tutorials.historico.title}
-                message={microcopy.tutorials.historico.message}
+                id={t('tutorials.historico.id')}
+                title={t('tutorials.historico.title')}
+                message={t('tutorials.historico.message')}
               />
 
               <Card className="p-8 text-center">
                 <History className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
                 <h3 className="font-semibold text-lg mb-2 flex items-center justify-center gap-2">
-                  Histórico de Doses
-                  <HelpTooltip content="Veja todas as doses tomadas, horários e padrões. Ideal para mostrar ao médico." />
+                  {t('medHistory.title')}
+                  <HelpTooltip content={t('tutorials.historico.message')} />
                 </h3>
                 <p className="text-muted-foreground mb-6">
-                  Veja o histórico completo de todas as doses tomadas
+                  {t('medHistory.subtitle')}
                 </p>
                 <Button onClick={() => navigate("/historico-medicamentos")}>
                   <History className="h-4 w-4 mr-2" />
-                  Ver Histórico Completo
+                  {t('more.doseHistory')}
                 </Button>
               </Card>
             </TabsContent>

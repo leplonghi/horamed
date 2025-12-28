@@ -4,7 +4,7 @@ import { Button } from "./ui/button";
 import { X, Lightbulb } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { motion, useAnimation, PanInfo } from "framer-motion";
-
+import { useLanguage } from "@/contexts/LanguageContext";
 interface TutorialHintProps {
   id: string;
   title: string;
@@ -18,9 +18,9 @@ export default function TutorialHint({
   message, 
   placement = "top" 
 }: TutorialHintProps) {
+  const { t } = useLanguage();
   const [isVisible, setIsVisible] = useState(false);
   const controls = useAnimation();
-
   useEffect(() => {
     checkTutorialStatus();
   }, [id]);
@@ -128,13 +128,13 @@ export default function TutorialHint({
               </p>
               <div className="flex items-center justify-between">
                 <span className="text-xs text-muted-foreground/60">
-                  Arraste para dispensar
+                  {t('tutorialHint.swipeToDismiss')}
                 </span>
                 <Button
                   size="sm"
                   onClick={handleDismiss}
                 >
-                  Entendi
+                  {t('tutorialHint.gotIt')}
                 </Button>
               </div>
             </div>
