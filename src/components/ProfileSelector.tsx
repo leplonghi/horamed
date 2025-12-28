@@ -7,12 +7,14 @@ import { Plus, Users, ChevronDown } from 'lucide-react';
 import { useUserProfiles } from '@/hooks/useUserProfiles';
 import { useNavigate } from 'react-router-dom';
 import { useSubscription } from '@/hooks/useSubscription';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function ProfileSelector() {
   const { profiles, activeProfile, switchProfile } = useUserProfiles();
   const { isPremium } = useSubscription();
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
   const handleCreateProfile = () => {
     if (!isPremium) {
@@ -39,11 +41,11 @@ export default function ProfileSelector() {
 
   const getRelationshipLabel = (relationship: string) => {
     const labels: { [key: string]: string } = {
-      self: 'Você',
-      child: 'Filho(a)',
-      parent: 'Pai/Mãe',
-      spouse: 'Cônjuge',
-      other: 'Outro'
+      self: t('profileSelector.you'),
+      child: t('profileSelector.child'),
+      parent: t('profileSelector.parent'),
+      spouse: t('profileSelector.spouse'),
+      other: t('profileSelector.other')
     };
     return labels[relationship] || relationship;
   };
@@ -86,7 +88,7 @@ export default function ProfileSelector() {
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Users className="h-5 w-5" />
-            Selecionar Perfil
+            {t('profileSelector.selectProfile')}
           </DialogTitle>
         </DialogHeader>
 
@@ -109,7 +111,7 @@ export default function ProfileSelector() {
                 <div className="flex items-center gap-2">
                   <p className="font-medium">{profile.name}</p>
                   {profile.is_primary && (
-                    <Badge variant="secondary" className="text-xs">Principal</Badge>
+                    <Badge variant="secondary" className="text-xs">{t('profileSelector.main')}</Badge>
                   )}
                 </div>
                 <p className="text-sm text-muted-foreground">
@@ -126,12 +128,12 @@ export default function ProfileSelector() {
             disabled={!isPremium && profiles.length >= 1}
           >
             <Plus className="h-4 w-4" />
-            Adicionar Perfil {!isPremium && '(Premium)'}
+            {t('profileSelector.addProfile')} {!isPremium && `(${t('profileSelector.premium')})`}
           </Button>
 
           {!isPremium && (
             <p className="text-xs text-center text-muted-foreground">
-              Múltiplos perfis disponível apenas no Premium
+              {t('profileSelector.multipleProfiles')}
             </p>
           )}
         </div>

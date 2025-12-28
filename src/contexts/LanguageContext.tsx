@@ -2083,6 +2083,26 @@ const translations: Record<Language, Record<string, string>> = {
     'tour.skipTutorial': 'Pular tutorial',
     'tour.next': 'Próximo',
     'tour.start': 'Começar',
+    
+    // Calendar
+    'calendar.today': 'Hoje',
+    'calendar.events': 'eventos',
+    'calendar.event': 'evento',
+    'calendar.clickForDetails': 'Clique para ver detalhes',
+    'calendar.more': 'mais',
+    'calendar.weekdays': 'Dom,Seg,Ter,Qua,Qui,Sex,Sáb',
+    
+    // Profile selector
+    'profileSelector.selectProfile': 'Selecionar Perfil',
+    'profileSelector.addProfile': 'Adicionar Perfil',
+    'profileSelector.premium': 'Premium',
+    'profileSelector.multipleProfiles': 'Múltiplos perfis disponível apenas no Premium',
+    'profileSelector.main': 'Principal',
+    'profileSelector.you': 'Você',
+    'profileSelector.child': 'Filho(a)',
+    'profileSelector.parent': 'Pai/Mãe',
+    'profileSelector.spouse': 'Cônjuge',
+    'profileSelector.other': 'Outro',
   },
   en: {
     // Navigation
@@ -4147,6 +4167,26 @@ const translations: Record<Language, Record<string, string>> = {
     'tour.skipTutorial': 'Skip tutorial',
     'tour.next': 'Next',
     'tour.start': 'Start',
+    
+    // Calendar
+    'calendar.today': 'Today',
+    'calendar.events': 'events',
+    'calendar.event': 'event',
+    'calendar.clickForDetails': 'Click for details',
+    'calendar.more': 'more',
+    'calendar.weekdays': 'Sun,Mon,Tue,Wed,Thu,Fri,Sat',
+    
+    // Profile selector
+    'profileSelector.selectProfile': 'Select Profile',
+    'profileSelector.addProfile': 'Add Profile',
+    'profileSelector.premium': 'Premium',
+    'profileSelector.multipleProfiles': 'Multiple profiles available only on Premium',
+    'profileSelector.main': 'Main',
+    'profileSelector.you': 'You',
+    'profileSelector.child': 'Child',
+    'profileSelector.parent': 'Parent',
+    'profileSelector.spouse': 'Spouse',
+    'profileSelector.other': 'Other',
   }
 };
 

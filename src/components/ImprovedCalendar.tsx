@@ -26,7 +26,7 @@ import {
   startOfDay,
   endOfDay
 } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { ptBR, enUS } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -38,6 +38,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ImprovedCalendarProps {
   selectedDate: Date;
@@ -63,6 +64,8 @@ export default function ImprovedCalendar({
   const [viewMode, setViewMode] = useState<ViewMode>("week");
   const [weekStart, setWeekStart] = useState(startOfWeek(selectedDate, { weekStartsOn: 0 }));
   const [monthDate, setMonthDate] = useState(selectedDate);
+  const { t, language } = useLanguage();
+  const dateLocale = language === 'pt' ? ptBR : enUS;
 
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
   
@@ -179,14 +182,14 @@ export default function ImprovedCalendar({
         <HoverCardTrigger asChild>
           <div className="absolute inset-0 cursor-pointer" />
         </HoverCardTrigger>
-        <HoverCardContent className="w-64 p-3" side="top" align="center">
+      <HoverCardContent className="w-64 p-3" side="top" align="center">
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <h4 className="text-sm font-semibold">
-                {format(date, "d 'de' MMMM", { locale: ptBR })}
+                {format(date, "d 'de' MMMM", { locale: dateLocale })}
               </h4>
               <span className="text-xs text-muted-foreground">
-                {count} {count === 1 ? "evento" : "eventos"}
+                {count} {count === 1 ? t('calendar.event') : t('calendar.events')}
               </span>
             </div>
             
@@ -215,13 +218,13 @@ export default function ImprovedCalendar({
                 ))}
                 {count > 5 && (
                   <p className="text-xs text-muted-foreground text-center pt-1">
-                    +{count - 5} mais
+                    +{count - 5} {t('calendar.more')}
                   </p>
                 )}
               </div>
             ) : (
               <p className="text-xs text-muted-foreground">
-                Clique para ver detalhes
+                {t('calendar.clickForDetails')}
               </p>
             )}
           </div>
@@ -233,11 +236,11 @@ export default function ImprovedCalendar({
   const renderHeader = () => {
     let headerText = "";
     if (viewMode === "day") {
-      headerText = format(selectedDate, "d 'de' MMMM", { locale: ptBR });
+      headerText = format(selectedDate, "d 'de' MMMM", { locale: dateLocale });
     } else if (viewMode === "week") {
-      headerText = format(weekStart, "MMM yyyy", { locale: ptBR });
+      headerText = format(weekStart, "MMM yyyy", { locale: dateLocale });
     } else {
-      headerText = format(monthDate, "MMMM yyyy", { locale: ptBR });
+      headerText = format(monthDate, "MMMM yyyy", { locale: dateLocale });
     }
 
     return (
@@ -271,7 +274,7 @@ export default function ImprovedCalendar({
               size="sm"
               onClick={goToToday}
             >
-              Hoje
+              {t('calendar.today')}
             </Button>
           )}
           <Popover>
@@ -287,7 +290,7 @@ export default function ImprovedCalendar({
                 onSelect={(date) => {
                   if (date) handleDateClick(date);
                 }}
-                locale={ptBR}
+                locale={dateLocale}
                 className={cn("p-3 pointer-events-auto")}
               />
             </PopoverContent>
@@ -311,7 +314,7 @@ export default function ImprovedCalendar({
           )}
         >
           <span className="text-sm font-medium uppercase opacity-70 mb-1">
-            {format(selectedDate, "EEEE", { locale: ptBR })}
+            {format(selectedDate, "EEEE", { locale: dateLocale })}
           </span>
           <span className="text-5xl font-bold">
             {format(selectedDate, "d")}
@@ -322,13 +325,13 @@ export default function ImprovedCalendar({
                 "px-3 py-1 rounded-full text-xs font-semibold",
                 isDayToday ? "bg-primary-foreground text-primary" : "bg-primary text-primary-foreground"
               )}>
-                {count} {count === 1 ? "evento" : "eventos"}
+                {count} {count === 1 ? t('calendar.event') : t('calendar.events')}
               </div>
             </div>
           )}
         </div>
         <p className="mt-6 text-sm text-muted-foreground">
-          {isDayToday ? "Hoje" : format(selectedDate, "'Dia' d 'de' MMMM", { locale: ptBR })}
+          {isDayToday ? t('calendar.today') : format(selectedDate, "d 'de' MMMM", { locale: dateLocale })}
         </p>
       </div>
     );
@@ -354,7 +357,7 @@ export default function ImprovedCalendar({
                 )}
               >
                 <span className="text-xs font-medium uppercase opacity-70 mb-1">
-                  {format(day, "EEEEEE", { locale: ptBR })}
+                  {format(day, "EEEEEE", { locale: dateLocale })}
                 </span>
                 <span className={cn(
                   "text-2xl font-bold",
@@ -382,11 +385,12 @@ export default function ImprovedCalendar({
   };
 
   const renderMonthView = () => {
+    const weekdays = t('calendar.weekdays').split(',');
     return (
       <div className="space-y-2">
         {/* Weekday Headers */}
         <div className="grid grid-cols-7 gap-2">
-          {["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"].map((day) => (
+          {weekdays.map((day) => (
             <div key={day} className="text-center text-xs font-semibold text-muted-foreground py-2">
               {day}
             </div>
@@ -451,7 +455,7 @@ export default function ImprovedCalendar({
             <ChevronLeft className="h-4 w-4" />
           </Button>
           <h4 className="text-sm font-semibold capitalize">
-            {format(weekStart, "MMM yyyy", { locale: ptBR })}
+            {format(weekStart, "MMM yyyy", { locale: dateLocale })}
           </h4>
           <Button
             variant="ghost"
@@ -482,7 +486,7 @@ export default function ImprovedCalendar({
                 )}
               >
                 <span className="text-[10px] font-medium uppercase opacity-70">
-                  {format(day, "EEE", { locale: ptBR }).slice(0, 3)}
+                  {format(day, "EEE", { locale: dateLocale }).slice(0, 3)}
                 </span>
                 <span className={cn(
                   "text-lg font-bold",
