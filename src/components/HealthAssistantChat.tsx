@@ -20,9 +20,12 @@ interface Message {
   content: string;
 }
 
-export default function HealthAssistantChat() {
+interface HealthAssistantChatProps {
+  onClose?: () => void;
+}
+
+export default function HealthAssistantChat({ onClose }: HealthAssistantChatProps = {}) {
   const { t } = useLanguage();
-  const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -147,20 +150,9 @@ export default function HealthAssistantChat() {
     }
   };
 
-  if (!isOpen) {
-    return (
-      <>
-        <Button
-          onClick={() => setIsOpen(true)}
-          className="fixed bottom-24 right-6 h-14 w-14 rounded-full shadow-lg z-50 animate-scale-in"
-          size="icon"
-        >
-          <Heart className="h-6 w-6" />
-        </Button>
-        <PaywallDialog open={showPaywall} onOpenChange={setShowPaywall} feature="ai_agent" />
-      </>
-    );
-  }
+  const handleClose = () => {
+    onClose?.();
+  };
 
   return (
     <>
@@ -179,7 +171,7 @@ export default function HealthAssistantChat() {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => setIsOpen(false)}
+            onClick={handleClose}
             className="h-8 w-8 text-primary-foreground hover:bg-primary-foreground/20"
           >
             <X className="h-4 w-4" />

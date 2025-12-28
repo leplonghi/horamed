@@ -32,6 +32,9 @@ import { microcopy } from "@/lib/microcopy";
 import ClaraSuggestions from "@/components/ClaraSuggestions";
 import TodayWeightWidget from "@/components/TodayWeightWidget";
 import { useLanguage } from "@/contexts/LanguageContext";
+import GuidedTour from "@/components/GuidedTour";
+import ImprovedClaraButton from "@/components/ImprovedClaraButton";
+import HealthAssistantChat from "@/components/HealthAssistantChat";
 
 interface DoseItem {
   id: string;
@@ -75,6 +78,9 @@ export default function Today() {
   
   // Low stock items for Clara suggestions
   const [lowStockItems, setLowStockItems] = useState<string[]>([]);
+  
+  // Clara chat state
+  const [claraOpen, setClaraOpen] = useState(false);
 
   useEffect(() => {
     if (isNewMilestone && milestone) {
@@ -540,6 +546,21 @@ export default function Today() {
           open={shareDialogOpen}
           onOpenChange={setShareDialogOpen}
         />
+      )}
+
+      {/* Guided Tour for new users */}
+      <GuidedTour />
+
+      {/* Improved Clara Button with tooltip for new users */}
+      <ImprovedClaraButton 
+        onClick={() => setClaraOpen(true)} 
+        isOpen={claraOpen}
+        hasUnreadSuggestion={overdueDoses.length > 0 || lowStockItems.length > 0}
+      />
+
+      {/* Clara Chat */}
+      {claraOpen && (
+        <HealthAssistantChat onClose={() => setClaraOpen(false)} />
       )}
     </>
   );
