@@ -124,7 +124,7 @@ export default function MiniWeekCalendar({
   };
 
   return (
-    <div className="bg-card rounded-2xl border border-border/50 p-3 shadow-sm">
+    <div className="relative bg-card rounded-2xl border border-border/50 p-3 shadow-sm overflow-hidden">
       {/* Navigation Header */}
       <div className="flex items-center justify-between mb-3">
         <motion.button
