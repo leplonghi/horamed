@@ -9,7 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { useNavigate, Link } from "react-router-dom";
 import { Mail, Fingerprint, Heart, Shield, Clock, ArrowLeft } from "lucide-react";
-import logo from "@/assets/horamed-logo-transparent.png";
+import logo from "@/assets/horamed-logo-web.webp";
 import { z } from "zod";
 import { useBiometricAuth } from "@/hooks/useBiometricAuth";
 import { useAuth } from "@/contexts/AuthContext";
