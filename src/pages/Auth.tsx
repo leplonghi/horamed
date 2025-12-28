@@ -216,7 +216,7 @@ export default function Auth() {
           <div className="text-center space-y-4 mb-6">
             <div className="flex justify-center">
               <div className="p-3 bg-primary/10 rounded-2xl">
-                <img src={logo} alt="HoraMed" className="h-16 w-auto" />
+                <img src={logo} alt="HoraMed" width={68} height={64} className="h-16 w-auto" />
               </div>
             </div>
             <div className="space-y-2">

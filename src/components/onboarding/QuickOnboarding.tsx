@@ -134,7 +134,7 @@ export default function QuickOnboarding({ onComplete }: QuickOnboardingProps) {
             >
               {/* Header */}
               <div className="text-center space-y-3">
-                <img src={logo} alt="HoraMed" className="h-16 w-auto mx-auto" />
+                <img src={logo} alt="HoraMed" width={68} height={64} className="h-16 w-auto mx-auto" />
                 <h1 className="text-2xl font-bold text-foreground">
                   {t('quickOnboarding.whatFirst')}
                 </h1>
