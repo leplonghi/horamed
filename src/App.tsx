@@ -21,7 +21,7 @@ import Navigation from "./components/Navigation";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 // Lazy loaded components for code splitting
-const TodayRedesign = lazy(() => import("./pages/TodayRedesign"));
+const SimpleTodayPage = lazy(() => import("./pages/SimpleTodayPage"));
 const MedicamentosHub = lazy(() => import("./pages/MedicamentosHub"));
 const Progress = lazy(() => import("./pages/Progress"));
 const Achievements = lazy(() => import("./pages/Achievements"));
@@ -30,7 +30,7 @@ const Profile = lazy(() => import("./pages/Profile"));
 const Auth = lazy(() => import("./pages/Auth"));
 const AddItem = lazy(() => import("./pages/AddItem"));
 const AddItemRedirect = lazy(() => import("./pages/AddItemRedirect"));
-const AddMedicationWizard = lazy(() => import("./pages/AddItemWizard"));
+const SimpleAddMedication = lazy(() => import("./pages/SimpleAddMedication"));
 const StockDetails = lazy(() => import("./pages/StockDetails"));
 const MedicationHistory = lazy(() => import("./pages/MedicationHistory"));
 const AnalyticsDetails = lazy(() => import("./pages/AnalyticsDetails"));
@@ -108,7 +108,7 @@ function AppContent() {
           <Route path="/" element={<Index />} />
           
           {/* Main navigation routes - HoraMed 2.0 */}
-          <Route path="/hoje" element={<ProtectedRoute><TodayRedesign /></ProtectedRoute>} />
+          <Route path="/hoje" element={<ProtectedRoute><SimpleTodayPage /></ProtectedRoute>} />
           <Route path="/rotina" element={<ProtectedRoute><MedicamentosHub /></ProtectedRoute>} />
           <Route path="/progresso" element={<ProtectedRoute><Progress /></ProtectedRoute>} />
           <Route path="/conquistas" element={<ProtectedRoute><Achievements /></ProtectedRoute>} />
@@ -121,7 +121,7 @@ function AppContent() {
           
           {/* Medicamentos subroutes */}
           <Route path="/adicionar" element={<ProtectedRoute><AddItemRedirect /></ProtectedRoute>} />
-          <Route path="/adicionar-medicamento" element={<ProtectedRoute><AddMedicationWizard /></ProtectedRoute>} />
+          <Route path="/adicionar-medicamento" element={<ProtectedRoute><SimpleAddMedication /></ProtectedRoute>} />
           <Route path="/add" element={<ProtectedRoute><AddItemRedirect /></ProtectedRoute>} />
           <Route path="/edit/:id" element={<ProtectedRoute><AddItem /></ProtectedRoute>} />
           <Route path="/estoque" element={<ProtectedRoute><MedicamentosHub /></ProtectedRoute>} />
