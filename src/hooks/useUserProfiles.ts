@@ -16,10 +16,23 @@ export interface UserProfile {
 }
 
 export function useUserProfiles() {
-  const [profiles, setProfiles] = useState<UserProfile[]>([]);
-  const [activeProfile, setActiveProfile] = useState<UserProfile | null>(null);
-  const [loading, setLoading] = useState(true);
-  const { prefetchAllProfiles, invalidateAllCache } = useProfileCache();
+  // Initialize from localStorage immediately to avoid flash
+  const [profiles, setProfiles] = useState<UserProfile[]>(() => {
+    try {
+      const cached = localStorage.getItem('cachedProfiles');
+      return cached ? JSON.parse(cached) : [];
+    } catch { return []; }
+  });
+  
+  const [activeProfile, setActiveProfile] = useState<UserProfile | null>(() => {
+    try {
+      const cached = localStorage.getItem('cachedActiveProfile');
+      return cached ? JSON.parse(cached) : null;
+    } catch { return null; }
+  });
+  
+  const [loading, setLoading] = useState(!profiles.length);
+  const { prefetchAllProfiles } = useProfileCache();
 
   useEffect(() => {
     loadProfiles();
@@ -28,7 +41,10 @@ export function useUserProfiles() {
   const loadProfiles = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        setLoading(false);
+        return;
+      }
 
       const { data, error } = await supabase
         .from('user_profiles')
@@ -39,32 +55,36 @@ export function useUserProfiles() {
 
       if (error) throw error;
 
-      setProfiles(data || []);
+      const profilesList = data || [];
+      setProfiles(profilesList);
       
-      // Pré-carregar dados de todos os perfis
-      if (data && data.length > 0) {
-        prefetchAllProfiles(data, user.id).catch(console.error);
-      }
+      // Cache profiles in localStorage for instant load
+      localStorage.setItem('cachedProfiles', JSON.stringify(profilesList));
       
-      // Try to restore active profile from localStorage
+      // Determine active profile
       const savedProfileId = localStorage.getItem('activeProfileId');
-      if (savedProfileId && data) {
-        const savedProfile = data.find(p => p.id === savedProfileId);
-        if (savedProfile) {
-          setActiveProfile(savedProfile);
-          return;
-        }
+      let newActiveProfile: UserProfile | null = null;
+      
+      if (savedProfileId && profilesList.length > 0) {
+        newActiveProfile = profilesList.find(p => p.id === savedProfileId) || null;
       }
       
-      // Se não houver perfil ativo salvo, definir o primário ou o primeiro
-      if (data && data.length > 0) {
-        const primary = data.find(p => p.is_primary) || data[0];
-        setActiveProfile(primary);
-        localStorage.setItem('activeProfileId', primary.id);
+      if (!newActiveProfile && profilesList.length > 0) {
+        newActiveProfile = profilesList.find(p => p.is_primary) || profilesList[0];
+      }
+      
+      if (newActiveProfile) {
+        setActiveProfile(newActiveProfile);
+        localStorage.setItem('activeProfileId', newActiveProfile.id);
+        localStorage.setItem('cachedActiveProfile', JSON.stringify(newActiveProfile));
+      }
+      
+      // Prefetch in background - don't await
+      if (profilesList.length > 0) {
+        prefetchAllProfiles(profilesList, user.id).catch(console.error);
       }
     } catch (error) {
       console.error('Error loading profiles:', error);
-      toast.error('Erro ao carregar perfis');
     } finally {
       setLoading(false);
     }
@@ -142,12 +162,13 @@ export function useUserProfiles() {
   };
 
   const switchProfile = (profile: UserProfile) => {
-    // Troca instantânea - os dados já estão em cache
+    // Instant switch - data is already cached
     setActiveProfile(profile);
     localStorage.setItem('activeProfileId', profile.id);
-    toast.success(`Perfil alterado para ${profile.name}`, { duration: 1500 });
+    localStorage.setItem('cachedActiveProfile', JSON.stringify(profile));
+    toast.success(`Perfil: ${profile.name}`, { duration: 1000 });
     
-    // Força um re-render nos componentes que dependem do activeProfile
+    // Notify components about profile switch
     window.dispatchEvent(new CustomEvent('profile-switched', { detail: profile }));
   };
 

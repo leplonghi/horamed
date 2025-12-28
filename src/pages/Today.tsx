@@ -62,13 +62,14 @@ export default function Today() {
   useSmartRedirect();
   
   const [doses, setDoses] = useState<DoseItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false); // Start false to avoid ghost state
   const [userName, setUserName] = useState("");
   const [hasAnyItems, setHasAnyItems] = useState(true);
   const [showMilestoneReward, setShowMilestoneReward] = useState(false);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [selectedAchievement, setSelectedAchievement] = useState<any>(null);
   const [takingDose, setTakingDose] = useState<string | null>(null);
+  const [dataLoaded, setDataLoaded] = useState(false);
   
   // Side Effects Log states
   const [sideEffectLogOpen, setSideEffectLogOpen] = useState(false);
@@ -111,6 +112,9 @@ export default function Today() {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
+
+      // Only show loading on first load
+      if (!dataLoaded) setLoading(true);
 
       const { data: profileData } = await supabase
         .from("profiles")
@@ -160,15 +164,17 @@ export default function Today() {
         setDoses([]);
         setLowStockItems([]);
       }
+      
+      setDataLoaded(true);
     } catch (error) {
       console.error("Error loading data:", error);
     } finally {
       setLoading(false);
     }
-  }, [activeProfile]);
+  }, [activeProfile, dataLoaded]);
 
   useEffect(() => { loadData(); }, [loadData]);
-  useEffect(() => { if (activeProfile) { setLoading(true); loadData(); } }, [activeProfile?.id]);
+  useEffect(() => { if (activeProfile) loadData(); }, [activeProfile?.id]);
   useEffect(() => {
     scheduleNotificationsForNextDay();
     const channel = supabase.channel('today-doses')
@@ -234,7 +240,8 @@ export default function Today() {
   const greeting = hour < 12 ? t('today.goodMorning') : hour < 18 ? t('today.goodAfternoon') : t('today.goodEvening');
   const dateLocale = language === 'pt' ? ptBR : enUS;
 
-  if (loading) {
+  // Only show skeleton on first load, not on profile switch
+  if (loading && !dataLoaded) {
     return (<><Header /><PageSkeleton /><Navigation /></>);
   }
 
