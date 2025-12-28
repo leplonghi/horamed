@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeft, ChevronRight, Check, AlertCircle, Circle } from "lucide-react";
+import { ChevronLeft, ChevronRight, Check, AlertCircle } from "lucide-react";
 import { format, addDays, startOfWeek, isSameDay, isToday, addWeeks, isBefore, startOfDay } from "date-fns";
 import { ptBR, enUS } from "date-fns/locale";
 import { cn } from "@/lib/utils";
