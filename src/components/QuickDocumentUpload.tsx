@@ -9,6 +9,7 @@ import {
   DrawerTitle,
 } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface QuickDocumentUploadProps {
   open: boolean;
@@ -17,12 +18,13 @@ interface QuickDocumentUploadProps {
 
 export default function QuickDocumentUpload({ open, onOpenChange }: QuickDocumentUploadProps) {
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
   const options = [
     {
       icon: Camera,
-      label: "Tirar Foto",
-      description: "Fotografe a receita ou exame",
+      label: t('docUpload.takePhoto'),
+      description: t('docUpload.photoDesc'),
       onClick: () => {
         onOpenChange(false);
         navigate("/scan");
@@ -30,8 +32,8 @@ export default function QuickDocumentUpload({ open, onOpenChange }: QuickDocumen
     },
     {
       icon: Upload,
-      label: "Enviar Arquivo",
-      description: "PDF, JPG ou PNG",
+      label: t('docUpload.uploadFile'),
+      description: t('docUpload.fileTypes'),
       onClick: () => {
         onOpenChange(false);
         navigate("/carteira/upload");
@@ -39,8 +41,8 @@ export default function QuickDocumentUpload({ open, onOpenChange }: QuickDocumen
     },
     {
       icon: Edit,
-      label: "Preencher Manualmente",
-      description: "Adicionar sem arquivo",
+      label: t('docUpload.fillManually'),
+      description: t('docUpload.noFile'),
       onClick: () => {
         onOpenChange(false);
         navigate("/carteira/criar-manual");
@@ -52,9 +54,9 @@ export default function QuickDocumentUpload({ open, onOpenChange }: QuickDocumen
     <Drawer open={open} onOpenChange={onOpenChange}>
       <DrawerContent>
         <DrawerHeader>
-          <DrawerTitle>Adicionar Documento</DrawerTitle>
+          <DrawerTitle>{t('docUpload.title')}</DrawerTitle>
           <DrawerDescription>
-            Como você gostaria de adicionar o documento?
+            {t('docUpload.howToAdd')}
           </DrawerDescription>
         </DrawerHeader>
         <div className="space-y-3 p-6">
@@ -78,7 +80,7 @@ export default function QuickDocumentUpload({ open, onOpenChange }: QuickDocumen
         <div className="p-4">
           <DrawerClose asChild>
             <Button variant="outline" className="w-full">
-              Cancelar
+              {t('common.cancel')}
             </Button>
           </DrawerClose>
         </div>

@@ -2,6 +2,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, Sparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface UpgradeModalProps {
   open: boolean;
@@ -11,14 +12,10 @@ interface UpgradeModalProps {
 
 export default function UpgradeModal({ open, onOpenChange, feature }: UpgradeModalProps) {
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
-  const features = {
-    medication: "adicionar mais de 1 medicamento ativo",
-    document: "salvar mais documentos",
-    pdf: "gerar relatórios mensais em PDF",
-    ocr: "usar OCR em documentos",
-    profiles: "criar múltiplos perfis familiares",
-    ai_agent: "usar o assistente de IA"
+  const getFeatureText = (feat: string) => {
+    return t(`upgrade.feature.${feat}`);
   };
 
   return (
@@ -27,18 +24,12 @@ export default function UpgradeModal({ open, onOpenChange, feature }: UpgradeMod
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-primary" />
-            Desbloqueie o melhor do HoraMed
+            {t('upgrade.title')}
           </DialogTitle>
           <DialogDescription>
-            {feature === 'ai_agent' ? (
-              <>
-                Você usou as 2 consultas diárias do plano grátis. Para continuar, você pode assinar o Premium ou indicar amigos para liberar mais recursos.
-              </>
-            ) : feature && features[feature as keyof typeof features] ? (
-              `Para ${features[feature as keyof typeof features]}, você precisa do plano Premium.`
-            ) : (
-              "Tenha controle total dos seus medicamentos, suplementos e da sua rotina de saúde sem limites."
-            )}
+            {feature === 'ai_agent' ? t('upgrade.aiLimit') : 
+             feature ? t('upgrade.forFeature', { feature: getFeatureText(feature) }) : 
+             t('upgrade.description')}
           </DialogDescription>
         </DialogHeader>
 
@@ -47,45 +38,45 @@ export default function UpgradeModal({ open, onOpenChange, feature }: UpgradeMod
             <div className="flex items-start gap-3">
               <CheckCircle2 className="h-5 w-5 text-primary mt-0.5 shrink-0" />
               <div>
-                <p className="font-medium">Medicamentos ativos ilimitados</p>
-                <p className="text-sm text-muted-foreground">Adicione quantos medicamentos precisar</p>
+                <p className="font-medium">{t('upgrade.unlimitedMeds')}</p>
+                <p className="text-sm text-muted-foreground">{t('upgrade.unlimitedMedsDesc')}</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
               <CheckCircle2 className="h-5 w-5 text-primary mt-0.5 shrink-0" />
               <div>
-                <p className="font-medium">IA liberada</p>
-                <p className="text-sm text-muted-foreground">Consultas ilimitadas ao assistente inteligente</p>
+                <p className="font-medium">{t('upgrade.aiUnlocked')}</p>
+                <p className="text-sm text-muted-foreground">{t('upgrade.aiUnlockedDesc')}</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
               <CheckCircle2 className="h-5 w-5 text-primary mt-0.5 shrink-0" />
               <div>
-                <p className="font-medium">Carteira de Saúde ilimitada</p>
-                <p className="text-sm text-muted-foreground">Guarde todos seus documentos de saúde</p>
+                <p className="font-medium">{t('upgrade.unlimitedWallet')}</p>
+                <p className="text-sm text-muted-foreground">{t('upgrade.unlimitedWalletDesc')}</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
               <CheckCircle2 className="h-5 w-5 text-primary mt-0.5 shrink-0" />
               <div>
-                <p className="font-medium">Relatório mensal para consultas</p>
-                <p className="text-sm text-muted-foreground">PDF com análise completa de progresso</p>
+                <p className="font-medium">{t('upgrade.monthlyReport')}</p>
+                <p className="text-sm text-muted-foreground">{t('upgrade.monthlyReportDesc')}</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
               <CheckCircle2 className="h-5 w-5 text-primary mt-0.5 shrink-0" />
               <div>
-                <p className="font-medium">Alertas mais inteligentes</p>
-                <p className="text-sm text-muted-foreground">Previsões automáticas e alertas personalizados</p>
+                <p className="font-medium">{t('upgrade.smartAlerts')}</p>
+                <p className="text-sm text-muted-foreground">{t('upgrade.smartAlertsDesc')}</p>
               </div>
             </div>
           </div>
 
           <div className="space-y-2">
             <div className="text-center py-2">
-              <p className="text-2xl font-bold text-primary">R$ 19,90/mês</p>
-              <p className="text-xs text-muted-foreground">Menos de R$ 0,67/dia</p>
-              <p className="text-xs text-accent-foreground font-medium mt-1">🎁 7 dias grátis</p>
+              <p className="text-2xl font-bold text-primary">{t('upgrade.price')}</p>
+              <p className="text-xs text-muted-foreground">{t('upgrade.priceDaily')}</p>
+              <p className="text-xs text-accent-foreground font-medium mt-1">{t('upgrade.freeTrial')}</p>
             </div>
             
             <Button 
@@ -97,7 +88,7 @@ export default function UpgradeModal({ open, onOpenChange, feature }: UpgradeMod
               size="lg"
             >
               <Sparkles className="h-4 w-4 mr-2" />
-              Assinar Premium agora
+              {t('upgrade.subscribe')}
             </Button>
             
             <Button 
@@ -109,7 +100,7 @@ export default function UpgradeModal({ open, onOpenChange, feature }: UpgradeMod
               className="w-full"
               size="lg"
             >
-              Indique e ganhe benefícios
+              {t('upgrade.referBenefits')}
             </Button>
           </div>
         </div>

@@ -5,6 +5,7 @@ import { Lightbulb, X, AlertTriangle, Info, TrendingUp } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { startOfDay, subDays, differenceInHours } from "date-fns";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface SmartInsight {
   id: string;
@@ -15,6 +16,7 @@ interface SmartInsight {
 }
 
 export default function SmartInsightsCard() {
+  const { t } = useLanguage();
   const [insights, setInsights] = useState<SmartInsight[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -57,8 +59,8 @@ export default function SmartInsightsCard() {
         newInsights.push({
           id: "delay-pattern",
           type: "pattern",
-          title: "Padrão de Atrasos Detectado",
-          description: `Você tem tomado suas doses com ${avgDelay} minutos de atraso em média. Que tal ajustar os horários dos lembretes?`,
+          title: t('smartInsights.delayPattern'),
+          description: t('smartInsights.delayPatternDesc', { minutes: String(avgDelay) }),
           priority: "medium",
         });
       }
@@ -81,8 +83,8 @@ export default function SmartInsightsCard() {
           newInsights.push({
             id: "weekend-drop",
             type: "warning",
-            title: "Compromisso Menor nos Fins de Semana",
-            description: `Seu compromisso cai ${Math.round(weekdayAdherence - weekendAdherence)}% nos fins de semana. Ative lembretes especiais para sábados e domingos!`,
+            title: t('smartInsights.weekendDrop'),
+            description: t('smartInsights.weekendDropDesc', { percent: String(Math.round(weekdayAdherence - weekendAdherence)) }),
             priority: "high",
           });
         }
@@ -93,10 +95,6 @@ export default function SmartInsightsCard() {
         const hour = new Date(d.due_at).getHours();
         return hour >= 6 && hour < 12;
       });
-      const eveningDoses = doses.filter((d) => {
-        const hour = new Date(d.due_at).getHours();
-        return hour >= 18 && hour < 23;
-      });
 
       if (morningDoses.length > 3) {
         const morningAdherence = (morningDoses.filter((d) => d.status === "taken").length / morningDoses.length) * 100;
@@ -104,8 +102,8 @@ export default function SmartInsightsCard() {
           newInsights.push({
             id: "morning-issues",
             type: "pattern",
-            title: "Dificuldade nas Doses Matinais",
-            description: "Você tem esquecido doses pela manhã. Tente deixar os remédios perto da cafeteira ou escova de dentes!",
+            title: t('smartInsights.morningIssues'),
+            description: t('smartInsights.morningIssuesDesc'),
             priority: "medium",
           });
         }
@@ -133,8 +131,8 @@ export default function SmartInsightsCard() {
           newInsights.push({
             id: "low-stock",
             type: "reminder",
-            title: "Reabastecimento Necessário",
-            description: `${lowStock.length} medicamento(s) estão acabando. Programe uma visita à farmácia!`,
+            title: t('smartInsights.restockNeeded'),
+            description: t('smartInsights.restockNeededDesc', { count: String(lowStock.length) }),
             priority: "high",
           });
         }
@@ -151,8 +149,8 @@ export default function SmartInsightsCard() {
         newInsights.push({
           id: "excellent-progress",
           type: "achievement",
-          title: "Progresso Excepcional!",
-          description: `Incrível! Você manteve ${Math.round(recentAdherence)}% de compromisso esta semana. Continue assim! 🎉`,
+          title: t('smartInsights.excellentProgress'),
+          description: t('smartInsights.excellentProgressDesc', { percent: String(Math.round(recentAdherence)) }),
           priority: "low",
         });
       }
@@ -204,9 +202,9 @@ export default function SmartInsightsCard() {
           <Lightbulb className="h-6 w-6 text-primary" />
         </div>
         <div>
-          <h3 className="text-lg font-bold text-foreground">Insights Inteligentes</h3>
+          <h3 className="text-lg font-bold text-foreground">{t('smartInsights.title')}</h3>
           <p className="text-xs text-muted-foreground">
-            Baseados em IA e seus padrões de uso
+            {t('smartInsights.subtitle')}
           </p>
         </div>
       </div>
@@ -245,7 +243,7 @@ export default function SmartInsightsCard() {
                 {insight.priority === "high" && (
                   <div className="flex items-center gap-2 text-xs font-semibold">
                     <AlertTriangle className="h-3 w-3" />
-                    <span>Ação recomendada</span>
+                    <span>{t('smartInsights.actionRecommended')}</span>
                   </div>
                 )}
               </div>

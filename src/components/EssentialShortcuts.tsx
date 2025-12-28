@@ -1,29 +1,33 @@
-import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Plus, FileText, FileDown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { useLanguage } from "@/contexts/LanguageContext";
+
 export default function EssentialShortcuts() {
   const navigate = useNavigate();
+  const { t } = useLanguage();
+  
   const shortcuts = [{
     icon: Plus,
-    label: "Adicionar remédio",
-    description: "Cadastre um novo medicamento",
+    label: t('shortcuts.addMed'),
+    description: t('shortcuts.addMedDesc'),
     onClick: () => navigate("/adicionar"),
     color: "from-blue-500 to-cyan-500"
   }, {
     icon: FileText,
-    label: "Adicionar documento",
-    description: "Faça upload de receita ou exame",
+    label: t('shortcuts.addDoc'),
+    description: t('shortcuts.addDocDesc'),
     onClick: () => navigate("/carteira"),
     color: "from-green-500 to-emerald-500"
   }, {
     icon: FileDown,
-    label: "Gerar relatório do mês",
-    description: "Baixe o resumo para o médico",
+    label: t('shortcuts.generateReport'),
+    description: t('shortcuts.reportDesc'),
     onClick: () => navigate("/exportar"),
     color: "from-purple-500 to-pink-500"
   }];
+  
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
       {shortcuts.map((shortcut, index) => (

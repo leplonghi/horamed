@@ -7,6 +7,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useHealthAgent } from "@/hooks/useHealthAgent";
 import { useLocation } from "react-router-dom";
 import { Card } from "@/components/ui/card";
+import { useLanguage } from "@/contexts/LanguageContext";
 import claraAvatar from "@/assets/clara-avatar.png";
 
 interface Message {
@@ -14,19 +15,10 @@ interface Message {
   content: string;
 }
 
-const quickSuggestions = [
-  "Como adiciono um medicamento?",
-  "Qual meu progresso de hoje?",
-  "Onde vejo meu estoque?",
-  "Como funciona a Carteira de Saúde?",
-];
-
 export default function HealthAIButton() {
+  const { t } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([{
-    role: "assistant",
-    content: "Olá! Sou a Clara, sua assistente de saúde. Posso ajudar você a navegar no app, verificar seus medicamentos, conferir seu progresso ou tirar dúvidas sobre sua rotina. Como posso ajudar?"
-  }]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [showSuggestions, setShowSuggestions] = useState(true);
   const {
@@ -34,6 +26,21 @@ export default function HealthAIButton() {
     isProcessing
   } = useHealthAgent();
   const location = useLocation();
+
+  // Initialize welcome message with translation
+  useEffect(() => {
+    setMessages([{
+      role: "assistant",
+      content: t('clara.welcomeMessage')
+    }]);
+  }, [t]);
+
+  const quickSuggestions = [
+    t('clara.addMed'),
+    t('clara.myProgress'),
+    t('clara.whereStock'),
+    t('clara.howWallet'),
+  ];
 
   // Listen for external open events (from QuickActionMenu)
   useEffect(() => {
@@ -72,7 +79,7 @@ export default function HealthAIButton() {
       console.error('AI error:', error);
       setMessages(prev => [...prev, {
         role: "assistant",
-        content: "Desculpe, tive um problema ao processar sua mensagem. Pode tentar novamente?"
+        content: t('clara.errorMessage')
       }]);
     }
   };
@@ -95,7 +102,7 @@ export default function HealthAIButton() {
             whileHover={{ scale: 1.08 }}
             whileTap={{ scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            aria-label="Clara - Assistente de Saúde"
+            aria-label={t('clara.healthAssistant')}
           >
             <div className="relative">
               <div className="w-12 h-12 rounded-full overflow-hidden ring-2 ring-primary/30 shadow-lg">
@@ -130,7 +137,7 @@ export default function HealthAIButton() {
                     </div>
                     <div>
                       <h3 className="font-semibold text-primary-foreground">Clara</h3>
-                      <p className="text-xs text-primary-foreground/80">Assistente HoraMed</p>
+                      <p className="text-xs text-primary-foreground/80">{t('clara.assistant')}</p>
                     </div>
                   </div>
                   <Button 
@@ -180,7 +187,7 @@ export default function HealthAIButton() {
               {/* Quick Suggestions */}
               {showSuggestions && messages.length <= 1 && (
                 <div className="px-4 pb-3 space-y-2">
-                  <p className="text-xs text-muted-foreground font-medium">Sugestões rápidas:</p>
+                  <p className="text-xs text-muted-foreground font-medium">{t('clara.quickSuggestions')}</p>
                   <div className="flex flex-col gap-1.5">
                     {quickSuggestions.map((suggestion, idx) => (
                       <Button 
@@ -204,7 +211,7 @@ export default function HealthAIButton() {
                     value={input} 
                     onChange={e => setInput(e.target.value)} 
                     onKeyDown={e => e.key === 'Enter' && handleSend()} 
-                    placeholder="Digite sua mensagem..." 
+                    placeholder={t('clara.typeMessage')} 
                     disabled={isProcessing} 
                     className="flex-1" 
                   />
