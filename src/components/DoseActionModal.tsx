@@ -55,14 +55,14 @@ export default function DoseActionModal({
             <div className="flex items-center justify-center gap-2 text-muted-foreground">
               <Clock className="h-4 w-4" />
               <span className="text-sm">
-                {language === 'pt' ? 'Previsto' : 'Scheduled'}: {format(dueTime, "HH:mm", { locale: dateLocale })}
+                {t('doseAction.scheduled')}: {format(dueTime, "HH:mm", { locale: dateLocale })}
               </span>
             </div>
             <div className="text-lg font-semibold">
-              {language === 'pt' ? 'Agora' : 'Now'}: {format(now, "HH:mm", { locale: dateLocale })}
+              {t('doseAction.now')}: {format(now, "HH:mm", { locale: dateLocale })}
               {minutesLate > 0 && (
                 <span className="text-sm text-warning ml-2">
-                  ({minutesLate} min {language === 'pt' ? 'atrasado' : 'late'})
+                  ({minutesLate} min {t('doseAction.late')})
                 </span>
               )}
             </div>
@@ -92,7 +92,7 @@ export default function DoseActionModal({
               size="lg"
             >
               <CheckCircle2 className="h-5 w-5 mr-2" />
-              ✓ {language === 'pt' ? 'TOMEI AGORA' : 'TOOK IT NOW'} ({format(now, "HH:mm")})
+              ✓ {t('doseAction.tookNow')} ({format(now, "HH:mm")})
             </Button>
 
             <div className="grid grid-cols-2 gap-3">
@@ -102,9 +102,9 @@ export default function DoseActionModal({
                 className="h-12"
               >
                 <Calendar className="h-4 w-4 mr-2" />
-                {language === 'pt' ? 'Já tomei' : 'Already took'}
+                {t('doseAction.alreadyTook')}
                 <span className="text-xs block text-muted-foreground">
-                  ({language === 'pt' ? 'escolher horário' : 'choose time'})
+                  ({t('doseAction.chooseTime')})
                 </span>
               </Button>
 
@@ -124,7 +124,7 @@ export default function DoseActionModal({
               className="w-full"
             >
               <XCircle className="h-4 w-4 mr-2" />
-              {language === 'pt' ? 'Esqueci / Não vou tomar' : "Forgot / Won't take"}
+              {t('doseAction.forgotWontTake')}
             </Button>
           </div>
         </div>

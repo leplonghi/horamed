@@ -1849,6 +1849,72 @@ const translations: Record<Language, Record<string, string>> = {
     'criticalAlert.viewHistory': 'Ver Histórico',
     'criticalAlert.viewProfile': 'Ver Perfil',
     'criticalAlert.confirm': 'Confirmar',
+    
+    // Medication info sheet
+    'medInfo.about': 'Informações sobre o medicamento',
+    'medInfo.consultProfessional': 'Consulte um médico ou farmacêutico para mais informações.',
+    'medInfo.whatFor': 'Para que serve',
+    'medInfo.notAvailable': 'Informação não disponível',
+    'medInfo.therapeuticClass': 'Classe terapêutica',
+    'medInfo.activeIngredient': 'Princípio ativo',
+    'medInfo.warnings': 'Cuidados importantes',
+    'medInfo.disclaimer': 'Estas informações são apenas para fins educacionais e não substituem a orientação de um profissional de saúde. Sempre consulte seu médico ou farmacêutico antes de iniciar, alterar ou interromper qualquer tratamento.',
+    
+    // Dose action modal
+    'doseAction.scheduled': 'Previsto',
+    'doseAction.now': 'Agora',
+    'doseAction.late': 'atrasado',
+    'doseAction.tookNow': 'TOMEI AGORA',
+    'doseAction.alreadyTook': 'Já tomei',
+    'doseAction.chooseTime': 'escolher horário',
+    'doseAction.forgotWontTake': 'Esqueci / Não vou tomar',
+    
+    // Quick dose widget
+    'quickDose.late': 'Atrasado',
+    'quickDose.other': 'outro',
+    'quickDose.others': 'outros',
+    'quickDose.tookIt': 'Tomei',
+    'quickDose.allGood': 'Tudo em dia!',
+    'quickDose.noPending2h': 'Sem doses pendentes nas próximas 2h',
+    'quickDose.now': 'Agora',
+    
+    // Health history links
+    'healthHistory.title': 'Histórico Médico',
+    'healthHistory.timeline': 'Linha do Tempo',
+    'healthHistory.timelineDesc': 'Histórico completo em ordem cronológica',
+    'healthHistory.dashboard': 'Dashboard de Evolução',
+    'healthHistory.dashboardDesc': 'Gráficos e análises de saúde',
+    'healthHistory.agenda': 'Agenda Médica',
+    'healthHistory.agendaDesc': 'Consultas e compromissos',
+    
+    // Medication summary card
+    'medSummary.doses': 'de {total} doses',
+    'medSummary.next': 'Próxima',
+    'medSummary.allTaken': 'Todas as doses tomadas!',
+    
+    // Daily complete modal
+    'dailyComplete.congrats': 'Parabéns! 🎉',
+    'dailyComplete.completedAll': 'Você completou todas as doses de hoje!',
+    'dailyComplete.days': 'dias',
+    'dailyComplete.commitment': 'de compromisso',
+    'dailyComplete.continue': 'Continuar',
+    
+    // Health insights
+    'healthInsights.analyzing': 'Analisando seus medicamentos...',
+    'healthInsights.analysisComplete': 'Análise concluída! Novos insights detectados',
+    'healthInsights.interactions': 'interações',
+    'healthInsights.patterns': 'padrões detectados',
+    'healthInsights.allGood': 'Tudo certo! Nenhum problema detectado',
+    'healthInsights.noInteractions': 'Nenhuma interação perigosa detectada',
+    'healthInsights.error': 'Erro ao analisar',
+    
+    // Monthly report
+    'monthlyReport.insights': 'Insights do Mês',
+    'monthlyReport.excellent90': 'Excelente! Você manteve um progresso superior a 90%!',
+    'monthlyReport.improved': 'Parabéns! Você melhorou {percent}% comparado ao mês anterior.',
+    'monthlyReport.punctual': 'Ótima pontualidade! Atraso médio de apenas {minutes} minutos.',
+    'monthlyReport.noSkipped': 'Perfeito! Você não pulou nenhuma dose este mês.',
+    'monthlyReport.generate': 'Gerar Novo Relatório',
   },
   en: {
     // Navigation
@@ -3679,6 +3745,72 @@ const translations: Record<Language, Record<string, string>> = {
     'criticalAlert.viewHistory': 'View History',
     'criticalAlert.viewProfile': 'View Profile',
     'criticalAlert.confirm': 'Confirm',
+    
+    // Medication info sheet
+    'medInfo.about': 'Medication information',
+    'medInfo.consultProfessional': 'Consult a doctor or pharmacist for more information.',
+    'medInfo.whatFor': 'What is it for',
+    'medInfo.notAvailable': 'Information not available',
+    'medInfo.therapeuticClass': 'Therapeutic class',
+    'medInfo.activeIngredient': 'Active ingredient',
+    'medInfo.warnings': 'Important warnings',
+    'medInfo.disclaimer': 'This information is for educational purposes only and does not replace the guidance of a healthcare professional. Always consult your doctor or pharmacist before starting, changing, or stopping any treatment.',
+    
+    // Dose action modal
+    'doseAction.scheduled': 'Scheduled',
+    'doseAction.now': 'Now',
+    'doseAction.late': 'late',
+    'doseAction.tookNow': 'TOOK IT NOW',
+    'doseAction.alreadyTook': 'Already took',
+    'doseAction.chooseTime': 'choose time',
+    'doseAction.forgotWontTake': "Forgot / Won't take",
+    
+    // Quick dose widget
+    'quickDose.late': 'Late',
+    'quickDose.other': 'other',
+    'quickDose.others': 'others',
+    'quickDose.tookIt': 'Took it',
+    'quickDose.allGood': 'All done!',
+    'quickDose.noPending2h': 'No pending doses in the next 2h',
+    'quickDose.now': 'Now',
+    
+    // Health history links
+    'healthHistory.title': 'Medical History',
+    'healthHistory.timeline': 'Timeline',
+    'healthHistory.timelineDesc': 'Complete history in chronological order',
+    'healthHistory.dashboard': 'Evolution Dashboard',
+    'healthHistory.dashboardDesc': 'Health charts and analysis',
+    'healthHistory.agenda': 'Medical Agenda',
+    'healthHistory.agendaDesc': 'Appointments and schedules',
+    
+    // Medication summary card
+    'medSummary.doses': 'of {total} doses',
+    'medSummary.next': 'Next',
+    'medSummary.allTaken': 'All doses taken!',
+    
+    // Daily complete modal
+    'dailyComplete.congrats': 'Congrats! 🎉',
+    'dailyComplete.completedAll': 'You completed all doses for today!',
+    'dailyComplete.days': 'days',
+    'dailyComplete.commitment': 'of commitment',
+    'dailyComplete.continue': 'Continue',
+    
+    // Health insights
+    'healthInsights.analyzing': 'Analyzing your medications...',
+    'healthInsights.analysisComplete': 'Analysis complete! New insights detected',
+    'healthInsights.interactions': 'interactions',
+    'healthInsights.patterns': 'patterns detected',
+    'healthInsights.allGood': 'All good! No issues detected',
+    'healthInsights.noInteractions': 'No dangerous interactions detected',
+    'healthInsights.error': 'Error analyzing',
+    
+    // Monthly report
+    'monthlyReport.insights': 'Monthly Insights',
+    'monthlyReport.excellent90': 'Excellent! You kept progress above 90%!',
+    'monthlyReport.improved': 'Congrats! You improved {percent}% compared to last month.',
+    'monthlyReport.punctual': 'Great punctuality! Average delay of only {minutes} minutes.',
+    'monthlyReport.noSkipped': 'Perfect! You did not skip any dose this month.',
+    'monthlyReport.generate': 'Generate New Report',
   }
 };
 

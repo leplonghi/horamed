@@ -2,9 +2,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Pill, TrendingUp, Clock } from "lucide-react";
 import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { ptBR, enUS } from "date-fns/locale";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface MedicationSummaryCardProps {
   medication: {
@@ -20,6 +21,9 @@ interface MedicationSummaryCardProps {
 }
 
 export default function MedicationSummaryCard({ medication, className }: MedicationSummaryCardProps) {
+  const { t, language } = useLanguage();
+  const dateLocale = language === 'pt' ? ptBR : enUS;
+  
   const takenCount = medication.doses.filter(d => d.status === 'taken').length;
   const totalCount = medication.doses.length;
   const progress = totalCount > 0 ? (takenCount / totalCount) * 100 : 0;
@@ -46,7 +50,7 @@ export default function MedicationSummaryCard({ medication, className }: Medicat
                     {medication.name}
                   </h3>
                   <p className="text-sm text-muted-foreground">
-                    {takenCount} de {totalCount} doses
+                    {takenCount} {t('medSummary.doses', { total: String(totalCount) })}
                   </p>
                 </div>
               </div>
@@ -63,7 +67,7 @@ export default function MedicationSummaryCard({ medication, className }: Medicat
               <div className="flex items-center gap-2 text-sm text-muted-foreground pt-2 border-t">
                 <Clock className="h-4 w-4" />
                 <span>
-                  Próxima: {format(new Date(nextDose.due_at), "HH:mm", { locale: ptBR })}
+                  {t('medSummary.next')}: {format(new Date(nextDose.due_at), "HH:mm", { locale: dateLocale })}
                 </span>
               </div>
             )}
@@ -71,7 +75,7 @@ export default function MedicationSummaryCard({ medication, className }: Medicat
             {progress === 100 && totalCount > 0 && (
               <div className="flex items-center gap-2 text-sm text-success pt-2 border-t">
                 <TrendingUp className="h-4 w-4" />
-                <span className="font-medium">Todas as doses tomadas!</span>
+                <span className="font-medium">{t('medSummary.allTaken')}</span>
               </div>
             )}
           </div>

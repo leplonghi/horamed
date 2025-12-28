@@ -4,10 +4,11 @@ import { Button } from '@/components/ui/button';
 import { CheckCircle2, Clock, AlertCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+import { ptBR, enUS } from 'date-fns/locale';
 import { useFeedbackToast } from '@/hooks/useFeedbackToast';
 import { useOverdueDoses } from '@/hooks/useOverdueDoses';
 import { cn } from '@/lib/utils';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface NextDose {
   id: string;
@@ -31,6 +32,8 @@ export default function QuickDoseWidget({
   const [nextDose, setNextDose] = useState<NextDose | null>(null);
   const [loading, setLoading] = useState(true);
   const { overdueDoses, markAsTaken: markOverdueAsTaken, hasOverdue } = useOverdueDoses();
+  const { t, language } = useLanguage();
+  const dateLocale = language === 'pt' ? ptBR : enUS;
   const {
     showFeedback
   } = useFeedbackToast();
@@ -134,11 +137,11 @@ export default function QuickDoseWidget({
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
               <span className="text-xs font-semibold text-red-600 dark:text-red-400">
-                Atrasado {firstOverdue.minutesOverdue}min
+                {t('quickDose.late')} {firstOverdue.minutesOverdue}min
               </span>
               {overdueDoses.length > 1 && (
                 <span className="text-xs text-red-500/70">
-                  +{overdueDoses.length - 1} {overdueDoses.length - 1 === 1 ? 'outro' : 'outros'}
+                  +{overdueDoses.length - 1} {overdueDoses.length - 1 === 1 ? t('quickDose.other') : t('quickDose.others')}
                 </span>
               )}
             </div>
@@ -153,7 +156,7 @@ export default function QuickDoseWidget({
             className="shrink-0 font-semibold bg-red-500 hover:bg-red-600 text-white"
           >
             <CheckCircle2 className="h-4 w-4 mr-1" />
-            Tomei
+            {t('quickDose.tookIt')}
           </Button>
         </div>
       </Card>
@@ -168,8 +171,8 @@ export default function QuickDoseWidget({
             <CheckCircle2 className="h-5 w-5 text-green-500" />
           </div>
           <div>
-            <h3 className="font-semibold text-green-600 dark:text-green-400">Tudo em dia!</h3>
-            <p className="text-xs text-muted-foreground">Sem doses pendentes nas próximas 2h</p>
+            <h3 className="font-semibold text-green-600 dark:text-green-400">{t('quickDose.allGood')}</h3>
+            <p className="text-xs text-muted-foreground">{t('quickDose.noPending2h')}</p>
           </div>
         </div>
       </Card>
@@ -202,7 +205,7 @@ export default function QuickDoseWidget({
               "text-xs font-semibold",
               isNow ? "text-amber-600 dark:text-amber-400" : "text-primary"
             )}>
-              {isNow ? "Agora" : format(dueTime, "HH:mm", { locale: ptBR })}
+              {isNow ? t('quickDose.now') : format(dueTime, "HH:mm", { locale: dateLocale })}
             </span>
           </div>
           <h3 className="font-semibold truncate">{itemData.name}</h3>
@@ -219,7 +222,7 @@ export default function QuickDoseWidget({
           )}
         >
           <CheckCircle2 className="h-4 w-4 mr-1" />
-          Tomei
+          {t('quickDose.tookIt')}
         </Button>
       </div>
     </Card>

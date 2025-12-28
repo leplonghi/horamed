@@ -3,6 +3,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { AlertTriangle, Pill, Tag, FileText, Info } from "lucide-react";
 import { MedicationInfo } from "@/hooks/useMedicationInfo";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface MedicationInfoSheetProps {
   open: boolean;
@@ -21,6 +22,8 @@ export default function MedicationInfoSheet({
   isLoading,
   error,
 }: MedicationInfoSheetProps) {
+  const { t } = useLanguage();
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="bottom" className="h-[85vh] rounded-t-2xl overflow-y-auto">
@@ -31,7 +34,7 @@ export default function MedicationInfoSheet({
             </div>
             <div>
               <SheetTitle className="text-xl">{medicationName}</SheetTitle>
-              <SheetDescription>Informações sobre o medicamento</SheetDescription>
+              <SheetDescription>{t('medInfo.about')}</SheetDescription>
             </div>
           </div>
         </SheetHeader>
@@ -51,7 +54,7 @@ export default function MedicationInfoSheet({
               <AlertTriangle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <p className="text-muted-foreground">{error}</p>
               <p className="text-sm text-muted-foreground mt-2">
-                Consulte um médico ou farmacêutico para mais informações.
+                {t('medInfo.consultProfessional')}
               </p>
             </div>
           )}
@@ -62,10 +65,10 @@ export default function MedicationInfoSheet({
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
                   <FileText className="h-5 w-5 text-primary" />
-                  <h3 className="font-semibold text-foreground">Para que serve</h3>
+                  <h3 className="font-semibold text-foreground">{t('medInfo.whatFor')}</h3>
                 </div>
                 <p className="text-muted-foreground pl-7 leading-relaxed">
-                  {info.indication || info.description || "Informação não disponível"}
+                  {info.indication || info.description || t('medInfo.notAvailable')}
                 </p>
               </div>
 
@@ -74,7 +77,7 @@ export default function MedicationInfoSheet({
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
                     <Tag className="h-5 w-5 text-primary" />
-                    <h3 className="font-semibold text-foreground">Classe terapêutica</h3>
+                    <h3 className="font-semibold text-foreground">{t('medInfo.therapeuticClass')}</h3>
                   </div>
                   <div className="pl-7">
                     <Badge variant="secondary" className="text-sm">
@@ -89,7 +92,7 @@ export default function MedicationInfoSheet({
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
                     <Pill className="h-5 w-5 text-primary" />
-                    <h3 className="font-semibold text-foreground">Princípio ativo</h3>
+                    <h3 className="font-semibold text-foreground">{t('medInfo.activeIngredient')}</h3>
                   </div>
                   <p className="text-muted-foreground pl-7">
                     {info.activeIngredient}
@@ -102,7 +105,7 @@ export default function MedicationInfoSheet({
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
                     <AlertTriangle className="h-5 w-5 text-warning" />
-                    <h3 className="font-semibold text-foreground">Cuidados importantes</h3>
+                    <h3 className="font-semibold text-foreground">{t('medInfo.warnings')}</h3>
                   </div>
                   <p className="text-muted-foreground pl-7 leading-relaxed">
                     {info.warnings}
@@ -115,10 +118,7 @@ export default function MedicationInfoSheet({
                 <div className="flex items-start gap-3">
                   <Info className="h-5 w-5 text-muted-foreground mt-0.5 shrink-0" />
                   <p className="text-xs text-muted-foreground leading-relaxed">
-                    Estas informações são apenas para fins educacionais e não substituem
-                    a orientação de um profissional de saúde. Sempre consulte seu médico
-                    ou farmacêutico antes de iniciar, alterar ou interromper qualquer
-                    tratamento.
+                    {t('medInfo.disclaimer')}
                   </p>
                 </div>
               </div>

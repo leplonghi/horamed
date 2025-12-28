@@ -7,28 +7,30 @@ import {
   Share2
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function HealthHistoryLinks() {
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
   const links = [
     {
-      title: "Linha do Tempo",
-      description: "Histórico completo em ordem cronológica",
+      title: t('healthHistory.timeline'),
+      description: t('healthHistory.timelineDesc'),
       icon: Calendar,
       path: "/timeline",
       color: "text-blue-500"
     },
     {
-      title: "Dashboard de Evolução",
-      description: "Gráficos e análises de saúde",
+      title: t('healthHistory.dashboard'),
+      description: t('healthHistory.dashboardDesc'),
       icon: TrendingUp,
       path: "/evolucao",
       color: "text-green-500"
     },
     {
-      title: "Agenda Médica",
-      description: "Consultas e compromissos",
+      title: t('healthHistory.agenda'),
+      description: t('healthHistory.agendaDesc'),
       icon: Stethoscope,
       path: "/agenda",
       color: "text-purple-500"
@@ -39,7 +41,7 @@ export default function HealthHistoryLinks() {
     <Card>
       <CardContent className="p-4 space-y-3">
         <div className="flex items-center justify-between">
-          <h3 className="font-semibold text-lg">Histórico Médico</h3>
+          <h3 className="font-semibold text-lg">{t('healthHistory.title')}</h3>
         </div>
         
         <div className="grid gap-2">
