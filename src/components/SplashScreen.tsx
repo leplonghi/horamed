@@ -7,7 +7,7 @@ interface SplashScreenProps {
   minimumDisplayTime?: number;
 }
 
-const SplashScreen = ({ onComplete, minimumDisplayTime = 1800 }: SplashScreenProps) => {
+const SplashScreen = ({ onComplete, minimumDisplayTime = 800 }: SplashScreenProps) => {
   const [isVisible, setIsVisible] = useState(true);
 
   useEffect(() => {
@@ -53,6 +53,7 @@ const SplashScreen = ({ onComplete, minimumDisplayTime = 1800 }: SplashScreenPro
               className="w-48 h-auto"
               loading="eager"
               fetchPriority="high"
+              decoding="async"
             />
           </motion.div>
 
