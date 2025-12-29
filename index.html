@@ -2,30 +2,38 @@
 <html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover" />
     
     <!-- PWA Meta Tags -->
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="HoraMed" />
     <meta name="application-name" content="HoraMed" />
-    <meta name="theme-color" content="#7c3aed" />
+    <meta name="theme-color" content="#7c3aed" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#1e1b4b" media="(prefers-color-scheme: dark)" />
     <meta name="msapplication-TileColor" content="#7c3aed" />
+    <meta name="msapplication-TileImage" content="/icon-512.png" />
     <meta name="msapplication-tap-highlight" content="no" />
     <meta name="format-detection" content="telephone=no" />
+    <meta name="color-scheme" content="light dark" />
     
     <!-- Preconnect to critical origins for faster loading -->
     <link rel="preconnect" href="https://zmsuqdwleyqpdthaqvbi.supabase.co" crossorigin />
     <link rel="dns-prefetch" href="https://zmsuqdwleyqpdthaqvbi.supabase.co" />
-    <link rel="preconnect" href="https://ipapi.co" crossorigin />
-    <link rel="dns-prefetch" href="https://ipapi.co" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     
     <!-- PWA Icons -->
     <link rel="icon" href="/favicon.png" type="image/png" />
+    <link rel="icon" href="/icons/icon-192.png" type="image/png" sizes="192x192" />
     <link rel="apple-touch-icon" href="/icon-512.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/icons/icon-192.png" />
     <link rel="apple-touch-icon" sizes="512x512" href="/icon-512.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    
+    <!-- Splash screens for iOS -->
+    <link rel="apple-touch-startup-image" href="/icon-512.png" />
     
     <!-- Preload LCP image for faster discovery -->
     <link rel="preload" as="image" href="/src/assets/horamed-logo-optimized.webp" fetchpriority="high" />
