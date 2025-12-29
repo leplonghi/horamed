@@ -211,8 +211,13 @@ function AppContent() {
         </Routes>
       </Suspense>
       {showNavigation && <Navigation />}
+      {showNavigation && (
+        <Suspense fallback={null}>
+          <HealthAIButton />
+        </Suspense>
+      )}
+      {/* PWA prompt should always be available */}
       <Suspense fallback={null}>
-        <HealthAIButton />
         <PWAInstallPrompt />
       </Suspense>
     </>

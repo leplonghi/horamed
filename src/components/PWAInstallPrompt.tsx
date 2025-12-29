@@ -20,15 +20,32 @@ export default function PWAInstallPrompt() {
 
   // Auto-show prompt immediately on first visit
   useEffect(() => {
-    // Shorter delay for immediate prompt
+    // Show immediately when ready
     const timer = setTimeout(() => {
-      if ((canInstall || isIOS) && !isInstalled) {
-        requestShowPrompt();
+      if (!isInstalled) {
+        // For iOS, always try to show
+        // For others, wait for canInstall
+        if (isIOS || canInstall) {
+          requestShowPrompt();
+        }
       }
-    }, 1500); // Show after 1.5 seconds
+    }, 800); // Show after 0.8 seconds
 
     return () => clearTimeout(timer);
   }, [canInstall, isIOS, isInstalled, requestShowPrompt]);
+
+  // Also try again after a longer delay in case beforeinstallprompt fires late
+  useEffect(() => {
+    if (isInstalled) return;
+    
+    const timer = setTimeout(() => {
+      if ((canInstall || isIOS) && !showPrompt) {
+        requestShowPrompt();
+      }
+    }, 3000);
+
+    return () => clearTimeout(timer);
+  }, [canInstall, isIOS, isInstalled, showPrompt, requestShowPrompt]);
 
   // Don't render if installed or shouldn't show
   if (isInstalled || !showPrompt) {
@@ -84,11 +101,11 @@ export default function PWAInstallPrompt() {
               {/* Content */}
               <div className="p-6 pt-2 text-center">
                 {/* App Icon */}
-                <div className="mx-auto w-16 h-16 bg-gradient-to-br from-primary to-primary/80 rounded-2xl flex items-center justify-center mb-4 shadow-lg">
+                <div className="mx-auto w-20 h-20 bg-gradient-to-br from-primary via-primary to-primary/80 rounded-3xl flex items-center justify-center mb-4 shadow-xl ring-4 ring-primary/20">
                   <img 
                     src="/favicon.png" 
                     alt="HoraMed" 
-                    className="w-10 h-10"
+                    className="w-12 h-12"
                   />
                 </div>
 
@@ -98,9 +115,25 @@ export default function PWAInstallPrompt() {
                 </h2>
 
                 {/* Description */}
-                <p className="text-muted-foreground text-sm mb-6">
+                <p className="text-muted-foreground text-sm mb-4">
                   {t('pwa.installDesc')}
                 </p>
+
+                {/* Benefits */}
+                <div className="flex justify-center gap-4 mb-6 text-xs text-muted-foreground">
+                  <div className="flex items-center gap-1">
+                    <span className="text-primary">✓</span>
+                    <span>{t('pwa.benefitFast')}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <span className="text-primary">✓</span>
+                    <span>{t('pwa.benefitOffline')}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <span className="text-primary">✓</span>
+                    <span>{t('pwa.benefitNotify')}</span>
+                  </div>
+                </div>
 
                 {/* iOS Instructions */}
                 {isIOS ? (

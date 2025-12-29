@@ -2061,12 +2061,15 @@ const translations: Record<Language, Record<string, string>> = {
     
     // PWA Install Prompt
     'pwa.installTitle': 'Instalar HoraMed',
-    'pwa.installDesc': 'Acesse mais rápido, receba lembretes e use mesmo offline.',
-    'pwa.install': 'Instalar',
+    'pwa.installDesc': 'Adicione à tela inicial para acesso rápido como um app nativo.',
+    'pwa.install': 'Instalar Agora',
     'pwa.notNow': 'Agora não',
     'pwa.iosInstructions': 'Como instalar no iPhone:',
     'pwa.iosTapShare': 'Toque no ícone de Compartilhar',
     'pwa.iosAddHome': 'Selecione "Adicionar à Tela de Início"',
+    'pwa.benefitFast': 'Mais rápido',
+    'pwa.benefitOffline': 'Funciona offline',
+    'pwa.benefitNotify': 'Lembretes',
     
     // Notification Setup
     'notifSetup.title': 'Configurar Notificações',
@@ -4873,12 +4876,15 @@ const translations: Record<Language, Record<string, string>> = {
     
     // PWA Install Prompt
     'pwa.installTitle': 'Install HoraMed',
-    'pwa.installDesc': 'Access faster, receive reminders and use even offline.',
-    'pwa.install': 'Install',
+    'pwa.installDesc': 'Add to home screen for quick access like a native app.',
+    'pwa.install': 'Install Now',
     'pwa.notNow': 'Not now',
     'pwa.iosInstructions': 'How to install on iPhone:',
     'pwa.iosTapShare': 'Tap the Share icon',
     'pwa.iosAddHome': 'Select "Add to Home Screen"',
+    'pwa.benefitFast': 'Faster',
+    'pwa.benefitOffline': 'Works offline',
+    'pwa.benefitNotify': 'Reminders',
     
     // Notification Setup
     'notifSetup.title': 'Set Up Notifications',
