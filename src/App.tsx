@@ -81,6 +81,7 @@ const ConsultationCardView = lazy(() => import("./pages/ConsultationCardView"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const HealthAIButton = lazy(() => import("./components/HealthAIButton"));
 const PWAInstallPrompt = lazy(() => import("./components/PWAInstallPrompt"));
+const NotificationPermissionPrompt = lazy(() => import("./components/NotificationPermissionPrompt"));
 
 // Loading fallback component
 const PageLoader = () => (
@@ -89,7 +90,13 @@ const PageLoader = () => (
   </div>
 );
 
+// Import push notifications hook
+import { usePushNotifications } from "./hooks/usePushNotifications";
+
 function AppContent() {
+  // Initialize push notifications and get the permission request function
+  const { requestNotificationPermission } = usePushNotifications();
+  
   // Track app opened
   useEffect(() => {
     trackAppOpened();
@@ -219,6 +226,10 @@ function AppContent() {
       {/* PWA prompt should always be available */}
       <Suspense fallback={null}>
         <PWAInstallPrompt />
+      </Suspense>
+      {/* Notification permission prompt */}
+      <Suspense fallback={null}>
+        <NotificationPermissionPrompt onRequestPermission={requestNotificationPermission} />
       </Suspense>
     </>
   );
