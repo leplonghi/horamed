@@ -13,6 +13,7 @@ import { isLandingDomain } from "@/lib/domainConfig";
 import { SubscriptionProvider } from "./contexts/SubscriptionContext";
 import { ProfileCacheProvider } from "./contexts/ProfileCacheContext";
 import { trackAppOpened } from "./hooks/useAppMetrics";
+import { usePushNotifications } from "./hooks/usePushNotifications";
 
 // Critical components loaded immediately
 import Index from "./pages/Index";
@@ -89,9 +90,6 @@ const PageLoader = () => (
     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
   </div>
 );
-
-// Import push notifications hook
-import { usePushNotifications } from "./hooks/usePushNotifications";
 
 function AppContent() {
   // Initialize push notifications and get the permission request function
