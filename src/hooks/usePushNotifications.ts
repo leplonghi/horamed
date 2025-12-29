@@ -514,92 +514,125 @@ export const usePushNotifications = () => {
       console.log("[Push] Initializing native push notifications...");
       
       // Check current permission status first
-      const currentPushStatus = await PushNotifications.checkPermissions();
-      const currentLocalStatus = await LocalNotifications.checkPermissions();
+      let currentPushStatus;
+      let currentLocalStatus;
       
-      console.log("[Push] Current permissions - Push:", currentPushStatus.receive, "Local:", currentLocalStatus.display);
+      try {
+        currentPushStatus = await PushNotifications.checkPermissions();
+        currentLocalStatus = await LocalNotifications.checkPermissions();
+        console.log("[Push] Current permissions - Push:", currentPushStatus.receive, "Local:", currentLocalStatus.display);
+      } catch (checkError) {
+        console.error("[Push] Error checking permissions:", checkError);
+        // Assume we need to request permissions
+        currentPushStatus = { receive: 'prompt' as const };
+        currentLocalStatus = { display: 'prompt' as const };
+      }
 
-      // Request Push Notifications permission if not granted
+      // ALWAYS request Push Notifications permission if not granted
+      // This is critical for mobile to show the system permission dialog
       if (currentPushStatus.receive !== "granted") {
         console.log("[Push] Requesting push notification permission...");
-        const pushPermStatus = await PushNotifications.requestPermissions();
-        
-        if (pushPermStatus.receive === "granted") {
-          console.log("[Push] ✓ Permission granted!");
-          await PushNotifications.register();
-          toast.success("✓ Notificações push ativadas!", { duration: 2000 });
-        } else {
-          console.warn("[Push] Permission denied by user");
-          toast.error("Permissão negada. Ative nas Configurações do celular.", { duration: 4000 });
+        try {
+          const pushPermStatus = await PushNotifications.requestPermissions();
+          console.log("[Push] Push permission result:", pushPermStatus.receive);
+          
+          if (pushPermStatus.receive === "granted") {
+            console.log("[Push] ✓ Permission granted!");
+            await PushNotifications.register();
+            toast.success("✓ Notificações push ativadas!", { duration: 2000 });
+          } else if (pushPermStatus.receive === "denied") {
+            console.warn("[Push] Permission denied by user");
+            toast.error("Permissão negada. Ative nas Configurações do celular.", { duration: 4000 });
+            // Emit event so UI can guide user
+            window.dispatchEvent(new CustomEvent('native-notification-denied'));
+          } else {
+            console.log("[Push] Permission status:", pushPermStatus.receive);
+          }
+        } catch (permError) {
+          console.error("[Push] Error requesting push permission:", permError);
         }
       } else {
         // Already have permission, just register
         console.log("[Push] Already have permission, registering...");
-        await PushNotifications.register();
+        try {
+          await PushNotifications.register();
+        } catch (regError) {
+          console.error("[Push] Error registering:", regError);
+        }
       }
       
-      // Request Local Notifications permission if not granted
+      // ALWAYS request Local Notifications permission if not granted
       if (currentLocalStatus.display !== "granted") {
         console.log("[Push] Requesting local notification permission...");
-        const localPermStatus = await LocalNotifications.requestPermissions();
-        if (localPermStatus.display !== "granted") {
-          console.warn("[Push] Local notifications permission not granted");
-        } else {
-          console.log("[Push] ✓ Local notifications permission granted!");
+        try {
+          const localPermStatus = await LocalNotifications.requestPermissions();
+          console.log("[Push] Local permission result:", localPermStatus.display);
+          
+          if (localPermStatus.display !== "granted") {
+            console.warn("[Push] Local notifications permission not granted");
+          } else {
+            console.log("[Push] ✓ Local notifications permission granted!");
+          }
+        } catch (localError) {
+          console.error("[Push] Error requesting local permission:", localError);
         }
       }
 
       // Handle registration success - THIS IS CRITICAL FOR SAVING THE TOKEN
-      await PushNotifications.addListener("registration", async (token) => {
-        console.log("[Push] ✓ Registration success! Token:", token.value.substring(0, 20) + "...");
-        
-        // Save the token immediately
-        await savePushToken(token.value);
-        
-        // Also schedule notifications right after successful registration
-        await scheduleNext48Hours();
-      });
+      try {
+        await PushNotifications.addListener("registration", async (token) => {
+          console.log("[Push] ✓ Registration success! Token:", token.value.substring(0, 20) + "...");
+          
+          // Save the token immediately
+          await savePushToken(token.value);
+          
+          // Also schedule notifications right after successful registration
+          await scheduleNext48Hours();
+        });
 
-      // Handle registration errors
-      await PushNotifications.addListener("registrationError", (error) => {
-        console.error("[Push] Registration error:", error);
-        toast.error("Erro ao registrar notificações. Tente novamente.", { duration: 3000 });
-      });
+        // Handle registration errors
+        await PushNotifications.addListener("registrationError", (error) => {
+          console.error("[Push] Registration error:", error);
+          toast.error("Erro ao registrar notificações. Tente novamente.", { duration: 3000 });
+        });
 
-      // Handle push notifications received (foreground)
-      await PushNotifications.addListener(
-        "pushNotificationReceived",
-        (notification) => {
-          console.log("[Push] Received (foreground):", notification);
-          // Don't show toast if in quiet hours
-          if (!isInQuietHours(new Date())) {
-            toast.info(notification.title || "💊 Lembrete de Medicamento", {
-              description: notification.body,
-              duration: 5000,
-            });
+        // Handle push notifications received (foreground)
+        await PushNotifications.addListener(
+          "pushNotificationReceived",
+          (notification) => {
+            console.log("[Push] Received (foreground):", notification);
+            // Don't show toast if in quiet hours
+            if (!isInQuietHours(new Date())) {
+              toast.info(notification.title || "💊 Lembrete de Medicamento", {
+                description: notification.body,
+                duration: 5000,
+              });
+            }
           }
-        }
-      );
+        );
 
-      // Handle notification action (when user taps notification)
-      await PushNotifications.addListener(
-        "pushNotificationActionPerformed",
-        async (action: ActionPerformed) => {
-          console.log("[Push] Action performed:", action);
-          handleNotificationAction(action);
-        }
-      );
-      
-      // Handle local notification actions
-      await LocalNotifications.addListener(
-        "localNotificationActionPerformed",
-        async (action) => {
-          console.log("[Local] Notification action:", action);
-          handleNotificationAction(action as any);
-        }
-      );
-      
-      console.log("[Push] ✓ All listeners registered successfully");
+        // Handle notification action (when user taps notification)
+        await PushNotifications.addListener(
+          "pushNotificationActionPerformed",
+          async (action: ActionPerformed) => {
+            console.log("[Push] Action performed:", action);
+            handleNotificationAction(action);
+          }
+        );
+        
+        // Handle local notification actions
+        await LocalNotifications.addListener(
+          "localNotificationActionPerformed",
+          async (action) => {
+            console.log("[Local] Notification action:", action);
+            handleNotificationAction(action as any);
+          }
+        );
+        
+        console.log("[Push] ✓ All listeners registered successfully");
+      } catch (listenerError) {
+        console.error("[Push] Error setting up listeners:", listenerError);
+      }
     } catch (error) {
       console.error("[Push] Error initializing:", error);
       toast.error("Erro ao inicializar notificações", { duration: 3000 });

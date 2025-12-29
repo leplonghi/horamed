@@ -32,19 +32,28 @@ export default function NotificationPermissionPrompt({ onRequestPermission }: No
       }
       
       if (isNative) {
-        // Check native permissions
+        // Check native permissions - ALWAYS try to show prompt on mobile
         try {
           const pushStatus = await PushNotifications.checkPermissions();
           const localStatus = await LocalNotifications.checkPermissions();
           
-          // Show prompt if not granted (including denied - we can still show info)
+          console.log("[NotificationPrompt] Native permissions - Push:", pushStatus.receive, "Local:", localStatus.display);
+          
+          // Show prompt if not granted
           if (pushStatus.receive !== 'granted' || localStatus.display !== 'granted') {
-            setTimeout(() => setShow(true), 2000);
+            // Show prompt immediately on native to ensure permission dialog appears
+            console.log("[NotificationPrompt] Showing native permission prompt...");
+            setShow(true);
+            
+            // If permission was denied before, show instructions
+            if (pushStatus.receive === 'denied') {
+              setWasDenied(true);
+            }
           }
         } catch (error) {
-          console.error("Error checking native permissions:", error);
-          // Show prompt anyway on error
-          setTimeout(() => setShow(true), 2000);
+          console.error("[NotificationPrompt] Error checking native permissions:", error);
+          // Show prompt anyway on error - better to ask than miss
+          setShow(true);
         }
       } else {
         // Web permissions
@@ -72,8 +81,18 @@ export default function NotificationPermissionPrompt({ onRequestPermission }: No
       }
     };
     
+    // Listen for denied event from native
+    const handleNativeDenied = () => {
+      setWasDenied(true);
+      setShow(true);
+    };
+    
     window.addEventListener('notification-permission-needed', handleNeedPermission);
-    return () => window.removeEventListener('notification-permission-needed', handleNeedPermission);
+    window.addEventListener('native-notification-denied', handleNativeDenied);
+    return () => {
+      window.removeEventListener('notification-permission-needed', handleNeedPermission);
+      window.removeEventListener('native-notification-denied', handleNativeDenied);
+    };
   }, [isNative, dismissed]);
   
   const handleEnable = async () => {
@@ -123,7 +142,10 @@ export default function NotificationPermissionPrompt({ onRequestPermission }: No
   if (!show || dismissed) return null;
   
   // If permission was denied, show different UI with instructions
-  if (wasDenied && !isNative) {
+  if (wasDenied) {
+    const isAndroid = /android/i.test(navigator.userAgent);
+    const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+    
     return (
       <AnimatePresence>
         {show && !dismissed && (
@@ -153,9 +175,23 @@ export default function NotificationPermissionPrompt({ onRequestPermission }: No
                     </Button>
                   </div>
                   <p className="text-xs text-muted-foreground mt-1">
-                    {language === 'pt' 
-                      ? 'Para receber lembretes, ative as notificações nas configurações do navegador (clique no 🔒 na barra de endereço).' 
-                      : 'To receive reminders, enable notifications in browser settings (click the 🔒 in the address bar).'}
+                    {isNative ? (
+                      language === 'pt' 
+                        ? isAndroid
+                          ? 'Para receber lembretes, vá em Configurações > Apps > HoraMed > Notificações e ative.' 
+                          : isIOS
+                            ? 'Para receber lembretes, vá em Ajustes > Notificações > HoraMed e ative.'
+                            : 'Para receber lembretes, ative as notificações nas configurações do seu celular.'
+                        : isAndroid
+                          ? 'To receive reminders, go to Settings > Apps > HoraMed > Notifications and enable.'
+                          : isIOS
+                            ? 'To receive reminders, go to Settings > Notifications > HoraMed and enable.'
+                            : 'To receive reminders, enable notifications in your phone settings.'
+                    ) : (
+                      language === 'pt' 
+                        ? 'Para receber lembretes, ative as notificações nas configurações do navegador (clique no 🔒 na barra de endereço).' 
+                        : 'To receive reminders, enable notifications in browser settings (click the 🔒 in the address bar).'
+                    )}
                   </p>
                   <div className="flex gap-2 mt-3">
                     <Button size="sm" variant="outline" onClick={handleDismiss} className="flex-1">
