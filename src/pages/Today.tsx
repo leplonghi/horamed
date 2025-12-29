@@ -38,6 +38,7 @@ import ImprovedClaraButton from "@/components/ImprovedClaraButton";
 import HealthAssistantChat from "@/components/HealthAssistantChat";
 import MiniWeekCalendar from "@/components/MiniWeekCalendar";
 import LowStockQuickRefill from "@/components/LowStockQuickRefill";
+import NotificationPermissionPrompt from "@/components/NotificationPermissionPrompt";
 
 interface DoseItem {
   id: string;
@@ -54,7 +55,7 @@ interface DoseItem {
 export default function Today() {
   const navigate = useNavigate();
   const { scheduleNotificationsForNextDay } = useMedicationAlarm();
-  usePushNotifications();
+  const { requestNotificationPermission } = usePushNotifications();
   const streakData = useStreakCalculator();
   const { milestone, isNewMilestone, markAsSeen } = useMilestoneDetector();
   const { achievements } = useAchievements();
@@ -600,6 +601,9 @@ export default function Today() {
 
       {/* Guided Tour for new users */}
       <GuidedTour />
+
+      {/* Notification Permission Prompt */}
+      <NotificationPermissionPrompt onRequestPermission={requestNotificationPermission} />
 
       {/* Improved Clara Button with tooltip for new users */}
       <ImprovedClaraButton 

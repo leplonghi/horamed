@@ -167,22 +167,53 @@ export const usePushNotifications = () => {
         return;
       }
 
+      // Check current permission status
+      const currentPermission = Notification.permission;
+      console.log("[Web Push] Current permission:", currentPermission);
+      
+      if (currentPermission === 'granted') {
+        // Already have permission, just schedule
+        console.log('✓ Web notifications already granted');
+        scheduleWebNotifications();
+      } else if (currentPermission === 'denied') {
+        console.log('⚠️ Web notifications were previously denied');
+        // Don't prompt - user already denied
+      } else {
+        // Permission is 'default' - we need to ask, but NOT automatically
+        // Browser will block automatic permission requests
+        // We'll prompt the user with a UI element instead
+        console.log('ℹ️ Web notifications need permission - waiting for user action');
+        
+        // Dispatch event so UI can show a prompt
+        window.dispatchEvent(new CustomEvent('notification-permission-needed'));
+      }
+    } catch (error) {
+      console.error("Error initializing web notifications:", error);
+    }
+  };
+  
+  // Public method to request permission (must be called from user interaction)
+  const requestNotificationPermission = async (): Promise<boolean> => {
+    try {
+      if (!('Notification' in window)) {
+        toast.error("Seu navegador não suporta notificações");
+        return false;
+      }
+      
       const permission = await Notification.requestPermission();
       
       if (permission === 'granted') {
         console.log('✓ Web notifications permission granted');
         toast.success("✓ Notificações ativadas!", { duration: 2000 });
-        
-        // Show a test notification to confirm it's working
         scheduleWebNotifications();
-      } else if (permission === 'denied') {
-        console.log('⚠️ Web notifications denied by user');
-        // Don't show toast - user explicitly denied, no need to bother them
+        return true;
       } else {
-        console.log('ℹ️ Notification permission dismissed');
+        console.log('⚠️ Web notifications denied by user');
+        return false;
       }
     } catch (error) {
-      console.error("Error initializing web notifications:", error);
+      console.error("Error requesting notification permission:", error);
+      return false;
     }
   };
 
@@ -850,5 +881,6 @@ export const usePushNotifications = () => {
     quietHours,
     updateQuietHours,
     syncOfflineActions,
+    requestNotificationPermission,
   };
 };
