@@ -108,13 +108,19 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const isPremium = (subscription?.plan_type === 'premium' || subscription?.plan_type === 'premium_individual' || subscription?.plan_type === 'premium_family') 
-    && (subscription?.status === 'active' || subscription?.status === 'trial');
-  const isFree = subscription?.plan_type === 'free';
+  // Check if on trial - either explicit trial status OR trial_ends_at in the future
+  const isOnTrial = (subscription?.trial_ends_at && new Date(subscription.trial_ends_at) > new Date()) || 
+    (subscription?.status === 'trial');
   
-  const isOnTrial = subscription?.status === 'trial' && subscription?.trial_ends_at 
-    ? new Date(subscription.trial_ends_at) > new Date()
-    : false;
+  // Premium status - includes trial period (trial users get FULL premium features)
+  const isPremium = (
+    subscription?.plan_type === 'premium' || 
+    subscription?.plan_type === 'premium_individual' || 
+    subscription?.plan_type === 'premium_family' ||
+    isOnTrial // Trial users are treated as premium
+  ) && (subscription?.status === 'active' || subscription?.status === 'trial' || isOnTrial);
+  
+  const isFree = subscription?.plan_type === 'free' && !isOnTrial;
   
   const trialDaysLeft = subscription?.trial_ends_at && isOnTrial
     ? Math.max(0, Math.ceil((new Date(subscription.trial_ends_at).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
@@ -126,10 +132,12 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
 
   const isExpired = subscription?.status === 'expired' || (daysLeft !== null && daysLeft <= 0 && !isOnTrial);
 
+  // Users can add medications if premium, on trial, or within free tier limits
   const canAddMedication = isPremium || isOnTrial || (isFree && !isExpired);
   
+  // Trial users get ALL premium features
   const hasFeature = (feature: 'ocr' | 'charts' | 'unlimited_meds' | 'no_ads') => {
-    if (isPremium) return true;
+    if (isPremium || isOnTrial) return true;
     if (isExpired) return false;
     return false;
   };

@@ -1,14 +1,14 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
 import OnboardingWelcome from "./OnboardingWelcome";
 import OnboardingStep1 from "./OnboardingStep1";
 import OnboardingStep2 from "./OnboardingStep2";
 import OnboardingStep3 from "./OnboardingStep3";
+import OnboardingStepNotifications from "./OnboardingStepNotifications";
 import OnboardingStep4 from "./OnboardingStep4";
 import OnboardingDemo from "./OnboardingDemo";
 import { useHapticFeedback } from "@/hooks/useHapticFeedback";
@@ -20,11 +20,13 @@ interface OnboardingData {
   mainConcern: string;
 }
 
+const TOTAL_STEPS = 5; // Welcome(0), Step1(1), Step2(2), Step3(3), Notifications(4), Final(5)
+
 export default function SmartOnboarding() {
   const navigate = useNavigate();
   const { triggerLight, triggerSuccess } = useHapticFeedback();
   const { t } = useLanguage();
-  const [currentStep, setCurrentStep] = useState(0); // Start at welcome screen
+  const [currentStep, setCurrentStep] = useState(0);
   const [showDemo, setShowDemo] = useState(false);
   const [data, setData] = useState<OnboardingData>({
     userType: "",
@@ -45,7 +47,7 @@ export default function SmartOnboarding() {
   };
 
   const handleNext = () => {
-    if (currentStep < 4) {
+    if (currentStep < TOTAL_STEPS) {
       triggerLight();
       setCurrentStep(currentStep + 1);
     }
@@ -63,7 +65,6 @@ export default function SmartOnboarding() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Save to profiles.tutorial_flags
       const { error } = await supabase
         .from("profiles")
         .update({
@@ -94,7 +95,6 @@ export default function SmartOnboarding() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Mark as completed but don't save preferences
       await supabase
         .from("profiles")
         .update({ onboarding_completed: true })
@@ -107,6 +107,15 @@ export default function SmartOnboarding() {
     }
   };
 
+  const handleNotificationsComplete = () => {
+    triggerSuccess();
+    setCurrentStep(TOTAL_STEPS); // Go to final step
+  };
+
+  const handleNotificationsSkip = () => {
+    setCurrentStep(TOTAL_STEPS); // Go to final step
+  };
+
   const handleShowDemo = () => {
     setShowDemo(true);
   };
@@ -117,7 +126,7 @@ export default function SmartOnboarding() {
   };
 
   const canProceed = () => {
-    if (currentStep === 0) return true; // Welcome screen
+    if (currentStep === 0) return true;
     switch (currentStep) {
       case 1:
         return !!data.userType;
@@ -129,6 +138,12 @@ export default function SmartOnboarding() {
         return true;
     }
   };
+
+  // Calculate progress (excluding welcome and notifications steps)
+  const progressSteps = 3; // Steps 1, 2, 3
+  const progressValue = currentStep > 0 && currentStep <= 3 
+    ? (currentStep / progressSteps) * 100 
+    : currentStep > 3 ? 100 : 0;
 
   if (showDemo) {
     return (
@@ -143,14 +158,14 @@ export default function SmartOnboarding() {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-6">
       <div className="w-full max-w-3xl space-y-8">
-        {/* Progress bar - hide on welcome and final steps */}
-        {currentStep > 0 && currentStep < 4 && (
+        {/* Progress bar - show only for steps 1-3 */}
+        {currentStep > 0 && currentStep <= 3 && (
           <div className="space-y-2">
             <div className="flex justify-between text-sm text-muted-foreground">
-              <span>{t('smartOnboarding.step')} {currentStep} {t('smartOnboarding.of')} 3</span>
-              <span>{Math.round((currentStep / 3) * 100)}%</span>
+              <span>{t('smartOnboarding.step')} {currentStep} {t('smartOnboarding.of')} {progressSteps}</span>
+              <span>{Math.round(progressValue)}%</span>
             </div>
-            <Progress value={(currentStep / 3) * 100} className="h-2" />
+            <Progress value={progressValue} className="h-2" />
           </div>
         )}
 
@@ -185,6 +200,12 @@ export default function SmartOnboarding() {
               />
             )}
             {currentStep === 4 && (
+              <OnboardingStepNotifications
+                onComplete={handleNotificationsComplete}
+                onSkip={handleNotificationsSkip}
+              />
+            )}
+            {currentStep === 5 && (
               <OnboardingStep4
                 onComplete={handleComplete}
                 onShowDemo={handleShowDemo}
@@ -193,8 +214,8 @@ export default function SmartOnboarding() {
           </motion.div>
         </AnimatePresence>
 
-        {/* Navigation buttons - hide on welcome and step 4 */}
-        {currentStep > 0 && currentStep < 4 && (
+        {/* Navigation buttons - hide on welcome, notifications, and final steps */}
+        {currentStep > 0 && currentStep <= 3 && (
           <div className="flex gap-4">
             {currentStep > 1 && (
               <Button variant="outline" onClick={handleBack} className="flex-1">
@@ -211,10 +232,10 @@ export default function SmartOnboarding() {
           </div>
         )}
 
-        {/* Step indicators - hide on welcome screen */}
+        {/* Step indicators */}
         {currentStep > 0 && (
           <div className="flex justify-center gap-2">
-            {[1, 2, 3, 4].map((step) => (
+            {[1, 2, 3, 4, 5].map((step) => (
               <div
                 key={step}
                 className={`h-2 rounded-full transition-all ${
