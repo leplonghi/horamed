@@ -32,6 +32,7 @@ const Profile = lazy(() => import("./pages/Profile"));
 const Auth = lazy(() => import("./pages/Auth"));
 const AddItem = lazy(() => import("./pages/AddItem"));
 const AddItemRedirect = lazy(() => import("./pages/AddItemRedirect"));
+const EditItemRedirect = lazy(() => import("./pages/EditItemRedirect"));
 const AddMedicationPage = lazy(() => import("./pages/AddItemRedirect"));
 const StockDetails = lazy(() => import("./pages/StockDetails"));
 const MedicationHistory = lazy(() => import("./pages/MedicationHistory"));
@@ -130,7 +131,7 @@ function AppContent() {
           <Route path="/adicionar" element={<ProtectedRoute><AddItemRedirect /></ProtectedRoute>} />
           <Route path="/adicionar-medicamento" element={<ProtectedRoute><AddMedicationPage /></ProtectedRoute>} />
           <Route path="/add" element={<ProtectedRoute><AddItemRedirect /></ProtectedRoute>} />
-          <Route path="/edit/:id" element={<ProtectedRoute><AddItem /></ProtectedRoute>} />
+          <Route path="/edit/:id" element={<ProtectedRoute><EditItemRedirect /></ProtectedRoute>} />
           <Route path="/estoque" element={<ProtectedRoute><MedicamentosHub /></ProtectedRoute>} />
           <Route path="/estoque/:itemId" element={<ProtectedRoute><StockDetails /></ProtectedRoute>} />
           <Route path="/historico-medicamentos" element={<ProtectedRoute><MedicationHistory /></ProtectedRoute>} />
