@@ -107,8 +107,8 @@ export default function HealthAIButton() {
             aria-label={t('clara.healthAssistant')}
           >
             <div className="relative">
-              <div className="w-12 h-12 rounded-full overflow-hidden ring-2 ring-primary/30 shadow-lg bg-primary/20 flex items-center justify-center">
-                <Sparkles className="h-5 w-5 text-primary" />
+              <div className="w-12 h-12 rounded-full overflow-hidden ring-2 ring-primary/30 shadow-lg">
+                <img src={claraAvatarUrl} alt="Clara" loading="lazy" className="w-full h-full object-cover" />
               </div>
               <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-background" />
             </div>
