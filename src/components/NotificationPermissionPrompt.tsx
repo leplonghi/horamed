@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Bell, X } from "lucide-react";
+import { Bell, X, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -18,6 +18,7 @@ export default function NotificationPermissionPrompt({ onRequestPermission }: No
   const [show, setShow] = useState(false);
   const [dismissed, setDismissed] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [wasDenied, setWasDenied] = useState(false);
   
   const isNative = Capacitor.isNativePlatform();
   
@@ -36,20 +37,28 @@ export default function NotificationPermissionPrompt({ onRequestPermission }: No
           const pushStatus = await PushNotifications.checkPermissions();
           const localStatus = await LocalNotifications.checkPermissions();
           
+          // Show prompt if not granted (including denied - we can still show info)
           if (pushStatus.receive !== 'granted' || localStatus.display !== 'granted') {
-            // Show prompt after a short delay
             setTimeout(() => setShow(true), 2000);
           }
         } catch (error) {
           console.error("Error checking native permissions:", error);
+          // Show prompt anyway on error
+          setTimeout(() => setShow(true), 2000);
         }
       } else {
         // Web permissions
         if ('Notification' in window) {
-          if (Notification.permission === 'default') {
-            // Show prompt after a short delay
+          const permission = Notification.permission;
+          if (permission === 'default') {
+            // Never asked - show prompt after delay
+            setTimeout(() => setShow(true), 3000);
+          } else if (permission === 'denied') {
+            // Was denied - show info about how to enable in settings
+            setWasDenied(true);
             setTimeout(() => setShow(true), 3000);
           }
+          // If 'granted', don't show anything
         }
       }
     };
@@ -113,57 +122,108 @@ export default function NotificationPermissionPrompt({ onRequestPermission }: No
   
   if (!show || dismissed) return null;
   
+  // If permission was denied, show different UI with instructions
+  if (wasDenied && !isNative) {
+    return (
+      <AnimatePresence>
+        {show && !dismissed && (
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 50 }}
+            className="fixed bottom-20 left-4 right-4 z-50 md:left-auto md:right-4 md:max-w-sm"
+          >
+            <Card className="p-4 shadow-lg border-warning/30 bg-card">
+              <div className="flex items-start gap-3">
+                <div className="p-2 rounded-full bg-warning/10 shrink-0">
+                  <Settings className="h-5 w-5 text-warning" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-start justify-between gap-2">
+                    <h3 className="font-semibold text-sm">
+                      {language === 'pt' ? '🔔 Notificações bloqueadas' : '🔔 Notifications blocked'}
+                    </h3>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-6 w-6 -mt-1 -mr-2"
+                      onClick={handleDismiss}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {language === 'pt' 
+                      ? 'Para receber lembretes, ative as notificações nas configurações do navegador (clique no 🔒 na barra de endereço).' 
+                      : 'To receive reminders, enable notifications in browser settings (click the 🔒 in the address bar).'}
+                  </p>
+                  <div className="flex gap-2 mt-3">
+                    <Button size="sm" variant="outline" onClick={handleDismiss} className="flex-1">
+                      {language === 'pt' ? 'Entendi' : 'Got it'}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </Card>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    );
+  }
+  
   return (
     <AnimatePresence>
-      <motion.div
-        initial={{ opacity: 0, y: 50 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: 50 }}
-        className="fixed bottom-20 left-4 right-4 z-50 md:left-auto md:right-4 md:max-w-sm"
-      >
-        <Card className="p-4 shadow-lg border-primary/20 bg-card">
-          <div className="flex items-start gap-3">
-            <div className="p-2 rounded-full bg-primary/10 shrink-0 animate-pulse">
-              <Bell className="h-5 w-5 text-primary" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-start justify-between gap-2">
-                <h3 className="font-semibold text-sm">
-                  {language === 'pt' ? '🔔 Ativar lembretes?' : '🔔 Enable reminders?'}
-                </h3>
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  className="h-6 w-6 -mt-1 -mr-2"
-                  onClick={handleDismiss}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
+      {show && !dismissed && (
+        <motion.div
+          initial={{ opacity: 0, y: 50 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 50 }}
+          className="fixed bottom-20 left-4 right-4 z-50 md:left-auto md:right-4 md:max-w-sm"
+        >
+          <Card className="p-4 shadow-lg border-primary/20 bg-card">
+            <div className="flex items-start gap-3">
+              <div className="p-2 rounded-full bg-primary/10 shrink-0 animate-pulse">
+                <Bell className="h-5 w-5 text-primary" />
               </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                {language === 'pt' 
-                  ? 'Nunca esqueça de tomar seus medicamentos! Receba alertas nos horários certos.' 
-                  : 'Never forget your medications! Get alerts at the right times.'}
-              </p>
-              <div className="flex gap-2 mt-3">
-                <Button size="sm" onClick={handleEnable} className="flex-1" disabled={loading}>
-                  {loading ? (
-                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  ) : (
-                    <>
-                      <Bell className="h-3 w-3 mr-1" />
-                      {language === 'pt' ? 'Ativar' : 'Enable'}
-                    </>
-                  )}
-                </Button>
-                <Button size="sm" variant="outline" onClick={handleLater} disabled={loading}>
-                  {language === 'pt' ? 'Depois' : 'Later'}
-                </Button>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-start justify-between gap-2">
+                  <h3 className="font-semibold text-sm">
+                    {language === 'pt' ? '🔔 Ativar lembretes?' : '🔔 Enable reminders?'}
+                  </h3>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="h-6 w-6 -mt-1 -mr-2"
+                    onClick={handleDismiss}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {language === 'pt' 
+                    ? 'Nunca esqueça de tomar seus medicamentos! Receba alertas nos horários certos.' 
+                    : 'Never forget your medications! Get alerts at the right times.'}
+                </p>
+                <div className="flex gap-2 mt-3">
+                  <Button size="sm" onClick={handleEnable} className="flex-1" disabled={loading}>
+                    {loading ? (
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    ) : (
+                      <>
+                        <Bell className="h-3 w-3 mr-1" />
+                        {language === 'pt' ? 'Ativar' : 'Enable'}
+                      </>
+                    )}
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={handleLater} disabled={loading}>
+                    {language === 'pt' ? 'Depois' : 'Later'}
+                  </Button>
+                </div>
               </div>
             </div>
-          </div>
-        </Card>
-      </motion.div>
+          </Card>
+        </motion.div>
+      )}
     </AnimatePresence>
   );
 }

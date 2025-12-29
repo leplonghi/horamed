@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { X, Send } from "lucide-react";
+import { useState, useEffect, lazy, Suspense } from "react";
+import { X, Send, Sparkles } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,7 +8,9 @@ import { useHealthAgent } from "@/hooks/useHealthAgent";
 import { useLocation } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { useLanguage } from "@/contexts/LanguageContext";
-import claraAvatar from "@/assets/clara-avatar.png";
+
+// Lazy load the avatar image only when chat is opened
+const claraAvatarUrl = new URL('@/assets/clara-avatar.png', import.meta.url).href;
 
 interface Message {
   role: "user" | "assistant";
@@ -105,12 +107,8 @@ export default function HealthAIButton() {
             aria-label={t('clara.healthAssistant')}
           >
             <div className="relative">
-              <div className="w-12 h-12 rounded-full overflow-hidden ring-2 ring-primary/30 shadow-lg">
-                <img 
-                  src={claraAvatar} 
-                  alt="Clara" 
-                  className="w-full h-full object-cover"
-                />
+              <div className="w-12 h-12 rounded-full overflow-hidden ring-2 ring-primary/30 shadow-lg bg-primary/20 flex items-center justify-center">
+                <Sparkles className="h-5 w-5 text-primary" />
               </div>
               <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-background" />
             </div>
@@ -142,7 +140,7 @@ export default function HealthAIButton() {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full overflow-hidden ring-2 ring-primary-foreground/30">
-                        <img src={claraAvatar} alt="Clara" className="w-full h-full object-cover" />
+                        <img src={claraAvatarUrl} alt="Clara" loading="lazy" className="w-full h-full object-cover" />
                       </div>
                       <div>
                         <h3 className="font-semibold text-primary-foreground">Clara</h3>
