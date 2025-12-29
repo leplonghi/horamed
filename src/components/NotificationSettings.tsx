@@ -3,23 +3,24 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
-import { Bell, Clock, Moon } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Bell, Clock, Moon, Zap, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
+import { usePushSubscription } from "@/hooks/usePushSubscription";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function NotificationSettings() {
   const { quietHours, updateQuietHours, checkPermissions } = usePushNotifications();
+  const { isSubscribed, isSupported, isLoading: pushLoading, subscribe, unsubscribe } = usePushSubscription();
   const [isEnabled, setIsEnabled] = useState(false);
   const [localQuietHours, setLocalQuietHours] = useState(quietHours);
   const { t } = useLanguage();
 
   useEffect(() => {
     const checkNotificationPermission = async () => {
-      // First try the hook's check
       const hookResult = await checkPermissions();
       
-      // On web, also do a direct check as fallback
       if ('Notification' in window) {
         const webPermission = Notification.permission === 'granted';
         setIsEnabled(hookResult || webPermission);
@@ -42,6 +43,20 @@ export default function NotificationSettings() {
     const updated = { ...localQuietHours, [field]: value };
     setLocalQuietHours(updated);
     updateQuietHours(updated);
+  };
+
+  const handleWebPushToggle = async () => {
+    if (isSubscribed) {
+      const success = await unsubscribe();
+      if (success) {
+        toast.success('Notificações push do servidor desativadas');
+      }
+    } else {
+      const success = await subscribe();
+      if (success) {
+        toast.success('Notificações push do servidor ativadas! Agora você receberá alertas mesmo com o app fechado.');
+      }
+    }
   };
 
   return (
@@ -71,6 +86,36 @@ export default function NotificationSettings() {
             {isEnabled ? t('notifSettings.enabled') : t('notifSettings.disabled')}
           </div>
         </div>
+
+        {/* Web Push Server-Side */}
+        {isSupported && (
+          <div className="border-t pt-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="space-y-0.5">
+                <Label className="flex items-center gap-2">
+                  <Zap className="w-4 h-4 text-amber-500" />
+                  Notificações Persistentes
+                </Label>
+                <p className="text-sm text-muted-foreground">
+                  Receba alertas mesmo com o app completamente fechado
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                {pushLoading && <Loader2 className="w-4 h-4 animate-spin" />}
+                <Switch
+                  checked={isSubscribed}
+                  onCheckedChange={handleWebPushToggle}
+                  disabled={pushLoading}
+                />
+              </div>
+            </div>
+            {isSubscribed && (
+              <div className="p-3 bg-green-500/10 border border-green-500/20 rounded-lg text-sm text-green-700 dark:text-green-400">
+                ✓ Seu dispositivo está registrado para receber notificações do servidor
+              </div>
+            )}
+          </div>
+        )}
 
         <div className="border-t pt-6">
           <div className="flex items-center justify-between mb-4">
