@@ -171,6 +171,130 @@ export const usePushNotifications = () => {
     return currentMinutes >= startMinutes && currentMinutes <= endMinutes;
   };
 
+  // Helper to convert base64 to Uint8Array for VAPID key
+  const urlBase64ToUint8Array = (base64String: string): Uint8Array => {
+    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+    const base64 = (base64String + padding)
+      .replace(/-/g, '+')
+      .replace(/_/g, '/');
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+    for (let i = 0; i < rawData.length; ++i) {
+      outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
+  };
+
+  // Get application server key - returns the Uint8Array directly (compatible with applicationServerKey)
+  const getApplicationServerKey = (base64String: string): Uint8Array<ArrayBuffer> => {
+    const uint8Array = urlBase64ToUint8Array(base64String);
+    // Create a new Uint8Array backed by a proper ArrayBuffer
+    const buffer = new ArrayBuffer(uint8Array.length);
+    const view = new Uint8Array(buffer);
+    view.set(uint8Array);
+    return view;
+  };
+
+  // Subscribe to web push notifications
+  const subscribeToWebPush = async (): Promise<boolean> => {
+    try {
+      if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+        console.log("[Web Push] Service Worker or PushManager not supported");
+        return false;
+      }
+
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        console.log("[Web Push] No user found");
+        return false;
+      }
+
+      // Get VAPID key from backend
+      const { data: vapidData, error: vapidError } = await supabase.functions.invoke('get-vapid-key');
+      if (vapidError || !vapidData?.publicKey) {
+        console.error("[Web Push] Failed to get VAPID key:", vapidError);
+        return false;
+      }
+
+      console.log("[Web Push] Got VAPID key");
+
+      // Get service worker registration
+      const registration = await navigator.serviceWorker.ready;
+      
+      // Check existing subscription
+      let subscription = await registration.pushManager.getSubscription();
+      
+      if (!subscription) {
+        // Create new subscription with proper ArrayBuffer
+        const applicationServerKey = getApplicationServerKey(vapidData.publicKey);
+        subscription = await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: applicationServerKey as BufferSource,
+        });
+        console.log("[Web Push] Created new subscription");
+      } else {
+        console.log("[Web Push] Found existing subscription");
+      }
+
+      // Extract subscription details
+      const subscriptionJson = subscription.toJSON();
+      const endpoint = subscription.endpoint;
+      const p256dh = subscriptionJson.keys?.p256dh || '';
+      const auth = subscriptionJson.keys?.auth || '';
+
+      // Save to push_subscriptions table
+      const { error: saveError } = await supabase
+        .from('push_subscriptions')
+        .upsert({
+          user_id: user.id,
+          endpoint,
+          p256dh,
+          auth,
+          user_agent: navigator.userAgent,
+          updated_at: new Date().toISOString(),
+        }, { 
+          onConflict: 'user_id,endpoint',
+          ignoreDuplicates: false 
+        });
+
+      if (saveError) {
+        console.error("[Web Push] Error saving subscription:", saveError);
+        
+        // Try insert if upsert fails
+        const { error: insertError } = await supabase
+          .from('push_subscriptions')
+          .insert({
+            user_id: user.id,
+            endpoint,
+            p256dh,
+            auth,
+            user_agent: navigator.userAgent,
+          });
+          
+        if (insertError) {
+          console.error("[Web Push] Error inserting subscription:", insertError);
+          return false;
+        }
+      }
+
+      // Also update notification_preferences
+      await supabase
+        .from('notification_preferences')
+        .upsert({
+          user_id: user.id,
+          push_enabled: true,
+          push_token: endpoint.substring(0, 255), // Store endpoint as token for tracking
+          updated_at: new Date().toISOString(),
+        }, { onConflict: 'user_id' });
+
+      console.log("[Web Push] ✓ Subscription saved successfully");
+      return true;
+    } catch (error) {
+      console.error("[Web Push] Error subscribing:", error);
+      return false;
+    }
+  };
+
   // Initialize Web Push notifications
   const initializeWebPushNotifications = async () => {
     try {
@@ -184,8 +308,9 @@ export const usePushNotifications = () => {
       console.log("[Web Push] Current permission:", currentPermission);
       
       if (currentPermission === 'granted') {
-        // Already have permission, just schedule
+        // Already have permission, subscribe to push and schedule
         console.log('✓ Web notifications already granted');
+        await subscribeToWebPush();
         scheduleWebNotifications();
       } else if (currentPermission === 'denied') {
         console.log('⚠️ Web notifications were previously denied');
@@ -217,6 +342,13 @@ export const usePushNotifications = () => {
       if (permission === 'granted') {
         console.log('✓ Web notifications permission granted');
         toast.success("✓ Notificações ativadas!", { duration: 2000 });
+        
+        // Subscribe to web push
+        const subscribed = await subscribeToWebPush();
+        if (subscribed) {
+          console.log('✓ Web push subscription saved');
+        }
+        
         scheduleWebNotifications();
         return true;
       } else {
