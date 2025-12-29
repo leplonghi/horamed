@@ -1,5 +1,5 @@
-import { useEffect } from 'react';
-import { X, Download, Share, Plus } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { X, Download, Share, Plus, Smartphone, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { usePWAInstall } from '@/hooks/usePWAInstall';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -11,6 +11,8 @@ export default function PWAInstallPrompt() {
     canInstall,
     isInstalled,
     isIOS,
+    isAndroid,
+    isStandalone,
     showPrompt,
     triggerInstall,
     requestShowPrompt,
@@ -18,37 +20,37 @@ export default function PWAInstallPrompt() {
     hidePrompt,
   } = usePWAInstall();
 
-  // Auto-show prompt immediately on first visit
+  const [iosStep, setIosStep] = useState(1);
+
+  // Auto-show prompt after short delay for first-time visitors
   useEffect(() => {
-    // Show immediately when ready
+    // Don't show if already installed or in standalone mode
+    if (isInstalled || isStandalone) return;
+
     const timer = setTimeout(() => {
-      if (!isInstalled) {
-        // For iOS, always try to show
-        // For others, wait for canInstall
-        if (isIOS || canInstall) {
-          requestShowPrompt();
-        }
+      if (isIOS || canInstall) {
+        requestShowPrompt();
       }
-    }, 800); // Show after 0.8 seconds
+    }, 1500);
 
     return () => clearTimeout(timer);
-  }, [canInstall, isIOS, isInstalled, requestShowPrompt]);
+  }, [canInstall, isIOS, isInstalled, isStandalone, requestShowPrompt]);
 
-  // Also try again after a longer delay in case beforeinstallprompt fires late
+  // Retry after longer delay if beforeinstallprompt fires late
   useEffect(() => {
-    if (isInstalled) return;
+    if (isInstalled || isStandalone) return;
     
     const timer = setTimeout(() => {
       if ((canInstall || isIOS) && !showPrompt) {
         requestShowPrompt();
       }
-    }, 3000);
+    }, 4000);
 
     return () => clearTimeout(timer);
-  }, [canInstall, isIOS, isInstalled, showPrompt, requestShowPrompt]);
+  }, [canInstall, isIOS, isInstalled, isStandalone, showPrompt, requestShowPrompt]);
 
-  // Don't render if installed or shouldn't show
-  if (isInstalled || !showPrompt) {
+  // Don't render if installed, standalone mode, or shouldn't show
+  if (isInstalled || isStandalone || !showPrompt) {
     return null;
   }
 
@@ -65,6 +67,14 @@ export default function PWAInstallPrompt() {
     dismissPrompt();
   };
 
+  const nextIosStep = () => {
+    if (iosStep < 3) {
+      setIosStep(prev => prev + 1);
+    } else {
+      hidePrompt();
+    }
+  };
+
   return (
     <AnimatePresence>
       {showPrompt && (
@@ -74,7 +84,7 @@ export default function PWAInstallPrompt() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 z-50"
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100]"
             onClick={hidePrompt}
           />
           
@@ -84,101 +94,202 @@ export default function PWAInstallPrompt() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 100, scale: 0.95 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:bottom-4 md:w-96 z-50"
+            className="fixed bottom-0 left-0 right-0 md:bottom-4 md:left-auto md:right-4 md:w-[420px] z-[100] md:rounded-2xl overflow-hidden"
           >
-            <div className="bg-card border border-border rounded-2xl shadow-2xl overflow-hidden">
+            <div className="bg-card border-t md:border border-border rounded-t-3xl md:rounded-2xl shadow-2xl">
+              {/* Handle bar for mobile */}
+              <div className="md:hidden flex justify-center pt-3 pb-1">
+                <div className="w-10 h-1 bg-muted-foreground/30 rounded-full" />
+              </div>
+
               {/* Header with close button */}
-              <div className="relative p-4 pb-0">
+              <div className="relative px-6 pt-2 md:pt-4">
                 <button
                   onClick={hidePrompt}
-                  className="absolute top-3 right-3 p-1.5 rounded-full hover:bg-muted transition-colors"
+                  className="absolute top-2 right-4 md:top-3 md:right-4 p-2 rounded-full hover:bg-muted transition-colors"
                   aria-label={t('common.close')}
                 >
-                  <X className="h-4 w-4 text-muted-foreground" />
+                  <X className="h-5 w-5 text-muted-foreground" />
                 </button>
               </div>
 
               {/* Content */}
-              <div className="p-6 pt-2 text-center">
+              <div className="px-6 pb-8 pt-2 text-center">
                 {/* App Icon */}
-                <div className="mx-auto w-20 h-20 bg-gradient-to-br from-primary via-primary to-primary/80 rounded-3xl flex items-center justify-center mb-4 shadow-xl ring-4 ring-primary/20">
+                <div className="mx-auto w-24 h-24 bg-gradient-to-br from-primary via-primary to-primary/80 rounded-[28px] flex items-center justify-center mb-5 shadow-xl shadow-primary/30 ring-4 ring-primary/20">
                   <img 
                     src="/favicon.png" 
                     alt="HoraMed" 
-                    className="w-12 h-12"
+                    className="w-14 h-14"
                   />
                 </div>
 
                 {/* Title */}
-                <h2 className="text-xl font-bold text-foreground mb-2">
+                <h2 className="text-2xl font-bold text-foreground mb-2">
                   {t('pwa.installTitle')}
                 </h2>
 
                 {/* Description */}
-                <p className="text-muted-foreground text-sm mb-4">
+                <p className="text-muted-foreground text-base mb-5">
                   {t('pwa.installDesc')}
                 </p>
 
                 {/* Benefits */}
-                <div className="flex justify-center gap-4 mb-6 text-xs text-muted-foreground">
-                  <div className="flex items-center gap-1">
-                    <span className="text-primary">✓</span>
-                    <span>{t('pwa.benefitFast')}</span>
+                <div className="grid grid-cols-1 gap-3 mb-6 text-left">
+                  <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-xl">
+                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                      <Smartphone className="h-5 w-5 text-primary" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-foreground">Funciona como app</p>
+                      <p className="text-xs text-muted-foreground">Abre fora do navegador</p>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <span className="text-primary">✓</span>
-                    <span>{t('pwa.benefitOffline')}</span>
+                  <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-xl">
+                    <div className="w-10 h-10 rounded-full bg-green-500/10 flex items-center justify-center flex-shrink-0">
+                      <span className="text-green-500 text-lg">🔔</span>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-foreground">Lembretes direto no celular</p>
+                      <p className="text-xs text-muted-foreground">Nunca esqueça seus medicamentos</p>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <span className="text-primary">✓</span>
-                    <span>{t('pwa.benefitNotify')}</span>
+                  <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-xl">
+                    <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center flex-shrink-0">
+                      <span className="text-blue-500 text-lg">⚡</span>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-foreground">Acesso rápido</p>
+                      <p className="text-xs text-muted-foreground">Ícone na tela inicial</p>
+                    </div>
                   </div>
                 </div>
 
-                {/* iOS Instructions */}
+                {/* iOS Instructions - Step by Step */}
                 {isIOS ? (
-                  <div className="bg-muted/50 rounded-xl p-4 mb-6 text-left">
-                    <p className="text-sm font-medium text-foreground mb-3">
-                      {t('pwa.iosInstructions')}
+                  <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/50 dark:to-indigo-950/50 rounded-2xl p-5 mb-6 text-left border border-blue-200/50 dark:border-blue-800/50">
+                    <p className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
+                      <span className="bg-primary text-primary-foreground w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold">
+                        {iosStep}
+                      </span>
+                      {iosStep === 1 && 'Toque no botão Compartilhar'}
+                      {iosStep === 2 && 'Role a lista e encontre'}
+                      {iosStep === 3 && 'Confirme a instalação'}
                     </p>
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                          <Share className="h-4 w-4 text-primary" />
-                        </div>
-                        <p className="text-sm text-muted-foreground">
-                          {t('pwa.iosTapShare')}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                          <Plus className="h-4 w-4 text-primary" />
-                        </div>
-                        <p className="text-sm text-muted-foreground">
-                          {t('pwa.iosAddHome')}
-                        </p>
-                      </div>
+                    
+                    <div className="space-y-4">
+                      {iosStep === 1 && (
+                        <motion.div
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          className="flex items-center justify-center gap-4"
+                        >
+                          <div className="w-14 h-14 rounded-2xl bg-white dark:bg-gray-800 shadow-lg flex items-center justify-center border border-gray-200 dark:border-gray-700">
+                            <Share className="h-7 w-7 text-blue-500" />
+                          </div>
+                          <div className="text-left">
+                            <p className="text-sm text-foreground font-medium">
+                              Botão na barra do Safari
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              Quadrado com seta para cima
+                            </p>
+                          </div>
+                        </motion.div>
+                      )}
+                      
+                      {iosStep === 2 && (
+                        <motion.div
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          className="flex items-center justify-center gap-4"
+                        >
+                          <div className="w-14 h-14 rounded-2xl bg-white dark:bg-gray-800 shadow-lg flex items-center justify-center border border-gray-200 dark:border-gray-700">
+                            <Plus className="h-7 w-7 text-gray-600 dark:text-gray-300" />
+                          </div>
+                          <div className="text-left">
+                            <p className="text-sm text-foreground font-medium">
+                              "Adicionar à Tela de Início"
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              Role para baixo na lista
+                            </p>
+                          </div>
+                        </motion.div>
+                      )}
+                      
+                      {iosStep === 3 && (
+                        <motion.div
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          className="flex items-center justify-center gap-4"
+                        >
+                          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-primary/80 shadow-lg flex items-center justify-center">
+                            <img src="/favicon.png" alt="" className="w-8 h-8" />
+                          </div>
+                          <div className="text-left">
+                            <p className="text-sm text-foreground font-medium">
+                              Toque em "Adicionar"
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              No canto superior direito
+                            </p>
+                          </div>
+                        </motion.div>
+                      )}
+                    </div>
+
+                    {/* Progress dots */}
+                    <div className="flex justify-center gap-2 mt-4">
+                      {[1, 2, 3].map(step => (
+                        <button
+                          key={step}
+                          onClick={() => setIosStep(step)}
+                          className={`w-2.5 h-2.5 rounded-full transition-all ${
+                            step === iosStep 
+                              ? 'bg-primary w-6' 
+                              : step < iosStep 
+                                ? 'bg-primary/60' 
+                                : 'bg-gray-300 dark:bg-gray-600'
+                          }`}
+                        />
+                      ))}
                     </div>
                   </div>
                 ) : null}
 
                 {/* Buttons */}
-                <div className="flex flex-col gap-2">
-                  {!isIOS && (
+                <div className="flex flex-col gap-3">
+                  {isIOS ? (
+                    <Button
+                      onClick={nextIosStep}
+                      className="w-full h-14 text-lg font-semibold rounded-xl"
+                      size="lg"
+                    >
+                      {iosStep < 3 ? (
+                        <>
+                          Próximo passo
+                          <ChevronUp className="h-5 w-5 ml-2 rotate-90" />
+                        </>
+                      ) : (
+                        'Entendi!'
+                      )}
+                    </Button>
+                  ) : (
                     <Button
                       onClick={handleInstall}
-                      className="w-full h-12 text-base font-semibold"
+                      className="w-full h-14 text-lg font-semibold rounded-xl"
                       size="lg"
                     >
                       <Download className="h-5 w-5 mr-2" />
-                      {t('pwa.install')}
+                      Instalar App
                     </Button>
                   )}
                   
                   <Button
                     onClick={handleDismiss}
                     variant="ghost"
-                    className="w-full text-muted-foreground hover:text-foreground"
+                    className="w-full text-muted-foreground hover:text-foreground h-12"
                   >
                     {t('pwa.notNow')}
                   </Button>

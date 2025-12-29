@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover" />
     
-    <!-- PWA Meta Tags -->
+    <!-- PWA Critical Meta Tags -->
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -17,6 +17,9 @@
     <meta name="msapplication-tap-highlight" content="no" />
     <meta name="format-detection" content="telephone=no" />
     <meta name="color-scheme" content="light dark" />
+    <meta name="full-screen" content="yes" />
+    <meta name="browsermode" content="application" />
+    <meta name="screen-orientation" content="portrait" />
     
     <!-- Preconnect to critical origins for faster loading -->
     <link rel="preconnect" href="https://zmsuqdwleyqpdthaqvbi.supabase.co" crossorigin />
@@ -24,16 +27,24 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     
-    <!-- PWA Icons -->
+    <!-- PWA Icons - Standard -->
     <link rel="icon" href="/favicon.png" type="image/png" />
     <link rel="icon" href="/icons/icon-192.png" type="image/png" sizes="192x192" />
-    <link rel="apple-touch-icon" href="/icon-512.png" />
-    <link rel="apple-touch-icon" sizes="180x180" href="/icons/icon-192.png" />
-    <link rel="apple-touch-icon" sizes="512x512" href="/icon-512.png" />
     <link rel="manifest" href="/manifest.webmanifest" />
     
-    <!-- Splash screens for iOS -->
-    <link rel="apple-touch-startup-image" href="/icon-512.png" />
+    <!-- Apple Touch Icons - Multiple sizes for iOS -->
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="apple-touch-icon" sizes="152x152" href="/icons/icon-192.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/icon-192.png" />
+    <link rel="apple-touch-icon" sizes="167x167" href="/icons/icon-192.png" />
+    
+    <!-- iOS Splash Screens -->
+    <link rel="apple-touch-startup-image" href="/splash/splash-640x1136.png" media="(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2)" />
+    <link rel="apple-touch-startup-image" href="/splash/splash-750x1334.png" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2)" />
+    <link rel="apple-touch-startup-image" href="/splash/splash-1242x2208.png" media="(device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3)" />
+    <link rel="apple-touch-startup-image" href="/splash/splash-1125x2436.png" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3)" />
+    <link rel="apple-touch-startup-image" href="/splash/splash-1284x2778.png" media="(device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3)" />
+    <link rel="apple-touch-startup-image" href="/splash/splash-1170x2532.png" media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3)" />
     
     <!-- Preload LCP image for faster discovery -->
     <link rel="preload" as="image" href="/src/assets/horamed-logo-optimized.webp" fetchpriority="high" />
@@ -49,12 +60,17 @@
     <meta name="twitter:site" content="@lovable_dev" />
     <meta name="twitter:image" content="https://storage.googleapis.com/gpt-engineer-file-uploads/Szv22bCvovNu3sqetMXogpCe1w52/social-images/social-1759434167268-HoraMed_logo instagram.png">
     
-    <!-- Google AdSense - Add your client ID when ready -->
-    <!-- <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=YOUR-CLIENT-ID" crossorigin="anonymous"></script> -->
     <meta property="og:title" content="HoraMed - Gestão Completa da Sua Saúde">
     <meta name="twitter:title" content="HoraMed - Gestão Completa da Sua Saúde">
     <meta property="og:description" content="Plataforma completa de gestão de saúde: lembretes inteligentes, histórico médico digital, análise de exames, consultas e muito mais em um só lugar">
     <meta name="twitter:description" content="Plataforma completa de gestão de saúde: lembretes inteligentes, histórico médico digital, análise de exames, consultas e muito mais em um só lugar">
+    
+    <!-- Inline critical CSS for splash screen -->
+    <style>
+      /* Prevent flash of unstyled content */
+      html { background-color: #ffffff; }
+      @media (prefers-color-scheme: dark) { html { background-color: #0c0a1d; } }
+    </style>
   </head>
 
   <body>

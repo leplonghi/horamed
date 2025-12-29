@@ -15,18 +15,26 @@ export default defineConfig(({ mode }) => ({
     mode === "development" && componentTagger(),
     VitePWA({
       registerType: "autoUpdate",
-      includeAssets: ["favicon.png", "icon-512.png", "icon-1024.png", "icons/icon-192.png"],
+      includeAssets: [
+        "favicon.png", 
+        "icon-512.png", 
+        "icon-1024.png", 
+        "icons/icon-192.png",
+        "icons/icon-192-maskable.png",
+        "icons/icon-512-maskable.png",
+        "apple-touch-icon.png",
+      ],
       manifest: {
-        name: "HoraMed - Gestão de Saúde",
+        name: "HoraMed - Gestão Completa da Sua Saúde",
         short_name: "HoraMed",
-        description: "Gerencie seus medicamentos, exames e saúde em um só lugar",
+        description: "Gerencie medicamentos, exames e consultas. Receba lembretes inteligentes direto no celular.",
         theme_color: "#7c3aed",
         background_color: "#ffffff",
         display: "standalone",
-        orientation: "portrait",
+        orientation: "portrait-primary",
         scope: "/",
-        start_url: "/hoje",
-        id: "/",
+        start_url: "/hoje?source=pwa",
+        id: "horamed-pwa",
         lang: "pt-BR",
         dir: "ltr",
         icons: [
@@ -42,13 +50,19 @@ export default defineConfig(({ mode }) => ({
             purpose: "any",
           },
           {
+            src: "/icons/icon-192-maskable.png",
+            sizes: "192x192",
+            type: "image/png",
+            purpose: "maskable",
+          },
+          {
             src: "/icon-512.png",
             sizes: "512x512",
             type: "image/png",
             purpose: "any",
           },
           {
-            src: "/icon-512.png",
+            src: "/icons/icon-512-maskable.png",
             sizes: "512x512",
             type: "image/png",
             purpose: "maskable",
@@ -61,19 +75,37 @@ export default defineConfig(({ mode }) => ({
         ],
         categories: ["health", "medical", "lifestyle"],
         prefer_related_applications: false,
+        display_override: ["standalone", "minimal-ui"],
+        handle_links: "preferred",
+        launch_handler: {
+          client_mode: "navigate-existing",
+        },
+        screenshots: [
+          {
+            src: "/screenshots/home.png",
+            sizes: "390x844",
+            type: "image/png",
+            form_factor: "narrow",
+            label: "Tela inicial do HoraMed",
+          },
+        ],
       },
       workbox: {
-        globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2,webp}"],
+        globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2,webp,jpg,jpeg}"],
         navigateFallback: "/index.html",
-        navigateFallbackDenylist: [/^\/api/, /^\/auth/],
+        navigateFallbackDenylist: [/^\/api/, /^\/auth/, /^\/supabase/],
+        skipWaiting: true,
+        clientsClaim: true,
+        cleanupOutdatedCaches: true,
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/zmsuqdwleyqpdthaqvbi\.supabase\.co\/.*/i,
             handler: "NetworkFirst",
             options: {
               cacheName: "supabase-api-cache",
+              networkTimeoutSeconds: 10,
               expiration: {
-                maxEntries: 100,
+                maxEntries: 200,
                 maxAgeSeconds: 60 * 60 * 24,
               },
               cacheableResponse: {
@@ -87,7 +119,7 @@ export default defineConfig(({ mode }) => ({
             options: {
               cacheName: "images-cache",
               expiration: {
-                maxEntries: 50,
+                maxEntries: 100,
                 maxAgeSeconds: 60 * 60 * 24 * 30,
               },
             },
@@ -98,7 +130,18 @@ export default defineConfig(({ mode }) => ({
             options: {
               cacheName: "fonts-cache",
               expiration: {
-                maxEntries: 10,
+                maxEntries: 20,
+                maxAgeSeconds: 60 * 60 * 24 * 365,
+              },
+            },
+          },
+          {
+            urlPattern: /^https:\/\/fonts\.(?:googleapis|gstatic)\.com\/.*/i,
+            handler: "CacheFirst",
+            options: {
+              cacheName: "google-fonts-cache",
+              expiration: {
+                maxEntries: 30,
                 maxAgeSeconds: 60 * 60 * 24 * 365,
               },
             },
