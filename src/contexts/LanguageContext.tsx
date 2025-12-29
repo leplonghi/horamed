@@ -274,6 +274,8 @@ const translations: Record<Language, Record<string, string>> = {
     'wizard.pushDesc': 'Apenas push',
     'wizard.alarm': 'Alarme',
     'wizard.alarmDesc': 'Som alto',
+    'wizard.withFood': 'Tomar com alimentos',
+    'wizard.withFoodTooltip': 'Alguns medicamentos são melhor absorvidos com alimentos',
     // StepStock translations
     'wizard.stockControlToggle': 'Controlar estoque',
     'wizard.stockControlDesc': 'Alertas quando estiver acabando',
@@ -3089,6 +3091,8 @@ const translations: Record<Language, Record<string, string>> = {
     'wizard.pushDesc': 'Push only',
     'wizard.alarm': 'Alarm',
     'wizard.alarmDesc': 'Loud sound',
+    'wizard.withFood': 'Take with food',
+    'wizard.withFoodTooltip': 'Some medications are better absorbed with food',
     // StepStock translations
     'wizard.stockControlToggle': 'Track stock',
     'wizard.stockControlDesc': 'Alerts when running low',
