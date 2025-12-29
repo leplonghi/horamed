@@ -81,7 +81,6 @@ export default function Header() {
               height={40}
               className="h-10 w-auto shrink-0"
               loading="eager"
-              fetchPriority="high"
             />
             <SubscriptionBadge />
             

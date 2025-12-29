@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format, startOfDay, endOfDay } from "date-fns";
@@ -493,39 +493,53 @@ export default function TodayRedesign() {
   useEffect(() => {
     loadData(selectedDate, true);
     loadEventCounts();
-  }, [selectedDate, activeProfile?.id]);
+  }, [selectedDate, activeProfile?.id, loadData, loadEventCounts]);
 
   // Agendar notificações apenas uma vez
   useEffect(() => {
     scheduleNotificationsForNextDay();
   }, [scheduleNotificationsForNextDay]);
 
-  // Realtime subscription para atualizações de doses/consultas/eventos
+  // Realtime subscription para atualizações de doses/consultas/eventos (com debounce)
+  const realtimeDebounceRef = useRef<number | null>(null);
+
+  const handleRealtimeChange = useCallback(() => {
+    if (realtimeDebounceRef.current) {
+      window.clearTimeout(realtimeDebounceRef.current);
+    }
+
+    realtimeDebounceRef.current = window.setTimeout(() => {
+      loadData(selectedDate);
+    }, 600);
+  }, [loadData, selectedDate]);
+
   useEffect(() => {
     const channel = supabase
       .channel("timeline-changes")
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "dose_instances" },
-        () => loadData(selectedDate)
+        handleRealtimeChange
       )
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "consultas_medicas" },
-        () => loadData(selectedDate)
+        handleRealtimeChange
       )
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "eventos_saude" },
-        () => loadData(selectedDate)
+        handleRealtimeChange
       )
       .subscribe();
 
     return () => {
+      if (realtimeDebounceRef.current) {
+        window.clearTimeout(realtimeDebounceRef.current);
+      }
       supabase.removeChannel(channel);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeProfile?.id, selectedDate]);
+  }, [activeProfile?.id, handleRealtimeChange]);
   const markAsTaken = async (doseId: string, itemId: string, itemName: string) => {
     try {
       const {
