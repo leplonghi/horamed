@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -23,11 +24,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { PaymentMethodModal } from "@/components/PaymentMethodModal";
 
 export default function SubscriptionManagement() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { subscription, isPremium, isFree, isExpired, daysLeft, loading, refresh } = useSubscription();
-  const [canceling, setCanceling] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [cancelStep, setCancelStep] = useState<'confirm' | 'fomo' | 'final'>('confirm');
   const [cancelingSubscription, setCancelingSubscription] = useState(false);
@@ -38,22 +41,17 @@ export default function SubscriptionManagement() {
     : 0;
   const isWithinFreeCancellation = daysSubscribed <= 7;
 
-  const handleManageSubscription = async () => {
-    setCanceling(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('customer-portal');
-      
-      if (error) throw error;
-      
-      if (data?.url) {
-        window.open(data.url, '_blank');
-      }
-    } catch (error: any) {
-      console.error('Portal error:', error);
-      toast.error("Erro ao abrir portal de gerenciamento");
-    } finally {
-      setCanceling(false);
+  // Check for payment update success
+  useEffect(() => {
+    if (searchParams.get('payment_updated') === 'true') {
+      toast.success("Forma de pagamento atualizada com sucesso!");
+      // Remove the query param
+      window.history.replaceState({}, '', '/assinatura');
     }
+  }, [searchParams]);
+
+  const handleOpenPaymentModal = () => {
+    setShowPaymentModal(true);
   };
 
   const handleCancelClick = () => {
@@ -243,10 +241,10 @@ export default function SubscriptionManagement() {
               <Button 
                 variant="default" 
                 className="w-full"
-                onClick={handleManageSubscription}
-                disabled={canceling}
+                onClick={handleOpenPaymentModal}
               >
-                {canceling ? "Abrindo..." : "Alterar Forma de Pagamento"}
+                <CreditCard className="h-4 w-4 mr-2" />
+                Alterar Forma de Pagamento
               </Button>
               
               <Button 
@@ -426,6 +424,13 @@ export default function SubscriptionManagement() {
           )}
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Payment Method Modal */}
+      <PaymentMethodModal 
+        open={showPaymentModal} 
+        onOpenChange={setShowPaymentModal}
+        onSuccess={refresh}
+      />
     </div>
   );
 }
