@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { addMinutes, addHours } from "date-fns";
+import { useNotificationTypes, NotificationType, NOTIFICATION_CONFIGS } from "./useNotificationTypes";
 
 // Check if running on native platform
 const isNativePlatform = Capacitor.isNativePlatform();
@@ -29,6 +30,7 @@ const CHANNEL_ID = "horamed-medicamentos";
 
 export const usePushNotifications = () => {
   const navigate = useNavigate();
+  const { getNotificationType } = useNotificationTypes();
   const [quietHours, setQuietHours] = useState<QuietHours>({
     enabled: false,
     startTime: "22:00",
@@ -184,7 +186,7 @@ export const usePushNotifications = () => {
     }
   };
 
-  // Schedule web notifications using the browser API
+  // Schedule web notifications using the browser API with time-based types
   const scheduleWebNotifications = async () => {
     if (!('Notification' in window) || Notification.permission !== 'granted') {
       return;
@@ -208,7 +210,10 @@ export const usePushNotifications = () => {
             id,
             name,
             dose_text,
-            user_id
+            user_id,
+            category,
+            notes,
+            notification_type
           )
         `)
         .eq("items.user_id", user.id)
@@ -220,6 +225,9 @@ export const usePushNotifications = () => {
       if (error) throw error;
       if (!doses || doses.length === 0) return;
 
+      // Clear any existing scheduled notifications in memory
+      const scheduledNotifications: number[] = [];
+
       // Schedule notifications using setTimeout (simple approach for web)
       doses.forEach((dose) => {
         const dueDate = new Date(dose.due_at);
@@ -230,13 +238,26 @@ export const usePushNotifications = () => {
           const itemData = Array.isArray(dose.items) ? dose.items[0] : dose.items;
           if (!itemData) return;
 
-          setTimeout(() => {
+          // Get notification type based on time and medication
+          const notificationConfig = getNotificationType(dueDate, {
+            category: itemData.category,
+            notes: itemData.notes,
+            notification_type: itemData.notification_type,
+          });
+
+          const hour = dueDate.getHours();
+          const timeEmoji = hour >= 5 && hour < 12 ? '🌅' : 
+                           hour >= 12 && hour < 18 ? '☀️' : 
+                           hour >= 18 && hour < 21 ? '🌆' : '🌙';
+
+          const timeoutId = setTimeout(() => {
             if (Notification.permission === 'granted' && !isInQuietHours(new Date())) {
-              const notification = new Notification(`💊 Hora do Remédio`, {
+              const notification = new Notification(`${timeEmoji} ${notificationConfig.title}`, {
                 body: `${itemData.name}${itemData.dose_text ? ` - ${itemData.dose_text}` : ''}`,
                 icon: '/favicon.png',
                 tag: `dose-${dose.id}`,
-                requireInteraction: true,
+                requireInteraction: notificationConfig.type === 'urgent' || notificationConfig.type === 'critical',
+                silent: notificationConfig.type === 'gentle',
               });
 
               notification.onclick = () => {
@@ -244,14 +265,66 @@ export const usePushNotifications = () => {
                 navigate("/hoje");
                 notification.close();
               };
+
+              // For critical/urgent notifications, show a follow-up reminder
+              if (notificationConfig.repeatInterval) {
+                setTimeout(() => {
+                  // Check if dose is still pending before repeating
+                  checkAndRepeatNotification(dose.id, itemData.name, notificationConfig);
+                }, notificationConfig.repeatInterval * 60 * 1000);
+              }
             }
           }, timeUntilDue);
+
+          scheduledNotifications.push(timeoutId as unknown as number);
         }
       });
 
       console.log(`✓ Scheduled ${doses.length} web notifications for next 24h`);
     } catch (error) {
       console.error("Error scheduling web notifications:", error);
+    }
+  };
+
+  // Check if dose is still pending and repeat notification
+  const checkAndRepeatNotification = async (
+    doseId: string, 
+    itemName: string, 
+    config: { title: string; type: string; repeatInterval?: number }
+  ) => {
+    try {
+      const { data: dose } = await supabase
+        .from("dose_instances")
+        .select("status")
+        .eq("id", doseId)
+        .single();
+
+      if (dose?.status === 'scheduled') {
+        // Dose still not taken, repeat notification
+        if ('Notification' in window && Notification.permission === 'granted') {
+          const notification = new Notification(`⚠️ Lembrete: ${config.title}`, {
+            body: `Você ainda não tomou ${itemName}`,
+            icon: '/favicon.png',
+            tag: `dose-repeat-${doseId}`,
+            requireInteraction: true,
+          });
+
+          notification.onclick = () => {
+            window.focus();
+            navigate("/hoje");
+            notification.close();
+          };
+
+          // Schedule another repeat if still critical
+          if (config.repeatInterval) {
+            setTimeout(() => {
+              checkAndRepeatNotification(doseId, itemName, config);
+            }, config.repeatInterval * 60 * 1000);
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Error checking dose status for repeat:", error);
     }
   };
 
@@ -518,7 +591,7 @@ export const usePushNotifications = () => {
         await LocalNotifications.cancel({ notifications: pending.notifications });
       }
 
-      // Schedule new notifications
+      // Schedule new notifications with time-based types
       const notifications = doses.map((dose, index) => {
         const dueDate = new Date(dose.due_at);
         
@@ -530,9 +603,21 @@ export const usePushNotifications = () => {
         const itemData = Array.isArray(dose.items) ? dose.items[0] : dose.items;
         if (!itemData) return null;
 
+        // Get notification type based on time and medication
+        const notificationConfig = getNotificationType(dueDate, {
+          category: (itemData as any).category || null,
+          notes: (itemData as any).notes || null,
+          notification_type: (itemData as any).notification_type || null,
+        });
+
+        const hour = dueDate.getHours();
+        const timeEmoji = hour >= 5 && hour < 12 ? '🌅' : 
+                         hour >= 12 && hour < 18 ? '☀️' : 
+                         hour >= 18 && hour < 21 ? '🌆' : '🌙';
+
         return {
           id: index + 1,
-          title: `💊 Hora do Remédio`,
+          title: `${timeEmoji} ${notificationConfig.title}`,
           body: `${itemData.name}${itemData.dose_text ? ` - ${itemData.dose_text}` : ''}`,
           largeBody: `Está na hora de tomar ${itemData.name}.${itemData.dose_text ? `\nDose: ${itemData.dose_text}` : ''}`,
           summaryText: "HoraMed",
@@ -543,13 +628,14 @@ export const usePushNotifications = () => {
             doseId: dose.id,
             itemName: itemData.name,
             type: "dose_reminder",
+            notificationType: notificationConfig.type,
           },
           smallIcon: "ic_stat_pill",
           largeIcon: "ic_launcher",
-          iconColor: "#10B981",
-          sound: "default",
-          ongoing: false,
-          autoCancel: true,
+          iconColor: notificationConfig.color,
+          sound: notificationConfig.sound === 'default' ? 'default' : notificationConfig.sound,
+          ongoing: notificationConfig.type === 'critical',
+          autoCancel: notificationConfig.type !== 'critical',
           group: "dose-reminders",
         };
       }).filter(Boolean);

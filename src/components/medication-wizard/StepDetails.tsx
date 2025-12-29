@@ -3,17 +3,20 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { ArrowRight, Utensils, FileText, Pill } from "lucide-react";
+import { ArrowRight, Utensils, FileText, Pill, Bell } from "lucide-react";
 import { motion } from "framer-motion";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useNotificationTypes, NotificationType, getNotificationTypeLabel, getNotificationTypeDescription } from "@/hooks/useNotificationTypes";
 
 interface StepDetailsProps {
   doseText: string;
   withFood: boolean;
   notes: string;
+  notificationType?: NotificationType;
   onDoseTextChange: (value: string) => void;
   onWithFoodChange: (value: boolean) => void;
   onNotesChange: (value: string) => void;
+  onNotificationTypeChange?: (value: NotificationType) => void;
   onComplete: () => void;
 }
 
@@ -21,12 +24,16 @@ export default function StepDetails({
   doseText,
   withFood,
   notes,
+  notificationType = 'normal',
   onDoseTextChange,
   onWithFoodChange,
   onNotesChange,
+  onNotificationTypeChange,
   onComplete
 }: StepDetailsProps) {
   const { t, language } = useLanguage();
+  const { getAllNotificationTypes } = useNotificationTypes();
+  const notificationTypes = getAllNotificationTypes();
 
   return (
     <motion.div
@@ -70,6 +77,41 @@ export default function StepDetails({
           onCheckedChange={onWithFoodChange}
         />
       </div>
+
+      {/* Tipo de Alerta */}
+      {onNotificationTypeChange && (
+        <div className="space-y-3">
+          <Label className="flex items-center gap-2 text-sm font-medium">
+            <Bell className="h-4 w-4 text-primary" />
+            {language === 'pt' ? 'Tipo de Alerta' : 'Alert Type'}
+          </Label>
+          <div className="grid grid-cols-2 gap-2">
+            {notificationTypes.map((type) => (
+              <button
+                key={type.value}
+                type="button"
+                onClick={() => onNotificationTypeChange(type.value as NotificationType)}
+                className={`p-3 rounded-xl border-2 text-left transition-all ${
+                  notificationType === type.value
+                    ? 'border-primary bg-primary/10'
+                    : 'border-border hover:border-primary/50'
+                }`}
+              >
+                <div className="flex items-center gap-2 mb-1">
+                  <div
+                    className="h-3 w-3 rounded-full"
+                    style={{ backgroundColor: type.color }}
+                  />
+                  <span className="font-medium text-sm">{type.label}</span>
+                </div>
+                <p className="text-xs text-muted-foreground line-clamp-2">
+                  {type.description}
+                </p>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Observações */}
       <div className="space-y-2">

@@ -6,11 +6,12 @@ import { Switch } from "@/components/ui/switch";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
-import { Pill, Leaf, Heart, Package, Check, ChevronsUpDown, Search, Zap, Moon, Shield, Droplets, Dumbbell } from "lucide-react";
+import { Pill, Leaf, Heart, Package, Check, ChevronsUpDown, Search, Zap, Moon, Shield, Droplets, Dumbbell, Bell } from "lucide-react";
 import { useFilteredMedicamentos } from "@/hooks/useMedicamentosBrasileiros";
 import { cn } from "@/lib/utils";
 import { Card } from "@/components/ui/card";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useNotificationTypes, NotificationType } from "@/hooks/useNotificationTypes";
 
 interface WizardStepIdentityProps {
   data: {
@@ -20,14 +21,17 @@ interface WizardStepIdentityProps {
     supplementCategory?: string;
     doseText?: string;
     withFood?: boolean;
+    notificationType?: string;
   };
   updateData: (data: Partial<any>) => void;
 }
 
 export function WizardStepIdentity({ data, updateData }: WizardStepIdentityProps) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [open, setOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const { getAllNotificationTypes } = useNotificationTypes();
+  const notificationTypes = getAllNotificationTypes();
 
   const supplementCategories = [
     { value: "energy", label: t('wizard.energy'), icon: Zap, color: "text-amber-500", bgColor: "bg-amber-50 dark:bg-amber-950/30", description: t('wizard.energyDesc') },
@@ -293,7 +297,46 @@ export function WizardStepIdentity({ data, updateData }: WizardStepIdentityProps
         <Switch
           checked={data.withFood || false}
           onCheckedChange={(checked) => updateData({ withFood: checked })}
-        />
+      />
+      </div>
+
+      {/* Tipo de Alerta */}
+      <div className="space-y-3">
+        <Label className="text-base font-semibold flex items-center gap-2">
+          <Bell className="h-4 w-4 text-primary" />
+          {language === 'pt' ? 'Tipo de Alerta' : 'Alert Type'}
+        </Label>
+        <div className="grid grid-cols-2 gap-2">
+          {notificationTypes.map((type) => {
+            const isSelected = (data.notificationType || 'normal') === type.value;
+            return (
+              <Card
+                key={type.value}
+                onClick={() => updateData({ notificationType: type.value })}
+                className={cn(
+                  "p-3 cursor-pointer transition-all active:scale-[0.98]",
+                  isSelected 
+                    ? "border-2 border-primary bg-primary/5" 
+                    : "hover:border-primary/30"
+                )}
+              >
+                <div className="flex items-center gap-2 mb-1">
+                  <div
+                    className="h-3 w-3 rounded-full shrink-0"
+                    style={{ backgroundColor: type.color }}
+                  />
+                  <span className="text-sm font-medium">{type.label}</span>
+                  {isSelected && (
+                    <Check className="w-4 h-4 text-primary ml-auto shrink-0" />
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground line-clamp-2 pl-5">
+                  {type.description}
+                </p>
+              </Card>
+            );
+          })}
+        </div>
       </div>
 
       {/* Observações */}
