@@ -17,6 +17,7 @@ import { usePushNotifications } from "./hooks/usePushNotifications";
 
 // Critical components loaded immediately
 import Index from "./pages/Index";
+import Landing from "./pages/Landing";
 import SplashScreen from "./components/SplashScreen";
 import Navigation from "./components/Navigation";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -111,6 +112,7 @@ function AppContent() {
         <Routes>
           <Route path="/auth" element={<Auth />} />
           <Route path="/" element={<Index />} />
+          <Route path="/landing-preview" element={<Landing />} />
           
           {/* Main navigation routes - HoraMed 2.0 */}
           <Route path="/hoje" element={<ProtectedRoute><TodayRedesign /></ProtectedRoute>} />
