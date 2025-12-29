@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { format, addDays, addHours, setHours, setMinutes } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Bell, BellOff, Plus, Trash2, Clock, Calendar, Volume2, VolumeX, Vibrate, RefreshCw, Play, Settings, ChevronRight, AlertCircle, CheckCircle } from 'lucide-react';
+import { Bell, BellOff, Plus, Trash2, Clock, Calendar, Volume2, VolumeX, Vibrate, RefreshCw, Play, Settings, ChevronRight, AlertCircle, CheckCircle, Cloud, CloudOff } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -55,6 +55,7 @@ export default function AlarmManager() {
   const {
     alarms,
     loading,
+    syncing,
     error,
     createAlarm,
     deleteAlarm,
@@ -63,6 +64,7 @@ export default function AlarmManager() {
     requestPermission,
     permissionStatus,
     isSupported,
+    syncWithCloud,
   } = useAlarms();
 
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -204,6 +206,15 @@ export default function AlarmManager() {
               </CardDescription>
             </div>
             <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={syncWithCloud}
+                disabled={syncing}
+                title="Sincronizar com a nuvem"
+              >
+                <Cloud className={cn("h-4 w-4", syncing && "animate-pulse")} />
+              </Button>
               <Button
                 variant="outline"
                 size="sm"

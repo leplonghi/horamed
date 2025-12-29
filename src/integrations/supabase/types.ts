@@ -89,6 +89,69 @@ export type Database = {
         }
         Relationships: []
       }
+      alarms: {
+        Row: {
+          action: string | null
+          category: string | null
+          created_at: string
+          enabled: boolean
+          id: string
+          last_triggered: string | null
+          message: string | null
+          metadata: Json | null
+          recurrence: string
+          require_interaction: boolean
+          scheduled_at: string
+          silent: boolean
+          sound: boolean
+          title: string
+          updated_at: string
+          url: string | null
+          user_id: string
+          vibrate: boolean
+        }
+        Insert: {
+          action?: string | null
+          category?: string | null
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          last_triggered?: string | null
+          message?: string | null
+          metadata?: Json | null
+          recurrence?: string
+          require_interaction?: boolean
+          scheduled_at: string
+          silent?: boolean
+          sound?: boolean
+          title: string
+          updated_at?: string
+          url?: string | null
+          user_id: string
+          vibrate?: boolean
+        }
+        Update: {
+          action?: string | null
+          category?: string | null
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          last_triggered?: string | null
+          message?: string | null
+          metadata?: Json | null
+          recurrence?: string
+          require_interaction?: boolean
+          scheduled_at?: string
+          silent?: boolean
+          sound?: boolean
+          title?: string
+          updated_at?: string
+          url?: string | null
+          user_id?: string
+          vibrate?: boolean
+        }
+        Relationships: []
+      }
       app_metrics: {
         Row: {
           created_at: string
