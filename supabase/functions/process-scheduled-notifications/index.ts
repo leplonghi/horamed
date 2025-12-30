@@ -21,6 +21,7 @@ interface ChannelResult {
   channel: string;
   success: boolean;
   error?: string;
+  timestamp: string;
 }
 
 async function sendPushNotification(
@@ -29,6 +30,7 @@ async function sendPushNotification(
   body: string,
   data: Record<string, any>
 ): Promise<ChannelResult> {
+  const timestamp = new Date().toISOString();
   try {
     const fcmResponse = await fetch('https://fcm.googleapis.com/fcm/send', {
       method: 'POST',
@@ -43,7 +45,11 @@ async function sendPushNotification(
         priority: 'high',
         android: {
           priority: 'high',
-          notification: { sound: 'default', click_action: 'FLUTTER_NOTIFICATION_CLICK' },
+          notification: { 
+            sound: 'default', 
+            click_action: 'FLUTTER_NOTIFICATION_CLICK',
+            channel_id: 'horamed-medicamentos',
+          },
         },
         apns: {
           payload: { aps: { sound: 'default', 'content-available': 1 } },
@@ -55,19 +61,21 @@ async function sendPushNotification(
     const result = await fcmResponse.json();
     
     if (fcmResponse.ok && result.success === 1) {
-      return { channel: 'push', success: true };
+      return { channel: 'push', success: true, timestamp };
     }
-    return { channel: 'push', success: false, error: JSON.stringify(result) };
+    return { channel: 'push', success: false, error: JSON.stringify(result), timestamp };
   } catch (e: any) {
-    return { channel: 'push', success: false, error: e.message };
+    return { channel: 'push', success: false, error: e.message, timestamp };
   }
 }
 
 async function sendEmail(
   toEmail: string,
   title: string,
-  body: string
+  body: string,
+  metadata?: any
 ): Promise<ChannelResult> {
+  const timestamp = new Date().toISOString();
   const smtpHost = Deno.env.get("SMTP_HOST");
   const smtpPort = parseInt(Deno.env.get("SMTP_PORT") || "465");
   const smtpUser = Deno.env.get("SMTP_USER");
@@ -75,7 +83,7 @@ async function sendEmail(
   const fromEmail = Deno.env.get("SMTP_FROM_EMAIL");
 
   if (!smtpHost || !smtpUser || !smtpPassword || !fromEmail) {
-    return { channel: 'email', success: false, error: 'SMTP not configured' };
+    return { channel: 'email', success: false, error: 'SMTP not configured', timestamp };
   }
 
   try {
@@ -97,19 +105,34 @@ async function sendEmail(
       });
     }
 
+    const appUrl = Deno.env.get('APP_URL') || 'https://app.horamed.net';
+    const doseUrl = metadata?.dose_id ? `${appUrl}/hoje?dose=${metadata.dose_id}` : appUrl;
+
     const emailHtml = `
 <!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
-    body { font-family: Arial, sans-serif; background: #f5f5f5; margin: 0; padding: 20px; }
-    .container { max-width: 500px; margin: 0 auto; background: white; border-radius: 12px; padding: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-    .header { text-align: center; margin-bottom: 20px; }
-    .logo { font-size: 24px; font-weight: bold; color: #3B82F6; }
-    .title { font-size: 20px; color: #1f2937; margin: 20px 0 10px; }
-    .body { font-size: 16px; color: #4b5563; line-height: 1.6; }
-    .footer { margin-top: 30px; font-size: 12px; color: #9ca3af; text-align: center; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: #f5f5f5; margin: 0; padding: 20px; }
+    .container { max-width: 500px; margin: 0 auto; background: white; border-radius: 16px; padding: 32px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+    .header { text-align: center; margin-bottom: 24px; }
+    .logo { font-size: 28px; font-weight: 700; color: #10B981; }
+    .title { font-size: 22px; color: #1f2937; margin: 24px 0 12px; font-weight: 600; }
+    .body { font-size: 17px; color: #4b5563; line-height: 1.6; }
+    .cta { display: block; text-align: center; margin: 28px 0; }
+    .cta a { 
+      display: inline-block;
+      background: #10B981; 
+      color: white; 
+      text-decoration: none; 
+      padding: 14px 32px; 
+      border-radius: 12px; 
+      font-weight: 600;
+      font-size: 16px;
+    }
+    .footer { margin-top: 32px; font-size: 13px; color: #9ca3af; text-align: center; border-top: 1px solid #e5e7eb; padding-top: 20px; }
   </style>
 </head>
 <body>
@@ -119,7 +142,13 @@ async function sendEmail(
     </div>
     <h1 class="title">${title}</h1>
     <p class="body">${body}</p>
-    <p class="footer">HoraMed - Sua saúde no horário certo</p>
+    <div class="cta">
+      <a href="${doseUrl}">Registrar dose</a>
+    </div>
+    <p class="footer">
+      Este é um lembrete automático do HoraMed.<br>
+      Sua saúde no horário certo.
+    </p>
   </div>
 </body>
 </html>`;
@@ -127,50 +156,39 @@ async function sendEmail(
     await client.send({
       from: fromEmail,
       to: toEmail,
-      subject: `HoraMed: ${title}`,
+      subject: `💊 ${title}`,
       content: body,
       html: emailHtml,
     });
 
     await client.close();
-    return { channel: 'email', success: true };
+    return { channel: 'email', success: true, timestamp };
   } catch (e: any) {
-    return { channel: 'email', success: false, error: e.message };
+    return { channel: 'email', success: false, error: e.message, timestamp };
   }
 }
 
-async function sendWhatsApp(
-  phoneNumber: string,
+async function sendWebPush(
+  subscription: { endpoint: string; p256dh: string; auth: string },
   title: string,
-  body: string
+  body: string,
+  data: Record<string, any>
 ): Promise<ChannelResult> {
-  const evolutionUrl = Deno.env.get('EVOLUTION_API_URL');
-  const evolutionKey = Deno.env.get('EVOLUTION_API_KEY');
-
-  if (!evolutionUrl || !evolutionKey) {
-    return { channel: 'whatsapp', success: false, error: 'Evolution API not configured' };
-  }
-
+  const timestamp = new Date().toISOString();
+  
   try {
-    const response = await fetch(`${evolutionUrl}/message/sendText/horamed`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'apikey': evolutionKey,
-      },
-      body: JSON.stringify({
-        number: phoneNumber,
-        text: `*${title}*\n\n${body}\n\n_HoraMed - Sua saúde no horário certo_`,
-      }),
-    });
-
-    if (response.ok) {
-      return { channel: 'whatsapp', success: true };
+    const vapidPublicKey = Deno.env.get('VAPID_PUBLIC_KEY');
+    const vapidPrivateKey = Deno.env.get('VAPID_PRIVATE_KEY');
+    
+    if (!vapidPublicKey || !vapidPrivateKey) {
+      return { channel: 'web_push', success: false, error: 'VAPID not configured', timestamp };
     }
-    const errorText = await response.text();
-    return { channel: 'whatsapp', success: false, error: errorText };
+
+    // Send via web-push library or direct implementation
+    // For now, we'll mark as not implemented since web push requires complex crypto
+    return { channel: 'web_push', success: false, error: 'Web push pending implementation', timestamp };
   } catch (e: any) {
-    return { channel: 'whatsapp', success: false, error: e.message };
+    return { channel: 'web_push', success: false, error: e.message, timestamp };
   }
 }
 
@@ -182,7 +200,7 @@ Deno.serve(async (req) => {
   const startTime = Date.now();
 
   try {
-    console.log('[MULTI-NOTIFY] Starting scheduled notifications processing...');
+    console.log('[PROCESS-NOTIFY] Starting...');
 
     // Verify authentication
     const authHeader = req.headers.get('Authorization');
@@ -201,7 +219,7 @@ Deno.serve(async (req) => {
       { auth: { autoRefreshToken: false, persistSession: false } }
     );
 
-    // Fetch scheduled notifications
+    // Fetch scheduled notifications due now
     const now = new Date().toISOString();
     const { data: scheduledNotifications, error: fetchError } = await supabaseAdmin
       .from('notification_logs')
@@ -209,10 +227,10 @@ Deno.serve(async (req) => {
       .eq('delivery_status', 'scheduled')
       .lte('scheduled_at', now)
       .order('scheduled_at', { ascending: true })
-      .limit(50);
+      .limit(100);
 
     if (fetchError) {
-      console.error('[MULTI-NOTIFY] Fetch error:', fetchError);
+      console.error('[PROCESS-NOTIFY] Fetch error:', fetchError);
       return new Response(
         JSON.stringify({ error: 'Failed to fetch', details: fetchError }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -220,68 +238,97 @@ Deno.serve(async (req) => {
     }
 
     if (!scheduledNotifications || scheduledNotifications.length === 0) {
-      console.log('[MULTI-NOTIFY] No notifications to process');
+      console.log('[PROCESS-NOTIFY] No notifications to process');
       return new Response(
         JSON.stringify({ success: true, processed: 0 }),
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log(`[MULTI-NOTIFY] Processing ${scheduledNotifications.length} notifications`);
+    console.log(`[PROCESS-NOTIFY] Processing ${scheduledNotifications.length} notifications`);
 
     let successCount = 0;
     let failureCount = 0;
+    let fallbackCount = 0;
 
     for (const notification of scheduledNotifications as NotificationLog[]) {
       try {
-        console.log(`[MULTI-NOTIFY] Processing ${notification.id}`);
+        console.log(`[PROCESS-NOTIFY] Processing ${notification.id} for user ${notification.user_id}`);
+
+        // Mark as processing to avoid duplicate sends
+        await supabaseAdmin.from('notification_logs').update({
+          delivery_status: 'processing',
+        }).eq('id', notification.id);
 
         // Get user preferences
         const { data: preferences } = await supabaseAdmin
           .from('notification_preferences')
           .select('push_enabled, push_token, email_enabled, whatsapp_enabled, whatsapp_number')
           .eq('user_id', notification.user_id)
-          .single();
+          .maybeSingle();
 
         // Get user email
         const { data: { user } } = await supabaseAdmin.auth.admin.getUserById(notification.user_id);
         const userEmail = user?.email;
 
-        const results: ChannelResult[] = [];
+        // Get web push subscription
+        const { data: pushSubscription } = await supabaseAdmin
+          .from('push_subscriptions')
+          .select('endpoint, p256dh, auth')
+          .eq('user_id', notification.user_id)
+          .maybeSingle();
 
-        // 1. Try Push
+        const results: ChannelResult[] = [];
+        const notificationData = { 
+          notificationId: notification.id,
+          doseId: notification.dose_id || '',
+          type: notification.notification_type 
+        };
+
+        // 1. Try Push (FCM)
         if (preferences?.push_enabled && preferences?.push_token) {
           const pushResult = await sendPushNotification(
             preferences.push_token,
             notification.title,
             notification.body,
-            { 
-              notificationId: notification.id,
-              doseId: notification.dose_id || '',
-              type: notification.notification_type 
-            }
+            notificationData
           );
           results.push(pushResult);
-          console.log(`[MULTI-NOTIFY] Push: ${pushResult.success ? 'OK' : pushResult.error}`);
+          console.log(`[PROCESS-NOTIFY] Push: ${pushResult.success ? 'OK' : pushResult.error}`);
         }
 
-        // 2. Try Email (default enabled)
-        const emailEnabled = preferences?.email_enabled !== false;
-        if (emailEnabled && userEmail) {
-          const emailResult = await sendEmail(userEmail, notification.title, notification.body);
-          results.push(emailResult);
-          console.log(`[MULTI-NOTIFY] Email: ${emailResult.success ? 'OK' : emailResult.error}`);
-        }
-
-        // 3. Try WhatsApp
-        if (preferences?.whatsapp_enabled && preferences?.whatsapp_number) {
-          const waResult = await sendWhatsApp(
-            preferences.whatsapp_number,
+        // 2. Try Web Push if available
+        if (pushSubscription?.endpoint) {
+          const webPushResult = await sendWebPush(
+            pushSubscription,
             notification.title,
-            notification.body
+            notification.body,
+            notificationData
           );
-          results.push(waResult);
-          console.log(`[MULTI-NOTIFY] WhatsApp: ${waResult.success ? 'OK' : waResult.error}`);
+          results.push(webPushResult);
+          console.log(`[PROCESS-NOTIFY] Web Push: ${webPushResult.success ? 'OK' : webPushResult.error}`);
+        }
+
+        // Check if any push succeeded
+        const pushSuccess = results.some(r => r.success && (r.channel === 'push' || r.channel === 'web_push'));
+
+        // 3. Email as fallback if push failed, or if email is explicitly enabled
+        const shouldSendEmail = (preferences?.email_enabled !== false && userEmail) && 
+          (!pushSuccess || notification.metadata?.priority === 'high');
+        
+        if (shouldSendEmail) {
+          const emailResult = await sendEmail(
+            userEmail!,
+            notification.title,
+            notification.body,
+            { dose_id: notification.dose_id }
+          );
+          results.push(emailResult);
+          console.log(`[PROCESS-NOTIFY] Email${!pushSuccess ? ' (fallback)' : ''}: ${emailResult.success ? 'OK' : emailResult.error}`);
+          
+          if (!pushSuccess && emailResult.success) {
+            fallbackCount++;
+          }
         }
 
         const anySuccess = results.some(r => r.success);
@@ -290,14 +337,28 @@ Deno.serve(async (req) => {
           delivery_status: anySuccess ? 'delivered' : 'failed',
           sent_at: anySuccess ? new Date().toISOString() : null,
           error_message: anySuccess ? null : results.map(r => `${r.channel}: ${r.error}`).join('; '),
-          metadata: { ...notification.metadata, channels: results },
+          metadata: { 
+            ...notification.metadata, 
+            channels: results,
+            used_fallback: !pushSuccess && results.some(r => r.channel === 'email' && r.success),
+          },
         }).eq('id', notification.id);
 
         if (anySuccess) successCount++;
         else failureCount++;
 
+        // Track notification metric
+        await supabaseAdmin.from('notification_metrics').insert({
+          user_id: notification.user_id,
+          dose_id: notification.dose_id,
+          notification_type: notification.notification_type,
+          delivery_status: anySuccess ? 'delivered' : 'failed',
+          error_message: anySuccess ? null : results.map(r => `${r.channel}: ${r.error}`).join('; '),
+          metadata: { channels: results.map(r => ({ channel: r.channel, success: r.success })) },
+        });
+
       } catch (error: any) {
-        console.error(`[MULTI-NOTIFY] Error ${notification.id}:`, error.message);
+        console.error(`[PROCESS-NOTIFY] Error ${notification.id}:`, error.message);
         await supabaseAdmin.from('notification_logs').update({
           delivery_status: 'failed',
           error_message: error.message,
@@ -307,7 +368,20 @@ Deno.serve(async (req) => {
     }
 
     const duration = Date.now() - startTime;
-    console.log(`[MULTI-NOTIFY] Done in ${duration}ms. Success: ${successCount}, Failed: ${failureCount}`);
+    
+    // Log aggregate telemetry
+    await supabaseAdmin.from('app_metrics').insert({
+      event_name: 'notifications_processed',
+      event_data: {
+        total: scheduledNotifications.length,
+        success: successCount,
+        failed: failureCount,
+        fallback_used: fallbackCount,
+        duration_ms: duration,
+      },
+    });
+
+    console.log(`[PROCESS-NOTIFY] Done in ${duration}ms. Success: ${successCount}, Failed: ${failureCount}, Fallback: ${fallbackCount}`);
 
     return new Response(
       JSON.stringify({
@@ -315,13 +389,14 @@ Deno.serve(async (req) => {
         processed: scheduledNotifications.length,
         successful: successCount,
         failed: failureCount,
+        fallback_used: fallbackCount,
         duration_ms: duration,
       }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
   } catch (error: any) {
-    console.error('[MULTI-NOTIFY] Fatal error:', error.message);
+    console.error('[PROCESS-NOTIFY] Fatal error:', error.message);
     return new Response(
       JSON.stringify({ error: error.message }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
