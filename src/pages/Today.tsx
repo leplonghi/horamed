@@ -537,8 +537,8 @@ export default function Today() {
             </motion.section>
           )}
 
-          {/* No events today - Compact version */}
-          {hasAnyItems && doses.length === 0 && (
+          {/* Unified status message - Only show when no pending doses */}
+          {hasAnyItems && pendingDoses.length === 0 && (
             <motion.div 
               initial={{ opacity: 0, y: 5 }} 
               animate={{ opacity: 1, y: 0 }}
@@ -547,24 +547,9 @@ export default function Today() {
               <div className="w-8 h-8 rounded-lg bg-success/20 flex items-center justify-center flex-shrink-0">
                 <Check className="w-4 h-4 text-success" />
               </div>
-              <div className="min-w-0">
-                <p className="text-sm font-medium text-success">{t('today.allGood')}</p>
-                <p className="text-xs text-muted-foreground">{t('today.noScheduledDoses')}</p>
-              </div>
-            </motion.div>
-          )}
-
-          {/* All doses done - Compact version */}
-          {hasAnyItems && upcomingDoses.length === 0 && overdueDoses.length === 0 && takenDoses.length > 0 && (
-            <motion.div 
-              initial={{ opacity: 0, y: 5 }} 
-              animate={{ opacity: 1, y: 0 }}
-              className="flex items-center gap-3 px-4 py-3 rounded-xl bg-success/10 border border-success/20"
-            >
-              <div className="w-8 h-8 rounded-lg bg-success/20 flex items-center justify-center flex-shrink-0">
-                <Check className="w-4 h-4 text-success" />
-              </div>
-              <p className="text-sm font-medium text-success">{t('today.noPendingDoses')}</p>
+              <p className="text-sm font-medium text-success">
+                {takenDoses.length > 0 ? t('today.allDoneForToday') : t('today.noScheduledDoses')}
+              </p>
             </motion.div>
           )}
 

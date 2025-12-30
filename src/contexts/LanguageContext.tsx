@@ -115,7 +115,8 @@ const translations: Record<Language, Record<string, string>> = {
     'today.take': 'Tomar',
     'today.swipeHint': '← deslize →',
     'today.noPendingDoses': 'Sem doses pendentes por agora',
-    'today.noScheduledDoses': 'Seus medicamentos não têm doses agendadas para hoje',
+    'today.noScheduledDoses': 'Nenhum medicamento agendado para hoje',
+    'today.allDoneForToday': 'Tudo em dia por hoje! 🎉',
     'today.helpTooltip': 'Esta é sua tela principal. Aqui você vê todas as doses do dia e confirma quando tomar cada medicamento.',
 
     // Today (TodayRedesign)
@@ -2932,7 +2933,8 @@ const translations: Record<Language, Record<string, string>> = {
     'today.take': 'Take',
     'today.swipeHint': '← swipe →',
     'today.noPendingDoses': 'No pending doses right now',
-    'today.noScheduledDoses': 'Your medications have no doses scheduled for today',
+    'today.noScheduledDoses': 'No medications scheduled for today',
+    'today.allDoneForToday': 'All done for today! 🎉',
     'today.helpTooltip': 'This is your main screen. Here you see all doses for the day and confirm when you take each medication.',
 
     // Today (TodayRedesign)
