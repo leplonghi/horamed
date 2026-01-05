@@ -10,7 +10,7 @@
 
 import { useEffect, useRef, useCallback, useState } from "react";
 import { Capacitor } from "@capacitor/core";
-import { LocalNotifications, ScheduleOptions } from "@capacitor/local-notifications";
+import { LocalNotifications } from "@capacitor/local-notifications";
 import { PushNotifications } from "@capacitor/push-notifications";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -49,13 +49,6 @@ interface AlarmDiagnostics {
   totalFailed: number;
 }
 
-// Alarm sounds for Android - using notification channel sound
-const ALARM_SOUNDS = {
-  default: "notification.wav",
-  urgent: "alarm.wav",
-  gentle: "chime.wav",
-};
-
 export const useAndroidAlarm = () => {
   const isNative = Capacitor.isNativePlatform();
   const isAndroid = Capacitor.getPlatform() === "android";
@@ -72,6 +65,54 @@ export const useAndroidAlarm = () => {
   const scheduledAlarmsRef = useRef<Set<string>>(new Set());
 
   /**
+   * Log to Supabase notification_logs
+   */
+  const logToSupabase = useCallback(async (log: AlarmLog) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      await supabase.from("notification_logs").insert({
+        user_id: user.id,
+        dose_id: log.doseId || null,
+        notification_type: "local_alarm",
+        title: log.type,
+        body: log.details || "",
+        scheduled_at: log.timestamp.toISOString(),
+        delivery_status: log.success ? "delivered" : "failed",
+        metadata: {
+          alarmId: log.alarmId,
+          platform: "android",
+        },
+      });
+    } catch (error) {
+      console.error("[AndroidAlarm] Error logging to Supabase:", error);
+    }
+  }, []);
+
+  /**
+   * Log alarm event for diagnostics
+   */
+  const logAlarmEvent = useCallback((log: AlarmLog) => {
+    logsRef.current.push(log);
+    
+    // Keep only last 100 logs
+    if (logsRef.current.length > 100) {
+      logsRef.current = logsRef.current.slice(-100);
+    }
+
+    // Persist to localStorage
+    try {
+      localStorage.setItem("alarm_logs", JSON.stringify(logsRef.current));
+    } catch (e) {
+      // Ignore quota errors
+    }
+
+    // Also log to Supabase for analytics
+    logToSupabase(log).catch(console.error);
+  }, [logToSupabase]);
+
+  /**
    * Initialize notification channel for Android
    * CRITICAL: Uses HIGH importance for alarm behavior
    */
@@ -86,10 +127,10 @@ export const useAndroidAlarm = () => {
         description: "Alarmes importantes para lembrar de tomar medicamentos",
         importance: 5, // IMPORTANCE_HIGH - heads-up notification
         visibility: 1, // PUBLIC
-        sound: "notification.wav", // Custom sound
+        sound: "notification.wav",
         vibration: true,
         lights: true,
-        lightColor: "#10B981", // HoraMed green
+        lightColor: "#10B981",
       });
 
       console.log("[AndroidAlarm] ✓ Notification channel created:", ALARM_CHANNEL_ID);
@@ -104,7 +145,7 @@ export const useAndroidAlarm = () => {
         sound: "alarm.wav",
         vibration: true,
         lights: true,
-        lightColor: "#EF4444", // Red for critical
+        lightColor: "#EF4444",
       });
 
       console.log("[AndroidAlarm] ✓ Critical channel created");
@@ -117,7 +158,7 @@ export const useAndroidAlarm = () => {
         success: false,
       });
     }
-  }, [isNative, isAndroid]);
+  }, [isNative, isAndroid, logAlarmEvent]);
 
   /**
    * Check and request all necessary permissions
@@ -170,7 +211,7 @@ export const useAndroidAlarm = () => {
       }));
       return false;
     }
-  }, [isNative, initializeNotificationChannel]);
+  }, [isNative, initializeNotificationChannel, logAlarmEvent]);
 
   /**
    * Schedule a local alarm notification
@@ -191,7 +232,7 @@ export const useAndroidAlarm = () => {
     }
 
     try {
-      const scheduleOptions: ScheduleOptions = {
+      await LocalNotifications.schedule({
         notifications: [
           {
             id: config.id,
@@ -212,14 +253,10 @@ export const useAndroidAlarm = () => {
               scheduledAt: config.scheduledAt.toISOString(),
               ...config.extra,
             },
-            // Android specific
-            autoCancel: false, // Keep notification until user interacts
-            ongoing: false,
+            autoCancel: false,
           },
         ],
-      };
-
-      await LocalNotifications.schedule(scheduleOptions);
+      });
       
       scheduledAlarmsRef.current.add(alarmKey);
       
@@ -263,7 +300,7 @@ export const useAndroidAlarm = () => {
 
       return false;
     }
-  }, [isNative]);
+  }, [isNative, logAlarmEvent]);
 
   /**
    * Schedule alarms for all pending doses
@@ -357,54 +394,6 @@ export const useAndroidAlarm = () => {
   }, [isNative]);
 
   /**
-   * Log alarm event for diagnostics
-   */
-  const logAlarmEvent = useCallback((log: AlarmLog) => {
-    logsRef.current.push(log);
-    
-    // Keep only last 100 logs
-    if (logsRef.current.length > 100) {
-      logsRef.current = logsRef.current.slice(-100);
-    }
-
-    // Persist to localStorage
-    try {
-      localStorage.setItem("alarm_logs", JSON.stringify(logsRef.current));
-    } catch (e) {
-      // Ignore quota errors
-    }
-
-    // Also log to Supabase for analytics
-    logToSupabase(log).catch(console.error);
-  }, []);
-
-  /**
-   * Log to Supabase notification_logs
-   */
-  const logToSupabase = async (log: AlarmLog) => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      await supabase.from("notification_logs").insert({
-        user_id: user.id,
-        dose_id: log.doseId || null,
-        notification_type: "local_alarm",
-        title: log.type,
-        body: log.details || "",
-        scheduled_at: log.timestamp.toISOString(),
-        delivery_status: log.success ? "delivered" : "failed",
-        metadata: {
-          alarmId: log.alarmId,
-          platform: "android",
-        },
-      });
-    } catch (error) {
-      console.error("[AndroidAlarm] Error logging to Supabase:", error);
-    }
-  };
-
-  /**
    * Get alarm logs for diagnostics
    */
   const getAlarmLogs = useCallback((): AlarmLog[] => {
@@ -450,7 +439,6 @@ export const useAndroidAlarm = () => {
    */
   const checkBatteryOptimization = useCallback(async (): Promise<boolean | null> => {
     if (!isAndroid) return null;
-
     // This would require a custom Capacitor plugin to check
     // For now, we'll assume it's not exempt and show the warning
     return false;
@@ -529,7 +517,7 @@ export const useAndroidAlarm = () => {
     return () => {
       LocalNotifications.removeAllListeners();
     };
-  }, [isNative, isAndroid, initializeNotificationChannel]);
+  }, [isNative, isAndroid, initializeNotificationChannel, logAlarmEvent]);
 
   return {
     // State
