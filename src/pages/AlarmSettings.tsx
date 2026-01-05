@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Bell, Volume2, Clock, AlertCircle, Smartphone } from "lucide-react";
+import { Bell, Volume2, Clock, AlertCircle, Smartphone, Activity, Battery, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import Header from "@/components/Header";
 import Navigation from "@/components/Navigation";
@@ -13,6 +13,9 @@ import { Capacitor } from "@capacitor/core";
 import { LocalNotifications } from "@capacitor/local-notifications";
 import NotificationMetrics from "@/components/NotificationMetrics";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useAndroidAlarm } from "@/hooks/useAndroidAlarm";
+import BatteryOptimizationPrompt from "@/components/BatteryOptimizationPrompt";
+import { useNavigate } from "react-router-dom";
 
 const ALARM_SOUNDS = [
   { id: "beep", nameKey: "beepSimple", url: "data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLTgjMGHm7A7+OZUQ0PVqzn7qxaFg1Lp+LyvmohBSx+zPLTgjIFHm3A7+GZUQ0PVqzn7qxaFg1" },
@@ -38,12 +41,22 @@ const SOUND_NAMES: Record<string, Record<string, string>> = {
 
 export default function AlarmSettings() {
   const { t, language } = useLanguage();
+  const navigate = useNavigate();
   const [alarmEnabled, setAlarmEnabled] = useState(true);
   const [selectedSound, setSelectedSound] = useState("beep");
   const [duration, setDuration] = useState([30]);
   const [alertMinutes, setAlertMinutes] = useState([5]);
   const [testAudio, setTestAudio] = useState<HTMLAudioElement | null>(null);
   const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>("default");
+
+  const { 
+    isAndroid, 
+    isNative, 
+    diagnostics, 
+    requestPermissions,
+    scheduleAllPendingDoses,
+    sendTestAlarm,
+  } = useAndroidAlarm();
 
   useEffect(() => {
     // Load saved settings
@@ -62,7 +75,7 @@ export default function AlarmSettings() {
     }
   }, []);
 
-  const saveSettings = () => {
+  const saveSettings = async () => {
     const settings = {
       enabled: alarmEnabled,
       sound: selectedSound,
@@ -70,11 +83,25 @@ export default function AlarmSettings() {
       alertMinutes: alertMinutes[0],
     };
     localStorage.setItem("alarmSettings", JSON.stringify(settings));
+    
+    // Re-schedule all alarms with new settings
+    if (isNative && alarmEnabled) {
+      await scheduleAllPendingDoses();
+    }
+    
     toast.success(t('alarm.saved'));
   };
 
   const requestNotificationPermission = async () => {
-    if ("Notification" in window) {
+    if (isNative) {
+      const granted = await requestPermissions();
+      if (granted) {
+        setNotificationPermission("granted");
+        toast.success(t('alarm.notifEnabled'));
+      } else {
+        toast.error(t('alarm.notifDenied'));
+      }
+    } else if ("Notification" in window) {
       const permission = await Notification.requestPermission();
       setNotificationPermission(permission);
       if (permission === "granted") {
@@ -93,23 +120,21 @@ export default function AlarmSettings() {
     }
 
     // Test native notification if on mobile
-    if (Capacitor.isNativePlatform()) {
-      try {
-        await LocalNotifications.schedule({
-          notifications: [
-            {
-              title: t('alarm.testTitle'),
-              body: t('alarm.testBody'),
-              id: Math.floor(Math.random() * 100000),
-              schedule: { at: new Date(Date.now() + 100) },
-              sound: undefined,
-            },
-          ],
-        });
-        toast.success(t('alarm.testSent'));
-      } catch (error) {
-        console.error("Error testing notification:", error);
-        toast.error(t('alarm.testError'));
+    if (isNative) {
+      // Use Android alarm hook for better testing
+      const success = await sendTestAlarm(120); // 2 minutes
+      if (success) {
+        toast.info(
+          language === 'pt' 
+            ? "Alarme de teste agendado para 2 minutos" 
+            : "Test alarm scheduled for 2 minutes",
+          {
+            description: language === 'pt'
+              ? "Feche o app e aguarde. Se o alarme tocar, está funcionando!"
+              : "Close the app and wait. If the alarm sounds, it's working!",
+          }
+        );
+        return;
       }
     }
 
@@ -152,6 +177,8 @@ export default function AlarmSettings() {
     }
   };
 
+  const permissionGranted = diagnostics.permissionStatus === "granted" || notificationPermission === "granted";
+
   return (
     <div className="min-h-screen bg-background pb-20">
       <Header />
@@ -166,7 +193,7 @@ export default function AlarmSettings() {
         </div>
 
         {/* Notification Permission */}
-        {notificationPermission !== "granted" && (
+        {!permissionGranted && (
           <Card className="p-6 border-warning bg-warning/5">
             <div className="flex items-start gap-4">
               <AlertCircle className="h-6 w-6 text-warning mt-1" />
@@ -178,6 +205,61 @@ export default function AlarmSettings() {
                 <Button onClick={requestNotificationPermission} variant="outline">
                   {t('alarm.allowNotif')}
                 </Button>
+              </div>
+            </div>
+          </Card>
+        )}
+
+        {/* Android Diagnostics Link */}
+        {isAndroid && (
+          <Card 
+            className="p-4 cursor-pointer hover:bg-muted/50 transition-colors"
+            onClick={() => navigate("/alarmes/diagnostico")}
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-primary/10">
+                  <Activity className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <h3 className="font-semibold">
+                    {language === 'pt' ? 'Diagnóstico de Alarmes' : 'Alarm Diagnostics'}
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    {language === 'pt' 
+                      ? 'Verifique se os alarmes estão funcionando corretamente'
+                      : 'Check if alarms are working correctly'}
+                  </p>
+                </div>
+              </div>
+              <ChevronRight className="h-5 w-5 text-muted-foreground" />
+            </div>
+            
+            {/* Quick stats */}
+            <div className="flex gap-4 mt-3 pt-3 border-t">
+              <div className="text-center">
+                <div className="text-lg font-bold text-primary">
+                  {diagnostics.totalScheduled}
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  {language === 'pt' ? 'Agendados' : 'Scheduled'}
+                </div>
+              </div>
+              <div className="text-center">
+                <div className="text-lg font-bold text-green-500">
+                  {diagnostics.totalTriggered}
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  {language === 'pt' ? 'Disparados' : 'Triggered'}
+                </div>
+              </div>
+              <div className="text-center">
+                <div className="text-lg font-bold text-red-500">
+                  {diagnostics.totalFailed}
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  {language === 'pt' ? 'Falhas' : 'Failed'}
+                </div>
               </div>
             </div>
           </Card>
@@ -268,11 +350,16 @@ export default function AlarmSettings() {
         <div className="grid gap-3">
           <Button onClick={testAlarm} className="w-full" size="lg" disabled={!alarmEnabled}>
             <Volume2 className="h-5 w-5 mr-2" />
-            {t('alarm.testAlarm')}
+            {isAndroid 
+              ? (language === 'pt' ? 'Testar Alarme (2 min)' : 'Test Alarm (2 min)')
+              : t('alarm.testAlarm')
+            }
           </Button>
-          <Button onClick={stopTest} variant="outline" className="w-full">
-            {t('alarm.stopTest')}
-          </Button>
+          {!isAndroid && (
+            <Button onClick={stopTest} variant="outline" className="w-full">
+              {t('alarm.stopTest')}
+            </Button>
+          )}
         </div>
 
         {/* Notification Metrics */}
@@ -283,7 +370,7 @@ export default function AlarmSettings() {
           {t('alarm.saveSettings')}
         </Button>
 
-        {Capacitor.isNativePlatform() && (
+        {isNative && (
           <Card className="p-4 bg-primary/5 border-primary/20">
             <div className="flex items-start gap-3">
               <Smartphone className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
@@ -299,12 +386,33 @@ export default function AlarmSettings() {
           </Card>
         )}
 
+        {isAndroid && (
+          <Card className="p-4 bg-amber-500/5 border-amber-500/20">
+            <div className="flex items-start gap-3">
+              <Battery className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-foreground">
+                  ⚠️ {language === 'pt' ? 'Economia de Bateria' : 'Battery Optimization'}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {language === 'pt' 
+                    ? 'Para alarmes funcionarem com o app fechado, remova as restrições de bateria nas configurações do Android.'
+                    : 'For alarms to work with the app closed, remove battery restrictions in Android settings.'}
+                </p>
+              </div>
+            </div>
+          </Card>
+        )}
+
         <p className="text-center text-sm text-muted-foreground">
           {language === 'pt' ? 'As configurações são salvas localmente no seu dispositivo' : 'Settings are saved locally on your device'}
         </p>
       </main>
 
       <Navigation />
+      
+      {/* Battery optimization prompt for Android */}
+      {isAndroid && <BatteryOptimizationPrompt />}
     </div>
   );
 }

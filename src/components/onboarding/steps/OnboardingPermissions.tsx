@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Bell, BellOff, ArrowLeft, AlertTriangle, Smartphone } from "lucide-react";
+import { Bell, BellOff, ArrowLeft, AlertTriangle, Smartphone, Battery } from "lucide-react";
 import { Capacitor } from "@capacitor/core";
 import { LocalNotifications } from "@capacitor/local-notifications";
 import { PushNotifications } from "@capacitor/push-notifications";
 import { toast } from "sonner";
 import { trackNotificationEvent, NotificationEvents } from "@/hooks/useNotificationMetrics";
+import { useAndroidAlarm, ALARM_CHANNEL_ID } from "@/hooks/useAndroidAlarm";
 
 interface Props {
   onGranted: () => void;
@@ -20,6 +21,8 @@ export default function OnboardingPermissions({ onGranted, onSkip, onBack }: Pro
   const isNative = Capacitor.isNativePlatform();
   const isAndroid = Capacitor.getPlatform() === "android";
 
+  const { requestPermissions: requestAndroidPermissions, scheduleAllPendingDoses } = useAndroidAlarm();
+
   const requestPermission = async () => {
     setRequesting(true);
     
@@ -27,25 +30,45 @@ export default function OnboardingPermissions({ onGranted, onSkip, onBack }: Pro
       await trackNotificationEvent(NotificationEvents.PERMISSION_REQUESTED);
 
       if (isNative) {
-        // Request local notifications permission
-        const localResult = await LocalNotifications.requestPermissions();
-        
-        // Request push notifications permission
-        let pushGranted = false;
-        try {
-          const pushResult = await PushNotifications.requestPermissions();
-          pushGranted = pushResult.receive === "granted";
-        } catch (e) {
-          console.log("Push notifications not available:", e);
-        }
-
-        if (localResult.display === "granted" || pushGranted) {
-          await trackNotificationEvent(NotificationEvents.PERMISSION_GRANTED);
-          toast.success("Notificações ativadas!");
-          onGranted();
+        if (isAndroid) {
+          // Use Android-specific alarm hook
+          const granted = await requestAndroidPermissions();
+          
+          if (granted) {
+            await trackNotificationEvent(NotificationEvents.PERMISSION_GRANTED);
+            
+            // Schedule all pending doses
+            await scheduleAllPendingDoses();
+            
+            toast.success("Notificações e alarmes ativados!");
+            onGranted();
+          } else {
+            setDenied(true);
+            await trackNotificationEvent(NotificationEvents.PERMISSION_DENIED);
+          }
         } else {
-          setDenied(true);
-          await trackNotificationEvent(NotificationEvents.PERMISSION_DENIED);
+          // iOS - standard permission flow
+          const localResult = await LocalNotifications.requestPermissions();
+          
+          let pushGranted = false;
+          try {
+            const pushResult = await PushNotifications.requestPermissions();
+            pushGranted = pushResult.receive === "granted";
+            if (pushGranted) {
+              await PushNotifications.register();
+            }
+          } catch (e) {
+            console.log("Push notifications not available:", e);
+          }
+
+          if (localResult.display === "granted" || pushGranted) {
+            await trackNotificationEvent(NotificationEvents.PERMISSION_GRANTED);
+            toast.success("Notificações ativadas!");
+            onGranted();
+          } else {
+            setDenied(true);
+            await trackNotificationEvent(NotificationEvents.PERMISSION_DENIED);
+          }
         }
       } else {
         // Web notification permission
@@ -87,7 +110,7 @@ export default function OnboardingPermissions({ onGranted, onSkip, onBack }: Pro
           Permita notificações
         </h1>
         <p className="text-muted-foreground">
-          Sem notificações, o HoraMed não consegue te avisar no horário certo.
+          Precisamos dessas permissões para tocar o alarme no horário certo, mesmo com o app fechado.
         </p>
       </motion.div>
 
@@ -97,16 +120,30 @@ export default function OnboardingPermissions({ onGranted, onSkip, onBack }: Pro
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="flex items-start gap-3 p-4 bg-amber-500/10 rounded-lg border border-amber-500/20"
+          className="space-y-3"
         >
-          <Smartphone className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
-          <div>
-            <p className="text-sm font-medium text-amber-700 dark:text-amber-400">
-              Celulares Android
-            </p>
-            <p className="text-sm text-muted-foreground mt-1">
-              Alguns celulares limitam notificações em segundo plano. Se necessário, vamos te ajudar a ajustar isso.
-            </p>
+          <div className="flex items-start gap-3 p-4 bg-amber-500/10 rounded-lg border border-amber-500/20">
+            <Smartphone className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-medium text-amber-700 dark:text-amber-400">
+                Celulares Android
+              </p>
+              <p className="text-sm text-muted-foreground mt-1">
+                Alguns celulares limitam notificações em segundo plano. Se necessário, vamos te ajudar a ajustar isso.
+              </p>
+            </div>
+          </div>
+          
+          <div className="flex items-start gap-3 p-4 bg-blue-500/10 rounded-lg border border-blue-500/20">
+            <Battery className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-medium text-blue-700 dark:text-blue-400">
+                Economia de Bateria
+              </p>
+              <p className="text-sm text-muted-foreground mt-1">
+                Após permitir, você pode precisar remover restrições de bateria para o HoraMed funcionar perfeitamente.
+              </p>
+            </div>
           </div>
         </motion.div>
       )}

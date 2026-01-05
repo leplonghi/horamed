@@ -66,6 +66,7 @@ const QuickOnboarding = lazy(() => import("./components/onboarding/QuickOnboardi
 const Welcome = lazy(() => import("./pages/Welcome"));
 const HelpSupport = lazy(() => import("./pages/HelpSupport"));
 const AlarmSettings = lazy(() => import("./pages/AlarmSettings"));
+const AlarmDiagnostics = lazy(() => import("./pages/AlarmDiagnostics"));
 const Emergency = lazy(() => import("./pages/Emergency"));
 const Plans = lazy(() => import("./pages/Plans"));
 const CofreUpload = lazy(() => import("./pages/CofreUpload"));
@@ -187,6 +188,7 @@ function AppContent() {
           <Route path="/help-support" element={<ProtectedRoute><HelpSupport /></ProtectedRoute>} />
           <Route path="/alarmes" element={<ProtectedRoute><AlarmSettings /></ProtectedRoute>} />
           <Route path="/alarme" element={<ProtectedRoute><AlarmSettings /></ProtectedRoute>} />
+          <Route path="/alarmes/diagnostico" element={<ProtectedRoute><AlarmDiagnostics /></ProtectedRoute>} />
           <Route path="/emergencia" element={<ProtectedRoute><Emergency /></ProtectedRoute>} />
           <Route path="/planos" element={<ProtectedRoute><Plans /></ProtectedRoute>} />
           
