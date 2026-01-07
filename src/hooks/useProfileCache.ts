@@ -43,10 +43,14 @@ const loadCacheFromStorage = (): CacheStore => {
 export function useProfileCache() {
   const [cache, setCache] = useState<CacheStore>(loadCacheFromStorage);
   const isFetchingRef = useRef<Set<string>>(new Set());
+  const cacheRef = useRef<CacheStore>(cache);
+  
+  // Keep ref in sync with state to avoid stale closures
+  cacheRef.current = cache;
 
   const prefetchProfileData = useCallback(async (profileId: string, userId: string) => {
-    // Check if we have fresh cache
-    const existingCache = cache[profileId];
+    // Use ref to get current cache (avoid stale closure)
+    const existingCache = cacheRef.current[profileId];
     if (existingCache && Date.now() - existingCache.lastUpdated < CACHE_TTL) {
       return; // Skip if cache is still valid
     }
@@ -78,7 +82,7 @@ export function useProfileCache() {
         
         supabase
           .from('dose_instances')
-          .select(`*, items!inner(id, name, profile_id, user_id)`)
+          .select(`*, items!inner(id, name, dose_text, profile_id, user_id)`)
           .eq('items.user_id', userId)
           .eq('items.profile_id', profileId)
           .gte('due_at', startOfDay)
@@ -144,7 +148,7 @@ export function useProfileCache() {
     } finally {
       isFetchingRef.current.delete(profileId);
     }
-  }, [cache]);
+  }, []); // Remove cache dependency - use ref instead
 
   const prefetchAllProfiles = useCallback(async (profiles: any[], userId: string) => {
     // Only prefetch active profile first for speed, others in background
@@ -178,18 +182,28 @@ export function useProfileCache() {
 
   const invalidateAllCache = useCallback(() => {
     setCache({});
+    cacheRef.current = {};
     localStorage.removeItem(STORAGE_KEY);
   }, []);
 
   const updateProfileCache = useCallback((profileId: string, updates: Partial<ProfileCache>) => {
-    setCache(prev => ({
-      ...prev,
-      [profileId]: {
-        ...prev[profileId],
-        ...updates,
-        lastUpdated: Date.now()
+    setCache(prev => {
+      const newCache = {
+        ...prev,
+        [profileId]: {
+          ...prev[profileId],
+          ...updates,
+          lastUpdated: Date.now()
+        }
+      };
+      // Also persist to localStorage
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(newCache));
+      } catch (e) {
+        // Ignore storage errors
       }
-    }));
+      return newCache;
+    });
   }, []);
 
   return {

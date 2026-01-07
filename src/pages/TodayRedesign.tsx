@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo, memo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format, startOfDay, endOfDay, addDays } from "date-fns";
@@ -29,6 +29,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import StockAlertWidget from "@/components/StockAlertWidget";
 import MonthlyReportWidget from "@/components/MonthlyReportWidget";
 import HeroNextDose from "@/components/HeroNextDose";
+
 interface TimelineItem {
   id: string;
   time: string;
@@ -40,6 +41,50 @@ interface TimelineItem {
   onSnooze?: () => void;
   itemId?: string;
 }
+
+// Memoized status card to prevent re-renders
+const TodayStatusCard = memo(function TodayStatusCard({ 
+  streak, 
+  taken, 
+  total, 
+  language 
+}: { 
+  streak: number; 
+  taken: number; 
+  total: number; 
+  language: string;
+}) {
+  if (total === 0) return null;
+  
+  return (
+    <Card className="p-4 bg-muted/30 border-muted/50">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          {streak > 0 && (
+            <span className="px-2 py-0.5 bg-orange-500/10 text-orange-600 dark:text-orange-400 rounded-full text-xs font-semibold">
+              🔥 {streak}
+            </span>
+          )}
+          <span className="text-sm font-medium text-foreground">
+            {language === 'pt' ? 'Hoje' : 'Today'}
+          </span>
+        </div>
+        <div className="text-sm text-muted-foreground">
+          <span className="font-bold text-foreground">{taken}</span>
+          /{total} {language === 'pt' ? 'doses' : 'doses'}
+        </div>
+      </div>
+      <div className="mt-3 h-2 bg-muted rounded-full overflow-hidden">
+        <motion.div 
+          className="h-full bg-primary rounded-full"
+          initial={{ width: 0 }}
+          animate={{ width: `${total > 0 ? (taken / total) * 100 : 0}%` }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
+        />
+      </div>
+    </Card>
+  );
+});
 export default function TodayRedesign() {
   const {
     scheduleNotificationsForNextDay
@@ -509,7 +554,8 @@ export default function TodayRedesign() {
       supabase.removeChannel(channel);
     };
   }, [activeProfile?.id, handleRealtimeChange]);
-  const markAsTaken = async (doseId: string, itemId: string, itemName: string) => {
+  // Memoized callbacks para evitar re-render do HeroNextDose
+  const markAsTaken = useCallback(async (doseId: string, itemId: string, itemName: string) => {
     try {
       const {
         data: stockData
@@ -518,30 +564,39 @@ export default function TodayRedesign() {
         toast.error(t('todayRedesign.stockEmpty'));
         return;
       }
+      
+      // Update dose status
       await supabase.from("dose_instances").update({
         status: "taken",
         taken_at: new Date().toISOString()
       }).eq("id", doseId);
+      
+      // Update stock if needed
       if (stockData && stockData.units_left > 0) {
         await supabase.from("stock").update({
           units_left: stockData.units_left - 1
         }).eq("item_id", itemId);
       }
+      
       // Track metric
       trackDoseTaken(doseId, itemName);
       
       showFeedback("dose-taken", {
         medicationName: itemName
       });
+      
+      // Reload data in background - don't block UI
       loadData(selectedDate);
       streakData.refresh();
       criticalAlerts.refresh();
     } catch (error) {
       console.error("Error marking dose:", error);
       toast.error(t('todayRedesign.confirmDoseError'));
+      throw error; // Re-throw for optimistic update rollback
     }
-  };
-  const snoozeDose = async (doseId: string, itemName: string) => {
+  }, [t, selectedDate, showFeedback, loadData, streakData, criticalAlerts]);
+
+  const snoozeDose = useCallback(async (doseId: string, itemName: string) => {
     try {
       const {
         data: dose
@@ -559,7 +614,14 @@ export default function TodayRedesign() {
       console.error("Error snoozing dose:", error);
       toast.error(t('todayRedesign.snoozeError'));
     }
-  };
+  }, [t, selectedDate, loadData]);
+
+  // Memoize allDoneToday to avoid HeroNextDose re-render
+  const allDoneToday = useMemo(() => 
+    todayStats.total > 0 && todayStats.taken === todayStats.total,
+    [todayStats.total, todayStats.taken]
+  );
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -588,44 +650,21 @@ export default function TodayRedesign() {
           nextDayDose={nextDayDose}
           onTake={markAsTaken}
           onSnooze={snoozeDose}
-          allDoneToday={todayStats.total > 0 && todayStats.taken === todayStats.total}
+          allDoneToday={allDoneToday}
         />
 
         {/* Banner de doses atrasadas */}
         <OverdueDosesBanner />
 
         {/* ═══════════════════════════════════════════════════════════════ */}
-        {/* 📊 STATUS DO DIA - Simples e informativo */}
+        {/* 📊 STATUS DO DIA - Memoizado */}
         {/* ═══════════════════════════════════════════════════════════════ */}
-        {todayStats.total > 0 && (
-          <Card className="p-4 bg-muted/30 border-muted/50">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                {streakData.currentStreak > 0 && (
-                  <span className="px-2 py-0.5 bg-orange-500/10 text-orange-600 dark:text-orange-400 rounded-full text-xs font-semibold">
-                    🔥 {streakData.currentStreak}
-                  </span>
-                )}
-                <span className="text-sm font-medium text-foreground">
-                  {language === 'pt' ? 'Hoje' : 'Today'}
-                </span>
-              </div>
-              <div className="text-sm text-muted-foreground">
-                <span className="font-bold text-foreground">{todayStats.taken}</span>
-                /{todayStats.total} {language === 'pt' ? 'doses' : 'doses'}
-              </div>
-            </div>
-            {/* Barra de progresso minimalista */}
-            <div className="mt-3 h-2 bg-muted rounded-full overflow-hidden">
-              <motion.div 
-                className="h-full bg-primary rounded-full"
-                initial={{ width: 0 }}
-                animate={{ width: `${todayStats.total > 0 ? (todayStats.taken / todayStats.total) * 100 : 0}%` }}
-                transition={{ duration: 0.5, ease: "easeOut" }}
-              />
-            </div>
-          </Card>
-        )}
+        <TodayStatusCard 
+          streak={streakData.currentStreak}
+          taken={todayStats.taken}
+          total={todayStats.total}
+          language={language}
+        />
 
         {/* ═══════════════════════════════════════════════════════════════ */}
         {/* ⚠️ ALERTAS (Compactos, não competem com ação principal) */}

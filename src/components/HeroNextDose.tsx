@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { motion } from "framer-motion";
+import { memo, useCallback, useState } from "react";
 
 interface HeroNextDoseProps {
   dose?: {
@@ -27,9 +28,60 @@ interface HeroNextDoseProps {
   allDoneToday?: boolean;
 }
 
-export default function HeroNextDose({ dose, nextDayDose, onTake, onSnooze, allDoneToday }: HeroNextDoseProps) {
+function HeroNextDose({ dose, nextDayDose, onTake, onSnooze, allDoneToday }: HeroNextDoseProps) {
   const { language } = useLanguage();
   const dateLocale = language === 'pt' ? ptBR : enUS;
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [optimisticTaken, setOptimisticTaken] = useState(false);
+
+  const handleTake = useCallback(async () => {
+    if (!dose || isSubmitting || optimisticTaken) return;
+    
+    // Optimistic update - instant feedback
+    setIsSubmitting(true);
+    setOptimisticTaken(true);
+    
+    try {
+      await onTake(dose.id, dose.item_id, dose.items.name);
+    } catch {
+      // Rollback on error
+      setOptimisticTaken(false);
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, [dose, isSubmitting, optimisticTaken, onTake]);
+
+  const handleSnooze = useCallback(() => {
+    if (!dose || !onSnooze || isSubmitting) return;
+    onSnooze(dose.id, dose.items.name);
+  }, [dose, onSnooze, isSubmitting]);
+
+  // Show success state immediately after optimistic update
+  if (optimisticTaken) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.3, ease: "easeOut" }}
+      >
+        <Card className="p-8 bg-gradient-to-br from-green-500/20 to-emerald-500/10 border-green-500/40">
+          <div className="flex flex-col items-center text-center gap-3">
+            <motion.div 
+              className="h-16 w-16 rounded-full bg-green-500 flex items-center justify-center"
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ type: "spring", stiffness: 300, damping: 20 }}
+            >
+              <Check className="h-8 w-8 text-white" />
+            </motion.div>
+            <h2 className="text-xl font-bold text-green-600 dark:text-green-400">
+              {language === 'pt' ? 'Dose registrada com sucesso.' : 'Dose recorded successfully.'}
+            </h2>
+          </div>
+        </Card>
+      </motion.div>
+    );
+  }
 
   // ✅ ESTADO: Tudo certo por hoje
   if (allDoneToday || (!dose && !nextDayDose)) {
@@ -161,12 +213,12 @@ export default function HeroNextDose({ dose, nextDayDose, onTake, onSnooze, allD
               )}
             </div>
 
-            {/* BOTÕES DE AÇÃO - Grandes e claros */}
             <div className="space-y-3">
               {/* Botão principal: Marcar como tomado */}
               <Button 
                 size="lg" 
-                onClick={() => onTake(dose.id, dose.item_id, dose.items.name)}
+                onClick={handleTake}
+                disabled={isSubmitting}
                 className={cn(
                   "w-full h-16 text-lg font-bold rounded-2xl shadow-md transition-all active:scale-[0.98]",
                   isOverdue 
@@ -183,7 +235,8 @@ export default function HeroNextDose({ dose, nextDayDose, onTake, onSnooze, allD
                 <Button 
                   variant="outline"
                   size="lg"
-                  onClick={() => onSnooze(dose.id, dose.items.name)}
+                  onClick={handleSnooze}
+                  disabled={isSubmitting}
                   className="w-full h-12 text-base font-medium rounded-xl border-2 hover:bg-muted/50 transition-all active:scale-[0.98]"
                 >
                   <Clock className="h-5 w-5 mr-2" />
@@ -199,3 +252,6 @@ export default function HeroNextDose({ dose, nextDayDose, onTake, onSnooze, allD
 
   return null;
 }
+
+// Memoizado para evitar re-render desnecessário
+export default memo(HeroNextDose);
