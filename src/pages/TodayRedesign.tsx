@@ -43,6 +43,8 @@ import TutorialHint from "@/components/TutorialHint";
 import { trackDoseTaken } from "@/hooks/useAppMetrics";
 import { OverdueDosesBanner } from "@/components/OverdueDosesBanner";
 import { useLanguage } from "@/contexts/LanguageContext";
+import StockAlertWidget from "@/components/StockAlertWidget";
+import MonthlyReportWidget from "@/components/MonthlyReportWidget";
 interface TimelineItem {
   id: string;
   time: string;
@@ -666,6 +668,10 @@ export default function TodayRedesign() {
           <ExpiredPrescriptionsAlert />
           <VaccineRemindersWidget />
         </div>
+
+        {/* Stock & Report Widgets - Proactive companion */}
+        <StockAlertWidget />
+        <MonthlyReportWidget />
 
         {/* MAIN: Timeline */}
         <div className="mb-4">
