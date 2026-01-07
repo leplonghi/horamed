@@ -154,30 +154,30 @@ export default function Medications() {
     navigate("/adicionar");
   };
 
-  // Card simplificado - Clean Design
+  // Card com ações visíveis - Design focado em ação clara
   const ItemCard = ({ item }: { item: Item }) => {
     const scheduleSummary = getScheduleSummary(item.schedules);
     const isSupplement = item.category === 'suplemento' || item.category === 'vitamina';
     const supplementCategory = isSupplement ? detectSupplementCategory(item.name) : null;
+    const stockInfo = item.stock?.[0];
+    const lowStock = stockInfo && stockInfo.units_left <= 5;
     
     return (
       <motion.div
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
-        whileTap={{ scale: 0.98 }}
-        className="group"
+        whileTap={{ scale: 0.99 }}
       >
         <div 
           className={cn(
-            "p-4 rounded-2xl cursor-pointer transition-all duration-300",
-            "bg-card/80 backdrop-blur-sm",
-            "shadow-[var(--shadow-xs)] hover:shadow-[var(--shadow-md)]",
-            "group-hover:-translate-y-0.5",
+            "p-4 rounded-2xl transition-all duration-200",
+            "bg-card/90 backdrop-blur-sm",
+            "shadow-sm hover:shadow-md",
             isSupplement && "ring-1 ring-performance/20"
           )}
-          onClick={() => navigate(`/adicionar?edit=${item.id}`)}
         >
-          <div className="flex items-center gap-4">
+          {/* Linha principal com info */}
+          <div className="flex items-center gap-3 mb-3">
             <div className={cn(
               "w-11 h-11 rounded-xl flex items-center justify-center shrink-0",
               isSupplement ? "bg-performance/10" : "bg-primary/10"
@@ -191,52 +191,61 @@ export default function Medications() {
             
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2 flex-wrap">
-                <h3 className="font-medium truncate">{item.name}</h3>
+                <h3 className="font-semibold text-base truncate">{item.name}</h3>
                 {supplementCategory && (
                   <SupplementCategoryTag category={supplementCategory} size="sm" />
                 )}
               </div>
-              {scheduleSummary && (
-                <div className="flex items-center gap-1.5 text-sm text-muted-foreground mt-0.5">
-                  <Clock className="w-3.5 h-3.5" />
-                  <span>{scheduleSummary}</span>
-                </div>
-              )}
+              <div className="flex items-center gap-3 mt-0.5">
+                {scheduleSummary && (
+                  <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                    <Clock className="w-3.5 h-3.5" />
+                    <span>{scheduleSummary}</span>
+                  </div>
+                )}
+                {stockInfo && (
+                  <span className={cn(
+                    "text-xs px-2 py-0.5 rounded-full",
+                    lowStock ? "bg-destructive/10 text-destructive" : "bg-muted text-muted-foreground"
+                  )}>
+                    {stockInfo.units_left} {stockInfo.unit_label || (language === 'pt' ? 'un.' : 'units')}
+                  </span>
+                )}
+              </div>
             </div>
-            
-            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="h-9 w-9"
-                title={language === 'pt' ? 'Ver bula' : 'View package insert'}
-                onClick={(e) => handleOpenBula(item.name, e)}
-              >
-                <BookOpen className="h-4 w-4" />
-              </Button>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="h-9 w-9"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  navigate(`/adicionar?edit=${item.id}`);
-                }}
-              >
-                <Pencil className="h-4 w-4" />
-              </Button>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="h-9 w-9 text-destructive hover:bg-destructive/10"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  deleteItem(item.id);
-                }}
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </div>
+          </div>
+
+          {/* Linha de ações - SEMPRE VISÍVEL */}
+          <div className="flex items-center gap-2 pt-2 border-t border-muted/30">
+            <Button
+              size="sm"
+              variant="outline"
+              className="flex-1 h-10 rounded-xl font-medium"
+              onClick={() => navigate(`/adicionar?edit=${item.id}`)}
+            >
+              <Pencil className="h-4 w-4 mr-1.5" />
+              {language === 'pt' ? 'Editar' : 'Edit'}
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-10 w-10 rounded-xl"
+              title={language === 'pt' ? 'Ver bula' : 'View package insert'}
+              onClick={(e) => handleOpenBula(item.name, e)}
+            >
+              <BookOpen className="h-4 w-4" />
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-10 w-10 rounded-xl text-destructive hover:bg-destructive/10"
+              onClick={(e) => {
+                e.stopPropagation();
+                deleteItem(item.id);
+              }}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
           </div>
         </div>
       </motion.div>

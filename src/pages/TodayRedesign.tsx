@@ -564,83 +564,101 @@ export default function TodayRedesign() {
     <div className="min-h-screen bg-background">
       <Header />
 
-      <main className="page-container container mx-auto max-w-2xl px-4 space-y-4">
-      {/* ⭐ BLOCO PRINCIPAL: Próxima Dose - SEMPRE NO TOPO */}
-      <HeroNextDose
-        dose={nextPendingDose}
-        nextDayDose={nextDayDose}
-        onTake={markAsTaken}
-        onSnooze={snoozeDose}
-        allDoneToday={todayStats.total > 0 && todayStats.taken === todayStats.total}
-      />
+      <main className="page-container container mx-auto max-w-2xl px-4 space-y-5">
+        {/* ═══════════════════════════════════════════════════════════════ */}
+        {/* 📍 HEADER - Saudação dinâmica e contextual */}
+        {/* ═══════════════════════════════════════════════════════════════ */}
+        <div className="pt-1">
+          <h1 className="text-2xl font-bold text-foreground">
+            {greeting}{userName ? `, ${userName}` : ''} 👋
+          </h1>
+          <p className="text-base text-muted-foreground mt-0.5">
+            {nextPendingDose 
+              ? (language === 'pt' ? 'Você tem uma dose agora.' : 'You have a dose now.')
+              : (language === 'pt' ? 'Sua rotina está em dia hoje.' : 'Your routine is up to date.')
+            }
+          </p>
+        </div>
 
-      {/* Saudação compacta + streak */}
-      <div className="flex items-center justify-between mt-2">
-        <p className="text-sm text-muted-foreground">
-          {greeting}{userName && `, ${userName}`}
-        </p>
-        {streakData.currentStreak > 0 && (
-          <div className="flex items-center gap-1 px-2 py-0.5 bg-orange-500/10 text-orange-600 dark:text-orange-400 rounded-full text-xs font-medium">
-            🔥 {streakData.currentStreak} {language === 'pt' ? 'dias' : 'days'}
-          </div>
-        )}
-      </div>
-
-      {/* Banner de doses atrasadas - só aparece se houver */}
-      <OverdueDosesBanner />
-
-      {/* Progresso do dia - Simples e claro */}
-      {todayStats.total > 0 && (
-        <Card className="p-4 bg-muted/30 border-muted">
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">
-              {language === 'pt' ? 'Progresso de hoje' : "Today's progress"}
-            </span>
-            <span className="text-lg font-bold text-foreground">
-              {todayStats.taken}/{todayStats.total} {language === 'pt' ? 'doses' : 'doses'}
-            </span>
-          </div>
-          {/* Barra de progresso */}
-          <div className="mt-2 h-2 bg-muted rounded-full overflow-hidden">
-            <motion.div 
-              className="h-full bg-primary rounded-full"
-              initial={{ width: 0 }}
-              animate={{ width: `${todayStats.total > 0 ? (todayStats.taken / todayStats.total) * 100 : 0}%` }}
-              transition={{ duration: 0.5, ease: "easeOut" }}
-            />
-          </div>
-        </Card>
-      )}
-
-      {/* Alertas importantes - Compactos */}
-      {criticalAlerts.alerts.length > 0 && (
-        <CriticalAlertBanner
-          alerts={criticalAlerts.alerts}
-          onDismiss={(id) => criticalAlerts.dismissAlert(id)}
-          onDismissAll={() => criticalAlerts.dismissAll()}
+        {/* ═══════════════════════════════════════════════════════════════ */}
+        {/* 🔴 BLOCO PRINCIPAL - PRÓXIMA DOSE (SEMPRE VISÍVEL NO TOPO) */}
+        {/* ═══════════════════════════════════════════════════════════════ */}
+        <HeroNextDose
+          dose={nextPendingDose}
+          nextDayDose={nextDayDose}
+          onTake={markAsTaken}
+          onSnooze={snoozeDose}
+          allDoneToday={todayStats.total > 0 && todayStats.taken === todayStats.total}
         />
-      )}
 
-      {/* Estoque baixo */}
-      <StockAlertWidget />
+        {/* Banner de doses atrasadas */}
+        <OverdueDosesBanner />
 
-      {/* Calendário - SECUNDÁRIO, abaixo da ação principal */}
-      <Card className="p-4 border-muted/50">
-        <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium mb-3">
-          {language === 'pt' ? 'Calendário' : 'Calendar'}
-        </p>
-        <ImprovedCalendar selectedDate={selectedDate} onDateSelect={setSelectedDate} eventCounts={eventCounts} />
-      </Card>
+        {/* ═══════════════════════════════════════════════════════════════ */}
+        {/* 📊 STATUS DO DIA - Simples e informativo */}
+        {/* ═══════════════════════════════════════════════════════════════ */}
+        {todayStats.total > 0 && (
+          <Card className="p-4 bg-muted/30 border-muted/50">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                {streakData.currentStreak > 0 && (
+                  <span className="px-2 py-0.5 bg-orange-500/10 text-orange-600 dark:text-orange-400 rounded-full text-xs font-semibold">
+                    🔥 {streakData.currentStreak}
+                  </span>
+                )}
+                <span className="text-sm font-medium text-foreground">
+                  {language === 'pt' ? 'Hoje' : 'Today'}
+                </span>
+              </div>
+              <div className="text-sm text-muted-foreground">
+                <span className="font-bold text-foreground">{todayStats.taken}</span>
+                /{todayStats.total} {language === 'pt' ? 'doses' : 'doses'}
+              </div>
+            </div>
+            {/* Barra de progresso minimalista */}
+            <div className="mt-3 h-2 bg-muted rounded-full overflow-hidden">
+              <motion.div 
+                className="h-full bg-primary rounded-full"
+                initial={{ width: 0 }}
+                animate={{ width: `${todayStats.total > 0 ? (todayStats.taken / todayStats.total) * 100 : 0}%` }}
+                transition={{ duration: 0.5, ease: "easeOut" }}
+              />
+            </div>
+          </Card>
+        )}
 
-      {/* Timeline do dia - Para dias não-hoje ou detalhes */}
-      {format(selectedDate, "yyyy-MM-dd") !== format(new Date(), "yyyy-MM-dd") && (
-        <DayTimeline date={selectedDate} items={timelineItems} onDateChange={setSelectedDate} />
-      )}
+        {/* ═══════════════════════════════════════════════════════════════ */}
+        {/* ⚠️ ALERTAS (Compactos, não competem com ação principal) */}
+        {/* ═══════════════════════════════════════════════════════════════ */}
+        {criticalAlerts.alerts.length > 0 && (
+          <CriticalAlertBanner
+            alerts={criticalAlerts.alerts}
+            onDismiss={(id) => criticalAlerts.dismissAlert(id)}
+            onDismissAll={() => criticalAlerts.dismissAll()}
+          />
+        )}
 
-      {/* Widgets secundários - Colapsáveis/opcionais */}
-      <ExpiredPrescriptionsAlert />
-      <VaccineRemindersWidget />
-      <MonthlyReportWidget />
+        <StockAlertWidget />
+
+        {/* ═══════════════════════════════════════════════════════════════ */}
+        {/* 📅 CALENDÁRIO (SECUNDÁRIO - Abaixo da ação principal) */}
+        {/* ═══════════════════════════════════════════════════════════════ */}
+        <Card className="p-4 border-muted/40">
+          <p className="text-xs text-muted-foreground uppercase tracking-wide font-semibold mb-3">
+            {language === 'pt' ? 'Calendário' : 'Calendar'}
+          </p>
+          <ImprovedCalendar selectedDate={selectedDate} onDateSelect={setSelectedDate} eventCounts={eventCounts} />
+        </Card>
+
+        {/* Timeline para dias selecionados (não hoje) */}
+        {format(selectedDate, "yyyy-MM-dd") !== format(new Date(), "yyyy-MM-dd") && (
+          <DayTimeline date={selectedDate} items={timelineItems} onDateChange={setSelectedDate} />
+        )}
+
+        {/* Widgets secundários */}
+        <ExpiredPrescriptionsAlert />
+        <VaccineRemindersWidget />
+        <MonthlyReportWidget />
 
         {/* Milestone Reward Modal */}
         {milestone && (

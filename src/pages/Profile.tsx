@@ -129,7 +129,7 @@ export default function Profile() {
             </div>
         </motion.div>
 
-        {/* Profile Header Card */}
+        {/* Profile Header Card - Focado em Status */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -151,21 +151,34 @@ export default function Profile() {
             <div className="flex-1 min-w-0 text-center sm:text-left">
               <h1 className="text-2xl font-bold truncate">{activeProfile?.name}</h1>
               <p className="text-sm text-muted-foreground truncate">{userEmail}</p>
-              <div className="mt-2 flex justify-center sm:justify-start">
+              
+              {/* Status da assinatura - Claro e visível */}
+              <div className="mt-3 flex justify-center sm:justify-start gap-2">
                 {isPremium ? (
-                  <span className="pill-primary">
-                    <Crown className="h-3 w-3" />
+                  <span className="pill-primary flex items-center gap-1.5">
+                    <Crown className="h-3.5 w-3.5" />
                     Premium
                   </span>
+                ) : daysLeft !== null && daysLeft > 0 ? (
+                  <button 
+                    onClick={() => navigate('/planos')}
+                    className="pill bg-orange-500/10 text-orange-600 dark:text-orange-400 hover:bg-orange-500/20 transition-colors cursor-pointer"
+                  >
+                    ⏱️ {daysLeft} {t('profile.daysLeft')} • {t('common.upgrade')}
+                  </button>
                 ) : (
-                  <span className="pill">
-                    {daysLeft !== null ? `${daysLeft} ${t('profile.daysLeft')}` : t('common.free')}
-                  </span>
+                  <button 
+                    onClick={() => navigate('/planos')}
+                    className="pill hover:bg-primary/10 transition-colors cursor-pointer"
+                  >
+                    {t('common.free')} • {t('common.upgrade')}
+                  </button>
                 )}
               </div>
             </div>
           </div>
 
+          {/* Ações principais */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-6">
             <Button 
               variant="outline" 
@@ -180,12 +193,23 @@ export default function Profile() {
               variant="outline" 
               size="lg"
               className="w-full rounded-xl"
-              onClick={handleLogout}
+              onClick={() => navigate('/notificacoes/config')}
             >
-              <LogOut className="h-4 w-4 mr-2" />
-              {t('profile.leaveAccount')}
+              <Bell className="h-4 w-4 mr-2" />
+              {t('profile.notifications')}
             </Button>
           </div>
+
+          {/* Logout separado e menos proeminente */}
+          <Button 
+            variant="ghost" 
+            size="sm"
+            className="w-full mt-3 text-muted-foreground hover:text-destructive"
+            onClick={handleLogout}
+          >
+            <LogOut className="h-4 w-4 mr-2" />
+            {t('profile.leaveAccount')}
+          </Button>
         </motion.div>
 
         {/* Tabs */}
