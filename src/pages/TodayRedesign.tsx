@@ -1,8 +1,7 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format, startOfDay, endOfDay, addDays } from "date-fns";
-import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import Navigation from "@/components/Navigation";
 import Header from "@/components/Header";
@@ -15,7 +14,6 @@ import { useFeedbackToast } from "@/hooks/useFeedbackToast";
 import DayTimeline from "@/components/DayTimeline";
 import ImprovedCalendar from "@/components/ImprovedCalendar";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import CriticalAlertBanner from "@/components/CriticalAlertBanner";
 import MilestoneReward from "@/components/gamification/MilestoneReward";
 import AchievementShareDialog from "@/components/gamification/AchievementShareDialog";
@@ -25,24 +23,12 @@ import { useProfileCacheContext } from "@/contexts/ProfileCacheContext";
 import { useSmartRedirect } from "@/hooks/useSmartRedirect";
 import { VaccineRemindersWidget } from "@/components/VaccineRemindersWidget";
 import { ExpiredPrescriptionsAlert } from "@/components/ExpiredPrescriptionsAlert";
-import { Gift, HelpCircle } from "lucide-react";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import HydrationWidget from "@/components/fitness/HydrationWidget";
-import EnergyHintWidget from "@/components/fitness/EnergyHintWidget";
-import SupplementConsistencyWidget from "@/components/fitness/SupplementConsistencyWidget";
-import { useFitnessPreferences } from "@/hooks/useFitnessPreferences";
-import TutorialHint from "@/components/TutorialHint";
 import { trackDoseTaken } from "@/hooks/useAppMetrics";
 import { OverdueDosesBanner } from "@/components/OverdueDosesBanner";
 import { useLanguage } from "@/contexts/LanguageContext";
 import StockAlertWidget from "@/components/StockAlertWidget";
 import MonthlyReportWidget from "@/components/MonthlyReportWidget";
 import HeroNextDose from "@/components/HeroNextDose";
-import RoutineStatusSummary from "@/components/RoutineStatusSummary";
-import { useRef } from "react";
-import { cn } from "@/lib/utils";
-import { TrendingUp } from "lucide-react";
-import QuickDoseWidget from "@/components/QuickDoseWidget";
 interface TimelineItem {
   id: string;
   time: string;
@@ -55,7 +41,6 @@ interface TimelineItem {
   itemId?: string;
 }
 export default function TodayRedesign() {
-  const navigate = useNavigate();
   const {
     scheduleNotificationsForNextDay
   } = useMedicationAlarm();
@@ -83,91 +68,18 @@ export default function TodayRedesign() {
   const [timelineItems, setTimelineItems] = useState<TimelineItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [greeting, setGreeting] = useState("");
-  const [motivationalQuote, setMotivationalQuote] = useState("");
   const [userName, setUserName] = useState("");
   const [todayStats, setTodayStats] = useState({
     total: 0,
     taken: 0,
   });
   const [eventCounts, setEventCounts] = useState<Record<string, number>>({});
-  const [hasAnyItems, setHasAnyItems] = useState(true);
   const [showMilestoneReward, setShowMilestoneReward] = useState(false);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [selectedAchievement, setSelectedAchievement] = useState<any>(null);
-  const [hasSupplements, setHasSupplements] = useState(false);
   const [nextPendingDose, setNextPendingDose] = useState<any>(null);
   const [nextDayDose, setNextDayDose] = useState<{ time: string; name: string } | null>(null);
-  const {
-    preferences
-  } = useFitnessPreferences();
-  const [tutorialsEnabled, setTutorialsEnabled] = useState(true);
-
-  useEffect(() => {
-    const loadTutorialPreference = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-      
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("tutorial_flags")
-        .eq("user_id", user.id)
-        .single();
-      
-      if (profile?.tutorial_flags) {
-        const flags = profile.tutorial_flags as Record<string, boolean>;
-        setTutorialsEnabled(!flags['tutorials_disabled']);
-      }
-    };
-    loadTutorialPreference();
-  }, []);
-
-  const toggleTutorials = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-
-    const newState = !tutorialsEnabled;
-    setTutorialsEnabled(newState);
-
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("tutorial_flags")
-      .eq("user_id", user.id)
-      .single();
-
-    const currentFlags = (profile?.tutorial_flags as Record<string, boolean>) || {};
-    const newFlags = { ...currentFlags, tutorials_disabled: !newState };
-
-    await supabase
-      .from("profiles")
-      .update({ tutorial_flags: newFlags })
-      .eq("user_id", user.id);
-
-    toast.success(newState ? t('todayRedesign.tutorialsEnabled') : t('todayRedesign.tutorialsDisabled'));
-  };
-
-  // Check if user has supplements
-  useEffect(() => {
-    const checkSupplements = async () => {
-      const {
-        data: {
-          user
-        }
-      } = await supabase.auth.getUser();
-      if (!user) return;
-      let query = supabase.from("items").select("id", {
-        count: "exact",
-        head: true
-      }).in("category", ["suplemento", "vitamina"]).eq("is_active", true).eq("user_id", user.id);
-      if (activeProfile?.id) {
-        query = query.eq("profile_id", activeProfile.id);
-      }
-      const {
-        count
-      } = await query;
-      setHasSupplements((count || 0) > 0);
-    };
-    checkSupplements();
-  }, [activeProfile]);
+  // Milestone detection
   useEffect(() => {
     if (isNewMilestone && milestone) {
       setShowMilestoneReward(true);
@@ -300,7 +212,7 @@ export default function TodayRedesign() {
       if (activeProfile?.id && isToday) {
         const cached = getProfileCache(activeProfile.id);
         if (cached) {
-          setHasAnyItems((cached.medications?.length || 0) > 0);
+          // Cache found, apply it
 
           const cachedDoses = (cached.todayDoses || []) as any[];
           const cachedItems: TimelineItem[] = cachedDoses.map((dose: any) => ({
@@ -351,7 +263,7 @@ export default function TodayRedesign() {
       const {
         count: itemCount
       } = await allItemsQuery;
-      setHasAnyItems((itemCount || 0) > 0);
+      // Items loaded
       const dayStart = startOfDay(date);
       const dayEnd = endOfDay(date);
       let itemsQuery = supabase.from("items").select("id");
@@ -543,7 +455,7 @@ export default function TodayRedesign() {
       }
     }
 
-    setMotivationalQuote(quotes[Math.floor(Math.random() * quotes.length)]);
+    // Greeting set
   }, [activeProfile, userName, language, t]);
 
   // Load data when date or profile changes
@@ -653,126 +565,82 @@ export default function TodayRedesign() {
       <Header />
 
       <main className="page-container container mx-auto max-w-2xl px-4 space-y-4">
-        {/* Overdue doses banner */}
-        <OverdueDosesBanner />
+      {/* ⭐ BLOCO PRINCIPAL: Próxima Dose - SEMPRE NO TOPO */}
+      <HeroNextDose
+        dose={nextPendingDose}
+        nextDayDose={nextDayDose}
+        onTake={markAsTaken}
+        onSnooze={snoozeDose}
+        allDoneToday={todayStats.total > 0 && todayStats.taken === todayStats.total}
+      />
 
-        {/* Compact Greeting */}
-        <div className="flex items-center justify-between">
-          <div className="min-w-0">
-            <h1 className="text-xl font-bold truncate">
-              {greeting}{userName && `, ${userName}`}!
-            </h1>
+      {/* Saudação compacta + streak */}
+      <div className="flex items-center justify-between mt-2">
+        <p className="text-sm text-muted-foreground">
+          {greeting}{userName && `, ${userName}`}
+        </p>
+        {streakData.currentStreak > 0 && (
+          <div className="flex items-center gap-1 px-2 py-0.5 bg-orange-500/10 text-orange-600 dark:text-orange-400 rounded-full text-xs font-medium">
+            🔥 {streakData.currentStreak} {language === 'pt' ? 'dias' : 'days'}
           </div>
-          <div className="flex items-center gap-1 shrink-0">
-            {streakData.currentStreak > 0 && (
-              <div className="flex items-center gap-1 px-2 py-1 bg-orange-500/10 text-orange-600 dark:text-orange-400 rounded-full text-xs font-medium">
-                🔥 {streakData.currentStreak}
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* ⭐ HERO: Next Dose - ALWAYS AT TOP */}
-        <HeroNextDose
-          dose={nextPendingDose}
-          nextDayDose={nextDayDose}
-          onTake={markAsTaken}
-          allDoneToday={todayStats.total > 0 && todayStats.taken === todayStats.total}
-        />
-
-        {/* Status Summary */}
-        <RoutineStatusSummary
-          streak={streakData.currentStreak}
-          todayProgress={todayStats}
-        />
-
-        {/* Critical Alerts - Compact */}
-        {criticalAlerts.alerts.length > 0 && (
-          <CriticalAlertBanner
-            alerts={criticalAlerts.alerts}
-            onDismiss={(id) => criticalAlerts.dismissAlert(id)}
-            onDismissAll={() => criticalAlerts.dismissAll()}
-          />
         )}
+      </div>
 
-        {/* Alerts compactos */}
-        <ExpiredPrescriptionsAlert />
-        <VaccineRemindersWidget />
+      {/* Banner de doses atrasadas - só aparece se houver */}
+      <OverdueDosesBanner />
 
-        {/* Stock & Report */}
-        <StockAlertWidget />
-        <MonthlyReportWidget />
+      {/* Progresso do dia - Simples e claro */}
+      {todayStats.total > 0 && (
+        <Card className="p-4 bg-muted/30 border-muted">
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-muted-foreground">
+              {language === 'pt' ? 'Progresso de hoje' : "Today's progress"}
+            </span>
+            <span className="text-lg font-bold text-foreground">
+              {todayStats.taken}/{todayStats.total} {language === 'pt' ? 'doses' : 'doses'}
+            </span>
+          </div>
+          {/* Barra de progresso */}
+          <div className="mt-2 h-2 bg-muted rounded-full overflow-hidden">
+            <motion.div 
+              className="h-full bg-primary rounded-full"
+              initial={{ width: 0 }}
+              animate={{ width: `${todayStats.total > 0 ? (todayStats.taken / todayStats.total) * 100 : 0}%` }}
+              transition={{ duration: 0.5, ease: "easeOut" }}
+            />
+          </div>
+        </Card>
+      )}
 
-        {/* Calendário simples */}
+      {/* Alertas importantes - Compactos */}
+      {criticalAlerts.alerts.length > 0 && (
+        <CriticalAlertBanner
+          alerts={criticalAlerts.alerts}
+          onDismiss={(id) => criticalAlerts.dismissAlert(id)}
+          onDismissAll={() => criticalAlerts.dismissAll()}
+        />
+      )}
+
+      {/* Estoque baixo */}
+      <StockAlertWidget />
+
+      {/* Calendário - SECUNDÁRIO, abaixo da ação principal */}
+      <Card className="p-4 border-muted/50">
+        <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium mb-3">
+          {language === 'pt' ? 'Calendário' : 'Calendar'}
+        </p>
         <ImprovedCalendar selectedDate={selectedDate} onDateSelect={setSelectedDate} eventCounts={eventCounts} />
+      </Card>
 
-        {/* Timeline do dia */}
+      {/* Timeline do dia - Para dias não-hoje ou detalhes */}
+      {format(selectedDate, "yyyy-MM-dd") !== format(new Date(), "yyyy-MM-dd") && (
         <DayTimeline date={selectedDate} items={timelineItems} onDateChange={setSelectedDate} />
+      )}
 
-        {/* Secondary Stats Row - Colorful */}
-        <div className="grid grid-cols-2 gap-2 mb-4">
-          {/* Adherence - Primary color */}
-          <Card className="p-3 bg-gradient-to-br from-green-500/15 to-green-500/5 border-green-500/20">
-            <div className="flex items-center justify-between gap-2">
-              <div className="min-w-0">
-                <p className="text-[10px] text-green-600 dark:text-green-400 uppercase tracking-wide font-medium">{t('todayRedesign.dosesTodayLabel')}</p>
-                <p className="text-lg font-bold text-foreground">
-                  {todayStats.taken}/{todayStats.total}
-                </p>
-              </div>
-              <div className={cn(
-                "text-2xl font-bold",
-                todayStats.total > 0 && todayStats.taken === todayStats.total
-                  ? "text-green-500"
-                  : todayStats.taken > 0
-                  ? "text-primary"
-                  : "text-muted-foreground"
-              )}>
-                {todayStats.total > 0 ? Math.round((todayStats.taken / todayStats.total) * 100) : 0}%
-              </div>
-            </div>
-          </Card>
-
-          {/* Insights - Blue accent */}
-          <Card
-            className="p-3 cursor-pointer hover:shadow-md transition-all bg-gradient-to-br from-blue-500/15 to-blue-500/5 border-blue-500/20 active:scale-[0.98]"
-            onClick={() => navigate('/evolucao')}
-          >
-            <div className="flex items-center gap-2">
-              <div className="h-8 w-8 rounded-full bg-blue-500/20 flex items-center justify-center shrink-0">
-                <TrendingUp className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-xs font-semibold text-blue-600 dark:text-blue-400 truncate">{t('todayRedesign.insightsTitle')}</p>
-                <p className="text-[10px] text-muted-foreground">{t('todayRedesign.insightsDesc')}</p>
-              </div>
-            </div>
-          </Card>
-        </div>
-
-        {/* Quick Dose Widget - Full width */}
-        <div className="mb-4">
-          <QuickDoseWidget />
-        </div>
-
-        {/* Fitness Widgets - Conditional */}
-        {hasSupplements && preferences.showFitnessWidgets && (
-          <div className="space-y-2 mb-4">
-            <HydrationWidget />
-            <SupplementConsistencyWidget last7Days={[80, 85, 90, 75, 95, 88, 92]} />
-            <EnergyHintWidget />
-          </div>
-        )}
-
-        {/* Tutorial Hints */}
-        {tutorialsEnabled && (
-          <TutorialHint
-            id="today_overview"
-            title="📅 Sua rotina de hoje"
-            message="Marque as doses quando tomar. O calendário mostra seus compromissos do mês."
-            placement="bottom"
-          />
-        )}
+      {/* Widgets secundários - Colapsáveis/opcionais */}
+      <ExpiredPrescriptionsAlert />
+      <VaccineRemindersWidget />
+      <MonthlyReportWidget />
 
         {/* Milestone Reward Modal */}
         {milestone && (
