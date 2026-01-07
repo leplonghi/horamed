@@ -71,19 +71,34 @@ export default function ClaraSuggestions({
     });
   }
 
-  // Dica geral se não houver sugestões
+  // Clara empática - mensagens curtas e contextuais, apenas quando ajuda
   if (suggestions.length === 0) {
-    const tips = [
-      t('claraSuggests.tips.water'),
-      t('claraSuggests.tips.schedule'),
-      t('claraSuggests.tips.help'),
-    ];
-    const randomTip = tips[Math.floor(Math.random() * tips.length)];
+    const hour = new Date().getHours();
+    let contextualMessage = '';
+    
+    // Mensagens empáticas baseadas no contexto
+    if (currentStreak > 0 && currentStreak < 7) {
+      contextualMessage = language === 'pt' 
+        ? 'Tudo certo hoje. Boa!' 
+        : 'All good today. Nice!';
+    } else if (hour < 10) {
+      contextualMessage = language === 'pt'
+        ? 'Bom dia! Pronto para mais um dia?'
+        : 'Good morning! Ready for another day?';
+    } else if (hour > 20) {
+      contextualMessage = language === 'pt'
+        ? 'Quase lá! Descanse bem.'
+        : 'Almost there! Rest well.';
+    } else {
+      // Não mostrar nada se não houver contexto útil
+      return;
+    }
+    
     suggestions.push({
-      id: 'tip',
+      id: 'contextual',
       type: 'tip',
-      title: t('claraSuggests.tip'),
-      message: randomTip,
+      title: language === 'pt' ? 'Clara' : 'Clara',
+      message: contextualMessage,
     });
   }
 

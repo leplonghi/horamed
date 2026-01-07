@@ -12,7 +12,14 @@ type MetricEvent =
   | 'subscription_canceled'
   | 'medication_added'
   | 'profile_created'
-  | 'app_opened';
+  | 'app_opened'
+  // New telemetry events for HoraMed reliability
+  | 'onboarding_completed'
+  | 'first_alarm_tested'
+  | 'alarm_fired_offline'
+  | 'day_completed'
+  | 'streak_started'
+  | 'user_inactive_dose_reminder';
 
 interface MetricData {
   [key: string]: string | number | boolean | null;
@@ -68,6 +75,25 @@ export const trackProfileCreated = (relationship: string) =>
 
 export const trackAppOpened = () => trackMetric('app_opened');
 
+// New telemetry for HoraMed reliability
+export const trackOnboardingCompleted = (alarmTested: boolean) => 
+  trackMetric('onboarding_completed', { alarm_tested: alarmTested });
+
+export const trackFirstAlarmTested = (success: boolean) => 
+  trackMetric('first_alarm_tested', { success });
+
+export const trackAlarmFiredOffline = (doseId: string) => 
+  trackMetric('alarm_fired_offline', { dose_id: doseId });
+
+export const trackDayCompleted = (totalDoses: number, completedDoses: number) => 
+  trackMetric('day_completed', { total_doses: totalDoses, completed_doses: completedDoses, adherence_percent: Math.round((completedDoses / totalDoses) * 100) });
+
+export const trackStreakStarted = (streakDays: number) => 
+  trackMetric('streak_started', { streak_days: streakDays });
+
+export const trackUserInactiveDoseReminder = (hoursSinceLastOpen: number) => 
+  trackMetric('user_inactive_dose_reminder', { hours_since_last_open: hoursSinceLastOpen });
+
 export const useAppMetrics = () => {
   return {
     trackMetric,
@@ -83,5 +109,12 @@ export const useAppMetrics = () => {
     trackMedicationAdded,
     trackProfileCreated,
     trackAppOpened,
+    // New telemetry
+    trackOnboardingCompleted,
+    trackFirstAlarmTested,
+    trackAlarmFiredOffline,
+    trackDayCompleted,
+    trackStreakStarted,
+    trackUserInactiveDoseReminder,
   };
 };

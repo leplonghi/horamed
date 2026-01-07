@@ -65,9 +65,9 @@ export async function getUserEffectiveMaxActiveItems(userId: string): Promise<nu
     return Infinity;
   }
 
-  // Free users: 1 base + extra slots from referrals
+  // Free users: 2 base (minimum viable routine) + extra slots from referrals
   const extraSlots = await getFreeExtraSlotsForUser(userId, new Date());
-  return 1 + extraSlots;
+  return 2 + extraSlots;
 }
 
 /**

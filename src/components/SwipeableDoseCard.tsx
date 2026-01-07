@@ -170,7 +170,7 @@ export default function SwipeableDoseCard({
             </div>
           </div>
 
-          {/* Actions - fallback for accessibility */}
+          {/* Actions - PRIMARY visible buttons */}
           <div className="flex items-center gap-2">
             <motion.button
               whileTap={{ scale: 0.92 }}
@@ -187,10 +187,10 @@ export default function SwipeableDoseCard({
               onClick={onTake}
               disabled={isTaking}
               className={cn(
-                "w-12 h-12 rounded-xl flex items-center justify-center",
-                "font-medium text-white transition-all duration-300",
+                "flex items-center gap-2 px-4 h-12 rounded-xl",
+                "font-semibold text-white transition-all duration-300",
                 "shadow-[var(--shadow-sm)] hover:shadow-[var(--shadow-md)]",
-                isOverdue ? "bg-destructive" : "bg-success",
+                isOverdue ? "bg-destructive hover:bg-destructive/90" : "bg-success hover:bg-success/90",
                 isTaking && "opacity-60"
               )}
               aria-label="Marcar como tomado"
@@ -198,7 +198,10 @@ export default function SwipeableDoseCard({
               {isTaking ? (
                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               ) : (
-                <Check className="w-6 h-6" />
+                <>
+                  <Check className="w-5 h-5" />
+                  <span className="text-sm">Tomar</span>
+                </>
               )}
             </motion.button>
           </div>
