@@ -12,17 +12,18 @@ export default function SubscriptionBadge() {
   if (isOnTrial && trialDaysLeft !== null) {
     const isUrgent = trialDaysLeft <= 2;
     return (
-      <div 
-        className={`flex items-center gap-1 px-2 py-0.5 rounded-full cursor-pointer transition-colors ${
+      <button 
+        type="button"
+        className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full cursor-pointer transition-colors ${
           isUrgent 
             ? "bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400 animate-pulse" 
-            : "bg-primary/10 text-primary"
+            : "bg-primary/10 text-primary hover:bg-primary/20"
         }`}
         onClick={() => navigate("/planos")}
       >
-        <Sparkles className="h-3 w-3" />
-        <span className="text-xs font-medium">{trialDaysLeft}d</span>
-      </div>
+        <Sparkles className="h-3.5 w-3.5" />
+        <span className="text-xs font-medium">Trial {trialDaysLeft}d</span>
+      </button>
     );
   }
   
@@ -36,22 +37,25 @@ export default function SubscriptionBadge() {
   
   if (isFree && daysLeft !== null) {
     return (
-      <div 
-        className="flex items-center gap-1 text-xs text-muted-foreground cursor-pointer"
+      <button 
+        type="button"
+        className="flex items-center gap-1 px-2 py-1 rounded-full text-xs text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors cursor-pointer"
         onClick={() => navigate("/planos")}
       >
-        <Clock className="h-3 w-3" />
-        <span className="hidden sm:inline">{daysLeft > 0 ? `${daysLeft}d` : 'Exp'}</span>
-      </div>
+        <Clock className="h-3.5 w-3.5" />
+        <span>{daysLeft > 0 ? `${daysLeft}d` : 'Expirado'}</span>
+      </button>
     );
   }
   
   return (
-    <div 
-      className="flex items-center justify-center h-6 w-6 rounded-full bg-muted cursor-pointer"
+    <button 
+      type="button"
+      className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-colors cursor-pointer"
       onClick={() => navigate("/planos")}
     >
-      <span className="text-[10px] font-medium text-muted-foreground">F</span>
-    </div>
+      <Crown className="h-3.5 w-3.5" />
+      <span className="text-xs font-medium">Premium</span>
+    </button>
   );
 }
