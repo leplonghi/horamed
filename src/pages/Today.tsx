@@ -40,6 +40,7 @@ import MiniWeekCalendar from "@/components/MiniWeekCalendar";
 import LowStockQuickRefill from "@/components/LowStockQuickRefill";
 import NotificationPermissionPrompt from "@/components/NotificationPermissionPrompt";
 import { GamificationWidget } from "@/components/gamification/GamificationWidget";
+import { NotificationSettingsReminder } from "@/components/NotificationSettingsReminder";
 
 interface DoseItem {
   id: string;
@@ -387,6 +388,9 @@ export default function Today() {
               />
             </div>
           )}
+
+          {/* Notification Settings Reminder */}
+          <NotificationSettingsReminder />
 
           {/* Low Stock Quick Refill - Simpler way to restock */}
           {hasAnyItems && <LowStockQuickRefill profileId={activeProfile?.id} />}
