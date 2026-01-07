@@ -68,8 +68,11 @@
     <!-- Inline critical CSS for splash screen -->
     <style>
       /* Prevent flash of unstyled content */
-      html { background-color: #ffffff; }
-      @media (prefers-color-scheme: dark) { html { background-color: #0c0a1d; } }
+      html { background-color: #f8f9fb; }
+      .dark html, html.dark { background-color: #0d0f12; }
+      @media (prefers-color-scheme: dark) { html:not(.light) { background-color: #0d0f12; } }
+      /* Ensure root always has minimum height and visible content */
+      #root { min-height: 100vh; }
     </style>
     <meta property="og:title" content="HoraMed - Gestão Completa da Sua Saúde">
   <meta name="twitter:title" content="HoraMed - Gestão Completa da Sua Saúde">
