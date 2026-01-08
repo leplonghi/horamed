@@ -26,19 +26,6 @@ function checkRateLimit(clientIP: string): boolean {
   return true;
 }
 
-// Periodic cleanup of old rate limit entries (every 5 minutes)
-setInterval(() => {
-  const now = Date.now();
-  for (const [ip, timestamps] of rateLimiter.entries()) {
-    const recent = timestamps.filter(t => now - t < RATE_LIMIT_WINDOW_MS);
-    if (recent.length === 0) {
-      rateLimiter.delete(ip);
-    } else {
-      rateLimiter.set(ip, recent);
-    }
-  }
-}, 5 * 60 * 1000);
-
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
