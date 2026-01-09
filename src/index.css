@@ -495,3 +495,86 @@ All colors MUST be HSL.
     animation: shimmer 2s infinite;
   }
 }
+
+/* ========== ELDERLY/ACCESSIBILITY MODE ========== */
+
+.elderly-mode {
+  /* Larger fonts */
+  font-size: 1.2rem !important;
+  
+  /* Larger line height for readability */
+  line-height: 1.7 !important;
+}
+
+.elderly-mode h1,
+.elderly-mode h2,
+.elderly-mode h3 {
+  font-size: calc(1em * 1.3) !important;
+  font-weight: 700 !important;
+}
+
+.elderly-mode button,
+.elderly-mode [role="button"],
+.elderly-mode .btn,
+.elderly-mode a.inline-flex {
+  min-height: 52px !important;
+  padding-left: 1.5rem !important;
+  padding-right: 1.5rem !important;
+  font-size: 1.1rem !important;
+}
+
+.elderly-mode input,
+.elderly-mode textarea,
+.elderly-mode select {
+  min-height: 52px !important;
+  font-size: 1.1rem !important;
+}
+
+.elderly-mode .text-xs {
+  font-size: 0.875rem !important;
+}
+
+.elderly-mode .text-sm {
+  font-size: 1rem !important;
+}
+
+.elderly-mode .text-muted-foreground {
+  color: hsl(var(--foreground) / 0.75) !important;
+}
+
+/* Higher contrast in elderly mode */
+.elderly-mode {
+  --muted-foreground: 220 10% 35%;
+}
+
+.elderly-mode.dark {
+  --muted-foreground: 220 10% 65%;
+}
+
+/* Larger touch targets */
+.elderly-mode .rounded-xl {
+  border-radius: 1.25rem !important;
+}
+
+.elderly-mode .p-4 {
+  padding: 1.25rem !important;
+}
+
+/* Icon sizes */
+.elderly-mode svg.lucide {
+  min-width: 20px !important;
+  min-height: 20px !important;
+}
+
+/* Larger badges */
+.elderly-mode [class*="Badge"],
+.elderly-mode .badge {
+  padding: 0.5rem 1rem !important;
+  font-size: 0.95rem !important;
+}
+
+/* Better focus states */
+.elderly-mode *:focus-visible {
+  outline: 3px solid hsl(var(--primary)) !important;
+  outline-offset: 3px !important;
+}
