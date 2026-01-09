@@ -24,20 +24,20 @@ export default function StockAlertWidget() {
 
   const urgencyConfig = {
     critical: {
-      bg: 'bg-gradient-to-br from-red-500/15 to-red-500/5',
-      border: 'border-red-500/30',
+      bg: 'bg-gradient-to-br from-red-500/20 to-red-500/5 backdrop-blur-xl',
+      border: 'border-red-500/30 shadow-[var(--shadow-glass)]',
       icon: 'text-red-600 dark:text-red-400',
       text: 'text-red-700 dark:text-red-300',
     },
     warning: {
-      bg: 'bg-gradient-to-br from-orange-500/15 to-orange-500/5',
-      border: 'border-orange-500/30',
+      bg: 'bg-gradient-to-br from-orange-500/20 to-orange-500/5 backdrop-blur-xl',
+      border: 'border-orange-500/30 shadow-[var(--shadow-glass)]',
       icon: 'text-orange-600 dark:text-orange-400',
       text: 'text-orange-700 dark:text-orange-300',
     },
     info: {
-      bg: 'bg-gradient-to-br from-yellow-500/15 to-yellow-500/5',
-      border: 'border-yellow-500/30',
+      bg: 'bg-gradient-to-br from-yellow-500/20 to-yellow-500/5 backdrop-blur-xl',
+      border: 'border-yellow-500/30 shadow-[var(--shadow-glass)]',
       icon: 'text-yellow-600 dark:text-yellow-400',
       text: 'text-yellow-700 dark:text-yellow-300',
     },
@@ -52,10 +52,10 @@ export default function StockAlertWidget() {
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -10 }}
       >
-        <Card className={`${config.bg} ${config.border} border mb-4`}>
+        <Card className={`${config.bg} ${config.border} border mb-4 hover:shadow-[var(--shadow-glass-hover)] transition-all`}>
           <CardContent className="p-3">
             <div className="flex items-start gap-3">
-              <div className={`p-2 rounded-lg bg-background/50 ${config.icon}`}>
+              <div className={`p-2 rounded-xl bg-background/60 backdrop-blur-sm ${config.icon}`}>
                 {urgencyLevel === 'critical' ? (
                   <AlertTriangle className="h-5 w-5" />
                 ) : (

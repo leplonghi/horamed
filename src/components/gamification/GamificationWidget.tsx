@@ -26,12 +26,12 @@ export function GamificationWidget() {
 
   if (loading) {
     return (
-      <Card className="p-4">
+      <Card className="p-4 bg-gradient-to-br from-card/90 to-card/70 backdrop-blur-xl shadow-[var(--shadow-glass)]">
         <div className="animate-pulse flex items-center gap-4">
-          <div className="h-12 w-12 bg-muted rounded-full" />
+          <div className="h-12 w-12 bg-muted/50 rounded-full" />
           <div className="flex-1 space-y-2">
-            <div className="h-4 bg-muted rounded w-1/2" />
-            <div className="h-2 bg-muted rounded w-full" />
+            <div className="h-4 bg-muted/50 rounded w-1/2" />
+            <div className="h-2 bg-muted/50 rounded w-full" />
           </div>
         </div>
       </Card>
@@ -46,7 +46,7 @@ export function GamificationWidget() {
       animate={{ opacity: 1, y: 0 }}
     >
       <Card 
-        className="p-4 cursor-pointer hover:bg-muted/50 transition-colors"
+        className="p-4 cursor-pointer transition-all bg-gradient-to-br from-card/90 to-card/70 backdrop-blur-xl border border-border/30 shadow-[var(--shadow-glass)] hover:shadow-[var(--shadow-glass-hover)]"
         onClick={() => navigate("/jornada")}
       >
         <div className="flex items-center gap-4">

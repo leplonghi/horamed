@@ -65,10 +65,10 @@ const TodayStatusCard = memo(function TodayStatusCard({
   
   return (
     <Card className={cn(
-      "p-4 border transition-colors",
+      "p-4 border transition-all backdrop-blur-xl shadow-[var(--shadow-glass)]",
       isComplete 
-        ? "bg-green-500/10 border-green-500/30" 
-        : "bg-muted/30 border-muted/50"
+        ? "bg-gradient-to-br from-green-500/15 to-emerald-500/5 border-green-500/30" 
+        : "bg-gradient-to-br from-muted/50 to-muted/30 border-border/40"
     )}>
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">

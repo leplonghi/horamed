@@ -171,8 +171,9 @@ export default function Medications() {
         <div 
           className={cn(
             "p-4 rounded-2xl transition-all duration-200",
-            "bg-card/90 backdrop-blur-sm",
-            "shadow-sm hover:shadow-md",
+            "bg-gradient-to-br from-card/90 to-card/70 backdrop-blur-xl",
+            "border border-border/30 shadow-[var(--shadow-glass)]",
+            "hover:shadow-[var(--shadow-glass-hover)] hover:border-border/50",
             isSupplement && "ring-1 ring-performance/20"
           )}
         >

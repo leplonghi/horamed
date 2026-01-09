@@ -31,9 +31,9 @@ export default function SimpleDoseCard({
   const { t } = useLanguage();
 
   const statusColors = {
-    pending: "border-l-yellow-500 bg-yellow-50/50 dark:bg-yellow-950/10",
-    taken: "border-l-green-500 bg-green-50/50 dark:bg-green-950/10 opacity-60",
-    missed: "border-l-red-500 bg-red-50/50 dark:bg-red-950/10",
+    pending: "border-l-yellow-500 bg-gradient-to-br from-yellow-50/60 to-yellow-50/30 dark:from-yellow-950/20 dark:to-yellow-950/5 backdrop-blur-sm",
+    taken: "border-l-green-500 bg-gradient-to-br from-green-50/60 to-green-50/30 dark:from-green-950/20 dark:to-green-950/5 backdrop-blur-sm opacity-70",
+    missed: "border-l-red-500 bg-gradient-to-br from-red-50/60 to-red-50/30 dark:from-red-950/20 dark:to-red-950/5 backdrop-blur-sm",
   };
 
   const isPending = status === "pending";
@@ -57,7 +57,7 @@ export default function SimpleDoseCard({
         animate={{ opacity: 1, x: 0 }}
       >
         <Card
-          className={`p-5 border-l-4 ${statusColors[status]} transition-all`}
+          className={`p-5 border-l-4 ${statusColors[status]} transition-all shadow-[var(--shadow-glass)] hover:shadow-[var(--shadow-glass-hover)]`}
         >
           <div className="space-y-4">
             <div className="flex items-start justify-between gap-4">

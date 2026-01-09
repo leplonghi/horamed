@@ -225,15 +225,15 @@ export default function ClaraProactiveCard({
   const getTypeColors = (type: InsightType) => {
     switch (type) {
       case "alert":
-        return "bg-destructive/10 border-destructive/20 text-destructive";
+        return "bg-gradient-to-br from-destructive/15 to-destructive/5 border-destructive/30 text-destructive";
       case "reminder":
-        return "bg-amber-500/10 border-amber-500/20 text-amber-600 dark:text-amber-400";
+        return "bg-gradient-to-br from-amber-500/15 to-amber-500/5 border-amber-500/30 text-amber-600 dark:text-amber-400";
       case "celebration":
-        return "bg-green-500/10 border-green-500/20 text-green-600 dark:text-green-400";
+        return "bg-gradient-to-br from-green-500/15 to-green-500/5 border-green-500/30 text-green-600 dark:text-green-400";
       case "motivation":
-        return "bg-blue-500/10 border-blue-500/20 text-blue-600 dark:text-blue-400";
+        return "bg-gradient-to-br from-blue-500/15 to-blue-500/5 border-blue-500/30 text-blue-600 dark:text-blue-400";
       default:
-        return "bg-primary/10 border-primary/20 text-primary";
+        return "bg-gradient-to-br from-primary/15 to-primary/5 border-primary/30 text-primary";
     }
   };
 
@@ -249,7 +249,8 @@ export default function ClaraProactiveCard({
     >
       <Card 
         className={cn(
-          "p-3 cursor-pointer transition-all hover:shadow-md border",
+          "p-3 cursor-pointer transition-all border backdrop-blur-xl",
+          "hover:shadow-[var(--shadow-glass-hover)] shadow-[var(--shadow-glass)]",
           colors
         )}
         onClick={() => {

@@ -167,9 +167,9 @@ export default function DayTimeline({
       {/* Timeline do Dia */}
       <div className="space-y-3 w-full overflow-x-hidden">
         {items.length === 0 ? (
-          <Card className="border-dashed border-green-500/30 bg-green-500/5">
+          <Card className="border-dashed border-green-500/30 bg-gradient-to-br from-green-500/10 to-emerald-500/5 backdrop-blur-lg shadow-[var(--shadow-glass)]">
             <CardContent className="py-6 text-center">
-              <div className="inline-flex p-3 rounded-full bg-green-500/10 mb-3">
+              <div className="inline-flex p-3 rounded-full bg-gradient-to-br from-green-500/20 to-emerald-500/10 mb-3">
                 <CheckCircle2 className="h-6 w-6 text-green-600 dark:text-green-400" />
               </div>
               <p className="font-semibold text-green-600 dark:text-green-400">{t('today.allGood')}</p>
@@ -179,9 +179,9 @@ export default function DayTimeline({
             </CardContent>
           </Card>
         ) : allDone ? (
-          <Card className="border-green-500/30 bg-green-500/5">
+          <Card className="border-green-500/30 bg-gradient-to-br from-green-500/10 to-emerald-500/5 backdrop-blur-lg shadow-[var(--shadow-glass)]">
             <CardContent className="py-6 text-center">
-              <div className="inline-flex p-3 rounded-full bg-green-500/10 mb-3">
+              <div className="inline-flex p-3 rounded-full bg-gradient-to-br from-green-500/20 to-emerald-500/10 mb-3">
                 <CheckCircle2 className="h-6 w-6 text-green-600 dark:text-green-400" />
               </div>
               <p className="font-semibold text-green-600 dark:text-green-400">{t('today.allTaken')}</p>
@@ -222,7 +222,8 @@ export default function DayTimeline({
                       >
                         <Card
                           className={cn(
-                            "border-l-4 transition-all duration-300 hover:shadow-lg overflow-hidden",
+                            "border-l-4 transition-all duration-300 hover:shadow-lg overflow-hidden backdrop-blur-md",
+                            "shadow-[var(--shadow-glass)]",
                             styles.card,
                             isDone && "opacity-80"
                           )}

@@ -20,17 +20,17 @@ export default function StreakBadge({
     current: {
       icon: Flame,
       label: t('streak.sequence'),
-      color: "bg-orange-500/10 text-orange-600 border-orange-500/20",
+      color: "bg-gradient-to-r from-orange-500/15 to-amber-500/10 text-orange-600 border-orange-500/30 backdrop-blur-sm shadow-sm",
     },
     longest: {
       icon: Trophy,
       label: t('streak.record'),
-      color: "bg-yellow-500/10 text-yellow-600 border-yellow-500/20",
+      color: "bg-gradient-to-r from-yellow-500/15 to-amber-400/10 text-yellow-600 border-yellow-500/30 backdrop-blur-sm shadow-sm",
     },
     improving: {
       icon: TrendingUp,
       label: t('streak.improving'),
-      color: "bg-green-500/10 text-green-600 border-green-500/20",
+      color: "bg-gradient-to-r from-green-500/15 to-emerald-400/10 text-green-600 border-green-500/30 backdrop-blur-sm shadow-sm",
     },
   };
 

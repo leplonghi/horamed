@@ -15,7 +15,7 @@ export function SmartActionCards() {
 
   if (isLoading) {
     return (
-      <Card className="bg-muted/30">
+      <Card className="bg-gradient-to-br from-muted/50 to-muted/30 backdrop-blur-xl shadow-[var(--shadow-glass)]">
         <CardContent className="p-6 flex items-center justify-center">
           <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
         </CardContent>
@@ -30,11 +30,11 @@ export function SmartActionCards() {
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case 'high':
-        return 'border-l-4 border-l-destructive bg-destructive/5';
+        return 'border-l-4 border-l-destructive bg-gradient-to-br from-destructive/10 to-destructive/5 backdrop-blur-md';
       case 'medium':
-        return 'border-l-4 border-l-primary bg-primary/5';
+        return 'border-l-4 border-l-primary bg-gradient-to-br from-primary/10 to-primary/5 backdrop-blur-md';
       default:
-        return 'border-l-4 border-l-muted-foreground bg-muted/5';
+        return 'border-l-4 border-l-muted-foreground bg-gradient-to-br from-muted/30 to-muted/10 backdrop-blur-md';
     }
   };
 
@@ -57,7 +57,7 @@ export function SmartActionCards() {
             transition={{ delay: index * 0.1 }}
           >
             <Card 
-              className={`${getPriorityColor(suggestion.priority)} hover:shadow-md transition-all cursor-pointer group`}
+              className={`${getPriorityColor(suggestion.priority)} shadow-[var(--shadow-glass)] hover:shadow-[var(--shadow-glass-hover)] transition-all cursor-pointer group`}
               onClick={() => navigate(suggestion.actionPath)}
             >
               <CardContent className="p-4">

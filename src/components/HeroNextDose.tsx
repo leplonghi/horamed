@@ -64,7 +64,7 @@ function HeroNextDose({ dose, nextDayDose, onTake, onSnooze, allDoneToday }: Her
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.4, ease: "easeOut" }}
       >
-        <Card className="p-10 bg-gradient-to-br from-green-500/20 to-emerald-500/10 border-green-500/50">
+        <Card className="p-10 bg-gradient-to-br from-green-500/20 to-emerald-500/10 border-green-500/40 backdrop-blur-xl shadow-[var(--shadow-glass)]">
           <div className="flex flex-col items-center text-center gap-4">
             <motion.div 
               className="h-20 w-20 rounded-full bg-green-500 flex items-center justify-center shadow-lg shadow-green-500/30"
@@ -100,7 +100,7 @@ function HeroNextDose({ dose, nextDayDose, onTake, onSnooze, allDoneToday }: Her
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: "easeOut" }}
       >
-        <Card className="p-5 bg-gradient-to-br from-green-500/10 to-emerald-500/5 border-green-500/30">
+        <Card className="p-5 bg-gradient-to-br from-green-500/15 to-emerald-500/5 border-green-500/30 backdrop-blur-lg shadow-[var(--shadow-glass)]">
           <div className="flex items-center gap-4">
             <div className="h-12 w-12 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
               <Check className="h-6 w-6 text-white" />
@@ -136,7 +136,7 @@ function HeroNextDose({ dose, nextDayDose, onTake, onSnooze, allDoneToday }: Her
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: "easeOut" }}
       >
-        <Card className="p-8 bg-gradient-to-br from-primary/10 to-primary/5 border-primary/30">
+        <Card className="p-8 bg-gradient-to-br from-primary/15 to-primary/5 border-primary/30 backdrop-blur-lg shadow-[var(--shadow-glass)]">
           <div className="flex flex-col items-center text-center gap-4">
             <div className="h-20 w-20 rounded-full bg-primary/15 flex items-center justify-center">
               <Clock className="h-10 w-10 text-primary" />
@@ -174,12 +174,12 @@ function HeroNextDose({ dose, nextDayDose, onTake, onSnooze, allDoneToday }: Her
         transition={{ duration: 0.4, ease: "easeOut" }}
       >
         <Card className={cn(
-          "p-6 transition-all",
+          "p-6 transition-all backdrop-blur-xl shadow-[var(--shadow-glass)]",
           isOverdue 
-            ? "bg-gradient-to-br from-destructive/15 to-orange-500/5 border-destructive/40 ring-2 ring-destructive/30 shadow-lg"
+            ? "bg-gradient-to-br from-destructive/20 to-orange-500/10 border-destructive/40 ring-2 ring-destructive/30"
             : isNow 
-              ? "bg-gradient-to-br from-primary/15 to-primary/5 border-primary/40 ring-2 ring-primary/30 shadow-lg"
-              : "bg-gradient-to-br from-primary/10 to-primary/5 border-primary/30"
+              ? "bg-gradient-to-br from-primary/20 to-primary/10 border-primary/40 ring-2 ring-primary/30"
+              : "bg-gradient-to-br from-primary/15 to-primary/5 border-primary/30"
         )}>
           <div className="space-y-5">
             {/* Header com status e horário */}
