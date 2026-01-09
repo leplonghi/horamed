@@ -100,28 +100,25 @@ function HeroNextDose({ dose, nextDayDose, onTake, onSnooze, allDoneToday }: Her
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: "easeOut" }}
       >
-        <Card className="p-8 bg-gradient-to-br from-green-500/15 to-emerald-500/5 border-green-500/30">
-          <div className="flex flex-col items-center text-center gap-4">
-            <div className="h-20 w-20 rounded-full bg-green-500/20 flex items-center justify-center">
-              <Sparkles className="h-10 w-10 text-green-500" />
+        <Card className="p-5 bg-gradient-to-br from-green-500/10 to-emerald-500/5 border-green-500/30">
+          <div className="flex items-center gap-4">
+            <div className="h-12 w-12 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
+              <Check className="h-6 w-6 text-white" />
             </div>
             <div>
-              <h2 className="text-2xl font-bold text-green-600 dark:text-green-400">
-                {language === 'pt' ? 'Tudo certo por hoje 👍' : 'All good for today 👍'}
+              <h2 className="text-lg font-semibold text-green-600 dark:text-green-400">
+                {language === 'pt' ? 'Tudo certo por hoje' : 'All good for today'}
               </h2>
               {nextDayDose ? (
-                <p className="text-base text-muted-foreground mt-2">
+                <p className="text-sm text-muted-foreground">
                   {language === 'pt' 
-                    ? `Próxima dose amanhã às ${nextDayDose.time}`
-                    : `Next dose tomorrow at ${nextDayDose.time}`
+                    ? `Próxima às ${nextDayDose.time}`
+                    : `Next at ${nextDayDose.time}`
                   }
                 </p>
               ) : (
-                <p className="text-base text-muted-foreground mt-2">
-                  {language === 'pt' 
-                    ? 'Dia concluído 🎉'
-                    : 'Day completed 🎉'
-                  }
+                <p className="text-sm text-muted-foreground">
+                  {language === 'pt' ? 'Dia concluído' : 'Day completed'}
                 </p>
               )}
             </div>
