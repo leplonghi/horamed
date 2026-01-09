@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Pencil, Trash2, Search, Plus, Pill, Leaf, Clock, BookOpen } from "lucide-react";
+import { Pencil, Trash2, Search, Plus, Pill, Leaf, Clock, BookOpen, X } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import Navigation from "@/components/Navigation";
@@ -11,14 +11,17 @@ import { useSubscription } from "@/hooks/useSubscription";
 import UpgradeModal from "@/components/UpgradeModal";
 import { ListSkeleton } from "@/components/LoadingSkeleton";
 import FloatingActionButton from "@/components/FloatingActionButton";
-import HelpTooltip from "@/components/HelpTooltip";
 import { cn } from "@/lib/utils";
 import { useUserProfiles } from "@/hooks/useUserProfiles";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import SupplementCategoryTag, { detectSupplementCategory } from "@/components/SupplementCategoryTag";
 import { useLanguage } from "@/contexts/LanguageContext";
 import MedicationInfoSheet from "@/components/MedicationInfoSheet";
 import { useMedicationInfo } from "@/hooks/useMedicationInfo";
+import PageHeroHeader from "@/components/shared/PageHeroHeader";
+import MedicationQuickActions from "@/components/medications/MedicationQuickActions";
+import SmartMedicationInsights from "@/components/medications/SmartMedicationInsights";
+import MedicationStatsGrid from "@/components/medications/MedicationStatsGrid";
 
 interface Item {
   id: string;
@@ -44,6 +47,7 @@ export default function Medications() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
   const { canAddMedication } = useSubscription();
   const { activeProfile } = useUserProfiles();
   
@@ -113,16 +117,19 @@ export default function Medications() {
     }
   };
 
+  // Filter items
+  const filteredItems = items.filter(item => {
+    const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = !categoryFilter || 
+      (categoryFilter === 'medicamento' && item.category === 'medicamento') ||
+      (categoryFilter === 'suplemento' && (item.category === 'suplemento' || item.category === 'vitamina')) ||
+      (categoryFilter === 'low-stock' && item.stock?.[0] && item.stock[0].units_left <= 5);
+    return matchesSearch && matchesCategory;
+  });
+
   // Separar por categoria
-  const medicamentos = items.filter(item => 
-    item.category === 'medicamento' && 
-    item.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-  
-  const suplementos = items.filter(item => 
-    (item.category === 'suplemento' || item.category === 'vitamina') && 
-    item.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const medicamentos = filteredItems.filter(item => item.category === 'medicamento');
+  const suplementos = filteredItems.filter(item => item.category === 'suplemento' || item.category === 'vitamina');
 
   const deleteItem = async (id: string) => {
     if (!confirm(t('medications.confirmDelete'))) return;
@@ -154,8 +161,24 @@ export default function Medications() {
     navigate("/adicionar");
   };
 
+  const handleInsightAction = (action: string) => {
+    if (action.startsWith('/')) {
+      navigate(action);
+    }
+  };
+
+  const handleStatClick = (filter: string) => {
+    if (filter === 'all') {
+      setCategoryFilter(null);
+    } else if (filter === 'low-stock') {
+      navigate('/estoque');
+    } else {
+      setCategoryFilter(filter);
+    }
+  };
+
   // Card com ações visíveis - Design focado em ação clara
-  const ItemCard = ({ item }: { item: Item }) => {
+  const ItemCard = ({ item, index }: { item: Item; index: number }) => {
     const scheduleSummary = getScheduleSummary(item.schedules);
     const isSupplement = item.category === 'suplemento' || item.category === 'vitamina';
     const supplementCategory = isSupplement ? detectSupplementCategory(item.name) : null;
@@ -166,6 +189,7 @@ export default function Medications() {
       <motion.div
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: index * 0.03 }}
         whileTap={{ scale: 0.99 }}
       >
         <div 
@@ -279,13 +303,13 @@ export default function Medications() {
       </div>
       
       {items.length === 0 ? (
-        <div className="py-8 text-center text-muted-foreground rounded-2xl bg-muted/30">
+        <div className="py-8 text-center text-muted-foreground rounded-2xl bg-muted/30 backdrop-blur-sm">
           <p className="text-sm">{emptyMessage}</p>
         </div>
       ) : (
         <div className="space-y-2">
-          {items.map(item => (
-            <ItemCard key={item.id} item={item} />
+          {items.map((item, index) => (
+            <ItemCard key={item.id} item={item} index={index} />
           ))}
         </div>
       )}
@@ -310,33 +334,49 @@ export default function Medications() {
     <>
       <Header />
       <div className="min-h-screen bg-gradient-subtle pt-20 pb-28">
-        <div className="container-fluid space-y-8">
-          {/* Header - Clean */}
-          <div className="pt-2">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="flex items-center gap-2">
-                  <h1 className="heading-page">{t('medications.title')}</h1>
-                  <HelpTooltip 
-                    content={t('medications.tooltipHelp')} 
-                    iconSize="lg"
-                  />
-                </div>
-                <p className="text-sm text-muted-foreground mt-1">
-                  {items.length === 0 
-                    ? t('medications.addItem') 
-                    : `${items.length} ${items.length === 1 ? t('medications.itemCount') : t('medications.itemsCount')}`
-                  }
-                </p>
-              </div>
-              <Button onClick={handleAddClick} size="sm">
-                <Plus className="h-4 w-4" />
-                {t('medications.addButton')}
-              </Button>
-            </div>
-          </div>
+        <div className="container max-w-4xl mx-auto px-4 sm:px-6 space-y-6">
+          {/* Hero Header */}
+          <PageHeroHeader
+            icon={<Pill className="h-6 w-6 text-primary" />}
+            title={t('medications.title')}
+            subtitle={items.length === 0 
+              ? t('medications.addItem') 
+              : `${items.length} ${items.length === 1 ? t('medications.itemCount') : t('medications.itemsCount')}`
+            }
+            action={{
+              label: t('medications.addButton'),
+              icon: <Plus className="h-5 w-5" />,
+              onClick: handleAddClick
+            }}
+          />
 
-          {/* Busca - Clean */}
+          {/* Quick Actions */}
+          {items.length > 0 && (
+            <MedicationQuickActions
+              onAddMedication={handleAddClick}
+              onScanPrescription={() => navigate('/carteira')}
+              onViewStock={() => navigate('/estoque')}
+              onViewSchedule={() => navigate('/hoje')}
+            />
+          )}
+
+          {/* Smart Insights */}
+          {items.length > 0 && (
+            <SmartMedicationInsights
+              items={items}
+              onActionClick={handleInsightAction}
+            />
+          )}
+
+          {/* Stats Grid */}
+          {items.length > 0 && (
+            <MedicationStatsGrid
+              items={items}
+              onStatClick={handleStatClick}
+            />
+          )}
+
+          {/* Busca */}
           {items.length > 0 && (
             <div className="relative">
               <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -344,46 +384,107 @@ export default function Medications() {
                 placeholder={t('medications.searchPlaceholder')} 
                 value={searchTerm} 
                 onChange={e => setSearchTerm(e.target.value)} 
-                className="pl-11 h-11 rounded-xl bg-muted/50 border-0" 
+                className="pl-11 pr-10 h-12 rounded-2xl bg-card/80 backdrop-blur-sm border-2 focus:border-primary transition-all" 
               />
+              {searchTerm && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full"
+                  onClick={() => setSearchTerm("")}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              )}
             </div>
           )}
 
-          {/* Empty State - Clean */}
-          {items.length === 0 && (
-            <div className="py-16 text-center">
-              <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-5">
-                <Pill className="w-8 h-8 text-primary" />
-              </div>
-              <h3 className="text-lg font-medium mb-2">{t('medications.getStarted')}</h3>
-              <p className="text-muted-foreground text-sm mb-8 max-w-[280px] mx-auto">
-                {t('medications.emptyDesc')}
-              </p>
-              <Button onClick={handleAddClick} size="lg">
-                <Plus className="h-5 w-5" />
-                {t('medications.addFirstItem')}
+          {/* Category filter badge */}
+          {categoryFilter && (
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">
+                {language === 'pt' ? 'Filtrando por:' : 'Filtering by:'}
+              </span>
+              <Button
+                variant="secondary"
+                size="sm"
+                className="gap-1 rounded-full"
+                onClick={() => setCategoryFilter(null)}
+              >
+                {categoryFilter === 'medicamento' 
+                  ? (language === 'pt' ? 'Medicamentos' : 'Medications')
+                  : (language === 'pt' ? 'Suplementos' : 'Supplements')
+                }
+                <X className="h-3 w-3" />
               </Button>
             </div>
           )}
 
-          {/* Seções - Clean */}
-          {items.length > 0 && (
-            <div className="space-y-10">
-              <CategorySection 
-                title={t('medications.medicationsSection')} 
-                icon={Pill} 
-                items={medicamentos}
-                emptyMessage={t('medications.noMedications')}
-                accentColor="bg-primary/10 text-primary"
-              />
-              
-              <CategorySection 
-                title={t('medications.supplementsSection')} 
-                icon={Leaf} 
-                items={suplementos}
-                emptyMessage={t('medications.noSupplements')}
-                accentColor="bg-performance/10 text-performance"
-              />
+          {/* Empty State */}
+          {items.length === 0 && (
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="py-16 text-center rounded-3xl bg-gradient-to-br from-card/80 to-muted/30 backdrop-blur-sm border border-border/30"
+            >
+              <motion.div 
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: 0.2, type: "spring" }}
+                className="w-20 h-20 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-5"
+              >
+                <Pill className="w-10 h-10 text-primary" />
+              </motion.div>
+              <h3 className="text-xl font-semibold mb-2">{t('medications.getStarted')}</h3>
+              <p className="text-muted-foreground text-sm mb-8 max-w-[280px] mx-auto">
+                {t('medications.emptyDesc')}
+              </p>
+              <Button onClick={handleAddClick} size="lg" className="rounded-2xl gap-2">
+                <Plus className="h-5 w-5" />
+                {t('medications.addFirstItem')}
+              </Button>
+            </motion.div>
+          )}
+
+          {/* Seções */}
+          <AnimatePresence mode="wait">
+            {filteredItems.length > 0 && (
+              <motion.div 
+                key="sections"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="space-y-10"
+              >
+                {(!categoryFilter || categoryFilter === 'medicamento') && medicamentos.length > 0 && (
+                  <CategorySection 
+                    title={t('medications.medicationsSection')} 
+                    icon={Pill} 
+                    items={medicamentos}
+                    emptyMessage={t('medications.noMedications')}
+                    accentColor="bg-primary/10 text-primary"
+                  />
+                )}
+                
+                {(!categoryFilter || categoryFilter === 'suplemento') && suplementos.length > 0 && (
+                  <CategorySection 
+                    title={t('medications.supplementsSection')} 
+                    icon={Leaf} 
+                    items={suplementos}
+                    emptyMessage={t('medications.noSupplements')}
+                    accentColor="bg-performance/10 text-performance"
+                  />
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* No results */}
+          {items.length > 0 && filteredItems.length === 0 && (
+            <div className="py-12 text-center">
+              <p className="text-muted-foreground">
+                {language === 'pt' ? 'Nenhum item encontrado' : 'No items found'}
+              </p>
             </div>
           )}
         </div>
