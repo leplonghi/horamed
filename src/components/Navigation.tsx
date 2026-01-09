@@ -22,9 +22,11 @@ export default function Navigation() {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-lg border-t border-border z-[60] pb-[env(safe-area-inset-bottom)] shadow-[0_-4px_16px_rgba(0,0,0,0.08)] dark:shadow-[0_-4px_16px_rgba(0,0,0,0.3)] animate-slide-up">
-      <div className="max-w-4xl mx-auto px-2">
-        <div className="flex items-center justify-around h-14">
+    <nav className="fixed bottom-0 left-0 right-0 z-[60] pb-[env(safe-area-inset-bottom)] animate-slide-up">
+      <div className="absolute inset-0 bg-gradient-to-t from-card/95 via-card/90 to-card/80 backdrop-blur-xl border-t border-border/40" />
+      <div className="absolute inset-0 bg-gradient-to-t from-transparent to-white/5 dark:to-white/[0.02]" />
+      <div className="relative max-w-4xl mx-auto px-2">
+        <div className="flex items-center justify-around h-16">
           {navItems.map((item, index) => {
             const isActive = location.pathname === item.path;
             return (

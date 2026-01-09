@@ -69,8 +69,10 @@ export default function Header() {
     return email.substring(0, 2).toUpperCase();
   };
   return (
-    <header className="fixed top-0 left-0 right-0 bg-card border-b border-border z-50 shadow-sm animate-slide-up pt-[env(safe-area-inset-top)]">
-      <div className="max-w-4xl mx-auto py-2 px-3">
+    <header className="fixed top-0 left-0 right-0 z-50 animate-slide-up pt-[env(safe-area-inset-top)]">
+      <div className="absolute inset-0 bg-gradient-to-b from-card/95 via-card/90 to-card/85 backdrop-blur-xl border-b border-border/40" />
+      <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent dark:from-white/[0.02]" />
+      <div className="relative max-w-4xl mx-auto py-2 px-3">
         <div className="flex items-center justify-between gap-2">
           {/* Left: Logo + badges */}
           <div className="flex items-center gap-1.5 min-w-0">
