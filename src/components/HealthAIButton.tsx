@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { X, Send, Sparkles } from "lucide-react";
+import { X, Send } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,6 +8,8 @@ import { useHealthAgent } from "@/hooks/useHealthAgent";
 import { useLocation } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { useLanguage } from "@/contexts/LanguageContext";
+import FloatingActionHub from "./FloatingActionHub";
+
 const claraAvatarUrl = new URL('@/assets/clara-avatar.png', import.meta.url).href;
 
 interface Message {
@@ -21,6 +23,7 @@ export default function HealthAIButton() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [showSuggestions, setShowSuggestions] = useState(true);
+  const [hasUnreadSuggestion, setHasUnreadSuggestion] = useState(false);
   const {
     processQuery,
     isProcessing
@@ -45,7 +48,6 @@ export default function HealthAIButton() {
       t('clara.howWallet'),
     ];
     
-    // Add contextual suggestions based on time
     const contextual: string[] = [];
     if (hour < 10) {
       contextual.push(language === 'pt' ? "O que devo tomar pela manhã?" : "What should I take in the morning?");
@@ -58,7 +60,7 @@ export default function HealthAIButton() {
     return [...contextual, ...baseSuggestions].slice(0, 4);
   }, [t, language]);
 
-  // Listen for external open events (from QuickActionMenu)
+  // Listen for external open events
   useEffect(() => {
     const handleOpenClara = () => setIsOpen(true);
     window.addEventListener('openClara', handleOpenClara);
@@ -104,37 +106,25 @@ export default function HealthAIButton() {
     handleSend(suggestion);
   };
 
+  const handleOpenAssistant = () => {
+    setIsOpen(true);
+    setHasUnreadSuggestion(false);
+  };
+
   return (
     <>
-      {/* Floating Clara Avatar Button - positioned above navigation + safe area */}
-      <AnimatePresence>
-        {!isOpen && (
-          <motion.button 
-            onClick={() => setIsOpen(true)} 
-            className="fixed bottom-[calc(4.5rem+env(safe-area-inset-bottom))] right-4 z-30"
-            initial={{ scale: 0, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0, opacity: 0 }}
-            whileHover={{ scale: 1.08 }}
-            whileTap={{ scale: 0.95 }}
-            transition={{ duration: 0.2 }}
-            aria-label={t('clara.healthAssistant')}
-          >
-            <div className="relative">
-              <div className="w-12 h-12 rounded-full overflow-hidden ring-2 ring-primary/30 shadow-lg">
-                <img src={claraAvatarUrl} alt="Clara" loading="lazy" className="w-full h-full object-cover" />
-              </div>
-              <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-background" />
-            </div>
-          </motion.button>
-        )}
-      </AnimatePresence>
+      {/* Floating Action Hub - unifies Clara + Voice */}
+      <FloatingActionHub
+        onOpenAssistant={handleOpenAssistant}
+        isAssistantOpen={isOpen}
+        hasUnreadSuggestion={hasUnreadSuggestion}
+      />
 
-      {/* Clara Chat Panel - Full screen overlay on mobile */}
+      {/* Clara Chat Panel */}
       <AnimatePresence>
         {isOpen && (
           <>
-            {/* Backdrop for closing */}
+            {/* Backdrop */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
