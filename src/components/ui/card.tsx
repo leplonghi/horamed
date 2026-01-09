@@ -1,19 +1,54 @@
 import * as React from "react";
-
+import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
-const Card = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(({ className, ...props }, ref) => (
-  <div 
-    ref={ref} 
-    className={cn(
-      "rounded-2xl bg-card text-card-foreground transition-all duration-300",
-      "shadow-[var(--shadow-sm)] hover:shadow-[var(--shadow-md)]",
-      "border-0",
-      className
-    )} 
-    {...props} 
-  />
-));
+const cardVariants = cva(
+  "rounded-2xl text-card-foreground transition-all duration-300",
+  {
+    variants: {
+      variant: {
+        default: [
+          "relative border-0",
+          "bg-gradient-to-br from-card/80 to-card/60",
+          "backdrop-blur-xl",
+          "shadow-[var(--shadow-glass)]",
+          "[box-shadow:var(--shadow-glass),var(--shadow-inner-glow)]",
+          "hover:shadow-[var(--shadow-glass-hover)]",
+        ].join(" "),
+        solid: "bg-card border-0 shadow-[var(--shadow-sm)] hover:shadow-[var(--shadow-md)]",
+        elevated: "bg-card border-0 shadow-[var(--shadow-md)] hover:shadow-[var(--shadow-lg)]",
+        interactive: [
+          "relative border-0 cursor-pointer",
+          "bg-gradient-to-br from-card/85 to-card/70",
+          "backdrop-blur-xl",
+          "shadow-[var(--shadow-glass)]",
+          "[box-shadow:var(--shadow-glass),var(--shadow-inner-glow)]",
+          "hover:-translate-y-1 hover:shadow-[var(--shadow-glass-hover)]",
+          "active:scale-[0.98] active:translate-y-0",
+        ].join(" "),
+        ghost: "bg-transparent border-0 shadow-none hover:bg-muted/30",
+        outline: "bg-transparent border border-border/50 shadow-none hover:border-border",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+    },
+  }
+);
+
+export interface CardProps
+  extends React.HTMLAttributes<HTMLDivElement>,
+    VariantProps<typeof cardVariants> {}
+
+const Card = React.forwardRef<HTMLDivElement, CardProps>(
+  ({ className, variant, ...props }, ref) => (
+    <div
+      ref={ref}
+      className={cn(cardVariants({ variant, className }))}
+      {...props}
+    />
+  )
+);
 Card.displayName = "Card";
 
 const CardHeader = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
@@ -49,4 +84,4 @@ const CardFooter = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDiv
 );
 CardFooter.displayName = "CardFooter";
 
-export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent };
+export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent, cardVariants };

@@ -34,18 +34,24 @@ All colors MUST be HSL.
     --ring: 220 90% 56%;
     --radius: 1rem;
     
-    /* Modern shadows */
+    /* Modern shadows with depth */
     --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.03);
-    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
-    --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.06);
-    --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.08);
-    --shadow-xl: 0 16px 50px rgba(0, 0, 0, 0.1);
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+    --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.06), 0 2px 8px rgba(0, 0, 0, 0.03);
+    --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.04);
+    --shadow-xl: 0 16px 50px rgba(0, 0, 0, 0.1), 0 8px 20px rgba(0, 0, 0, 0.05);
     --shadow-glow: 0 0 40px hsl(220 90% 56% / 0.15);
+    --shadow-inner-glow: inset 0 1px 0 rgba(255, 255, 255, 0.6), inset 0 -1px 0 rgba(0, 0, 0, 0.02);
+    
+    /* Glass effect shadows */
+    --shadow-glass: 0 4px 24px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.02);
+    --shadow-glass-hover: 0 8px 32px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.04);
     
     /* Transitions */
     --transition-smooth: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
     --transition-fast: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     --transition-bounce: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    --transition-spring: all 0.6s cubic-bezier(0.22, 1, 0.36, 1);
     
     /* Layout */
     --nav-height: 4rem;
@@ -111,11 +117,15 @@ All colors MUST be HSL.
     --ring: 220 90% 60%;
     
     --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.2);
-    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.25);
-    --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.3);
-    --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.35);
-    --shadow-xl: 0 16px 50px rgba(0, 0, 0, 0.4);
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.25), 0 1px 2px rgba(0, 0, 0, 0.15);
+    --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.3), 0 2px 8px rgba(0, 0, 0, 0.2);
+    --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.35), 0 4px 12px rgba(0, 0, 0, 0.25);
+    --shadow-xl: 0 16px 50px rgba(0, 0, 0, 0.4), 0 8px 20px rgba(0, 0, 0, 0.3);
     --shadow-glow: 0 0 40px hsl(220 90% 60% / 0.2);
+    --shadow-inner-glow: inset 0 1px 0 rgba(255, 255, 255, 0.08), inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+    
+    --shadow-glass: 0 4px 24px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.15);
+    --shadow-glass-hover: 0 8px 32px rgba(0, 0, 0, 0.35), 0 4px 12px rgba(0, 0, 0, 0.2);
     
     /* Document Type Colors - Dark Mode */
     --doc-prescription: 217 85% 65%;
@@ -209,6 +219,10 @@ All colors MUST be HSL.
   .transition-bounce {
     transition: var(--transition-bounce);
   }
+  
+  .transition-spring {
+    transition: var(--transition-spring);
+  }
 
   /* Hover effects */
   .hover-lift {
@@ -216,7 +230,7 @@ All colors MUST be HSL.
   }
   
   .hover-lift:hover {
-    @apply -translate-y-0.5;
+    @apply -translate-y-1;
     box-shadow: var(--shadow-lg);
   }
 
@@ -236,9 +250,29 @@ All colors MUST be HSL.
     box-shadow: var(--shadow-glow);
   }
 
-  /* Card styles - Clean and minimal */
+  /* ========== GLASSMORPHISM CARDS ========== */
+  
+  /* Base glass card - primary style */
+  .glass-card {
+    @apply relative rounded-2xl border-0;
+    background: linear-gradient(
+      135deg,
+      hsl(var(--card) / 0.75) 0%,
+      hsl(var(--card) / 0.6) 100%
+    );
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    box-shadow: var(--shadow-glass), var(--shadow-inner-glow);
+    transition: var(--transition-smooth);
+  }
+  
+  .glass-card:hover {
+    box-shadow: var(--shadow-glass-hover), var(--shadow-inner-glow);
+  }
+  
+  /* Clean card without glass effect */
   .card-clean {
-    @apply bg-card/80 backdrop-blur-xl border-0 rounded-2xl;
+    @apply bg-card/95 backdrop-blur-sm border-0 rounded-2xl;
     box-shadow: var(--shadow-sm);
   }
   
@@ -246,6 +280,7 @@ All colors MUST be HSL.
     box-shadow: var(--shadow-md);
   }
   
+  /* Elevated card with more shadow */
   .card-elevated {
     @apply bg-card border-0 rounded-2xl;
     box-shadow: var(--shadow-md);
@@ -255,32 +290,64 @@ All colors MUST be HSL.
     box-shadow: var(--shadow-lg);
   }
   
+  /* Interactive glass card */
   .card-interactive {
-    @apply bg-card/80 backdrop-blur-xl border-0 rounded-2xl cursor-pointer;
-    box-shadow: var(--shadow-sm);
-    transition: var(--transition-smooth);
+    @apply relative rounded-2xl border-0 cursor-pointer;
+    background: linear-gradient(
+      135deg,
+      hsl(var(--card) / 0.8) 0%,
+      hsl(var(--card) / 0.65) 100%
+    );
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    box-shadow: var(--shadow-glass), var(--shadow-inner-glow);
+    transition: var(--transition-spring);
   }
   
   .card-interactive:hover {
-    @apply -translate-y-0.5;
-    box-shadow: var(--shadow-lg);
+    @apply -translate-y-1;
+    box-shadow: var(--shadow-glass-hover), var(--shadow-inner-glow);
   }
   
   .card-interactive:active {
-    @apply scale-[0.98];
+    @apply scale-[0.98] translate-y-0;
   }
 
-  /* Glass morphism */
+  /* Glass morphism - generic */
   .glass {
-    @apply bg-background/60 backdrop-blur-2xl border border-border/30;
+    @apply relative;
+    background: linear-gradient(
+      135deg,
+      hsl(var(--background) / 0.7) 0%,
+      hsl(var(--background) / 0.5) 100%
+    );
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    border: 1px solid hsl(var(--border) / 0.3);
   }
   
-  .glass-card {
-    @apply bg-card/60 backdrop-blur-2xl border-0 rounded-2xl;
-    box-shadow: var(--shadow-sm), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  /* Glass overlay for modals/dialogs */
+  .glass-overlay {
+    background: linear-gradient(
+      135deg,
+      hsl(var(--background) / 0.85) 0%,
+      hsl(var(--background) / 0.75) 100%
+    );
+    backdrop-filter: blur(32px) saturate(200%);
+    -webkit-backdrop-filter: blur(32px) saturate(200%);
+    box-shadow: var(--shadow-xl), var(--shadow-inner-glow);
+  }
+  
+  /* Frosted glass effect for headers/navs */
+  .glass-frosted {
+    background: hsl(var(--background) / 0.85);
+    backdrop-filter: blur(16px) saturate(150%);
+    -webkit-backdrop-filter: blur(16px) saturate(150%);
+    border-bottom: 1px solid hsl(var(--border) / 0.4);
   }
 
-  /* Gradient backgrounds */
+  /* ========== GRADIENT BACKGROUNDS ========== */
+  
   .bg-gradient-subtle {
     @apply bg-gradient-to-br from-background via-background to-muted/30;
   }
@@ -288,7 +355,22 @@ All colors MUST be HSL.
   .bg-gradient-radial {
     background: radial-gradient(ellipse at top, hsl(var(--muted) / 0.3) 0%, transparent 70%);
   }
+  
+  .bg-gradient-primary {
+    background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary) / 0.8) 100%);
+  }
+  
+  .bg-gradient-glass {
+    background: linear-gradient(
+      135deg,
+      hsl(var(--card) / 0.9) 0%,
+      hsl(var(--card) / 0.7) 50%,
+      hsl(var(--card) / 0.8) 100%
+    );
+  }
 
+  /* ========== UTILITY CLASSES ========== */
+  
   /* Skeleton loader */
   .skeleton {
     @apply animate-pulse bg-muted rounded-lg;
@@ -344,7 +426,8 @@ All colors MUST be HSL.
     @apply space-y-6 sm:space-y-8;
   }
   
-  /* Pill/chip style */
+  /* ========== PILL/CHIP STYLES ========== */
+  
   .pill {
     @apply inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium text-muted-foreground;
     background-color: hsl(var(--muted) / 0.8);
@@ -372,5 +455,43 @@ All colors MUST be HSL.
     @apply inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium;
     background-color: hsl(var(--destructive) / 0.1);
     color: hsl(var(--destructive));
+  }
+  
+  /* ========== BUTTON GLOW EFFECTS ========== */
+  
+  .btn-glow {
+    @apply relative overflow-hidden;
+  }
+  
+  .btn-glow::before {
+    content: '';
+    @apply absolute inset-0 opacity-0 transition-opacity duration-300;
+    background: radial-gradient(circle at center, hsl(var(--primary) / 0.3) 0%, transparent 70%);
+  }
+  
+  .btn-glow:hover::before {
+    @apply opacity-100;
+  }
+  
+  /* ========== SHIMMER EFFECT ========== */
+  
+  @keyframes shimmer {
+    0% {
+      background-position: -200% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
+  }
+  
+  .shimmer {
+    background: linear-gradient(
+      90deg,
+      hsl(var(--muted) / 0.5) 0%,
+      hsl(var(--muted) / 0.8) 50%,
+      hsl(var(--muted) / 0.5) 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 2s infinite;
   }
 }
