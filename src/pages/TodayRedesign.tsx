@@ -33,6 +33,7 @@ import MonthlyReportWidget from "@/components/MonthlyReportWidget";
 import HeroNextDose from "@/components/HeroNextDose";
 import ClaraProactiveCard from "@/components/ClaraProactiveCard";
 import { useOverdueDoses } from "@/hooks/useOverdueDoses";
+import DrugInteractionAlert from "@/components/health/DrugInteractionAlert";
 
 interface TimelineItem {
   id: string;
@@ -754,6 +755,9 @@ export default function TodayRedesign() {
         )}
 
         <StockAlertWidget />
+
+        {/* Drug Interaction Alert */}
+        <DrugInteractionAlert />
 
         {/* ═══════════════════════════════════════════════════════════════ */}
         {/* 📅 CALENDÁRIO (SECUNDÁRIO - Abaixo da ação principal) */}
