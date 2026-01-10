@@ -473,6 +473,168 @@ All colors MUST be HSL.
     @apply opacity-100;
   }
   
+  /* ========== MICRO-INTERACTIONS ========== */
+  
+  /* Hover lift effect for cards and buttons */
+  .hover-lift {
+    @apply transition-all duration-200 ease-out;
+  }
+  
+  .hover-lift:hover {
+    @apply -translate-y-1 shadow-lg;
+  }
+  
+  .hover-lift:active {
+    @apply translate-y-0 scale-[0.98];
+  }
+  
+  /* Tap/Press feedback */
+  .tap-feedback {
+    @apply transition-transform duration-100 ease-out active:scale-[0.97];
+  }
+  
+  /* Icon hover rotation */
+  .icon-spin-hover:hover svg {
+    @apply transition-transform duration-300;
+    transform: rotate(180deg);
+  }
+  
+  /* Icon hover bounce */
+  .icon-bounce-hover:hover svg {
+    animation: bounce-subtle 0.5s ease-in-out;
+  }
+  
+  /* Expand on hover */
+  .hover-expand {
+    @apply transition-all duration-200 ease-out;
+  }
+  
+  .hover-expand:hover {
+    @apply scale-[1.02];
+  }
+  
+  /* Glow on hover */
+  .hover-glow {
+    @apply transition-shadow duration-300;
+  }
+  
+  .hover-glow:hover {
+    box-shadow: 0 0 20px hsl(var(--primary) / 0.3);
+  }
+  
+  /* Underline animation for links */
+  .link-underline {
+    @apply relative;
+  }
+  
+  .link-underline::after {
+    content: '';
+    @apply absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all duration-300 ease-out;
+  }
+  
+  .link-underline:hover::after {
+    @apply w-full;
+  }
+  
+  /* Border glow animation */
+  .border-glow {
+    @apply relative overflow-hidden;
+  }
+  
+  .border-glow::before {
+    content: '';
+    @apply absolute inset-0 rounded-[inherit] p-[1px];
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      hsl(var(--primary) / 0.5) 50%,
+      transparent 100%
+    );
+    background-size: 200% 100%;
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask-composite: exclude;
+    -webkit-mask-composite: xor;
+    animation: shimmer 3s linear infinite;
+  }
+  
+  /* Ripple effect base */
+  .ripple {
+    @apply relative overflow-hidden;
+  }
+  
+  .ripple::after {
+    content: '';
+    @apply absolute inset-0 rounded-[inherit] opacity-0;
+    background: radial-gradient(circle at center, hsl(var(--primary) / 0.3) 0%, transparent 50%);
+    transform: scale(0);
+    transition: transform 0.3s, opacity 0.3s;
+  }
+  
+  .ripple:active::after {
+    @apply opacity-100;
+    transform: scale(2);
+    transition: transform 0s, opacity 0s;
+  }
+  
+  /* Card entrance animation */
+  .card-enter {
+    animation: slide-up-fade 0.4s ease-out backwards;
+  }
+  
+  .card-enter-stagger > * {
+    animation: slide-up-fade 0.4s ease-out backwards;
+  }
+  
+  .card-enter-stagger > *:nth-child(1) { animation-delay: 0.05s; }
+  .card-enter-stagger > *:nth-child(2) { animation-delay: 0.1s; }
+  .card-enter-stagger > *:nth-child(3) { animation-delay: 0.15s; }
+  .card-enter-stagger > *:nth-child(4) { animation-delay: 0.2s; }
+  .card-enter-stagger > *:nth-child(5) { animation-delay: 0.25s; }
+  .card-enter-stagger > *:nth-child(6) { animation-delay: 0.3s; }
+  
+  /* Success checkmark animation */
+  @keyframes check-draw {
+    0% {
+      stroke-dashoffset: 100;
+    }
+    100% {
+      stroke-dashoffset: 0;
+    }
+  }
+  
+  .check-animated {
+    stroke-dasharray: 100;
+    stroke-dashoffset: 100;
+    animation: check-draw 0.3s ease-out forwards;
+  }
+  
+  /* Pulse ring for important actions */
+  .pulse-ring {
+    @apply relative;
+  }
+  
+  .pulse-ring::before {
+    content: '';
+    @apply absolute inset-0 rounded-full;
+    background: hsl(var(--primary) / 0.4);
+    animation: ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;
+  }
+  
+  /* Icon rotate on hover */
+  .rotate-on-hover {
+    @apply transition-transform duration-300;
+  }
+  
+  .rotate-on-hover:hover {
+    transform: rotate(90deg);
+  }
+  
+  /* Scale up children on hover */
+  .scale-children:hover > * {
+    @apply transition-transform duration-200;
+    transform: scale(1.05);
+  }
+  
   /* ========== SHIMMER EFFECT ========== */
   
   @keyframes shimmer {
@@ -481,6 +643,17 @@ All colors MUST be HSL.
     }
     100% {
       background-position: 200% 0;
+    }
+  }
+  
+  @keyframes slide-up-fade {
+    0% {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
     }
   }
   
