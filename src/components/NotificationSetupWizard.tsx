@@ -299,8 +299,12 @@ export default function NotificationSetupWizard({ open, onClose, onComplete }: N
         }
       }
 
-      // Also call server to schedule push notifications
-      await supabase.functions.invoke('schedule-dose-notifications');
+      // Also call server to schedule push notifications (only when authenticated)
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        const { error: scheduleError } = await supabase.functions.invoke("schedule-dose-notifications");
+        if (scheduleError) throw scheduleError;
+      }
 
       updateStepStatus('schedule', 'success');
       return true;

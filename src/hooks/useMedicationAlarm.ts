@@ -216,7 +216,12 @@ export const useMedicationAlarm = () => {
 
   const scheduleNotificationsForNextDay = async () => {
     try {
-      await supabase.functions.invoke('schedule-dose-notifications');
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      const { error } = await supabase.functions.invoke("schedule-dose-notifications");
+      if (error) throw error;
+
       console.log('Scheduled notifications for next 24 hours');
     } catch (error) {
       console.error('Error scheduling notifications:', error);
