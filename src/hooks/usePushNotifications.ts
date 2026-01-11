@@ -41,49 +41,58 @@ export const usePushNotifications = () => {
     const initializeNotifications = async () => {
       console.log("[Notifications] Starting initialization...");
       console.log("[Notifications] Platform:", isNativePlatform ? "Native" : "Web");
-      
+
+      // Only initialize scheduling for authenticated users
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        console.log("[Notifications] Skipping initialization (no session)");
+        return;
+      }
+
       // Setup channels first (for Android)
       await setupNotificationChannels();
-      
+
       // Initialize push notifications (this will request permissions)
       await initializePushNotifications();
-      
+
       // Sync any offline actions
       await syncOfflineActions();
-      
+
       // Schedule all notifications for the next 48 hours IMMEDIATELY
       console.log("[Notifications] Scheduling all dose notifications...");
       await scheduleNext48Hours();
-      
+
       // Also trigger the backend to schedule push notifications
       try {
-        await supabase.functions.invoke('schedule-dose-notifications');
+        const { error } = await supabase.functions.invoke("schedule-dose-notifications");
+        if (error) throw error;
         console.log("[Notifications] ✓ Backend notifications scheduled");
       } catch (error) {
         console.error("[Notifications] Error scheduling backend notifications:", error);
       }
-      
+
       console.log("[Notifications] ✓ Initialization complete");
     };
 
     initializeNotifications();
-    
+
     // Reschedule every 30 minutes
     const scheduleInterval = setInterval(() => {
       console.log("[Notifications] Rescheduling notifications...");
       scheduleNext48Hours();
     }, 30 * 60 * 1000);
-    
+
     // Sync offline actions every 2 minutes
     const syncInterval = setInterval(() => {
       syncOfflineActions();
     }, 2 * 60 * 1000);
-    
+
     return () => {
       clearInterval(scheduleInterval);
       clearInterval(syncInterval);
     };
   }, []);
+
 
   // Setup Android notification channels and iOS action categories
   const setupNotificationChannels = async () => {
