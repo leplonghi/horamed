@@ -10,7 +10,7 @@ import { toast } from "sonner";
 import { useNavigate, Link } from "react-router-dom";
 import { Mail, Fingerprint, Heart, Shield, Clock, ArrowLeft, Sparkles, Users, Bell, ChevronRight, Check } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import logo from "@/assets/horamed-logo-optimized.webp";
+import logo from "@/assets/horamed-logo-small.webp";
 import { useBiometricAuth } from "@/hooks/useBiometricAuth";
 import { useAuth } from "@/contexts/AuthContext";
 import { APP_DOMAIN } from "@/lib/domainConfig";
