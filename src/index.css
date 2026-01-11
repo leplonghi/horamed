@@ -242,13 +242,7 @@ All colors MUST be HSL.
     @apply scale-[1.02];
   }
 
-  .hover-glow {
-    @apply transition-all duration-400;
-  }
-  
-  .hover-glow:hover {
-    box-shadow: var(--shadow-glow);
-  }
+  /* hover-glow is defined in micro-interactions section below */
 
   /* ========== GLASSMORPHISM CARDS ========== */
   
