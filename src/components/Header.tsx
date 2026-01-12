@@ -8,6 +8,7 @@ import SubscriptionBadge from "./SubscriptionBadge";
 import { ThemeToggle } from "./ThemeToggle";
 import ProfileSelector from "./ProfileSelector";
 import SpotlightSearch from "./SpotlightSearch";
+import VoiceControlButton from "./VoiceControlButton";
 
 import logo from "@/assets/horamed-logo-transparent.png";
 import { useUserProfiles } from "@/hooks/useUserProfiles";
@@ -90,6 +91,8 @@ export default function Header() {
 
           {/* Right: Actions */}
           <div className="flex items-center gap-1">
+            <VoiceControlButton className="h-8 w-8" />
+            
             <Button
               variant="ghost"
               size="icon"
