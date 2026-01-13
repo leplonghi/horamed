@@ -7,7 +7,6 @@ import { processVoiceCommand, speak, VoiceAction } from '@/ai/voiceCommandProces
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
-import { useLanguage } from '@/contexts/LanguageContext';
 
 interface VoiceControlButtonProps {
   className?: string;
@@ -23,7 +22,6 @@ export default function VoiceControlButton({
   floating = false
 }: VoiceControlButtonProps) {
   const navigate = useNavigate();
-  const { t } = useLanguage();
   const [showFeedback, setShowFeedback] = useState(false);
   const [feedbackText, setFeedbackText] = useState('');
   const [isSpeaking, setIsSpeaking] = useState(false);
