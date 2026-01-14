@@ -1207,6 +1207,45 @@ export type Database = {
           },
         ]
       }
+      medication_interactions: {
+        Row: {
+          created_at: string | null
+          description: string
+          drug_a: string
+          drug_b: string
+          id: string
+          mechanism: string | null
+          recommendation: string | null
+          severity: string
+          source: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description: string
+          drug_a: string
+          drug_b: string
+          id?: string
+          mechanism?: string | null
+          recommendation?: string | null
+          severity: string
+          source?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string
+          drug_a?: string
+          drug_b?: string
+          id?: string
+          mechanism?: string | null
+          recommendation?: string | null
+          severity?: string
+          source?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       notification_logs: {
         Row: {
           body: string
@@ -1952,6 +1991,74 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      user_interaction_alerts: {
+        Row: {
+          acknowledged_at: string | null
+          created_at: string | null
+          dismissed_at: string | null
+          id: string
+          interaction_id: string | null
+          item_a_id: string | null
+          item_b_id: string | null
+          profile_id: string | null
+          severity: string
+          user_id: string
+        }
+        Insert: {
+          acknowledged_at?: string | null
+          created_at?: string | null
+          dismissed_at?: string | null
+          id?: string
+          interaction_id?: string | null
+          item_a_id?: string | null
+          item_b_id?: string | null
+          profile_id?: string | null
+          severity: string
+          user_id: string
+        }
+        Update: {
+          acknowledged_at?: string | null
+          created_at?: string | null
+          dismissed_at?: string | null
+          id?: string
+          interaction_id?: string | null
+          item_a_id?: string | null
+          item_b_id?: string | null
+          profile_id?: string | null
+          severity?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_interaction_alerts_interaction_id_fkey"
+            columns: ["interaction_id"]
+            isOneToOne: false
+            referencedRelation: "medication_interactions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_interaction_alerts_item_a_id_fkey"
+            columns: ["item_a_id"]
+            isOneToOne: false
+            referencedRelation: "items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_interaction_alerts_item_b_id_fkey"
+            columns: ["item_b_id"]
+            isOneToOne: false
+            referencedRelation: "items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_interaction_alerts_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_profiles: {
         Row: {

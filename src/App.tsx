@@ -82,6 +82,7 @@ const More = lazy(() => import("./pages/More"));
 const WeeklyCalendar = lazy(() => import("./pages/WeeklyCalendar"));
 const CaregiverAccept = lazy(() => import("./pages/CaregiverAccept"));
 const ConsultationCardView = lazy(() => import("./pages/ConsultationCardView"));
+const DrugInteractions = lazy(() => import("./pages/DrugInteractions"));
 // Admin route removed - feature flags managed via Supabase Dashboard only
 const NotFound = lazy(() => import("./pages/NotFound"));
 const HealthAIButton = lazy(() => import("./components/HealthAIButton"));
@@ -159,6 +160,8 @@ function AppContent() {
           <Route path="/linha-do-tempo" element={<ProtectedRoute><HealthTimeline /></ProtectedRoute>} />
           <Route path="/timeline" element={<ProtectedRoute><HealthTimeline /></ProtectedRoute>} />
           <Route path="/analise-saude" element={<ProtectedRoute><HealthAnalysis /></ProtectedRoute>} />
+          <Route path="/saude/interacoes" element={<ProtectedRoute><DrugInteractions /></ProtectedRoute>} />
+          <Route path="/interacoes" element={<ProtectedRoute><DrugInteractions /></ProtectedRoute>} />
           
           {/* Perfil subroutes */}
           <Route path="/perfil/criar" element={<ProtectedRoute><ProfileCreate /></ProtectedRoute>} />
