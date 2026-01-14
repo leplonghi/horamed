@@ -24,7 +24,7 @@ import Navigation from "@/components/Navigation";
 import MedicationOCRWrapper from "@/components/MedicationOCRWrapper";
 import HealthProfileSetup from "@/components/HealthProfileSetup";
 import HelpTooltip from "@/components/HelpTooltip";
-import logo from "@/assets/horamed-logo-transparent.png";
+import logo from "@/assets/horamed-logo-optimized.webp";
 import { useUserProfiles } from "@/hooks/useUserProfiles";
 import { useFilteredMedicamentos } from "@/hooks/useMedicamentosBrasileiros";
 import { cn } from "@/lib/utils";

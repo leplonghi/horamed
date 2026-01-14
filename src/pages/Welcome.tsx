@@ -14,7 +14,7 @@ import {
   Gift,
   Clock
 } from "lucide-react";
-import logo from "@/assets/horamed-logo-transparent.png";
+import logo from "@/assets/horamed-logo-optimized.webp";
 import Confetti from "react-confetti";
 import { useLanguage } from "@/contexts/LanguageContext";
 

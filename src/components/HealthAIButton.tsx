@@ -10,7 +10,8 @@ import { Card } from "@/components/ui/card";
 import { useLanguage } from "@/contexts/LanguageContext";
 import FloatingActionHub from "./FloatingActionHub";
 
-const claraAvatarUrl = new URL('@/assets/clara-avatar.png', import.meta.url).href;
+// Clara avatar loaded via URL to reduce bundle size
+const claraAvatarUrl = "https://zmsuqdwleyqpdthaqvbi.supabase.co/storage/v1/object/public/avatars/clara-avatar.webp";
 
 interface Message {
   role: "user" | "assistant";
