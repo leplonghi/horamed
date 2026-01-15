@@ -25,15 +25,14 @@ interface DrugInteractionCardProps {
   showUpgrade?: boolean;
 }
 
-const severityConfig = {
+const getSeverityConfig = (t: (key: string) => string) => ({
   contraindicated: {
     icon: XCircle,
     color: 'text-red-600 dark:text-red-400',
     bg: 'bg-red-50 dark:bg-red-950/30',
     border: 'border-red-200 dark:border-red-800',
     badge: 'bg-red-600 text-white',
-    labelPt: 'Contraindicado',
-    labelEn: 'Contraindicated',
+    label: t('interactions.contraindicated'),
   },
   high: {
     icon: AlertTriangle,
@@ -41,8 +40,7 @@ const severityConfig = {
     bg: 'bg-orange-50 dark:bg-orange-950/30',
     border: 'border-orange-200 dark:border-orange-800',
     badge: 'bg-orange-600 text-white',
-    labelPt: 'Alto Risco',
-    labelEn: 'High Risk',
+    label: t('interactions.highRisk'),
   },
   moderate: {
     icon: AlertTriangle,
@@ -50,8 +48,7 @@ const severityConfig = {
     bg: 'bg-yellow-50 dark:bg-yellow-950/30',
     border: 'border-yellow-200 dark:border-yellow-800',
     badge: 'bg-yellow-600 text-white',
-    labelPt: 'Moderado',
-    labelEn: 'Moderate',
+    label: t('interactions.moderate'),
   },
   low: {
     icon: Info,
@@ -59,13 +56,13 @@ const severityConfig = {
     bg: 'bg-blue-50 dark:bg-blue-950/30',
     border: 'border-blue-200 dark:border-blue-800',
     badge: 'bg-blue-600 text-white',
-    labelPt: 'Baixo Risco',
-    labelEn: 'Low Risk',
+    label: t('interactions.lowRisk'),
   },
-};
+});
 
-function InteractionItem({ interaction, language }: { interaction: MedicationInteraction; language: string }) {
+function InteractionItem({ interaction, t }: { interaction: MedicationInteraction; t: (key: string) => string }) {
   const [expanded, setExpanded] = useState(false);
+  const severityConfig = getSeverityConfig(t);
   const config = severityConfig[interaction.severity];
   const Icon = config.icon;
 
@@ -90,7 +87,7 @@ function InteractionItem({ interaction, language }: { interaction: MedicationInt
               {interaction.item_b_name}
             </span>
             <Badge className={`${config.badge} text-xs`}>
-              {language === 'en' ? config.labelEn : config.labelPt}
+              {config.label}
             </Badge>
           </div>
           <p className={`text-sm mt-1 ${config.color}`}>
@@ -114,7 +111,7 @@ function InteractionItem({ interaction, language }: { interaction: MedicationInt
               {interaction.recommendation && (
                 <div>
                   <p className="text-xs font-medium text-muted-foreground uppercase mb-1">
-                    {language === 'en' ? 'Recommendation' : 'Recomendação'}
+                    {t('interactions.recommendation')}
                   </p>
                   <p className="text-sm text-foreground">{interaction.recommendation}</p>
                 </div>
@@ -122,7 +119,7 @@ function InteractionItem({ interaction, language }: { interaction: MedicationInt
               {interaction.mechanism && (
                 <div>
                   <p className="text-xs font-medium text-muted-foreground uppercase mb-1">
-                    {language === 'en' ? 'Mechanism' : 'Mecanismo'}
+                    {t('interactions.mechanism')}
                   </p>
                   <p className="text-sm text-muted-foreground">{interaction.mechanism}</p>
                 </div>
@@ -136,8 +133,8 @@ function InteractionItem({ interaction, language }: { interaction: MedicationInt
 }
 
 export default function DrugInteractionCard({ profileId, compact = false, showUpgrade = true }: DrugInteractionCardProps) {
-  const { language } = useLanguage();
-  const { isPremium, hasFeature } = useSubscription();
+  const { t } = useLanguage();
+  const { isPremium } = useSubscription();
   const navigate = useNavigate();
   const { interactions, loading, hasCritical, hasWarnings } = useMedicationInteractions(profileId);
 
@@ -154,17 +151,15 @@ export default function DrugInteractionCard({ profileId, compact = false, showUp
             </div>
             <div>
               <h3 className="font-semibold text-foreground">
-                {language === 'en' ? 'Drug Interaction Checker' : 'Verificador de Interações'}
+                {t('interactions.checker')}
               </h3>
               <p className="text-sm text-muted-foreground mt-1">
-                {language === 'en' 
-                  ? 'Upgrade to Premium to check for dangerous drug interactions'
-                  : 'Atualize para Premium para verificar interações medicamentosas'}
+                {t('interactions.upgradeDesc')}
               </p>
             </div>
             <Button onClick={() => navigate('/planos')} className="gap-2">
               <Sparkles className="h-4 w-4" />
-              {language === 'en' ? 'Unlock Feature' : 'Desbloquear'}
+              {t('interactions.unlockFeature')}
             </Button>
           </div>
         </CardContent>
@@ -178,7 +173,7 @@ export default function DrugInteractionCard({ profileId, compact = false, showUp
         <CardContent className="py-8">
           <div className="flex items-center justify-center gap-2 text-muted-foreground">
             <div className="h-4 w-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-            {language === 'en' ? 'Checking interactions...' : 'Verificando interações...'}
+            {t('interactions.checking')}
           </div>
         </CardContent>
       </Card>
@@ -195,12 +190,10 @@ export default function DrugInteractionCard({ profileId, compact = false, showUp
             </div>
             <div>
               <p className="font-medium text-green-700 dark:text-green-300">
-                {language === 'en' ? 'No interactions detected' : 'Nenhuma interação detectada'}
+                {t('interactions.noDetected')}
               </p>
               <p className="text-sm text-green-600/80 dark:text-green-400/80">
-                {language === 'en' 
-                  ? 'Your medications appear to be safe to take together'
-                  : 'Seus medicamentos parecem seguros para uso conjunto'}
+                {t('interactions.safeToTake')}
               </p>
             </div>
           </div>
@@ -212,6 +205,7 @@ export default function DrugInteractionCard({ profileId, compact = false, showUp
   // Compact mode for widget
   if (compact) {
     const criticalCount = interactions.filter(i => i.severity === 'contraindicated' || i.severity === 'high').length;
+    const severityConfig = getSeverityConfig(t);
     const config = hasCritical ? severityConfig.high : severityConfig.moderate;
     const Icon = config.icon;
 
@@ -219,18 +213,16 @@ export default function DrugInteractionCard({ profileId, compact = false, showUp
       <Alert className={`${config.bg} ${config.border} cursor-pointer`} onClick={() => navigate('/saude/interacoes')}>
         <Icon className={`h-4 w-4 ${config.color}`} />
         <AlertTitle className={config.color}>
-          {language === 'en' 
-            ? `${interactions.length} interaction${interactions.length > 1 ? 's' : ''} found`
-            : `${interactions.length} interaç${interactions.length > 1 ? 'ões' : 'ão'} encontrada${interactions.length > 1 ? 's' : ''}`}
+          {interactions.length} {interactions.length > 1 ? t('interactions.foundPlural') : t('interactions.found')}
         </AlertTitle>
         <AlertDescription className="text-sm">
           {hasCritical && (
             <span className="text-red-600 dark:text-red-400 font-medium">
-              {criticalCount} {language === 'en' ? 'critical' : 'crítica(s)'}
+              {criticalCount} {t('interactions.critical')}
             </span>
           )}
           <span className="flex items-center gap-1 mt-1 text-muted-foreground">
-            {language === 'en' ? 'Tap to view details' : 'Toque para ver detalhes'}
+            {t('interactions.tapDetails')}
             <ExternalLink className="h-3 w-3" />
           </span>
         </AlertDescription>
@@ -244,7 +236,7 @@ export default function DrugInteractionCard({ profileId, compact = false, showUp
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-lg">
             <Shield className="h-5 w-5 text-primary" />
-            {language === 'en' ? 'Drug Interactions' : 'Interações Medicamentosas'}
+            {t('interactions.title')}
           </CardTitle>
           <Badge variant={hasCritical ? 'destructive' : 'secondary'}>
             {interactions.length}
@@ -256,14 +248,12 @@ export default function DrugInteractionCard({ profileId, compact = false, showUp
           <InteractionItem 
             key={interaction.id} 
             interaction={interaction} 
-            language={language} 
+            t={t} 
           />
         ))}
         
         <p className="text-xs text-muted-foreground pt-2 border-t">
-          {language === 'en' 
-            ? '⚠️ This information is for educational purposes only. Always consult your doctor or pharmacist.'
-            : '⚠️ Esta informação é apenas educativa. Sempre consulte seu médico ou farmacêutico.'}
+          {t('interactions.disclaimer')}
         </p>
       </CardContent>
     </Card>

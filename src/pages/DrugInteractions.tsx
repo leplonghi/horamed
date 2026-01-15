@@ -12,7 +12,7 @@ import { motion } from 'framer-motion';
 
 export default function DrugInteractions() {
   const navigate = useNavigate();
-  const { language } = useLanguage();
+  const { t } = useLanguage();
   const { isPremium } = useSubscription();
   const { checkInteractions, loading } = useMedicationInteractions();
   const [searchMed, setSearchMed] = useState('');
@@ -42,7 +42,7 @@ export default function DrugInteractions() {
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <h1 className="text-lg font-semibold">
-              {language === 'en' ? 'Drug Interactions' : 'Interações Medicamentosas'}
+              {t('interactions.title')}
             </h1>
           </div>
         </div>
@@ -58,12 +58,10 @@ export default function DrugInteractions() {
             </div>
             <div>
               <h2 className="text-2xl font-bold text-foreground">
-                {language === 'en' ? 'Drug Interaction Checker' : 'Verificador de Interações'}
+                {t('interactions.checker')}
               </h2>
               <p className="text-muted-foreground mt-2 max-w-sm mx-auto">
-                {language === 'en' 
-                  ? 'Protect yourself from dangerous drug interactions. Our AI-powered system checks your medications for potential risks.'
-                  : 'Proteja-se de interações medicamentosas perigosas. Nosso sistema verifica seus medicamentos em busca de riscos potenciais.'}
+                {t('interactions.protectDesc')}
               </p>
             </div>
 
@@ -73,38 +71,26 @@ export default function DrugInteractions() {
                   <div className="h-8 w-8 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
                     <span className="text-red-600">⚠️</span>
                   </div>
-                  <p className="text-sm">
-                    {language === 'en' 
-                      ? 'Detects contraindicated combinations'
-                      : 'Detecta combinações contraindicadas'}
-                  </p>
+                  <p className="text-sm">{t('interactions.detectsCombinations')}</p>
                 </div>
                 <div className="flex items-center gap-3">
                   <div className="h-8 w-8 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center">
                     <span className="text-orange-600">🔔</span>
                   </div>
-                  <p className="text-sm">
-                    {language === 'en' 
-                      ? 'Alerts for high-risk interactions'
-                      : 'Alertas para interações de alto risco'}
-                  </p>
+                  <p className="text-sm">{t('interactions.highRiskAlerts')}</p>
                 </div>
                 <div className="flex items-center gap-3">
                   <div className="h-8 w-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
                     <span className="text-blue-600">💡</span>
                   </div>
-                  <p className="text-sm">
-                    {language === 'en' 
-                      ? 'Clara AI explains each interaction'
-                      : 'Clara IA explica cada interação'}
-                  </p>
+                  <p className="text-sm">{t('interactions.claraExplains')}</p>
                 </div>
               </CardContent>
             </Card>
 
             <Button size="lg" onClick={() => navigate('/planos')} className="gap-2">
               <Sparkles className="h-5 w-5" />
-              {language === 'en' ? 'Upgrade to Premium' : 'Assinar Premium'}
+              {t('interactions.upgradeToPremium')}
             </Button>
           </motion.div>
         </div>
@@ -120,7 +106,7 @@ export default function DrugInteractions() {
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <h1 className="text-lg font-semibold">
-            {language === 'en' ? 'Drug Interactions' : 'Interações Medicamentosas'}
+            {t('interactions.title')}
           </h1>
           <Button 
             variant="ghost" 
@@ -139,13 +125,13 @@ export default function DrugInteractions() {
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-base">
-              {language === 'en' ? 'Check New Medication' : 'Verificar Novo Medicamento'}
+              {t('interactions.checkNew')}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex gap-2">
               <Input
-                placeholder={language === 'en' ? 'Enter medication name...' : 'Digite o nome do medicamento...'}
+                placeholder={t('interactions.searchPlaceholder')}
                 value={searchMed}
                 onChange={(e) => setSearchMed(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
@@ -155,9 +141,7 @@ export default function DrugInteractions() {
               </Button>
             </div>
             <p className="text-xs text-muted-foreground mt-2">
-              {language === 'en' 
-                ? 'Check if a new medication is safe to take with your current ones'
-                : 'Verifique se um novo medicamento é seguro com os que você já toma'}
+              {t('interactions.checkSafeDesc')}
             </p>
           </CardContent>
         </Card>
@@ -177,16 +161,10 @@ export default function DrugInteractions() {
               <CardContent className="py-4">
                 <p className="font-medium">
                   {searchResult.total === 0 
-                    ? (language === 'en' 
-                        ? `✅ "${searchMed}" appears safe with your current medications`
-                        : `✅ "${searchMed}" parece seguro com seus medicamentos atuais`)
+                    ? `✅ "${searchMed}" ${t('interactions.appearsSafe')}`
                     : searchResult.has_critical
-                      ? (language === 'en' 
-                          ? `⚠️ "${searchMed}" has critical interactions!`
-                          : `⚠️ "${searchMed}" tem interações críticas!`)
-                      : (language === 'en' 
-                          ? `⚡ "${searchMed}" has ${searchResult.total} interaction(s) to review`
-                          : `⚡ "${searchMed}" tem ${searchResult.total} interação(ões) para revisar`)
+                      ? `⚠️ "${searchMed}" ${t('interactions.hasCritical')}`
+                      : `⚡ "${searchMed}" ${t('interactions.hasInteractions', { count: searchResult.total.toString() })}`
                   }
                 </p>
               </CardContent>
@@ -197,7 +175,7 @@ export default function DrugInteractions() {
         {/* Current interactions */}
         <div>
           <h2 className="text-sm font-medium text-muted-foreground mb-3">
-            {language === 'en' ? 'Your Current Medications' : 'Seus Medicamentos Atuais'}
+            {t('interactions.currentMeds')}
           </h2>
           <DrugInteractionCard showUpgrade={false} />
         </div>
@@ -206,9 +184,7 @@ export default function DrugInteractions() {
         <Card className="bg-muted/30">
           <CardContent className="py-4">
             <p className="text-xs text-muted-foreground">
-              {language === 'en' 
-                ? '⚕️ This tool provides general information about potential drug interactions. It is not a substitute for professional medical advice. Always consult your doctor or pharmacist before starting, stopping, or changing any medication.'
-                : '⚕️ Esta ferramenta fornece informações gerais sobre possíveis interações medicamentosas. Não substitui orientação médica profissional. Sempre consulte seu médico ou farmacêutico antes de iniciar, parar ou alterar qualquer medicamento.'}
+              {t('interactions.disclaimerFull')}
             </p>
           </CardContent>
         </Card>
