@@ -26,13 +26,13 @@ export function SideEffectsDashboard({ itemId }: SideEffectsDashboardProps) {
 
   const dateLocale = language === 'pt' ? ptBR : enUS;
 
-  // Chart labels based on language
+  // Chart labels using translation keys
   const chartLabels = {
-    overallFeeling: language === 'pt' ? 'Sensação Geral' : 'Overall Feeling',
-    energy: language === 'pt' ? 'Energia' : 'Energy',
-    pain: language === 'pt' ? 'Dor' : 'Pain',
-    nausea: language === 'pt' ? 'Náusea' : 'Nausea',
-    sleep: language === 'pt' ? 'Sono' : 'Sleep',
+    overallFeeling: t('sideEffects.overallFeeling'),
+    energy: t('sideEffects.energy'),
+    pain: t('sideEffects.pain'),
+    nausea: t('sideEffects.nausea'),
+    sleep: t('sideEffects.sleep'),
   };
 
   useEffect(() => {
