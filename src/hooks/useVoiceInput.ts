@@ -31,6 +31,14 @@ type SpeechRecognitionType = new () => {
   onerror: ((event: SpeechRecognitionErrorEvent) => void) | null;
 };
 
+function getSpeechRecognition(): SpeechRecognitionType | null {
+  const windowWithSpeech = window as unknown as { 
+    SpeechRecognition?: SpeechRecognitionType; 
+    webkitSpeechRecognition?: SpeechRecognitionType 
+  };
+  return windowWithSpeech.SpeechRecognition || windowWithSpeech.webkitSpeechRecognition || null;
+}
+
 export function useVoiceInput(options: UseVoiceInputOptions = {}) {
   const [isRecording, setIsRecording] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -38,12 +46,12 @@ export function useVoiceInput(options: UseVoiceInputOptions = {}) {
   const [isSupported, setIsSupported] = useState(true);
   
   const recognitionRef = useRef<InstanceType<SpeechRecognitionType> | null>(null);
+  const finalTranscriptRef = useRef<string>('');
+  const hasResultsRef = useRef<boolean>(false);
 
   // Check for Web Speech API support
   useEffect(() => {
-    const SpeechRecognition = (window as unknown as { SpeechRecognition?: SpeechRecognitionType; webkitSpeechRecognition?: SpeechRecognitionType }).SpeechRecognition || 
-                              (window as unknown as { webkitSpeechRecognition?: SpeechRecognitionType }).webkitSpeechRecognition;
-    
+    const SpeechRecognition = getSpeechRecognition();
     if (!SpeechRecognition) {
       setIsSupported(false);
       console.warn('Web Speech API not supported in this browser');
@@ -52,8 +60,7 @@ export function useVoiceInput(options: UseVoiceInputOptions = {}) {
 
   const startRecording = useCallback(async () => {
     try {
-      const SpeechRecognition = (window as unknown as { SpeechRecognition?: SpeechRecognitionType; webkitSpeechRecognition?: SpeechRecognitionType }).SpeechRecognition || 
-                                (window as unknown as { webkitSpeechRecognition?: SpeechRecognitionType }).webkitSpeechRecognition;
+      const SpeechRecognition = getSpeechRecognition();
 
       if (!SpeechRecognition) {
         toast.error('Reconhecimento de voz não suportado neste navegador');
@@ -63,13 +70,21 @@ export function useVoiceInput(options: UseVoiceInputOptions = {}) {
 
       // Request microphone permission first
       try {
+        console.log('Requesting microphone permission...');
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         stream.getTracks().forEach(track => track.stop());
-      } catch {
-        toast.error('Não foi possível acessar o microfone');
+        console.log('Microphone permission granted');
+      } catch (err) {
+        console.error('Microphone access error:', err);
+        toast.error('Não foi possível acessar o microfone. Verifique as permissões.');
         options.onError?.('Microphone access denied');
         return;
       }
+
+      // Reset state
+      finalTranscriptRef.current = '';
+      hasResultsRef.current = false;
+      setTranscription('');
 
       const recognition = new SpeechRecognition();
       recognitionRef.current = recognition;
@@ -78,10 +93,8 @@ export function useVoiceInput(options: UseVoiceInputOptions = {}) {
       recognition.interimResults = true;
       recognition.lang = options.language || 'pt-BR';
 
-      let finalTranscript = '';
-      let interimTranscript = '';
-
       recognition.onstart = () => {
+        console.log('Speech recognition started');
         setIsRecording(true);
         setIsProcessing(false);
         
@@ -89,23 +102,30 @@ export function useVoiceInput(options: UseVoiceInputOptions = {}) {
         if (navigator.vibrate) {
           navigator.vibrate(50);
         }
+        
+        toast.info('Ouvindo... Fale agora', { duration: 2000 });
       };
 
       recognition.onresult = (event: SpeechRecognitionEvent) => {
-        interimTranscript = '';
+        hasResultsRef.current = true;
+        let interimTranscript = '';
         
         for (let i = event.resultIndex; i < event.results.length; i++) {
           const result = event.results[i];
+          const transcript = result[0].transcript;
+          
           if (result.isFinal) {
-            finalTranscript += result[0].transcript + ' ';
+            finalTranscriptRef.current += transcript + ' ';
+            console.log('Final transcript:', transcript);
           } else {
-            interimTranscript += result[0].transcript;
+            interimTranscript += transcript;
           }
         }
 
-        const currentText = (finalTranscript + interimTranscript).trim();
+        const currentText = (finalTranscriptRef.current + interimTranscript).trim();
         if (currentText) {
           setTranscription(currentText);
+          console.log('Current transcription:', currentText);
         }
       };
 
@@ -116,17 +136,30 @@ export function useVoiceInput(options: UseVoiceInputOptions = {}) {
         
         switch (event.error) {
           case 'not-allowed':
-            errorMessage = 'Permissão de microfone negada';
+            errorMessage = 'Permissão de microfone negada. Por favor, permita o acesso ao microfone.';
             break;
           case 'no-speech':
-            errorMessage = 'Nenhuma fala detectada';
-            break;
+            // Don't show error for no-speech, just info
+            if (!hasResultsRef.current) {
+              toast.info('Nenhuma fala detectada. Tente novamente.');
+            }
+            setIsRecording(false);
+            setIsProcessing(false);
+            return;
           case 'network':
-            errorMessage = 'Erro de conexão';
+            errorMessage = 'Erro de conexão. Verifique sua internet.';
             break;
           case 'aborted':
             // User aborted, no need to show error
+            setIsRecording(false);
+            setIsProcessing(false);
             return;
+          case 'audio-capture':
+            errorMessage = 'Microfone não encontrado. Verifique se está conectado.';
+            break;
+          case 'service-not-allowed':
+            errorMessage = 'Serviço de reconhecimento não disponível.';
+            break;
         }
         
         toast.error(errorMessage);
@@ -136,22 +169,30 @@ export function useVoiceInput(options: UseVoiceInputOptions = {}) {
       };
 
       recognition.onend = () => {
+        console.log('Speech recognition ended');
         setIsRecording(false);
         setIsProcessing(false);
         
-        const finalText = finalTranscript.trim();
+        const finalText = finalTranscriptRef.current.trim();
         if (finalText) {
+          console.log('Final transcription result:', finalText);
           setTranscription(finalText);
           options.onTranscription?.(finalText);
+          toast.success('Voz reconhecida!', { duration: 1500 });
+        } else if (hasResultsRef.current) {
+          console.log('Had results but no final text');
         }
         
         // Haptic feedback
         if (navigator.vibrate) {
           navigator.vibrate([50, 50, 50]);
         }
+        
+        recognitionRef.current = null;
       };
 
       recognition.start();
+      console.log('Recognition.start() called');
       
     } catch (error) {
       console.error('Error starting recording:', error);
@@ -159,17 +200,27 @@ export function useVoiceInput(options: UseVoiceInputOptions = {}) {
       toast.error('Não foi possível iniciar o reconhecimento de voz');
       options.onError?.(errorMessage);
       setIsRecording(false);
+      setIsProcessing(false);
     }
   }, [options]);
 
   const stopRecording = useCallback(() => {
-    if (recognitionRef.current && isRecording) {
+    console.log('Stopping recording, isRecording:', isRecording);
+    if (recognitionRef.current) {
       setIsProcessing(true);
-      recognitionRef.current.stop();
+      try {
+        recognitionRef.current.stop();
+        console.log('Recognition.stop() called');
+      } catch (error) {
+        console.error('Error stopping recognition:', error);
+        setIsRecording(false);
+        setIsProcessing(false);
+      }
     }
   }, [isRecording]);
 
   const toggleRecording = useCallback(() => {
+    console.log('Toggle recording, current state:', isRecording);
     if (isRecording) {
       stopRecording();
     } else {
@@ -179,6 +230,8 @@ export function useVoiceInput(options: UseVoiceInputOptions = {}) {
 
   const clearTranscription = useCallback(() => {
     setTranscription('');
+    finalTranscriptRef.current = '';
+    hasResultsRef.current = false;
   }, []);
 
   return {
