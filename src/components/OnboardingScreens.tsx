@@ -57,9 +57,10 @@ export default function OnboardingScreens() {
         .eq("user_id", user.id)
         .single();
 
-      // Show onboarding if not completed
+      // Redirect to SimpleOnboarding if not completed
       if (!profile?.onboarding_completed) {
-        setShowOnboarding(true);
+        navigate("/onboarding");
+        return;
       }
     } catch (error) {
       console.error("Error checking onboarding:", error);

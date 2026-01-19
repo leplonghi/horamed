@@ -64,6 +64,7 @@ const Terms = lazy(() => import("./pages/Terms"));
 const Tutorial = lazy(() => import("./pages/Tutorial"));
 const OnboardingFlow = lazy(() => import("./components/onboarding/OnboardingFlow"));
 const QuickOnboarding = lazy(() => import("./components/onboarding/QuickOnboarding"));
+const SimpleOnboarding = lazy(() => import("./components/onboarding/SimpleOnboarding"));
 const Welcome = lazy(() => import("./pages/Welcome"));
 const HelpSupport = lazy(() => import("./pages/HelpSupport"));
 const AlarmSettings = lazy(() => import("./pages/AlarmSettings"));
@@ -105,7 +106,7 @@ function AppContent() {
     trackAppOpened();
   }, []);
   const location = useLocation();
-  const hideNavigationPaths = ["/auth", "/onboarding", "/onboarding-rapido", "/bem-vindo", "/"];
+  const hideNavigationPaths = ["/auth", "/onboarding", "/onboarding-rapido", "/onboarding-completo", "/bem-vindo", "/"];
   const showNavigation = !hideNavigationPaths.includes(location.pathname);
 
   return (
@@ -186,8 +187,9 @@ function AppContent() {
           <Route path="/termos" element={<Terms />} />
           <Route path="/terms" element={<Terms />} />
           <Route path="/tutorial" element={<ProtectedRoute><Tutorial /></ProtectedRoute>} />
-                          <Route path="/onboarding" element={<OnboardingFlow />} />
-                          <Route path="/onboarding-rapido" element={<QuickOnboarding />} />
+          <Route path="/onboarding" element={<SimpleOnboarding />} />
+          <Route path="/onboarding-completo" element={<OnboardingFlow />} />
+          <Route path="/onboarding-rapido" element={<QuickOnboarding />} />
           <Route path="/bem-vindo" element={<Welcome />} />
           <Route path="/ajuda" element={<ProtectedRoute><HelpSupport /></ProtectedRoute>} />
           <Route path="/help-support" element={<ProtectedRoute><HelpSupport /></ProtectedRoute>} />
