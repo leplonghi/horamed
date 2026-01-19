@@ -17,7 +17,7 @@ import StepTimes from "@/components/medication-wizard/StepTimes";
 import StepStock from "@/components/medication-wizard/StepStock";
 import StepDetails from "@/components/medication-wizard/StepDetails";
 import Navigation from "@/components/Navigation";
-import logo from "@/assets/logo_HoraMed.png";
+import logo from "@/assets/horamed-logo-web.webp";
 
 type Category = "medicamento" | "vitamina" | "suplemento" | "outro";
 type FrequencyType = "daily" | "specific_days" | "weekly" | "every_x_days" | "as_needed";

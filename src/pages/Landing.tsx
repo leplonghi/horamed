@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import logo from "@/assets/logo_HoraMed.png";
+import logo from "@/assets/horamed-logo-web.webp";
 import heroImage from "@/assets/landing-hero-family.jpg";
 import happySeniorImage from "@/assets/landing-happy-senior.jpg";
 import { 

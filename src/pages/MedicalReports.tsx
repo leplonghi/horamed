@@ -1,5 +1,5 @@
 import { useState } from "react";
-import logoImageSrc from "@/assets/logo_HoraMed.png";
+import logoImageSrc from "@/assets/horamed-logo-web.webp";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";

@@ -10,7 +10,7 @@ import ProfileSelector from "./ProfileSelector";
 import SpotlightSearch from "./SpotlightSearch";
 import VoiceControlButton from "./VoiceControlButton";
 
-import logo from "@/assets/logo_HoraMed.png";
+import logo from "@/assets/horamed-logo-web.webp";
 import { useUserProfiles } from "@/hooks/useUserProfiles";
 import { useAuth } from "@/contexts/AuthContext";
 

@@ -12,7 +12,7 @@ import {
   ArrowRight,
   Check
 } from "lucide-react";
-import logo from "@/assets/logo_HoraMed.png";
+import logo from "@/assets/horamed-logo-web.webp";
 import { useHapticFeedback } from "@/hooks/useHapticFeedback";
 import { useLanguage } from "@/contexts/LanguageContext";
 
