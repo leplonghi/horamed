@@ -708,8 +708,8 @@ const translations: Record<Language, Record<string, string>> = {
     'landing.benefit4Desc': 'Saiba quando comprar mais. Evite a angústia de ficar sem medicamento.',
     'landing.benefit5Title': 'Assistente Inteligente',
     'landing.benefit5Desc': 'Tire dúvidas sobre seus medicamentos de forma simples e acessível.',
-    'landing.benefit6Title': 'Histórico Completo',
-    'landing.benefit6Desc': 'Acompanhe sua evolução e compartilhe relatórios profissionais com seu médico.',
+    'landing.benefit6Title': 'Pronto em 2 Minutos',
+    'landing.benefit6Desc': 'Onboarding simplificado. Configure seu primeiro lembrete em segundos, não em horas.',
     'landing.emotionalQuote': 'Você sabe quantas vezes seu pai esqueceu de tomar o remédio da pressão essa semana?',
     'landing.emotionalText': 'Para quem cuida de familiares ou gerencia múltiplos medicamentos, cada dose esquecida é uma preocupação. O HoraMed existe para trazer paz de espírito a quem precisa cuidar.',
     'landing.howItWorksTitle': 'Comece em 2 minutos',
@@ -751,6 +751,15 @@ const translations: Record<Language, Record<string, string>> = {
     'landing.footerTerms': 'Termos de Uso',
     'landing.footerPrivacy': 'Privacidade',
     'landing.footerContact': 'Contato',
+    // New features
+    'landing.newFeature1Title': 'Escaneie sua Receita',
+    'landing.newFeature1Desc': 'Fotografe a receita médica e cadastre medicamentos automaticamente com reconhecimento inteligente.',
+    'landing.newFeature2Title': 'Clara, Sua Assistente IA',
+    'landing.newFeature2Desc': 'Tire dúvidas sobre seus medicamentos conversando com a Clara, sua assistente de saúde pessoal.',
+    'landing.newFeature3Title': 'Onboarding em 2 Minutos',
+    'landing.newFeature3Desc': 'Comece a usar em segundos. Sem formulários complicados, apenas o essencial.',
+    'landing.newFeaturesTitle': 'Novidades que simplificam sua vida',
+    'landing.newFeaturesSubtitle': 'Recursos inteligentes para cuidar melhor',
     
     // Notifications
     'notifications.doseReminder': 'Hora de tomar {medication}',
@@ -3617,8 +3626,8 @@ const translations: Record<Language, Record<string, string>> = {
     'landing.benefit4Desc': 'Know when to buy more. Avoid the anxiety of running out of medication.',
     'landing.benefit5Title': 'Smart Assistant',
     'landing.benefit5Desc': 'Get answers about your medications in a simple and accessible way.',
-    'landing.benefit6Title': 'Complete History',
-    'landing.benefit6Desc': 'Track your progress and share professional reports with your doctor.',
+    'landing.benefit6Title': 'Ready in 2 Minutes',
+    'landing.benefit6Desc': 'Simplified onboarding. Set up your first reminder in seconds, not hours.',
     'landing.emotionalQuote': 'Do you know how many times your dad forgot to take his blood pressure medication this week?',
     'landing.emotionalText': 'For those who care for family members or manage multiple medications, every missed dose is a worry. HoraMed exists to bring peace of mind to those who need to care.',
     'landing.howItWorksTitle': 'Start in 2 minutes',
@@ -3660,6 +3669,15 @@ const translations: Record<Language, Record<string, string>> = {
     'landing.footerTerms': 'Terms of Use',
     'landing.footerPrivacy': 'Privacy',
     'landing.footerContact': 'Contact',
+    // New features
+    'landing.newFeature1Title': 'Scan Your Prescription',
+    'landing.newFeature1Desc': 'Take a photo of your prescription and register medications automatically with smart recognition.',
+    'landing.newFeature2Title': 'Clara, Your AI Assistant',
+    'landing.newFeature2Desc': 'Ask questions about your medications by chatting with Clara, your personal health assistant.',
+    'landing.newFeature3Title': 'Onboarding in 2 Minutes',
+    'landing.newFeature3Desc': 'Start using in seconds. No complicated forms, just the essentials.',
+    'landing.newFeaturesTitle': 'New features that simplify your life',
+    'landing.newFeaturesSubtitle': 'Smart features for better care',
     
     // Notifications
     'notifications.doseReminder': 'Time to take {medication}',

@@ -13,10 +13,12 @@ import {
   Star,
   Check,
   ArrowRight,
-  Calendar,
   Brain,
   Smartphone,
-  Quote
+  Quote,
+  Camera,
+  MessageCircle,
+  Zap
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { getAuthRedirectUrl } from "@/lib/domainConfig";
@@ -61,7 +63,7 @@ const Landing = () => {
       description: t('landing.benefit5Desc')
     },
     {
-      icon: Calendar,
+      icon: Smartphone,
       title: t('landing.benefit6Title'),
       description: t('landing.benefit6Desc')
     }
@@ -123,9 +125,27 @@ const Landing = () => {
   ];
 
   const steps = [
-    { step: "1", title: t('landing.step1Title'), desc: t('landing.step1Desc') },
-    { step: "2", title: t('landing.step2Title'), desc: t('landing.step2Desc') },
-    { step: "3", title: t('landing.step3Title'), desc: t('landing.step3Desc') },
+    { step: "1", title: t('landing.step1Title'), desc: t('landing.step1Desc'), icon: Camera },
+    { step: "2", title: t('landing.step2Title'), desc: t('landing.step2Desc'), icon: Bell },
+    { step: "3", title: t('landing.step3Title'), desc: t('landing.step3Desc'), icon: Heart },
+  ];
+
+  const newFeatures = [
+    {
+      icon: Camera,
+      title: t('landing.newFeature1Title'),
+      description: t('landing.newFeature1Desc')
+    },
+    {
+      icon: MessageCircle,
+      title: t('landing.newFeature2Title'),
+      description: t('landing.newFeature2Desc')
+    },
+    {
+      icon: Zap,
+      title: t('landing.newFeature3Title'),
+      description: t('landing.newFeature3Desc')
+    }
   ];
 
   return (
@@ -292,6 +312,43 @@ const Landing = () => {
         </div>
       </section>
 
+      {/* New Features Section */}
+      <section className="py-20 px-4 bg-gradient-to-b from-primary/5 to-background">
+        <div className="container mx-auto max-w-5xl">
+          <div className="text-center mb-16">
+            <Badge className="mb-4 bg-primary/10 text-primary border-primary/20 px-4 py-1">
+              {language === 'pt' ? '✨ Novidades' : '✨ New'}
+            </Badge>
+            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
+              {t('landing.newFeaturesTitle')}
+            </h2>
+            <p className="text-lg text-muted-foreground">
+              {t('landing.newFeaturesSubtitle')}
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {newFeatures.map((feature, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: i * 0.1 }}
+                viewport={{ once: true }}
+              >
+                <Card className="p-6 h-full hover:shadow-lg transition-all border-primary/20 bg-card group hover:border-primary/40">
+                  <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                    <feature.icon className="w-7 h-7 text-primary" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-foreground mb-2">{feature.title}</h3>
+                  <p className="text-muted-foreground leading-relaxed">{feature.description}</p>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* How it Works */}
       <section className="py-20 px-4">
         <div className="container mx-auto max-w-5xl">
@@ -314,8 +371,8 @@ const Landing = () => {
                 transition={{ duration: 0.4, delay: i * 0.15 }}
                 viewport={{ once: true }}
               >
-                <div className="w-14 h-14 rounded-full bg-primary/10 text-primary text-xl font-bold flex items-center justify-center mx-auto mb-4">
-                  {item.step}
+                <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                  <item.icon className="w-6 h-6 text-primary" />
                 </div>
                 <h3 className="text-lg font-semibold text-foreground mb-2">{item.title}</h3>
                 <p className="text-muted-foreground">{item.desc}</p>
