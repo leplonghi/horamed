@@ -180,35 +180,43 @@ export default function Auth() {
       setLoading(false);
     }
   };
-  return <div className="h-[100dvh] bg-background flex flex-col lg:flex-row overflow-hidden">
-      {/* Left Panel - Branding (hidden on mobile, compact on tablet) */}
+  return <div className="h-[100dvh] flex flex-col lg:flex-row overflow-hidden">
+      {/* Left Panel - Branding (hidden on mobile/tablet, only on desktop) */}
       <motion.div initial={{
       opacity: 0
     }} animate={{
       opacity: 1
     }} transition={{
       duration: 0.6
-    }} className="hidden md:flex relative lg:w-1/2 md:w-2/5 bg-gradient-to-br from-primary via-primary/90 to-primary/80 p-6 lg:p-12 flex-col justify-between overflow-hidden">
+    }} className="hidden lg:flex relative lg:w-1/2 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-12 flex-col justify-between overflow-hidden">
         {/* Decorative elements */}
         <div className="absolute inset-0 overflow-hidden">
-          <motion.div className="absolute -top-32 -right-32 w-96 h-96 bg-white/10 rounded-full blur-3xl" animate={{
+          <motion.div className="absolute -top-32 -right-32 w-96 h-96 bg-primary/20 rounded-full blur-3xl" animate={{
           scale: [1, 1.2, 1],
-          opacity: [0.1, 0.2, 0.1]
+          opacity: [0.2, 0.3, 0.2]
         }} transition={{
           duration: 8,
+          repeat: Infinity,
+          ease: "easeInOut"
+        }} />
+          <motion.div className="absolute bottom-0 left-0 w-72 h-72 bg-emerald-500/10 rounded-full blur-3xl" animate={{
+          scale: [1, 1.3, 1],
+          opacity: [0.1, 0.2, 0.1]
+        }} transition={{
+          duration: 10,
           repeat: Infinity,
           ease: "easeInOut"
         }} />
         </div>
 
         <div className="relative z-10">
-          <Link to="/" className="inline-flex items-center gap-2 text-white/80 hover:text-white transition-colors mb-6 group">
+          <Link to="/" className="inline-flex items-center gap-2 text-white/60 hover:text-white transition-colors mb-8 group">
             <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
             <span className="text-sm">Voltar</span>
           </Link>
           
           {/* Logo/Brand */}
-          <motion.div className="flex items-center gap-3 mb-4" initial={{
+          <motion.div className="flex items-center gap-3 mb-6" initial={{
           y: 20,
           opacity: 0
         }} animate={{
@@ -217,11 +225,11 @@ export default function Auth() {
         }} transition={{
           delay: 0.2
         }}>
-            <img alt="HoraMed" className="h-12 w-auto" src="/lovable-uploads/aa6ccf70-c03a-4569-91a0-2fe30916afbf.png" />
+            <img alt="HoraMed" className="h-14 w-auto" src={logo} />
             <span className="text-2xl font-bold text-white tracking-tight">HoraMed</span>
           </motion.div>
           
-          <motion.h1 className="text-2xl lg:text-4xl font-bold text-white leading-tight mb-4" initial={{
+          <motion.h1 className="text-4xl font-bold text-white leading-tight mb-4" initial={{
           y: 20,
           opacity: 0
         }} animate={{
@@ -231,10 +239,10 @@ export default function Auth() {
           delay: 0.3
         }}>
             Sua saúde,{" "}
-            <span className="text-white/80">organizada.</span>
+            <span className="bg-gradient-to-r from-primary to-cyan-400 bg-clip-text text-transparent">organizada.</span>
           </motion.h1>
           
-          <motion.p className="text-white/70 text-base lg:text-lg max-w-md hidden lg:block" initial={{
+          <motion.p className="text-white/60 text-lg max-w-md" initial={{
           y: 20,
           opacity: 0
         }} animate={{
@@ -248,7 +256,7 @@ export default function Auth() {
         </div>
 
         {/* Features */}
-        <motion.div className="relative z-10 flex flex-wrap gap-2 lg:gap-4" initial={{
+        <motion.div className="relative z-10 flex flex-wrap gap-4" initial={{
         y: 20,
         opacity: 0
       }} animate={{
@@ -257,7 +265,7 @@ export default function Auth() {
       }} transition={{
         delay: 0.5
       }}>
-          {features.map((feature, i) => <motion.div key={feature.text} className="flex items-center gap-2 px-3 py-1.5 bg-white/10 backdrop-blur-sm rounded-full" initial={{
+          {features.map((feature, i) => <motion.div key={feature.text} className="flex items-center gap-2 px-4 py-2 bg-white/5 backdrop-blur-sm rounded-full border border-white/10" initial={{
           scale: 0.8,
           opacity: 0
         }} animate={{
@@ -266,17 +274,45 @@ export default function Auth() {
         }} transition={{
           delay: 0.6 + i * 0.1
         }}>
-              <div className={cn("p-1 rounded-full bg-gradient-to-br", feature.color)}>
-                <feature.icon className="h-3 w-3 text-white" />
+              <div className={cn("p-1.5 rounded-full bg-gradient-to-br", feature.color)}>
+                <feature.icon className="h-3.5 w-3.5 text-white" />
               </div>
-              <span className="text-xs text-white/90 font-medium">{feature.text}</span>
+              <span className="text-sm text-white/80 font-medium">{feature.text}</span>
             </motion.div>)}
         </motion.div>
       </motion.div>
 
-      {/* Right Panel - Form */}
-      <div className="flex-1 flex flex-col justify-center p-4 sm:p-6 lg:p-12 overflow-y-auto">
-        <motion.div className="w-full max-w-md mx-auto" initial={{
+      {/* Right Panel - Form (with gradient on mobile) */}
+      <div className="flex-1 flex flex-col justify-center relative overflow-hidden">
+        {/* Mobile gradient background */}
+        <div className="absolute inset-0 lg:hidden bg-gradient-to-br from-primary/5 via-background to-emerald-500/5">
+          <motion.div 
+            className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl"
+            animate={{
+              scale: [1, 1.2, 1],
+              opacity: [0.3, 0.5, 0.3]
+            }}
+            transition={{
+              duration: 6,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+          />
+          <motion.div 
+            className="absolute bottom-0 left-0 w-48 h-48 bg-emerald-400/10 rounded-full blur-3xl"
+            animate={{
+              scale: [1, 1.3, 1],
+              opacity: [0.2, 0.4, 0.2]
+            }}
+            transition={{
+              duration: 8,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+          />
+        </div>
+        
+        <motion.div className="relative z-10 w-full max-w-md mx-auto p-4 sm:p-6 lg:p-12" initial={{
         opacity: 0,
         x: 20
       }} animate={{
@@ -287,14 +323,21 @@ export default function Auth() {
         delay: 0.2
       }}>
           {/* Mobile Header with Logo */}
-          <div className="md:hidden flex items-center justify-center gap-2 mb-4">
-            <img src={logo} alt="HoraMed" className="h-10 w-auto" />
+          <div className="lg:hidden flex flex-col items-center justify-center gap-2 mb-6">
+            <motion.div 
+              className="p-3 bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg shadow-primary/10"
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.1 }}
+            >
+              <img src={logo} alt="HoraMed" className="h-12 w-auto" />
+            </motion.div>
             <span className="text-xl font-bold text-foreground">HoraMed</span>
           </div>
 
           {/* Header */}
           <div className="text-center lg:text-left mb-4 sm:mb-6">
-            <motion.div className="inline-flex items-center gap-2 px-3 py-1 bg-primary/10 rounded-full mb-2" initial={{
+            <motion.div className="inline-flex items-center gap-2 px-3 py-1.5 bg-primary/10 backdrop-blur-sm rounded-full mb-3" initial={{
             scale: 0.9,
             opacity: 0
           }} animate={{
@@ -318,7 +361,7 @@ export default function Auth() {
           {/* Auth Buttons */}
           <div className="space-y-3">
             {/* Google */}
-            <Button type="button" onClick={handleGoogleLogin} disabled={loading} className="w-full h-11 bg-background hover:bg-muted text-foreground border border-border shadow-sm transition-all hover:shadow-md rounded-xl font-medium text-sm">
+            <Button type="button" onClick={handleGoogleLogin} disabled={loading} className="w-full h-11 bg-white hover:bg-gray-50 text-foreground border border-border shadow-sm transition-all hover:shadow-md rounded-xl font-medium text-sm">
               <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24">
                 <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
                 <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
@@ -335,7 +378,7 @@ export default function Auth() {
               setEmail(result.email);
               toast.info(t('auth.biometricConfirmed'));
             }
-          }} disabled={biometricLoading} variant="outline" className="w-full h-11 rounded-xl font-medium text-sm">
+          }} disabled={biometricLoading} variant="outline" className="w-full h-11 rounded-xl font-medium text-sm bg-white/50 backdrop-blur-sm">
                 <Fingerprint className="h-4 w-4 mr-2" />
                 {biometricLoading ? "Autenticando..." : "Entrar com biometria"}
               </Button>}
@@ -343,10 +386,10 @@ export default function Auth() {
             {/* Divider */}
             <div className="relative py-2">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-border" />
+                <div className="w-full border-t border-border/50" />
               </div>
               <div className="relative flex justify-center">
-                <span className="bg-background px-3 text-xs text-muted-foreground">ou com e-mail</span>
+                <span className="bg-background/80 backdrop-blur-sm px-3 text-xs text-muted-foreground">ou com e-mail</span>
               </div>
             </div>
 
@@ -354,7 +397,7 @@ export default function Auth() {
             <form onSubmit={isLogin ? handleEmailSignIn : handleEmailSignUp} className="space-y-3">
               <div className="space-y-1">
                 <Label htmlFor="email" className="text-sm font-medium">E-mail</Label>
-                <Input id="email" type="email" placeholder="seu@email.com" value={email} onChange={e => setEmail(e.target.value)} required className="h-11 rounded-xl bg-muted/30 border-border/50 focus:border-primary transition-colors" />
+                <Input id="email" type="email" placeholder="seu@email.com" value={email} onChange={e => setEmail(e.target.value)} required className="h-11 rounded-xl bg-white/70 backdrop-blur-sm border-border/50 focus:border-primary transition-colors" />
               </div>
 
               <div className="space-y-1">
@@ -365,7 +408,7 @@ export default function Auth() {
                     </Link>}
                 </div>
                 <div className="relative">
-                  <Input id="password" type={showPassword ? "text" : "password"} placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} required className="h-11 rounded-xl bg-muted/30 border-border/50 focus:border-primary transition-colors pr-10" />
+                  <Input id="password" type={showPassword ? "text" : "password"} placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} required className="h-11 rounded-xl bg-white/70 backdrop-blur-sm border-border/50 focus:border-primary transition-colors pr-10" />
                   <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
@@ -415,7 +458,7 @@ export default function Auth() {
           </div>
 
           {/* Trust badges - hidden on very small screens */}
-          <motion.div className="hidden sm:flex items-center justify-center gap-4 mt-4 pt-4 border-t border-border/50" initial={{
+          <motion.div className="hidden sm:flex items-center justify-center gap-4 mt-4 pt-4 border-t border-border/30" initial={{
           opacity: 0
         }} animate={{
           opacity: 1
