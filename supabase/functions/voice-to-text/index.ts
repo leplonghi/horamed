@@ -19,54 +19,45 @@ serve(async (req) => {
 
     console.log('Processing audio for transcription, mime type:', mimeType);
 
-    const GOOGLE_API_KEY = Deno.env.get('GOOGLE_AI_API_KEY');
+    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     
-    if (!GOOGLE_API_KEY) {
-      throw new Error('GOOGLE_AI_API_KEY not configured');
+    if (!LOVABLE_API_KEY) {
+      throw new Error('LOVABLE_API_KEY not configured');
     }
 
-    // Use Google Gemini API directly with native audio support
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GOOGLE_API_KEY}`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          contents: [
-            {
-              parts: [
-                {
-                  text: `Você é um transcritor de áudio profissional. Transcreva o áudio a seguir para texto em português brasileiro.
+    // Decode base64 audio to binary
+    const binaryAudio = Uint8Array.from(atob(audio), c => c.charCodeAt(0));
+    
+    // Determine file extension from mime type
+    let fileExtension = 'webm';
+    if (mimeType.includes('mp4') || mimeType.includes('m4a')) {
+      fileExtension = 'mp4';
+    } else if (mimeType.includes('wav')) {
+      fileExtension = 'wav';
+    } else if (mimeType.includes('mp3') || mimeType.includes('mpeg')) {
+      fileExtension = 'mp3';
+    }
 
-REGRAS IMPORTANTES:
-- Retorne APENAS o texto transcrito, sem explicações, prefixos ou formatação
-- Corrija erros de gramática óbvios
-- Use pontuação apropriada
-- Se não conseguir entender o áudio, retorne exatamente: [inaudível]
-- Não adicione nada além da transcrição`
-                },
-                {
-                  inlineData: {
-                    mimeType: mimeType.includes('opus') ? 'audio/webm' : mimeType,
-                    data: audio
-                  }
-                }
-              ]
-            }
-          ],
-          generationConfig: {
-            temperature: 0.1,
-            maxOutputTokens: 2000
-          }
-        }),
-      }
-    );
+    // Create FormData for the audio file
+    const formData = new FormData();
+    const blob = new Blob([binaryAudio], { type: mimeType });
+    formData.append('file', blob, `audio.${fileExtension}`);
+    formData.append('model', 'whisper-1');
+    formData.append('language', 'pt');
+    formData.append('response_format', 'json');
+
+    // Use Lovable AI Gateway's audio transcription endpoint (Whisper)
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/audio/transcriptions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+      },
+      body: formData,
+    });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Gemini API error:', response.status, errorText);
+      console.error('Whisper API error:', response.status, errorText);
       
       try {
         const errorJson = JSON.parse(errorText);
@@ -75,22 +66,17 @@ REGRAS IMPORTANTES:
         // Not JSON, already logged
       }
       
-      throw new Error(`Gemini API error: ${response.status}`);
+      throw new Error(`Whisper API error: ${response.status}`);
     }
 
     const result = await response.json();
-    console.log('Gemini response received');
+    console.log('Whisper response received');
     
-    const transcribedText = result.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
+    const transcribedText = result.text?.trim() || '';
 
-    // Clean up the transcription
-    let cleanText = transcribedText
-      .replace(/^(transcrição|texto|áudio):\s*/i, '')
-      .replace(/^["']|["']$/g, '')
-      .trim();
-
-    // Check for inaudible marker
-    if (cleanText.toLowerCase().includes('[inaudível]') || cleanText.length < 2) {
+    // Check for empty or very short transcription
+    let cleanText = transcribedText;
+    if (cleanText.length < 2) {
       cleanText = '';
     }
 
