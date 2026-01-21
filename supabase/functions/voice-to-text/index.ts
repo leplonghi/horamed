@@ -19,28 +19,26 @@ serve(async (req) => {
 
     console.log('Processing audio for transcription, mime type:', mimeType);
 
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+    const GOOGLE_API_KEY = Deno.env.get('GOOGLE_AI_API_KEY');
     
-    if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY not configured');
+    if (!GOOGLE_API_KEY) {
+      throw new Error('GOOGLE_AI_API_KEY not configured');
     }
 
-    // Use Lovable AI Gateway with Gemini 2.5 Flash for audio transcription
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
-        messages: [
-          {
-            role: 'user',
-            content: [
-              {
-                type: 'text',
-                text: `Você é um transcritor de áudio profissional. Transcreva o áudio a seguir para texto em português brasileiro.
+    // Use Google Gemini API directly with native audio support
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GOOGLE_API_KEY}`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          contents: [
+            {
+              parts: [
+                {
+                  text: `Você é um transcritor de áudio profissional. Transcreva o áudio a seguir para texto em português brasileiro.
 
 REGRAS IMPORTANTES:
 - Retorne APENAS o texto transcrito, sem explicações, prefixos ou formatação
@@ -48,27 +46,28 @@ REGRAS IMPORTANTES:
 - Use pontuação apropriada
 - Se não conseguir entender o áudio, retorne exatamente: [inaudível]
 - Não adicione nada além da transcrição`
-              },
-              {
-                type: 'input_audio',
-                input_audio: {
-                  data: audio,
-                  format: mimeType.includes('webm') ? 'webm' : mimeType.includes('mp4') ? 'mp4' : 'wav'
+                },
+                {
+                  inlineData: {
+                    mimeType: mimeType.includes('opus') ? 'audio/webm' : mimeType,
+                    data: audio
+                  }
                 }
-              }
-            ]
+              ]
+            }
+          ],
+          generationConfig: {
+            temperature: 0.1,
+            maxOutputTokens: 2000
           }
-        ],
-        max_tokens: 2000,
-        temperature: 0.1
-      }),
-    });
+        }),
+      }
+    );
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('AI API error:', response.status, errorText);
+      console.error('Gemini API error:', response.status, errorText);
       
-      // Parse error for better debugging
       try {
         const errorJson = JSON.parse(errorText);
         console.error('Error details:', JSON.stringify(errorJson, null, 2));
@@ -76,13 +75,13 @@ REGRAS IMPORTANTES:
         // Not JSON, already logged
       }
       
-      throw new Error(`AI API error: ${response.status}`);
+      throw new Error(`Gemini API error: ${response.status}`);
     }
 
     const result = await response.json();
-    console.log('AI response received');
+    console.log('Gemini response received');
     
-    const transcribedText = result.choices?.[0]?.message?.content?.trim() || '';
+    const transcribedText = result.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
 
     // Clean up the transcription
     let cleanText = transcribedText
