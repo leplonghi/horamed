@@ -172,6 +172,7 @@ function AppContent() {
           <Route path="/perfil/indique-e-ganhe" element={<ProtectedRoute><IndiqueGanhe /></ProtectedRoute>} />
           <Route path="/indique-ganhe" element={<ProtectedRoute><IndiqueGanhe /></ProtectedRoute>} />
           <Route path="/recompensas" element={<ProtectedRoute><Recompensas /></ProtectedRoute>} />
+          <Route path="/peso" element={<ProtectedRoute><WeightHistory /></ProtectedRoute>} />
           <Route path="/peso/historico" element={<ProtectedRoute><WeightHistory /></ProtectedRoute>} />
           <Route path="/assinatura" element={<ProtectedRoute><SubscriptionManagement /></ProtectedRoute>} />
           <Route path="/assinatura/sucesso" element={<ProtectedRoute><SubscriptionSuccess /></ProtectedRoute>} />
