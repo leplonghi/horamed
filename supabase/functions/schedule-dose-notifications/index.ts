@@ -25,20 +25,21 @@ serve(async (req) => {
     const cronSecret = req.headers.get('X-Cron-Secret');
     let requestUserId: string | null = null;
     
-    if (authHeader) {
+    if (authHeader?.startsWith('Bearer ')) {
       const supabaseClient = createClient(
         Deno.env.get('SUPABASE_URL') ?? '',
         Deno.env.get('SUPABASE_ANON_KEY') ?? '',
         { global: { headers: { Authorization: authHeader } } }
       );
-      const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
-      if (authError || !user) {
+      const token = authHeader.replace('Bearer ', '');
+      const { data, error: authError } = await supabaseClient.auth.getClaims(token);
+      if (authError || !data?.claims) {
         return new Response(
           JSON.stringify({ error: 'Unauthorized' }),
           { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
-      requestUserId = user.id;
+      requestUserId = data.claims.sub as string;
     } else if (cronSecret !== Deno.env.get('CRON_SECRET')) {
       return new Response(
         JSON.stringify({ error: 'Unauthorized' }),
