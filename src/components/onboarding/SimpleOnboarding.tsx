@@ -21,7 +21,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useHapticFeedback } from "@/hooks/useHapticFeedback";
-import logo from "@/assets/horamed-logo-web.webp";
+import logo from "@/assets/horamed-logo-optimized.webp";
 
 interface SimpleOnboardingProps {
   onComplete?: () => void;
