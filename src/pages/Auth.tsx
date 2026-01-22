@@ -15,6 +15,7 @@ import { useDeviceFingerprint } from "@/hooks/useDeviceFingerprint";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { cn } from "@/lib/utils";
 import logo from "@/assets/horamed-logo-web.webp";
+import authBackground from "@/assets/auth-background.png";
 const features = [{
   icon: Bell,
   text: "Lembretes",
@@ -188,26 +189,14 @@ export default function Auth() {
       opacity: 1
     }} transition={{
       duration: 0.6
-    }} className="hidden lg:flex relative lg:w-1/2 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-12 flex-col justify-between overflow-hidden">
-        {/* Decorative elements */}
-        <div className="absolute inset-0 overflow-hidden text-destructive bg-primary rounded shadow-glow">
-          <motion.div className="absolute -top-32 -right-32 w-96 h-96 blur-3xl bg-warning-foreground text-warning rounded" animate={{
-          scale: [1, 1.2, 1],
-          opacity: [0.2, 0.3, 0.2]
-        }} transition={{
-          duration: 8,
-          repeat: Infinity,
-          ease: "easeInOut"
-        }} />
-          <motion.div className="absolute bottom-0 left-0 w-72 h-72 bg-emerald-500/10 rounded-full blur-3xl" animate={{
-          scale: [1, 1.3, 1],
-          opacity: [0.1, 0.2, 0.1]
-        }} transition={{
-          duration: 10,
-          repeat: Infinity,
-          ease: "easeInOut"
-        }} />
-        </div>
+    }} className="hidden lg:flex relative lg:w-1/2 p-12 flex-col justify-between overflow-hidden"
+      style={{ 
+        backgroundImage: `url(${authBackground})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center'
+      }}>
+        {/* Subtle overlay for better text readability */}
+        <div className="absolute inset-0 bg-black/10" />
 
         <div className="relative z-10">
           <Link to="/" className="inline-flex items-center gap-2 text-white/60 hover:text-white transition-colors mb-8 group">
@@ -225,9 +214,7 @@ export default function Auth() {
         }} transition={{
           delay: 0.2
         }}>
-            <img alt="HoraMed" className="h-14 w-auto object-cover" src="/lovable-uploads/52339868-05cd-43fe-9215-02eec16de922.png" />
-            <span className="text-2xl font-bold text-white tracking-tight">
-          </span>
+            <img alt="HoraMed" className="h-16 w-auto object-cover" src={logo} />
           </motion.div>
           
           <motion.h1 className="text-4xl font-bold text-white leading-tight mb-4" initial={{
@@ -257,7 +244,7 @@ export default function Auth() {
         </div>
 
         {/* Features */}
-        <motion.div className="relative z-10 flex flex-wrap gap-4 bg-primary" initial={{
+        <motion.div className="relative z-10 flex flex-wrap gap-4" initial={{
         y: 20,
         opacity: 0
       }} animate={{
