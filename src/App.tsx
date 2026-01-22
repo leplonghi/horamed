@@ -179,6 +179,8 @@ function AppContent() {
           <Route path="/assinatura/cancelado" element={<ProtectedRoute><SubscriptionCanceled /></ProtectedRoute>} />
           <Route path="/notificacoes-config" element={<ProtectedRoute><NotificationSettings /></ProtectedRoute>} />
           <Route path="/notificacoes" element={<ProtectedRoute><NotificationSettings /></ProtectedRoute>} />
+          <Route path="/notificacoes/config" element={<ProtectedRoute><NotificationSettings /></ProtectedRoute>} />
+          <Route path="/notificacoes/configurar" element={<ProtectedRoute><NotificationSettings /></ProtectedRoute>} />
           <Route path="/configurar-notificacoes" element={<ProtectedRoute><NotificationSetup /></ProtectedRoute>} />
           <Route path="/configuracoes/notificacoes" element={<ProtectedRoute><NotificationSettings /></ProtectedRoute>} />
           <Route path="/exportar" element={<ProtectedRoute><DataExport /></ProtectedRoute>} />
