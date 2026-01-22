@@ -14,7 +14,7 @@ import { APP_DOMAIN } from "@/lib/domainConfig";
 import { useDeviceFingerprint } from "@/hooks/useDeviceFingerprint";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { cn } from "@/lib/utils";
-import logo from "@/assets/horamed-logo-optimized.webp";
+import logo from "@/assets/logo_HoraMed.png";
 import authBackground from "@/assets/auth-background.png";
 const features = [{
   icon: Bell,

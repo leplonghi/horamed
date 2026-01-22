@@ -13,7 +13,7 @@ import autoTable from 'jspdf-autotable';
 import { format } from 'date-fns';
 import { ptBR, enUS } from 'date-fns/locale';
 import { addHeader, addFooter, addSectionHeader, checkPageBreak } from '@/lib/pdfReportTypes';
-import logoImage from '@/assets/horamed-logo-optimized.webp';
+import logoImage from '@/assets/logo_HoraMed.png';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function DataExport() {
