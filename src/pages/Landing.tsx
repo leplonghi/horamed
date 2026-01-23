@@ -18,7 +18,11 @@ import {
   Quote,
   Camera,
   MessageCircle,
-  Zap
+  Zap,
+  User,
+  Baby,
+  HeartPulse,
+  UserRound
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { getAuthRedirectUrl } from "@/lib/domainConfig";
@@ -148,6 +152,33 @@ const Landing = () => {
     }
   ];
 
+  const useCases = [
+    {
+      icon: User,
+      title: t('landing.useCase1Title'),
+      description: t('landing.useCase1Desc'),
+      examples: t('landing.useCase1Examples')
+    },
+    {
+      icon: UserRound,
+      title: t('landing.useCase2Title'),
+      description: t('landing.useCase2Desc'),
+      examples: t('landing.useCase2Examples')
+    },
+    {
+      icon: Baby,
+      title: t('landing.useCase3Title'),
+      description: t('landing.useCase3Desc'),
+      examples: t('landing.useCase3Examples')
+    },
+    {
+      icon: HeartPulse,
+      title: t('landing.useCase4Title'),
+      description: t('landing.useCase4Desc'),
+      examples: t('landing.useCase4Examples')
+    }
+  ];
+
   return (
     <div className="min-h-screen bg-background">
       <SEOHead 
@@ -256,7 +287,41 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* Benefits Section */}
+      {/* Use Cases Section */}
+      <section className="py-20 px-4">
+        <div className="container mx-auto max-w-6xl">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
+              {t('landing.useCasesTitle')}
+            </h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              {t('landing.useCasesSubtitle')}
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {useCases.map((useCase, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: i * 0.1 }}
+                viewport={{ once: true }}
+              >
+                <Card className="p-6 h-full hover:shadow-lg transition-all border-border/50 bg-card group hover:border-primary/30">
+                  <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
+                    <useCase.icon className="w-7 h-7 text-primary" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-foreground mb-2">{useCase.title}</h3>
+                  <p className="text-muted-foreground text-sm leading-relaxed mb-3">{useCase.description}</p>
+                  <p className="text-xs text-primary/80 font-medium">{useCase.examples}</p>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <section className="py-20 px-4">
         <div className="container mx-auto max-w-6xl">
           <div className="text-center mb-16">
