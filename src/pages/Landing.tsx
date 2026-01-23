@@ -71,8 +71,14 @@ const Landing = () => {
 
   const testimonials = language === 'pt' ? [
     {
+      name: "Lucas",
+      role: "Usa para si mesmo",
+      content: "Tomo 3 medicamentos diários para tireoide e pressão. Antes esquecia direto, agora o app me avisa e eu nunca mais perdi uma dose.",
+      rating: 5,
+    },
+    {
       name: "Maria Helena",
-      role: "Filha cuidadora",
+      role: "Cuida dos pais",
       content: "Minha mãe tem 78 anos e toma 6 medicamentos. Antes eu ligava 3 vezes por dia para lembrar. Agora tenho paz de saber que ela está cuidada.",
       rating: 5,
     },
@@ -81,17 +87,17 @@ const Landing = () => {
       role: "Paciente cardíaco",
       content: "Depois do infarto, a disciplina virou questão de vida. O HoraMed me dá essa segurança todo dia, sem falhar.",
       rating: 5,
-    },
-    {
-      name: "Carla",
-      role: "Mãe de 3 filhos",
-      content: "Organizo as vacinas das crianças e os remédios dos meus pais idosos no mesmo app. Simplificou minha vida.",
-      rating: 5,
     }
   ] : [
     {
+      name: "Lucas",
+      role: "Uses for himself",
+      content: "I take 3 daily medications for thyroid and blood pressure. I used to forget all the time, now the app reminds me and I never miss a dose.",
+      rating: 5,
+    },
+    {
       name: "Mary H.",
-      role: "Caregiver daughter",
+      role: "Cares for parents",
       content: "My mom is 78 and takes 6 medications. I used to call 3 times a day to remind her. Now I have peace of mind knowing she's taken care of.",
       rating: 5,
     },
@@ -99,12 +105,6 @@ const Landing = () => {
       name: "Robert",
       role: "Heart patient",
       content: "After my heart attack, discipline became a matter of life. HoraMed gives me that security every day, without fail.",
-      rating: 5,
-    },
-    {
-      name: "Carol",
-      role: "Mother of 3",
-      content: "I organize my kids' vaccines and my elderly parents' medications in the same app. It simplified my life.",
       rating: 5,
     }
   ];
@@ -187,9 +187,9 @@ const Landing = () => {
             >
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground leading-tight">
                 {language === 'pt' ? (
-                  <>A tranquilidade de saber que <span className="text-primary">quem você ama está cuidado</span></>
+                  <>Nunca mais esqueça <span className="text-primary">de tomar seu medicamento</span></>
                 ) : (
-                  <>The peace of knowing <span className="text-primary">your loved ones are taken care of</span></>
+                  <>Never forget to <span className="text-primary">take your medication again</span></>
                 )}
               </h1>
               
