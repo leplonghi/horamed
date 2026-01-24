@@ -25,6 +25,7 @@ import { AffiliateCard } from "@/components/fitness/AffiliateCard";
 import { getRecommendations, dismissRecommendation } from "@/lib/affiliateEngine";
 import { motion } from "framer-motion";
 import { useLanguage } from "@/contexts/LanguageContext";
+import OceanBackground from "@/components/ui/OceanBackground";
 
 interface Item {
   id: string;
@@ -279,8 +280,9 @@ export default function Rotina() {
     return (
       <>
         <Header />
-        <div className="min-h-screen bg-gradient-subtle pt-20 p-6 pb-24">
-          <div className="max-w-4xl mx-auto space-y-6">
+        <div className="min-h-screen bg-background relative pt-20 p-6 pb-24">
+          <OceanBackground variant="subtle" />
+          <div className="max-w-4xl mx-auto space-y-6 relative z-10">
             <div className="h-8 w-48 skeleton rounded-lg" />
             <ListSkeleton count={5} />
           </div>
@@ -293,8 +295,9 @@ export default function Rotina() {
   return (
     <>
       <Header />
-      <div className="min-h-screen bg-gradient-subtle pt-20 p-4 sm:p-6 pb-24">
-        <div className="max-w-4xl mx-auto space-y-6">
+      <div className="min-h-screen bg-background relative pt-20 p-4 sm:p-6 pb-24">
+        <OceanBackground variant="page" />
+        <div className="max-w-4xl mx-auto space-y-6 relative z-10">
           {/* Header */}
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-bold text-foreground">

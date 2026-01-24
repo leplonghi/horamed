@@ -14,6 +14,7 @@ import SmartHealthInsights from "@/components/health/SmartHealthInsights";
 import HealthStatsGrid from "@/components/health/HealthStatsGrid";
 import DrugInteractionAlert from "@/components/health/DrugInteractionAlert";
 import MedicalReportButton from "@/components/health/MedicalReportButton";
+import OceanBackground from "@/components/ui/OceanBackground";
 
 export default function Saude() {
   const { t, language } = useLanguage();
@@ -141,10 +142,11 @@ export default function Saude() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-subtle">
+    <div className="min-h-screen bg-background relative">
+      <OceanBackground variant="page" />
       <Header />
       
-      <main className="container max-w-4xl mx-auto px-4 sm:px-6 py-6 pb-24 space-y-6 page-container">
+      <main className="container max-w-4xl mx-auto px-4 sm:px-6 py-6 pb-24 space-y-6 page-container relative z-10">
         {/* Hero Header */}
         <PageHeroHeader
           icon={<Activity className="h-6 w-6 text-primary" />}

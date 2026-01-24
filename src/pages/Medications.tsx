@@ -22,6 +22,7 @@ import PageHeroHeader from "@/components/shared/PageHeroHeader";
 import MedicationQuickActions from "@/components/medications/MedicationQuickActions";
 import SmartMedicationInsights from "@/components/medications/SmartMedicationInsights";
 import MedicationStatsGrid from "@/components/medications/MedicationStatsGrid";
+import OceanBackground from "@/components/ui/OceanBackground";
 
 interface Item {
   id: string;
@@ -333,8 +334,9 @@ export default function Medications() {
   return (
     <>
       <Header />
-      <div className="min-h-screen bg-gradient-subtle pt-20 pb-28">
-        <div className="container max-w-4xl mx-auto px-4 sm:px-6 space-y-6">
+      <div className="min-h-screen bg-background relative pt-20 pb-28">
+        <OceanBackground variant="page" />
+        <div className="container max-w-4xl mx-auto px-4 sm:px-6 space-y-6 relative z-10">
           {/* Hero Header */}
           <PageHeroHeader
             icon={<Pill className="h-6 w-6 text-primary" />}

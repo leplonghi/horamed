@@ -31,6 +31,7 @@ import ProfileHeroHeader from "@/components/profile/ProfileHeroHeader";
 import ProfileQuickActions from "@/components/profile/ProfileQuickActions";
 import ProfileStatsGrid from "@/components/profile/ProfileStatsGrid";
 import SmartProfileInsights from "@/components/profile/SmartProfileInsights";
+import OceanBackground from "@/components/ui/OceanBackground";
 
 export default function Profile() {
   const navigate = useNavigate();
@@ -118,14 +119,15 @@ export default function Profile() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-subtle">
+    <div className="min-h-screen bg-background relative">
+      <OceanBackground variant="page" />
       <Header />
       
       <motion.main 
         variants={containerVariants}
         initial="hidden"
         animate="show"
-        className="page-container container max-w-2xl mx-auto px-4 space-y-5"
+        className="page-container container max-w-2xl mx-auto px-4 space-y-5 relative z-10"
       >
         {/* Hero Header */}
         <motion.div variants={itemVariants}>

@@ -20,6 +20,7 @@ import FitnessProgressWidgets from "@/components/fitness/FitnessProgressWidgets"
 import { useFitnessPreferences } from "@/hooks/useFitnessPreferences";
 import { microcopy } from "@/lib/microcopy";
 import { useLanguage } from "@/contexts/LanguageContext";
+import OceanBackground from "@/components/ui/OceanBackground";
 
 export default function Progress() {
   const { t } = useLanguage();
@@ -132,10 +133,11 @@ export default function Progress() {
   );
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-subtle">
+    <div className="min-h-screen flex flex-col bg-background relative">
+      <OceanBackground variant="page" />
       <Header />
 
-      <main className="flex-1 container mx-auto p-4 sm:p-6 space-y-6 page-container">
+      <main className="flex-1 container mx-auto p-4 sm:p-6 space-y-6 page-container relative z-10">
         <div className="flex items-start justify-between gap-4">
           <PageHeader
             title={t('progress.yourProgress')}

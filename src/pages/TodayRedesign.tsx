@@ -34,6 +34,7 @@ import HeroNextDose from "@/components/HeroNextDose";
 import ClaraProactiveCard from "@/components/ClaraProactiveCard";
 import { useOverdueDoses } from "@/hooks/useOverdueDoses";
 import DrugInteractionAlert from "@/components/health/DrugInteractionAlert";
+import OceanBackground from "@/components/ui/OceanBackground";
 
 interface TimelineItem {
   id: string;
@@ -692,10 +693,11 @@ export default function TodayRedesign() {
   );
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background relative">
+      <OceanBackground variant="page" />
       <Header />
 
-      <main className="page-container container mx-auto max-w-2xl px-4 space-y-6">
+      <main className="page-container container mx-auto max-w-2xl px-4 space-y-6 relative z-10">
         {/* ═══════════════════════════════════════════════════════════════ */}
         {/* 📍 HEADER - Saudação simples e limpa */}
         {/* ═══════════════════════════════════════════════════════════════ */}

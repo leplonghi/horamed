@@ -38,6 +38,7 @@ import Navigation from "@/components/Navigation";
 import Header from "@/components/Header";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { toast } from "sonner";
+import OceanBackground from "@/components/ui/OceanBackground";
 
 type ViewMode = "grid" | "list" | "timeline";
 
@@ -110,10 +111,11 @@ export default function Cofre() {
   const hasDocuments = allDocumentos && allDocumentos.length > 0;
 
   return (
-    <div className="min-h-screen bg-gradient-subtle">
+    <div className="min-h-screen bg-background relative">
+      <OceanBackground variant="page" />
       <Header />
       
-      <div className="page-container container max-w-4xl mx-auto space-y-6 px-4 sm:px-6 pb-24">
+      <div className="page-container container max-w-4xl mx-auto space-y-6 px-4 sm:px-6 pb-24 relative z-10">
         {/* Hero Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
