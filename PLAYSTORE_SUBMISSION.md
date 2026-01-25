@@ -15,8 +15,27 @@
 - Contato: contato@horamed.net
 
 ### 3. Assets Gerados
-- `public/playstore-icon-512.png` - Ícone 512x512
-- `public/playstore-feature-graphic.png` - Feature Graphic 1024x500
+
+#### Ícones
+| Arquivo | Uso |
+|---------|-----|
+| `public/playstore-icon-512.png` | Ícone 512x512 da Play Store |
+| `public/icons/ic_launcher_foreground.png` | Foreground do Adaptive Icon |
+| `public/icons/ic_launcher_background.png` | Background do Adaptive Icon |
+| `public/icons/ic_stat_icon.png` | Ícone de notificação |
+
+#### Screenshots
+| Arquivo | Tela |
+|---------|------|
+| `public/screenshots/screenshot-1-hoje.png` | Timeline de doses |
+| `public/screenshots/screenshot-2-medicamentos.png` | Lista de medicamentos |
+| `public/screenshots/screenshot-3-perfis.png` | Perfis familiares |
+| `public/screenshots/screenshot-4-carteira.png` | Carteira de saúde |
+
+#### Feature Graphic
+| Arquivo | Dimensão |
+|---------|----------|
+| `public/playstore-feature-graphic.png` | 1024x500 |
 
 ---
 
