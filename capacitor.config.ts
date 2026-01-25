@@ -1,31 +1,38 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
+/**
+ * Capacitor Configuration - HoraMed
+ * 
+ * PRODUCTION BUILD NOTES:
+ * - server.url is commented out for production builds
+ * - For development/testing, uncomment to enable hot-reload
+ * - webContentsDebuggingEnabled must be FALSE for Play Store release
+ */
 const config: CapacitorConfig = {
   appId: 'dev.horamed.app',
   appName: 'HoraMed',
   webDir: 'dist',
-  server: {
-    // Hot-reload from sandbox for development
-    url: 'https://281a4314-4cea-4c93-9b25-b97f8d39e706.lovableproject.com?forceHideBadge=true',
-    cleartext: true,
-  },
+  // Development server - COMMENT OUT FOR PRODUCTION BUILDS
+  // server: {
+  //   url: 'https://281a4314-4cea-4c93-9b25-b97f8d39e706.lovableproject.com?forceHideBadge=true',
+  //   cleartext: true,
+  // },
   plugins: {
     LocalNotifications: {
       smallIcon: 'ic_stat_icon',
-      iconColor: '#10B981',
+      iconColor: '#0ea5e9',
       sound: 'notification.wav',
-      // Default channel - will be overridden by app code
       channelId: 'horamed_alarm',
       channelName: 'Alarmes de Medicamentos',
       channelDescription: 'Alarmes importantes para lembrar de tomar medicamentos',
-      channelImportance: 5, // IMPORTANCE_HIGH - shows heads-up notification
+      channelImportance: 5,
     },
     PushNotifications: {
       presentationOptions: ['badge', 'sound', 'alert'],
     },
     SplashScreen: {
       launchShowDuration: 2000,
-      backgroundColor: '#10B981',
+      backgroundColor: '#0ea5e9',
       showSpinner: false,
       androidScaleType: 'CENTER_CROP',
       splashFullScreen: true,
@@ -35,9 +42,8 @@ const config: CapacitorConfig = {
   android: {
     allowMixedContent: false,
     captureInput: true,
-    webContentsDebuggingEnabled: true, // Enable for debugging
-    backgroundColor: '#10B981',
-    // Build options
+    webContentsDebuggingEnabled: false, // MUST be false for Play Store release
+    backgroundColor: '#0ea5e9',
     buildOptions: {
       keystorePath: undefined,
       keystoreAlias: undefined,

@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { 
   User, Bell, Shield, HelpCircle, LogOut, FileDown, 
   Crown, Users, Plus, Trash2, Settings, BookOpen,
-  FileText, Smartphone, Gift, Activity, Check, Fingerprint, ArrowRight, Star
+  FileText, Smartphone, Gift, Activity, Check, Fingerprint, ArrowRight, Star, Info
 } from "lucide-react";
 import { useBiometricAuth } from "@/hooks/useBiometricAuth";
 import CaregiverManager from "@/components/CaregiverManager";
@@ -566,6 +566,7 @@ export default function Profile() {
                 { icon: FileDown, label: t('profile.exportLabel'), desc: t('profile.exportDesc'), path: '/exportar', color: "text-success", bg: "bg-success/10" },
                 { icon: BookOpen, label: t('profile.tutorialLabel'), desc: t('profile.tutorialDesc'), path: '/tutorial', color: "text-purple-500", bg: "bg-purple-500/10" },
                 { icon: HelpCircle, label: t('profile.helpLabel'), desc: t('profile.helpDesc'), path: '/ajuda', color: "text-warning", bg: "bg-warning/10" },
+                { icon: Info, label: t('profile.aboutLabel') || "Sobre o App", desc: t('profile.aboutDesc') || "Versão, créditos e informações", path: '/sobre', color: "text-cyan-500", bg: "bg-cyan-500/10" },
                 { icon: Shield, label: t('profile.privacyLabel'), desc: t('profile.privacyDesc'), path: '/privacidade', color: "text-muted-foreground", bg: "bg-muted" },
                 { icon: FileText, label: t('profile.termsLabel'), desc: t('profile.termsDesc'), path: '/termos', color: "text-muted-foreground", bg: "bg-muted" },
               ].map((item, index) => (

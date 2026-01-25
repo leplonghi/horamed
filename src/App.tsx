@@ -30,6 +30,7 @@ const Achievements = lazy(() => import("./pages/Achievements"));
 const Gamification = lazy(() => import("./pages/Gamification"));
 const Cofre = lazy(() => import("./pages/Cofre"));
 const Profile = lazy(() => import("./pages/Profile"));
+const About = lazy(() => import("./pages/About"));
 const Auth = lazy(() => import("./pages/Auth"));
 const AddItem = lazy(() => import("./pages/AddItem"));
 const AddItemRedirect = lazy(() => import("./pages/AddItemRedirect"));
@@ -196,6 +197,8 @@ function AppContent() {
           <Route path="/bem-vindo" element={<Welcome />} />
           <Route path="/ajuda" element={<ProtectedRoute><HelpSupport /></ProtectedRoute>} />
           <Route path="/help-support" element={<ProtectedRoute><HelpSupport /></ProtectedRoute>} />
+          <Route path="/sobre" element={<ProtectedRoute><About /></ProtectedRoute>} />
+          <Route path="/about" element={<ProtectedRoute><About /></ProtectedRoute>} />
           <Route path="/alarmes" element={<ProtectedRoute><AlarmSettings /></ProtectedRoute>} />
           <Route path="/alarme" element={<ProtectedRoute><AlarmSettings /></ProtectedRoute>} />
           <Route path="/alarmes/diagnostico" element={<ProtectedRoute><AlarmDiagnostics /></ProtectedRoute>} />
