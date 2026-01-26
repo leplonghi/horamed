@@ -11,12 +11,12 @@ const corsHeaders = {
 // Price IDs by currency
 const PRICES = {
   BRL: {
-    monthly: 'price_1SYEVNAY2hnWxlHujMBQSYTt', // R$ 19,90/mês
-    annual: 'price_1SYEWmAY2hnWxlHuNegLluyC',  // R$ 199,90/ano
+    monthly: 'price_1Stun3AY2hnWxlHuDEEMRVTs', // R$ 19,90/mês
+    annual: 'price_1StuprHh4P8HSV4YRO4eI5YE',  // R$ 199,90/ano
   },
   USD: {
-    monthly: 'price_1SieJOAY2hnWxlHuJLfSNRz9', // $3.99/month
-    annual: 'price_1SieJtAY2hnWxlHuAOa6m5nu',  // $39.99/year
+    monthly: 'price_1SturuAY2hnWxlHuHVLxgKae', // $3.99/month
+    annual: 'price_1StusNHh4P8HSV4YF0mk0mcI',  // $39.99/year
   },
 };
 

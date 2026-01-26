@@ -7,14 +7,14 @@
 
 // Brazilian prices (BRL)
 export const STRIPE_PRICES_BRL = {
-  monthly: 'price_1SYEVNAY2hnWxlHujMBQSYTt', // R$ 19,90/mês
-  annual: 'price_1SYEWmAY2hnWxlHuNegLluyC',  // R$ 199,90/ano
+  monthly: 'price_1Stun3AY2hnWxlHuDEEMRVTs', // R$ 19,90/mês
+  annual: 'price_1StuprHh4P8HSV4YRO4eI5YE',  // R$ 199,90/ano
 } as const;
 
 // International prices (USD)
 export const STRIPE_PRICES_USD = {
-  monthly: 'price_1SieJOAY2hnWxlHuJLfSNRz9', // $3.99/month
-  annual: 'price_1SieJtAY2hnWxlHuAOa6m5nu',  // $39.99/year
+  monthly: 'price_1SturuAY2hnWxlHuHVLxgKae', // $3.99/month
+  annual: 'price_1StusNHh4P8HSV4YF0mk0mcI',  // $39.99/year
 } as const;
 
 // Legacy export for backward compatibility
@@ -22,14 +22,14 @@ export const STRIPE_PRICES = STRIPE_PRICES_BRL;
 
 export const STRIPE_PRODUCTS = {
   // BRL Products
-  premiumMonthlyBRL: 'prod_TVEzdnYZnmxoSK',
-  premiumAnnualBRL: 'prod_TVF02XNQOV4kXy',
+  premiumMonthlyBRL: 'prod_Tre5v8Yqw6dowr',
+  premiumAnnualBRL: 'prod_Tre8O5YZRrC8D7',
   // USD Products
-  premiumMonthlyUSD: 'prod_Tg0KzIrKEcVNnq',
-  premiumAnnualUSD: 'prod_Tg0K1gsxmniVxE',
+  premiumMonthlyUSD: 'prod_TreAx6jZCXru0w',
+  premiumAnnualUSD: 'prod_TreA9Kp7N8DteW',
   // Legacy exports
-  premiumMonthly: 'prod_TVEzdnYZnmxoSK',
-  premiumAnnual: 'prod_TVF02XNQOV4kXy',
+  premiumMonthly: 'prod_Tre5v8Yqw6dowr',
+  premiumAnnual: 'prod_Tre8O5YZRrC8D7',
 } as const;
 
 export const PRICING = {
