@@ -85,6 +85,17 @@ serve(async (req) => {
 
     let customerId = subscription?.stripe_customer_id;
 
+    // Validate existing customer or create new one
+    if (customerId) {
+      try {
+        await stripe.customers.retrieve(customerId);
+        console.log(`[CREATE-CHECKOUT] Using existing customer: ${customerId}`);
+      } catch (err) {
+        console.log(`[CREATE-CHECKOUT] Customer ${customerId} not found in Stripe, creating new one`);
+        customerId = null; // Reset to create new customer
+      }
+    }
+
     if (!customerId) {
       const customer = await stripe.customers.create({
         email: user.email,
@@ -100,8 +111,6 @@ serve(async (req) => {
         .from('subscriptions')
         .update({ stripe_customer_id: customerId })
         .eq('user_id', user.id);
-    } else {
-      console.log(`[CREATE-CHECKOUT] Using existing customer: ${customerId}`);
     }
 
     // Production domain configuration
