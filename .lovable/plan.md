@@ -1,148 +1,288 @@
 
-# Plano: Reescrever Guia de Submissão da Play Store
+# Plano: Atualizar Landing Page e FOMO com Novidades do App
 
-## Objetivo
-Reescrever o arquivo `PLAYSTORE_SUBMISSION.md` tornando-o mais didático, detalhado e amigável para desenvolvedores que podem não ter experiência com builds Android nativos.
+## Resumo
 
-## Principais Melhorias
+Este plano atualiza a landing page e elementos FOMO (Fear Of Missing Out) para refletir as novas funcionalidades do HoraMed, incluindo:
+- Controle por voz
+- Desafios semanais e gamificação
+- Leaderboard familiar
+- Resumo semanal com IA (Clara)
+- Preparação de consultas com IA
+- Comparação de preços de farmácias
+- Sistema de XP e conquistas
 
-### 1. Estrutura Reorganizada
-- Adicionar seção de **Pré-requisitos** com checklist do que precisa estar instalado
-- Separar claramente as fases: Preparação, Configuração, Build e Publicação
-- Usar numeração clara e consistente (1.1, 1.2, 1.3...)
+---
 
-### 2. Explicações Contextuais
-- Adicionar **"Por que isso?"** em cada passo importante
-- Explicar o que cada comando faz, não apenas listar comandos
-- Incluir avisos de segurança (ex: nunca commitar senhas)
+## Parte 1: Novas Funcionalidades a Destacar
 
-### 3. Passo a Passo Visual
-- Usar emojis/ícones para indicar tipos de ação (terminal, edição de arquivo, verificação)
-- Adicionar screenshots fictícios ou descrições do que esperar ver
-- Incluir "checkpoints" - como saber se o passo funcionou
+### 1.1 Features Identificadas no App
 
-### 4. Seção de Troubleshooting Expandida
-- Mais erros comuns documentados
-- Mensagens de erro exatas que o desenvolvedor verá
-- Soluções alternativas quando a primeira não funcionar
+| Feature | Componente | Tipo |
+|---------|-----------|------|
+| Controle por Voz | `VoiceControlButton.tsx` | Premium |
+| Desafios Semanais | `WeeklyChallenges.tsx` | Gamificação |
+| Leaderboard Familiar | `FamilyLeaderboard.tsx` | Premium |
+| Resumo Semanal IA | `ClaraWeeklySummary.tsx` | Premium |
+| Preparação de Consultas | `ClaraConsultationPrep.tsx` | Premium |
+| Comparação de Farmácias | `PharmacyPriceCard.tsx` | Premium |
+| Sistema XP | `XPSystem.tsx` | Gamificação |
 
-## Mudanças Detalhadas
+### 1.2 Priorização para Landing Page
 
-### Nova Seção: Pré-requisitos
+**Alta prioridade (destacar):**
+1. Controle por voz - diferencial competitivo
+2. Relatório para consultas - valor tangível para usuários
+3. Comparação de preços de farmácias - economia real
+4. Gamificação com XP e desafios - engajamento
+
+**Média prioridade (mencionar):**
+- Leaderboard familiar
+- Resumo semanal com insights
+
+---
+
+## Parte 2: Alterações na Landing Page
+
+### 2.1 Seção "Novidades" (New Features)
+
+**Atual (3 features):**
+1. Escaneie sua Receita
+2. Clara, Sua Assistente IA
+3. Onboarding em 2 Minutos
+
+**Proposta (expandir para 6 features):**
+1. Escaneie sua Receita (manter)
+2. Clara, Sua Assistente IA (manter)
+3. **Controle por Voz** (NOVO)
+4. **Relatórios para Consultas** (NOVO)
+5. **Compare Preços de Farmácias** (NOVO)
+6. **Desafios e Conquistas** (NOVO)
+
+### 2.2 Seção de Benefícios
+
+Atualizar `benefit5` (Assistente Inteligente) para incluir menção ao controle por voz:
+- PT: "Assistente com voz e IA"
+- EN: "Voice & AI Assistant"
+
+### 2.3 Novas Traduções Necessárias
+
 ```text
-## Pré-requisitos
+# Português
+landing.newFeature4Title: 'Controle por Voz'
+landing.newFeature4Desc: 'Navegue pelo app usando comandos de voz. Diga "adicionar medicamento" ou "quero ajuda" e pronto.'
 
-Antes de começar, certifique-se de ter instalado:
+landing.newFeature5Title: 'Relatório para Consultas'
+landing.newFeature5Desc: 'Gere relatórios completos para levar ao médico com seu histórico de adesão e medicamentos.'
 
-- [ ] Node.js 18+ (verificar: node --version)
-- [ ] Android Studio (com SDK Platform 35)
-- [ ] Java 17+ (verificar: java --version)
-- [ ] Git (verificar: git --version)
+landing.newFeature6Title: 'Compare Preços'
+landing.newFeature6Desc: 'Veja preços de medicamentos em diferentes farmácias e economize na hora de comprar.'
+
+landing.newFeature7Title: 'Desafios e XP'
+landing.newFeature7Desc: 'Ganhe pontos de experiência a cada dose tomada. Complete desafios semanais e suba de nível.'
+
+# Inglês
+landing.newFeature4Title: 'Voice Control'
+landing.newFeature4Desc: 'Navigate the app using voice commands. Say "add medication" or "I need help" and you\'re done.'
+
+landing.newFeature5Title: 'Consultation Reports'
+landing.newFeature5Desc: 'Generate complete reports to take to your doctor with your adherence history and medications.'
+
+landing.newFeature6Title: 'Compare Prices'
+landing.newFeature6Desc: 'See medication prices at different pharmacies and save when buying.'
+
+landing.newFeature7Title: 'Challenges & XP'
+landing.newFeature7Desc: 'Earn experience points with each dose taken. Complete weekly challenges and level up.'
 ```
 
-### Novo Passo 1: Configurar Ambiente
-- Verificar instalações com comandos de teste
-- Configurar JAVA_HOME e ANDROID_HOME
-- Testar se `gradlew` funciona
+---
 
-### Novo Passo 2: Gerar Keystore (Expandido)
-- Explicar o que é um keystore e por que é importante
-- Comando detalhado com explicação de cada parâmetro
-- Onde guardar a senha de forma segura
-- Aviso: NUNCA perca o keystore!
+## Parte 3: Alterações no FOMO (PaywallDialog)
 
-### Novo Passo 3: Preparar Projeto Web
-- Explicar que o Capacitor empacota o site como app
-- Verificar se npm install funcionou
-- Verificar se npm run build gerou a pasta dist/
+### 3.1 Atualizar Lista de Features Perdidas
 
-### Novo Passo 4: Criar Projeto Android
-- Diferenciar `cap add` (primeira vez) vs `cap sync` (atualização)
-- Verificar estrutura de pastas criada
-- Listar arquivos que devem existir
+**Arquivo:** `src/components/PaywallDialog.tsx`
 
-### Novo Passo 5: Configurar Gradle (Muito Expandido)
-- Explicar a arquitetura de arquivos Gradle
-- Mostrar exatamente onde adicionar cada configuração
-- Incluir arquivo completo, não apenas snippets
-- Marcar com comentários o que foi alterado
+**Atual:**
+```typescript
+[
+  "Medicamentos ilimitados",
+  "IA liberada sem limites",
+  "Relatório mensal para consultas",
+  "WhatsApp + Push + Alarme"
+]
+```
 
-### Novo Passo 6: Configurar Assinatura
-- Onde colocar o arquivo keystore
-- Como configurar as senhas (e alternativas seguras)
-- Verificar se a assinatura está correta
+**Proposta:**
+```typescript
+[
+  "Medicamentos ilimitados",
+  "Clara IA sem limites + controle por voz",
+  "Relatórios para o médico",
+  "Desafios semanais e XP",
+  "Comparação de preços de farmácias"
+]
+```
 
-### Novo Passo 7: Executar Build
-- Comandos separados com explicação
-- O que fazer se demorar muito
-- Onde encontrar o arquivo final
+### 3.2 Atualizar Mensagens de FOMO por Feature
 
-### Novo Passo 8: Verificar Build
-- Como testar o AAB antes de enviar
-- Instalar em dispositivo físico (bundletool)
-- Verificar tamanho do arquivo
+Adicionar novo case para `active_items`:
+```typescript
+case "active_items":
+  return {
+    title: "Você precisa de mais medicamentos",
+    desc: "Usuários Premium gerenciam em média 5 medicamentos e ganham 2x mais XP com os desafios semanais.",
+    stat: "5x",
+    statLabel: "mais organização"
+  };
+```
+
+---
+
+## Parte 4: FOMO no Cancelamento
+
+### 4.1 Atualizar SubscriptionManagement.tsx
+
+**Arquivo:** `src/pages/SubscriptionManagement.tsx`
+
+Atualizar a lista de "Você perderá acesso a:" no step 'fomo':
+
+**Atual:**
+```text
+• Medicamentos ilimitados
+• OCR de receitas médicas
+• Assistente de saúde com IA
+• Relatórios mensais detalhados
+```
+
+**Proposta:**
+```text
+• Medicamentos ilimitados
+• Clara IA + controle por voz
+• OCR de receitas médicas
+• Desafios semanais e sistema de XP
+• Comparação de preços de farmácias
+• Relatórios para consultas
+```
+
+### 4.2 Adicionar Estatística de Gamificação
+
+No card de estatística, adicionar referência ao XP:
+```text
+"Você já ganhou X pontos de XP e completou Y desafios. Perderia todo esse progresso."
+```
+
+---
+
+## Parte 5: Arquivos a Modificar
+
+| Arquivo | Alteração |
+|---------|-----------|
+| `src/contexts/LanguageContext.tsx` | Adicionar 8 novas chaves de tradução (PT + EN) |
+| `src/pages/Landing.tsx` | Expandir array `newFeatures` de 3 para 6+ items |
+| `src/components/PaywallDialog.tsx` | Atualizar lista de features e stats |
+| `src/pages/SubscriptionManagement.tsx` | Atualizar lista no dialog de cancelamento |
+
+---
+
+## Parte 6: Layout Proposto
+
+### 6.1 Seção New Features (Grid 2x3)
+
+```text
+┌─────────────────────┬─────────────────────┐
+│  📸 Escaneie        │  🎙️ Controle por   │
+│  Receitas           │  Voz                │
+├─────────────────────┼─────────────────────┤
+│  💬 Clara IA        │  📋 Relatórios      │
+│                     │  para Consultas     │
+├─────────────────────┼─────────────────────┤
+│  💊 Compare         │  🏆 Desafios        │
+│  Preços             │  e XP               │
+└─────────────────────┴─────────────────────┘
+```
+
+### 6.2 Ícones Propostos (Lucide)
+
+- Controle por Voz: `Mic`
+- Relatórios: `FileText` ou `ClipboardList`
+- Compare Preços: `DollarSign` ou `TrendingDown`
+- Desafios/XP: `Trophy` ou `Target`
+
+---
 
 ## Seção Técnica
 
-### Arquivos que serão modificados:
-- `PLAYSTORE_SUBMISSION.md` - Reescrita completa
+### Novas Importações em Landing.tsx
 
-### Estrutura proposta do novo documento:
-
-```text
-# HoraMed - Guia Completo de Publicação na Play Store
-
-## Parte 1: Preparação do Ambiente
-  1.1 Requisitos de Software
-  1.2 Verificar Instalações
-  1.3 Configurar Variáveis de Ambiente
-
-## Parte 2: Criar Keystore de Assinatura
-  2.1 O que é um Keystore?
-  2.2 Gerar o Keystore
-  2.3 Guardar Credenciais com Segurança
-
-## Parte 3: Preparar o Projeto
-  3.1 Atualizar Dependências
-  3.2 Build do Frontend
-  3.3 Criar Projeto Android
-
-## Parte 4: Configurar Arquivos do Gradle
-  4.1 Entendendo a Estrutura
-  4.2 Verificar variables.gradle
-  4.3 Configurar build.gradle (raiz)
-  4.4 Configurar app/build.gradle
-  4.5 Adicionar Assinatura de Release
-
-## Parte 5: Gerar o Build de Release
-  5.1 Limpar Builds Anteriores
-  5.2 Gerar AAB
-  5.3 Localizar Arquivo Final
-
-## Parte 6: Testar Antes de Enviar
-  6.1 Verificar Tamanho do AAB
-  6.2 Instalar em Dispositivo (Opcional)
-
-## Parte 7: Publicar na Play Store
-  7.1 Criar Conta de Desenvolvedor
-  7.2 Criar Ficha do App
-  7.3 Enviar o AAB
-  7.4 Preencher Data Safety
-  7.5 Submeter para Revisão
-
-## Troubleshooting
-  - Erro: Could not find property
-  - Erro: Namespace not specified
-  - Erro: applicationId diferente
-  - Erro: Keystore not found
-  - Erro: Java version incompatible
-
-## Referências e Links
+```typescript
+import { 
+  // existentes...
+  Mic,
+  Trophy,
+  DollarSign,
+  ClipboardList
+} from "lucide-react";
 ```
 
-### Tamanho estimado:
-- Documento atual: ~310 linhas
-- Documento novo: ~500-600 linhas (mais detalhado)
+### Estrutura do Array newFeatures
 
-### Tempo de implementação:
-- Reescrita completa do documento em uma única edição
+```typescript
+const newFeatures = [
+  {
+    icon: Camera,
+    title: t('landing.newFeature1Title'),
+    description: t('landing.newFeature1Desc')
+  },
+  {
+    icon: MessageCircle,
+    title: t('landing.newFeature2Title'),
+    description: t('landing.newFeature2Desc')
+  },
+  {
+    icon: Mic,
+    title: t('landing.newFeature4Title'),
+    description: t('landing.newFeature4Desc')
+  },
+  {
+    icon: ClipboardList,
+    title: t('landing.newFeature5Title'),
+    description: t('landing.newFeature5Desc')
+  },
+  {
+    icon: DollarSign,
+    title: t('landing.newFeature6Title'),
+    description: t('landing.newFeature6Desc')
+  },
+  {
+    icon: Trophy,
+    title: t('landing.newFeature7Title'),
+    description: t('landing.newFeature7Desc')
+  }
+];
+```
+
+### Grid Responsivo Atualizado
+
+Alterar de `md:grid-cols-3` para grid 2x3:
+```tsx
+<div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+```
+
+---
+
+## Resultados Esperados
+
+1. **Landing mais completa**: Visitantes verão mais valor no produto
+2. **FOMO mais efetivo**: Usuários free entenderão melhor o que estão perdendo
+3. **Cancelamentos reduzidos**: Lista expandida de features aumenta percepção de perda
+4. **Consistência**: Todas as traduções PT/EN sincronizadas
+
+---
+
+## Ordem de Implementação
+
+1. Adicionar traduções em `LanguageContext.tsx`
+2. Atualizar `Landing.tsx` com novas features
+3. Atualizar `PaywallDialog.tsx` com novo FOMO
+4. Atualizar `SubscriptionManagement.tsx` com lista expandida
