@@ -54,6 +54,7 @@ const ProfileEdit = lazy(() => import("./pages/ProfileEdit"));
 const IndiqueGanhe = lazy(() => import("./pages/IndiqueGanhe"));
 const Recompensas = lazy(() => import("./pages/Recompensas"));
 const WeightHistory = lazy(() => import("./pages/WeightHistory"));
+const SinaisVitais = lazy(() => import("./pages/SinaisVitais"));
 const SubscriptionManagement = lazy(() => import("./pages/SubscriptionManagement"));
 const SubscriptionSuccess = lazy(() => import("./pages/SubscriptionSuccess"));
 const SubscriptionCanceled = lazy(() => import("./pages/SubscriptionCanceled"));
@@ -175,6 +176,7 @@ function AppContent() {
           <Route path="/recompensas" element={<ProtectedRoute><Recompensas /></ProtectedRoute>} />
           <Route path="/peso" element={<ProtectedRoute><WeightHistory /></ProtectedRoute>} />
           <Route path="/peso/historico" element={<ProtectedRoute><WeightHistory /></ProtectedRoute>} />
+          <Route path="/sinais-vitais" element={<ProtectedRoute><SinaisVitais /></ProtectedRoute>} />
           <Route path="/assinatura" element={<ProtectedRoute><SubscriptionManagement /></ProtectedRoute>} />
           <Route path="/assinatura/sucesso" element={<ProtectedRoute><SubscriptionSuccess /></ProtectedRoute>} />
           <Route path="/assinatura/cancelado" element={<ProtectedRoute><SubscriptionCanceled /></ProtectedRoute>} />
