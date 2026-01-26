@@ -17,7 +17,7 @@ import Header from "@/components/Header";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useUserProfiles } from "@/hooks/useUserProfiles";
 import { useAuth } from "@/contexts/AuthContext";
-import WeightTrackingCard from "@/components/WeightTrackingCard";
+
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useFitnessPreferences } from "@/hooks/useFitnessPreferences";
@@ -197,13 +197,31 @@ export default function Profile() {
                 </div>
               </motion.div>
 
-              {/* Weight Tracking */}
-              {profile.user_id && (
-                <WeightTrackingCard 
-                  userId={profile.user_id}
-                  profileId={activeProfile?.id}
-                />
-              )}
+              {/* Vital Signs Card */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className={cn(
+                  "rounded-2xl p-4 cursor-pointer group",
+                  "bg-gradient-to-br from-blue-500/10 via-cyan-500/5 to-primary/5",
+                  "border border-blue-500/20 hover:border-blue-500/40",
+                  "shadow-[var(--shadow-glass)] hover:shadow-[var(--shadow-glass-hover)]",
+                  "transition-all duration-300"
+                )}
+                onClick={() => navigate('/sinais-vitais')}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="p-3 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 shadow-lg">
+                    <Activity className="h-5 w-5 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-semibold">{t('profile.vitalSigns')}</p>
+                    <p className="text-sm text-muted-foreground">{t('profile.vitalSignsDesc')}</p>
+                  </div>
+                  <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-blue-500 group-hover:translate-x-1 transition-all" />
+                </div>
+              </motion.div>
+
 
               {/* Fitness Widgets Preferences */}
               <motion.div
