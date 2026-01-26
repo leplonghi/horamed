@@ -197,8 +197,9 @@ function AppContent() {
           <Route path="/bem-vindo" element={<Welcome />} />
           <Route path="/ajuda" element={<ProtectedRoute><HelpSupport /></ProtectedRoute>} />
           <Route path="/help-support" element={<ProtectedRoute><HelpSupport /></ProtectedRoute>} />
-          <Route path="/sobre" element={<ProtectedRoute><About /></ProtectedRoute>} />
-          <Route path="/about" element={<ProtectedRoute><About /></ProtectedRoute>} />
+          {/* Public About page (accessible without login for Play Store compliance) */}
+          <Route path="/sobre" element={<About />} />
+          <Route path="/about" element={<About />} />
           <Route path="/alarmes" element={<ProtectedRoute><AlarmSettings /></ProtectedRoute>} />
           <Route path="/alarme" element={<ProtectedRoute><AlarmSettings /></ProtectedRoute>} />
           <Route path="/alarmes/diagnostico" element={<ProtectedRoute><AlarmDiagnostics /></ProtectedRoute>} />

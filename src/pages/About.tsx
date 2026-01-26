@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { OceanBackground } from "@/components/ui/OceanBackground";
-
+import logoHoraMed from "@/assets/logo_HoraMed.png";
 // App version - update this with each release
 const APP_VERSION = "1.0.0";
 const BUILD_NUMBER = "1";
@@ -41,12 +41,9 @@ const About = () => {
           <div className="flex flex-col items-center text-center space-y-4">
             <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-primary/20 to-cyan-500/20 flex items-center justify-center shadow-lg">
               <img 
-                src="/logo_HoraMed.png" 
+                src={logoHoraMed} 
                 alt="HoraMed" 
                 className="w-16 h-16 object-contain"
-                onError={(e) => {
-                  e.currentTarget.style.display = 'none';
-                }}
               />
             </div>
             <div>
