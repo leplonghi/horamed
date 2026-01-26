@@ -1,13 +1,15 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import type { Locale } from "date-fns";
 import { 
-  ChevronLeft, 
+  ChevronLeft,
   ChevronRight, 
   Calendar as CalendarIcon,
   Check,
   Clock,
-  AlertCircle
+  AlertCircle,
+  Sparkles
 } from "lucide-react";
 import { 
   format, 
@@ -41,6 +43,265 @@ interface DayStats {
   missed: number;
   pending: number;
 }
+
+// Animated progress ring component
+const ProgressRing = ({ 
+  progress, 
+  size = 32, 
+  strokeWidth = 3,
+  isSelected = false 
+}: { 
+  progress: number; 
+  size?: number; 
+  strokeWidth?: number;
+  isSelected?: boolean;
+}) => {
+  const radius = (size - strokeWidth) / 2;
+  const circumference = radius * 2 * Math.PI;
+  const offset = circumference - (progress / 100) * circumference;
+
+  const getColor = () => {
+    if (progress === 100) return isSelected ? "stroke-primary-foreground" : "stroke-green-500";
+    if (progress >= 50) return isSelected ? "stroke-primary-foreground/80" : "stroke-amber-500";
+    return isSelected ? "stroke-primary-foreground/60" : "stroke-orange-500";
+  };
+
+  return (
+    <div className="relative" style={{ width: size, height: size }}>
+      <svg className="transform -rotate-90" width={size} height={size}>
+        {/* Background ring */}
+        <circle
+          className={cn(
+            "transition-colors",
+            isSelected ? "stroke-primary-foreground/20" : "stroke-muted/50"
+          )}
+          strokeWidth={strokeWidth}
+          fill="transparent"
+          r={radius}
+          cx={size / 2}
+          cy={size / 2}
+        />
+        {/* Progress ring */}
+        <motion.circle
+          className={cn("transition-colors", getColor())}
+          strokeWidth={strokeWidth}
+          strokeLinecap="round"
+          fill="transparent"
+          r={radius}
+          cx={size / 2}
+          cy={size / 2}
+          initial={{ strokeDashoffset: circumference }}
+          animate={{ strokeDashoffset: offset }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          style={{
+            strokeDasharray: circumference,
+          }}
+        />
+      </svg>
+      {/* Center content */}
+      <div className="absolute inset-0 flex items-center justify-center">
+        {progress === 100 ? (
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ delay: 0.3, type: "spring", stiffness: 300 }}
+          >
+            <Check className={cn(
+              "h-3.5 w-3.5",
+              isSelected ? "text-primary-foreground" : "text-green-500"
+            )} />
+          </motion.div>
+        ) : (
+          <span className={cn(
+            "text-[9px] font-bold",
+            isSelected ? "text-primary-foreground" : "text-foreground"
+          )}>
+            {progress}
+          </span>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// Day card component with enhanced visuals
+const DayCard = ({
+  day,
+  stats,
+  isSelected,
+  isDayToday,
+  status,
+  progress,
+  dateLocale,
+  onClick
+}: {
+  day: Date;
+  stats: DayStats;
+  isSelected: boolean;
+  isDayToday: boolean;
+  status: "complete" | "partial" | "missed" | "pending" | "empty";
+  progress: number;
+  dateLocale: Locale;
+  onClick: () => void;
+}) => {
+  const hasEvents = stats.total > 0;
+  
+  return (
+    <motion.button
+      onClick={onClick}
+      whileHover={{ scale: 1.05, y: -2 }}
+      whileTap={{ scale: 0.95 }}
+      transition={{ type: "spring", stiffness: 400, damping: 20 }}
+      className={cn(
+        "relative flex flex-col items-center justify-center py-3 px-2 rounded-2xl transition-all duration-300",
+        "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
+        "min-h-[90px] md:min-h-[100px]",
+        // Selected state - gradient background
+        isSelected && "bg-gradient-to-br from-primary via-primary to-primary/90 text-primary-foreground shadow-lg shadow-primary/25",
+        // Today state (not selected)
+        !isSelected && isDayToday && "bg-gradient-to-br from-primary/15 to-primary/5 ring-2 ring-primary/50",
+        // Past with events
+        !isSelected && !isDayToday && hasEvents && status === "complete" && "bg-gradient-to-br from-green-500/10 to-green-500/5",
+        !isSelected && !isDayToday && hasEvents && status === "missed" && "bg-gradient-to-br from-destructive/10 to-destructive/5",
+        !isSelected && !isDayToday && hasEvents && status === "partial" && "bg-gradient-to-br from-amber-500/10 to-amber-500/5",
+        // Default hover
+        !isSelected && !isDayToday && !hasEvents && "hover:bg-accent/50",
+        !isSelected && hasEvents && "hover:shadow-md"
+      )}
+    >
+      {/* Shimmer effect for today */}
+      {isDayToday && !isSelected && (
+        <motion.div
+          className="absolute inset-0 rounded-2xl bg-gradient-to-r from-transparent via-primary/10 to-transparent"
+          animate={{ x: ["-100%", "100%"] }}
+          transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+          style={{ overflow: "hidden" }}
+        />
+      )}
+      
+      {/* Day name */}
+      <span className={cn(
+        "text-[10px] font-semibold uppercase tracking-wider mb-1",
+        isSelected ? "text-primary-foreground/80" : "text-muted-foreground"
+      )}>
+        {format(day, "EEE", { locale: dateLocale }).slice(0, 3)}
+      </span>
+      
+      {/* Day number - larger and bolder */}
+      <motion.span 
+        className={cn(
+          "text-xl md:text-2xl font-bold leading-none",
+          isDayToday && !isSelected && "text-primary"
+        )}
+        initial={false}
+        animate={{ scale: isSelected ? 1.1 : 1 }}
+        transition={{ type: "spring", stiffness: 300 }}
+      >
+        {format(day, "d")}
+      </motion.span>
+
+      {/* Status indicator with animations */}
+      <div className="mt-2 h-8 flex items-center justify-center">
+        {hasEvents && (
+          <AnimatePresence mode="wait">
+            {status === "complete" ? (
+              <motion.div
+                key="complete"
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0, opacity: 0 }}
+                className={cn(
+                  "flex items-center justify-center h-6 w-6 rounded-full",
+                  isSelected ? "bg-primary-foreground/20" : "bg-green-500/20"
+                )}
+              >
+                <Check className={cn(
+                  "h-3.5 w-3.5",
+                  isSelected ? "text-primary-foreground" : "text-green-600"
+                )} />
+              </motion.div>
+            ) : status === "missed" ? (
+              <motion.div
+                key="missed"
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0, opacity: 0 }}
+                className={cn(
+                  "flex items-center justify-center h-6 w-6 rounded-full",
+                  isSelected ? "bg-primary-foreground/20" : "bg-destructive/20"
+                )}
+              >
+                <AlertCircle className={cn(
+                  "h-3.5 w-3.5",
+                  isSelected ? "text-primary-foreground" : "text-destructive"
+                )} />
+              </motion.div>
+            ) : status === "partial" || status === "pending" ? (
+              <motion.div
+                key="progress"
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0, opacity: 0 }}
+              >
+                <ProgressRing 
+                  progress={progress} 
+                  size={28} 
+                  strokeWidth={3}
+                  isSelected={isSelected}
+                />
+              </motion.div>
+            ) : (
+              <motion.div
+                key="pending-icon"
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0, opacity: 0 }}
+                className="flex items-center gap-0.5"
+              >
+                <Clock className={cn(
+                  "h-3 w-3",
+                  isSelected ? "text-primary-foreground/60" : "text-muted-foreground"
+                )} />
+                <span className={cn(
+                  "text-[10px] font-medium",
+                  isSelected ? "text-primary-foreground/80" : "text-muted-foreground"
+                )}>
+                  {stats.total}
+                </span>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        )}
+      </div>
+
+      {/* Selection indicator */}
+      {isSelected && (
+        <motion.div
+          className="absolute -bottom-1 left-1/2 h-1 w-6 rounded-full bg-primary-foreground/50"
+          layoutId="selectedIndicator"
+          initial={false}
+          transition={{ type: "spring", stiffness: 500, damping: 35 }}
+          style={{ x: "-50%" }}
+        />
+      )}
+      
+      {/* Today pulse effect */}
+      {isDayToday && (
+        <motion.div
+          className="absolute -top-1 -right-1"
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ delay: 0.2, type: "spring" }}
+        >
+          <span className="relative flex h-2.5 w-2.5">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
+            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-primary" />
+          </span>
+        </motion.div>
+      )}
+    </motion.button>
+  );
+};
 
 export default function ModernWeekCalendar({ 
   selectedDate, 
@@ -95,7 +356,6 @@ export default function ModernWeekCalendar({
         } else if (dose.status === "missed") {
           stats[dayKey].missed++;
         } else if (dose.status === "skipped") {
-          // Count skipped as taken for progress
           stats[dayKey].taken++;
         } else {
           stats[dayKey].pending++;
@@ -132,7 +392,6 @@ export default function ModernWeekCalendar({
     onDateSelect(date);
   };
 
-  // Update weekStart when selectedDate changes externally
   useEffect(() => {
     const newWeekStart = startOfWeek(selectedDate, { weekStartsOn: 0 });
     if (!isSameDay(newWeekStart, weekStart)) {
@@ -158,71 +417,111 @@ export default function ModernWeekCalendar({
     return "pending";
   };
 
+  // Calculate weekly stats for header display
+  const weeklyStats = weekDays.reduce((acc, day) => {
+    const stats = getDayStats(day);
+    return {
+      total: acc.total + stats.total,
+      taken: acc.taken + stats.taken
+    };
+  }, { total: 0, taken: 0 });
+  
+  const weeklyProgress = weeklyStats.total > 0 
+    ? Math.round((weeklyStats.taken / weeklyStats.total) * 100) 
+    : 0;
+
   const slideVariants = {
     enter: (direction: number) => ({
-      x: direction > 0 ? 50 : -50,
-      opacity: 0
+      x: direction > 0 ? 80 : -80,
+      opacity: 0,
+      scale: 0.95
     }),
     center: {
       x: 0,
-      opacity: 1
+      opacity: 1,
+      scale: 1
     },
     exit: (direction: number) => ({
-      x: direction > 0 ? -50 : 50,
-      opacity: 0
+      x: direction > 0 ? -80 : 80,
+      opacity: 0,
+      scale: 0.95
     })
   };
 
   return (
-    <div className="bg-card rounded-2xl border shadow-sm overflow-hidden">
-      {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b bg-muted/30">
-        <div className="flex items-center gap-1">
-          <Button
-            variant="ghost"
-            size="icon"
+    <div className="bg-gradient-to-br from-card via-card to-card/80 rounded-3xl border shadow-lg shadow-black/5 overflow-hidden backdrop-blur-sm">
+      {/* Header - Enhanced */}
+      <div className="flex items-center justify-between px-4 py-3 border-b bg-gradient-to-r from-muted/40 via-muted/20 to-muted/40">
+        <div className="flex items-center gap-2">
+          <motion.button
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
             onClick={goToPrevious}
-            className="h-8 w-8 rounded-full"
+            className="h-9 w-9 rounded-full bg-background/80 hover:bg-background flex items-center justify-center shadow-sm border transition-colors"
           >
             <ChevronLeft className="h-4 w-4" />
-          </Button>
+          </motion.button>
           
-          <motion.h4 
+          <motion.div 
             key={format(weekStart, "yyyy-MM")}
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-sm font-semibold capitalize min-w-[100px] text-center"
+            className="min-w-[120px] text-center"
           >
-            {format(weekStart, "MMMM yyyy", { locale: dateLocale })}
-          </motion.h4>
+            <h4 className="text-sm font-bold capitalize">
+              {format(weekStart, "MMMM", { locale: dateLocale })}
+            </h4>
+            <p className="text-[10px] text-muted-foreground">
+              {format(weekStart, "yyyy")}
+            </p>
+          </motion.div>
           
-          <Button
-            variant="ghost"
-            size="icon"
+          <motion.button
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
             onClick={goToNext}
-            className="h-8 w-8 rounded-full"
+            className="h-9 w-9 rounded-full bg-background/80 hover:bg-background flex items-center justify-center shadow-sm border transition-colors"
           >
             <ChevronRight className="h-4 w-4" />
-          </Button>
+          </motion.button>
         </div>
         
         <div className="flex items-center gap-2">
+          {/* Weekly progress indicator */}
+          {weeklyStats.total > 0 && (
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-background/80 border shadow-sm"
+            >
+              <ProgressRing progress={weeklyProgress} size={20} strokeWidth={2} />
+              <span className="text-xs font-medium">
+                {weeklyStats.taken}/{weeklyStats.total}
+              </span>
+            </motion.div>
+          )}
+          
           {!isToday(selectedDate) && (
             <Button
               variant="ghost"
               size="sm"
               onClick={goToToday}
-              className="h-7 text-xs font-medium text-primary hover:text-primary"
+              className="h-8 text-xs font-semibold text-primary hover:text-primary hover:bg-primary/10 rounded-full px-3"
             >
+              <Sparkles className="h-3 w-3 mr-1" />
               {t('calendar.today')}
             </Button>
           )}
           
           <Popover>
             <PopoverTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full">
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                className="h-9 w-9 rounded-full bg-background/80 hover:bg-background flex items-center justify-center shadow-sm border transition-colors"
+              >
                 <CalendarIcon className="h-4 w-4" />
-              </Button>
+              </motion.button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="end">
               <Calendar
@@ -242,8 +541,8 @@ export default function ModernWeekCalendar({
         </div>
       </div>
 
-      {/* Week days */}
-      <div className="p-3">
+      {/* Week days - Enhanced grid */}
+      <div className="p-3 md:p-4">
         <AnimatePresence mode="wait" custom={direction}>
           <motion.div
             key={format(weekStart, "yyyy-MM-dd")}
@@ -252,8 +551,8 @@ export default function ModernWeekCalendar({
             initial="enter"
             animate="center"
             exit="exit"
-            transition={{ duration: 0.2, ease: "easeInOut" }}
-            className="grid grid-cols-7 gap-1.5"
+            transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
+            className="grid grid-cols-7 gap-1.5 md:gap-2"
           >
             {weekDays.map((day) => {
               const stats = getDayStats(day);
@@ -263,117 +562,52 @@ export default function ModernWeekCalendar({
               const progress = getProgressPercentage(stats);
 
               return (
-                <motion.button
+                <DayCard
                   key={day.toISOString()}
+                  day={day}
+                  stats={stats}
+                  isSelected={isSelected}
+                  isDayToday={isDayToday}
+                  status={status}
+                  progress={progress}
+                  dateLocale={dateLocale}
                   onClick={() => handleDateClick(day)}
-                  whileTap={{ scale: 0.95 }}
-                  className={cn(
-                    "relative flex flex-col items-center justify-center py-2.5 px-1 rounded-xl transition-all",
-                    "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary",
-                    isSelected && "bg-primary text-primary-foreground shadow-md",
-                    !isSelected && isDayToday && "bg-primary/10 ring-2 ring-primary",
-                    !isSelected && !isDayToday && "hover:bg-accent"
-                  )}
-                >
-                  {/* Day name */}
-                  <span className={cn(
-                    "text-[10px] font-medium uppercase tracking-wide",
-                    isSelected ? "text-primary-foreground/70" : "text-muted-foreground"
-                  )}>
-                    {format(day, "EEE", { locale: dateLocale }).slice(0, 3)}
-                  </span>
-                  
-                  {/* Day number */}
-                  <span className={cn(
-                    "text-lg font-bold leading-tight",
-                    isDayToday && !isSelected && "text-primary"
-                  )}>
-                    {format(day, "d")}
-                  </span>
-
-                  {/* Status indicator */}
-                  {stats.total > 0 && (
-                    <div className="mt-1.5 flex items-center justify-center">
-                      {status === "complete" ? (
-                        <motion.div
-                          initial={{ scale: 0 }}
-                          animate={{ scale: 1 }}
-                          className={cn(
-                            "flex items-center justify-center h-4 w-4 rounded-full",
-                            isSelected ? "bg-primary-foreground/20" : "bg-green-500/20"
-                          )}
-                        >
-                          <Check className={cn(
-                            "h-2.5 w-2.5",
-                            isSelected ? "text-primary-foreground" : "text-green-600"
-                          )} />
-                        </motion.div>
-                      ) : status === "missed" ? (
-                        <motion.div
-                          initial={{ scale: 0 }}
-                          animate={{ scale: 1 }}
-                          className={cn(
-                            "flex items-center justify-center h-4 w-4 rounded-full",
-                            isSelected ? "bg-primary-foreground/20" : "bg-destructive/20"
-                          )}
-                        >
-                          <AlertCircle className={cn(
-                            "h-2.5 w-2.5",
-                            isSelected ? "text-primary-foreground" : "text-destructive"
-                          )} />
-                        </motion.div>
-                      ) : status === "partial" ? (
-                        <div className="flex items-center gap-0.5">
-                          <span className={cn(
-                            "text-[10px] font-semibold",
-                            isSelected ? "text-primary-foreground/80" : "text-amber-600"
-                          )}>
-                            {progress}%
-                          </span>
-                        </div>
-                      ) : (
-                        <div className="flex items-center gap-0.5">
-                          <Clock className={cn(
-                            "h-3 w-3",
-                            isSelected ? "text-primary-foreground/60" : "text-muted-foreground"
-                          )} />
-                          <span className={cn(
-                            "text-[10px] font-medium",
-                            isSelected ? "text-primary-foreground/80" : "text-muted-foreground"
-                          )}>
-                            {stats.total}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Today indicator dot */}
-                  {isDayToday && !isSelected && (
-                    <div className="absolute -top-0.5 left-1/2 -translate-x-1/2 h-1 w-1 rounded-full bg-primary" />
-                  )}
-                </motion.button>
+                />
               );
             })}
           </motion.div>
         </AnimatePresence>
       </div>
 
-      {/* Quick Legend */}
-      <div className="flex items-center justify-center gap-4 px-4 py-2 border-t bg-muted/20 text-[10px] text-muted-foreground">
-        <div className="flex items-center gap-1">
-          <div className="h-3 w-3 rounded-full bg-green-500/20 flex items-center justify-center">
-            <Check className="h-2 w-2 text-green-600" />
+      {/* Legend - More compact and modern */}
+      <div className="flex items-center justify-center gap-3 md:gap-5 px-4 py-2.5 border-t bg-gradient-to-r from-muted/20 via-transparent to-muted/20">
+        <div className="flex items-center gap-1.5">
+          <div className="h-4 w-4 rounded-full bg-green-500/20 flex items-center justify-center">
+            <Check className="h-2.5 w-2.5 text-green-600" />
           </div>
-          <span>{language === 'pt' ? 'Completo' : 'Complete'}</span>
+          <span className="text-[10px] font-medium text-muted-foreground">
+            {language === 'pt' ? 'Completo' : 'Complete'}
+          </span>
         </div>
-        <div className="flex items-center gap-1">
-          <span className="text-amber-600 font-semibold">%</span>
-          <span>{language === 'pt' ? 'Parcial' : 'Partial'}</span>
+        <div className="flex items-center gap-1.5">
+          <ProgressRing progress={75} size={16} strokeWidth={2} />
+          <span className="text-[10px] font-medium text-muted-foreground">
+            {language === 'pt' ? 'Parcial' : 'Partial'}
+          </span>
         </div>
-        <div className="flex items-center gap-1">
-          <Clock className="h-3 w-3" />
-          <span>{language === 'pt' ? 'Pendente' : 'Pending'}</span>
+        <div className="flex items-center gap-1.5">
+          <Clock className="h-3.5 w-3.5 text-muted-foreground" />
+          <span className="text-[10px] font-medium text-muted-foreground">
+            {language === 'pt' ? 'Pendente' : 'Pending'}
+          </span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <div className="h-4 w-4 rounded-full bg-destructive/20 flex items-center justify-center">
+            <AlertCircle className="h-2.5 w-2.5 text-destructive" />
+          </div>
+          <span className="text-[10px] font-medium text-muted-foreground">
+            {language === 'pt' ? 'Perdido' : 'Missed'}
+          </span>
         </div>
       </div>
     </div>
