@@ -28,14 +28,24 @@ export function useVoiceInput(options: Parameters<typeof useVoiceInputAI>[0] & P
     onError: (err) => {
       // If AI path fails due to recording support, switch to native.
       const msg = String(err || "");
-      const looksLikeSupportIssue =
-        msg.toLowerCase().includes("mediarecorder") ||
-        msg.toLowerCase().includes("not supported") ||
-        msg.toLowerCase().includes("mime") ||
-        msg.toLowerCase().includes("grava") ||
-        msg.toLowerCase().includes("record");
+      const m = msg.toLowerCase();
 
-      if (looksLikeSupportIssue && mode !== "native") {
+      // We should also fall back when AI transcription is temporarily unavailable
+      // (rate limit/quota/overload), so voice input keeps working via Web Speech API.
+      const looksLikeNeedsFallback =
+        m.includes("mediarecorder") ||
+        m.includes("not supported") ||
+        m.includes("mime") ||
+        m.includes("grava") ||
+        m.includes("record") ||
+        m.includes("rate limit") ||
+        m.includes("ratelimit") ||
+        m.includes("quota") ||
+        m.includes("429") ||
+        m.includes("temporariamente") ||
+        m.includes("ocupado");
+
+      if (looksLikeNeedsFallback && mode !== "native") {
         setMode("native");
         toast.info("Ativei o modo compatível (reconhecimento nativo).", { duration: 2000 });
       }
