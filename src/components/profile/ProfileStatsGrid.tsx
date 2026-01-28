@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Pill, Users, FileText, Crown, Calendar, Activity } from "lucide-react";
+import { Pill, Users, FileText, Crown, Calendar, Activity, Sparkles, TrendingUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUserProfiles } from "@/hooks/useUserProfiles";
 import { useSubscription } from "@/hooks/useSubscription";
@@ -7,6 +7,7 @@ import { useTranslation } from "@/contexts/LanguageContext";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
+import { Badge } from "@/components/ui/badge";
 
 interface StatItem {
   label: string;
@@ -15,6 +16,7 @@ interface StatItem {
   color: string;
   bgColor: string;
   onClick?: () => void;
+  badge?: string;
 }
 
 export default function ProfileStatsGrid() {
@@ -123,7 +125,8 @@ export default function ProfileStatsGrid() {
       icon: isPremium ? <Crown className="h-5 w-5" /> : <Calendar className="h-5 w-5" />,
       color: isPremium ? "text-warning" : "text-muted-foreground",
       bgColor: isPremium ? "bg-warning/10" : "bg-muted",
-      onClick: () => navigate('/planos')
+      onClick: () => navigate('/planos'),
+      badge: !isPremium ? "7 dias grátis" : undefined
     }
   ];
 
@@ -155,13 +158,19 @@ export default function ProfileStatsGrid() {
           whileTap={{ scale: 0.97 }}
           onClick={stat.onClick}
           className={cn(
-            "flex flex-col items-center gap-1.5 p-3 rounded-2xl",
+            "flex flex-col items-center gap-1.5 p-3 rounded-2xl relative",
             "bg-gradient-to-br from-card/90 to-card/70 backdrop-blur-sm",
             "border border-border/30 hover:border-border/50",
             "shadow-[var(--shadow-glass)] hover:shadow-[var(--shadow-glass-hover)]",
-            "transition-all duration-200"
+            "transition-all duration-200",
+            stat.badge && "ring-2 ring-primary/30"
           )}
         >
+          {stat.badge && (
+            <Badge className="absolute -top-2 -right-1 text-[8px] px-1.5 py-0 bg-primary text-primary-foreground">
+              {stat.badge}
+            </Badge>
+          )}
           <div className={cn("p-2 rounded-xl", stat.bgColor)}>
             <div className={stat.color}>{stat.icon}</div>
           </div>

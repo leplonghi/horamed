@@ -35,6 +35,8 @@ import HelpTooltip from "@/components/HelpTooltip";
 import { microcopy } from "@/lib/microcopy";
 import { useTranslation } from "@/contexts/LanguageContext";
 import { getUniqueItemColors } from "@/lib/categoryColors";
+import UsageLimitWarning from "@/components/fomo/UsageLimitWarning";
+import PremiumTeaser from "@/components/fomo/PremiumTeaser";
 import {
   Dialog,
   DialogContent,
@@ -541,6 +543,14 @@ export default function MedicamentosHub() {
                 </TabsContent>
               </Tabs>
 
+              {/* FOMO: Usage limit warning */}
+              <UsageLimitWarning 
+                current={items.length} 
+                max={1} 
+                type="medications" 
+                className="mt-4"
+              />
+
               {showAffiliateCard && affiliateProduct && (
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
@@ -556,6 +566,9 @@ export default function MedicamentosHub() {
                   />
                 </motion.div>
               )}
+
+              {/* FOMO: Premium teaser for reports */}
+              <PremiumTeaser feature="reports" compact className="mt-4" />
             </TabsContent>
 
             {/* ESTOQUE TAB */}

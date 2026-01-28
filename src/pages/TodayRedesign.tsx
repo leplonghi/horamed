@@ -35,6 +35,9 @@ import ClaraProactiveCard from "@/components/ClaraProactiveCard";
 import { useOverdueDoses } from "@/hooks/useOverdueDoses";
 import DrugInteractionAlert from "@/components/health/DrugInteractionAlert";
 import OceanBackground from "@/components/ui/OceanBackground";
+import SocialProofBanner from "@/components/fomo/SocialProofBanner";
+import StreakRiskAlert from "@/components/fomo/StreakRiskAlert";
+import PremiumBenefitsMini from "@/components/fomo/PremiumBenefitsMini";
 
 interface TimelineItem {
   id: string;
@@ -779,6 +782,15 @@ export default function TodayRedesign() {
         <ExpiredPrescriptionsAlert />
         <VaccineRemindersWidget />
         <MonthlyReportWidget />
+
+        {/* 🎯 FOMO - Streak risk alert */}
+        <StreakRiskAlert 
+          currentStreak={streakData.currentStreak}
+          hasPendingDoses={todayStats.total > todayStats.taken}
+        />
+
+        {/* 🎯 FOMO - Premium benefits teaser */}
+        <PremiumBenefitsMini variant="vertical" />
 
         {/* Milestone Reward Modal */}
         {milestone && (

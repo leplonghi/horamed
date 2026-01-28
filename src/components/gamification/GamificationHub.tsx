@@ -12,12 +12,15 @@ import {
   Trophy, 
   TrendingUp,
   Sparkles,
-  ChevronRight
+  ChevronRight,
+  Crown,
+  Lock
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { WeeklyLeaderboard } from "./WeeklyLeaderboard";
 import { DailyChallenges } from "./DailyChallenges";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useSubscription } from "@/contexts/SubscriptionContext";
 
 export function GamificationHub() {
   const { t } = useLanguage();
