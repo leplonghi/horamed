@@ -16,7 +16,7 @@ const PRICES = {
   },
   USD: {
     monthly: 'price_1SturuAY2hnWxlHuHVLxgKae', // $3.99/month
-    annual: 'price_1SuWdlHh4P8HSV4YsApnqZxY',  // $39.99/year
+    annual: 'price_1SieJtAY2hnWxlHuAOa6m5nu',  // $39.90/year
   },
 };
 
