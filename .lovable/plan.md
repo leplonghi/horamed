@@ -1,288 +1,187 @@
 
-# Plano: Atualizar Landing Page e FOMO com Novidades do App
 
-## Resumo
+# Guia de Acesso ao Supabase para Migração ao Antigravity
 
-Este plano atualiza a landing page e elementos FOMO (Fear Of Missing Out) para refletir as novas funcionalidades do HoraMed, incluindo:
-- Controle por voz
-- Desafios semanais e gamificação
-- Leaderboard familiar
-- Resumo semanal com IA (Clara)
-- Preparação de consultas com IA
-- Comparação de preços de farmácias
-- Sistema de XP e conquistas
+## Situação Atual
+
+O projeto HoraMed está rodando no **Lovable Cloud**, que é uma camada gerenciada sobre o Supabase. Isso significa que:
+- O Supabase está **provisionado automaticamente** pela Lovable
+- O acesso direto ao Dashboard do Supabase **não está disponível** pela interface padrão da Lovable
+- As credenciais sensíveis (como `SERVICE_ROLE_KEY`) estão protegidas
 
 ---
 
-## Parte 1: Novas Funcionalidades a Destacar
+## Informações que Você JÁ Possui
 
-### 1.1 Features Identificadas no App
+### Credenciais Públicas (seguras para usar no frontend)
+| Item | Valor |
+|------|-------|
+| **Project ID** | `zmsuqdwleyqpdthaqvbi` |
+| **URL do Supabase** | `https://zmsuqdwleyqpdthaqvbi.supabase.co` |
+| **Anon Key** | `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inptc3VxZHdsZXlxcGR0aGFxdmJpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkzNzkzMzYsImV4cCI6MjA3NDk1NTMzNn0.Ce-xbOtP5d1kJPQ8aOQqfm-P1QMM_e50ZAWiO0kWQr8` |
 
-| Feature | Componente | Tipo |
-|---------|-----------|------|
-| Controle por Voz | `VoiceControlButton.tsx` | Premium |
-| Desafios Semanais | `WeeklyChallenges.tsx` | Gamificação |
-| Leaderboard Familiar | `FamilyLeaderboard.tsx` | Premium |
-| Resumo Semanal IA | `ClaraWeeklySummary.tsx` | Premium |
-| Preparação de Consultas | `ClaraConsultationPrep.tsx` | Premium |
-| Comparação de Farmácias | `PharmacyPriceCard.tsx` | Premium |
-| Sistema XP | `XPSystem.tsx` | Gamificação |
-
-### 1.2 Priorização para Landing Page
-
-**Alta prioridade (destacar):**
-1. Controle por voz - diferencial competitivo
-2. Relatório para consultas - valor tangível para usuários
-3. Comparação de preços de farmácias - economia real
-4. Gamificação com XP e desafios - engajamento
-
-**Média prioridade (mencionar):**
-- Leaderboard familiar
-- Resumo semanal com insights
+### URLs de Produção
+| Ambiente | URL |
+|----------|-----|
+| App (Produto) | `https://app.horamed.net` |
+| Landing Page | `https://horamed.net` |
+| Preview Lovable | `https://id-preview--281a4314-4cea-4c93-9b25-b97f8d39e706.lovable.app` |
+| Publicado Lovable | `https://horamed.lovable.app` |
 
 ---
 
-## Parte 2: Alterações na Landing Page
+## Secrets Configurados (Nomes - valores estão criptografados)
 
-### 2.1 Seção "Novidades" (New Features)
+Você precisará **recoletar os valores** destes secrets para reconfigurar no novo ambiente:
 
-**Atual (3 features):**
-1. Escaneie sua Receita
-2. Clara, Sua Assistente IA
-3. Onboarding em 2 Minutos
+| Secret | Uso |
+|--------|-----|
+| `STRIPE_SECRET_KEY` | Integração pagamentos Stripe |
+| `STRIPE_WEBHOOK_SECRET` | Validação webhooks Stripe |
+| `GOOGLE_AI_API_KEY` | Funcionalidades de IA |
+| `GOOGLE_CALENDAR_CLIENT_ID` | Integração Google Calendar |
+| `GOOGLE_CALENDAR_CLIENT_SECRET` | Integração Google Calendar |
+| `VAPID_PUBLIC_KEY` | Push notifications |
+| `VAPID_PRIVATE_KEY` | Push notifications |
+| `SMTP_HOST` | Envio de emails |
+| `SMTP_PORT` | Envio de emails |
+| `SMTP_USER` | Envio de emails |
+| `SMTP_PASSWORD` | Envio de emails |
+| `SMTP_FROM_EMAIL` | Envio de emails |
+| `FIREBASE_SERVER_KEY` | Push (legacy) |
+| `CRON_SECRET` | Jobs agendados |
 
-**Proposta (expandir para 6 features):**
-1. Escaneie sua Receita (manter)
-2. Clara, Sua Assistente IA (manter)
-3. **Controle por Voz** (NOVO)
-4. **Relatórios para Consultas** (NOVO)
-5. **Compare Preços de Farmácias** (NOVO)
-6. **Desafios e Conquistas** (NOVO)
+---
 
-### 2.2 Seção de Benefícios
-
-Atualizar `benefit5` (Assistente Inteligente) para incluir menção ao controle por voz:
-- PT: "Assistente com voz e IA"
-- EN: "Voice & AI Assistant"
-
-### 2.3 Novas Traduções Necessárias
+## Edge Functions (48 funções serverless)
 
 ```text
-# Português
-landing.newFeature4Title: 'Controle por Voz'
-landing.newFeature4Desc: 'Navegue pelo app usando comandos de voz. Diga "adicionar medicamento" ou "quero ajuda" e pronto.'
-
-landing.newFeature5Title: 'Relatório para Consultas'
-landing.newFeature5Desc: 'Gere relatórios completos para levar ao médico com seu histórico de adesão e medicamentos.'
-
-landing.newFeature6Title: 'Compare Preços'
-landing.newFeature6Desc: 'Veja preços de medicamentos em diferentes farmácias e economize na hora de comprar.'
-
-landing.newFeature7Title: 'Desafios e XP'
-landing.newFeature7Desc: 'Ganhe pontos de experiência a cada dose tomada. Complete desafios semanais e suba de nível.'
-
-# Inglês
-landing.newFeature4Title: 'Voice Control'
-landing.newFeature4Desc: 'Navigate the app using voice commands. Say "add medication" or "I need help" and you\'re done.'
-
-landing.newFeature5Title: 'Consultation Reports'
-landing.newFeature5Desc: 'Generate complete reports to take to your doctor with your adherence history and medications.'
-
-landing.newFeature6Title: 'Compare Prices'
-landing.newFeature6Desc: 'See medication prices at different pharmacies and save when buying.'
-
-landing.newFeature7Title: 'Challenges & XP'
-landing.newFeature7Desc: 'Earn experience points with each dose taken. Complete weekly challenges and level up.'
+├── affiliate-click/
+├── agendar-lembretes-saude/
+├── analyze-drug-interactions/
+├── audit-log/
+├── cancel-subscription/
+├── caregiver-invite/
+├── check-interactions/
+├── clara-consultation-prep/
+├── clara-weekly-summary/
+├── compartilhar-historico/
+├── consultation-card/
+├── create-checkout/
+├── customer-portal/
+├── emergency-guidance/
+├── export-user-data/
+├── extract-document/
+├── extract-exam/
+├── extract-medication/
+├── extrair-metadados-documento/
+├── generate-dose-instances/
+├── generate-monthly-report/
+├── gerar-link-compartilhamento/
+├── get-payment-method/
+├── get-vapid-key/
+├── google-calendar-sync/
+├── handle-dose-action/
+├── health-assistant/
+├── medication-info/
+├── pharmacy-prices/
+├── predictive-health-analysis/
+├── process-referral/
+├── process-scheduled-alarms/
+├── process-scheduled-notifications/
+├── revogar-link-compartilhamento/
+├── schedule-dose-notifications/
+├── schedule-vaccine-reminders/
+├── send-dose-notification/
+├── send-email-smtp/
+├── send-multi-channel-notification/
+├── send-smart-notifications/
+├── send-whatsapp-evolution/
+├── send-whatsapp-reminder/
+├── stripe-webhook/
+├── sync-subscription/
+├── update-payment-method/
+├── validar-compartilhamento/
+├── visualizar-historico/
+└── voice-to-text/
 ```
 
 ---
 
-## Parte 3: Alterações no FOMO (PaywallDialog)
+## Tabelas no Banco de Dados (30+ tabelas)
 
-### 3.1 Atualizar Lista de Features Perdidas
-
-**Arquivo:** `src/components/PaywallDialog.tsx`
-
-**Atual:**
-```typescript
-[
-  "Medicamentos ilimitados",
-  "IA liberada sem limites",
-  "Relatório mensal para consultas",
-  "WhatsApp + Push + Alarme"
-]
-```
-
-**Proposta:**
-```typescript
-[
-  "Medicamentos ilimitados",
-  "Clara IA sem limites + controle por voz",
-  "Relatórios para o médico",
-  "Desafios semanais e XP",
-  "Comparação de preços de farmácias"
-]
-```
-
-### 3.2 Atualizar Mensagens de FOMO por Feature
-
-Adicionar novo case para `active_items`:
-```typescript
-case "active_items":
-  return {
-    title: "Você precisa de mais medicamentos",
-    desc: "Usuários Premium gerenciam em média 5 medicamentos e ganham 2x mais XP com os desafios semanais.",
-    stat: "5x",
-    statLabel: "mais organização"
-  };
-```
+| Tabela | Descrição |
+|--------|-----------|
+| `items` | Medicamentos cadastrados |
+| `schedules` | Horários dos medicamentos |
+| `dose_instances` | Histórico de doses |
+| `user_profiles` | Perfis de usuários (pacientes) |
+| `subscriptions` | Assinaturas Stripe |
+| `notification_preferences` | Config de notificações |
+| `documentos_saude` | Documentos médicos |
+| `exames_laboratoriais` | Exames de laboratório |
+| `valores_exames` | Resultados de exames |
+| `consultas_medicas` | Consultas agendadas |
+| `sinais_vitais` | Sinais vitais registrados |
+| `medical_shares` | Compartilhamentos médicos |
+| `referrals` | Sistema de indicações |
+| `referral_goals` | Metas de indicações |
+| `referral_discounts` | Descontos de indicações |
+| `stock` | Estoque de medicamentos |
+| `alarms` | Alarmes e lembretes |
+| `audit_logs` | Logs de auditoria |
+| `drug_interactions` | Interações medicamentosas |
+| `feature_flags` | Flags de funcionalidades |
+| `consents` | Consentimentos LGPD |
+| `caregiver_links` | Vínculos de cuidadores |
+| `health_history` | Histórico de saúde |
+| E mais... | |
 
 ---
 
-## Parte 4: FOMO no Cancelamento
+## Storage Buckets
 
-### 4.1 Atualizar SubscriptionManagement.tsx
-
-**Arquivo:** `src/pages/SubscriptionManagement.tsx`
-
-Atualizar a lista de "Você perderá acesso a:" no step 'fomo':
-
-**Atual:**
-```text
-• Medicamentos ilimitados
-• OCR de receitas médicas
-• Assistente de saúde com IA
-• Relatórios mensais detalhados
-```
-
-**Proposta:**
-```text
-• Medicamentos ilimitados
-• Clara IA + controle por voz
-• OCR de receitas médicas
-• Desafios semanais e sistema de XP
-• Comparação de preços de farmácias
-• Relatórios para consultas
-```
-
-### 4.2 Adicionar Estatística de Gamificação
-
-No card de estatística, adicionar referência ao XP:
-```text
-"Você já ganhou X pontos de XP e completou Y desafios. Perderia todo esse progresso."
-```
+| Bucket | Público | Uso |
+|--------|---------|-----|
+| `medical-exams` | Não | Exames médicos |
+| `cofre-saude` | Não | Documentos de saúde |
+| `avatars` | Não | Fotos de perfil |
 
 ---
 
-## Parte 5: Arquivos a Modificar
+## Como Conseguir Acesso Completo ao Supabase
 
-| Arquivo | Alteração |
-|---------|-----------|
-| `src/contexts/LanguageContext.tsx` | Adicionar 8 novas chaves de tradução (PT + EN) |
-| `src/pages/Landing.tsx` | Expandir array `newFeatures` de 3 para 6+ items |
-| `src/components/PaywallDialog.tsx` | Atualizar lista de features e stats |
-| `src/pages/SubscriptionManagement.tsx` | Atualizar lista no dialog de cancelamento |
+### Opção 1: Contatar Suporte Lovable
+1. Acesse o Discord da Lovable ou suporte
+2. Solicite "transfer" do projeto Supabase para sua conta pessoal
+3. Você precisará ter uma conta no supabase.com
 
----
+### Opção 2: Exportar Dados e Recriar
+1. Posso exportar todas as tabelas em formato SQL
+2. Posso gerar scripts de migração completos
+3. Você cria um novo projeto Supabase e importa tudo
 
-## Parte 6: Layout Proposto
-
-### 6.1 Seção New Features (Grid 2x3)
-
-```text
-┌─────────────────────┬─────────────────────┐
-│  📸 Escaneie        │  🎙️ Controle por   │
-│  Receitas           │  Voz                │
-├─────────────────────┼─────────────────────┤
-│  💬 Clara IA        │  📋 Relatórios      │
-│                     │  para Consultas     │
-├─────────────────────┼─────────────────────┤
-│  💊 Compare         │  🏆 Desafios        │
-│  Preços             │  e XP               │
-└─────────────────────┴─────────────────────┘
-```
-
-### 6.2 Ícones Propostos (Lucide)
-
-- Controle por Voz: `Mic`
-- Relatórios: `FileText` ou `ClipboardList`
-- Compare Preços: `DollarSign` ou `TrendingDown`
-- Desafios/XP: `Trophy` ou `Target`
+### Opção 3: Acesso via CLI (requer SERVICE_ROLE_KEY)
+- O `SERVICE_ROLE_KEY` está configurado como secret no projeto
+- Com ele, você pode acessar 100% do banco via API
+- Mas precisamos extrair esse valor primeiro
 
 ---
 
-## Seção Técnica
+## Próximos Passos Recomendados
 
-### Novas Importações em Landing.tsx
-
-```typescript
-import { 
-  // existentes...
-  Mic,
-  Trophy,
-  DollarSign,
-  ClipboardList
-} from "lucide-react";
-```
-
-### Estrutura do Array newFeatures
-
-```typescript
-const newFeatures = [
-  {
-    icon: Camera,
-    title: t('landing.newFeature1Title'),
-    description: t('landing.newFeature1Desc')
-  },
-  {
-    icon: MessageCircle,
-    title: t('landing.newFeature2Title'),
-    description: t('landing.newFeature2Desc')
-  },
-  {
-    icon: Mic,
-    title: t('landing.newFeature4Title'),
-    description: t('landing.newFeature4Desc')
-  },
-  {
-    icon: ClipboardList,
-    title: t('landing.newFeature5Title'),
-    description: t('landing.newFeature5Desc')
-  },
-  {
-    icon: DollarSign,
-    title: t('landing.newFeature6Title'),
-    description: t('landing.newFeature6Desc')
-  },
-  {
-    icon: Trophy,
-    title: t('landing.newFeature7Title'),
-    description: t('landing.newFeature7Desc')
-  }
-];
-```
-
-### Grid Responsivo Atualizado
-
-Alterar de `md:grid-cols-3` para grid 2x3:
-```tsx
-<div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-```
+1. **Confirmar qual caminho você quer seguir** (transfer, exportar, ou CLI)
+2. **Coletar os valores dos secrets** que você configurou (Stripe, SMTP, etc.)
+3. **Decidir se vai manter o domínio** `horamed.net` apontando para novo ambiente
 
 ---
 
-## Resultados Esperados
+## Informações que você NÃO tem acesso direto
 
-1. **Landing mais completa**: Visitantes verão mais valor no produto
-2. **FOMO mais efetivo**: Usuários free entenderão melhor o que estão perdendo
-3. **Cancelamentos reduzidos**: Lista expandida de features aumenta percepção de perda
-4. **Consistência**: Todas as traduções PT/EN sincronizadas
+| Item | Status |
+|------|--------|
+| Dashboard Supabase | ❌ Gerenciado pela Lovable |
+| SERVICE_ROLE_KEY | ❌ Criptografado |
+| DB Connection String | ❌ Não exposto |
+| Logs de Banco | ❌ Via edge function logs apenas |
 
----
-
-## Ordem de Implementação
-
-1. Adicionar traduções em `LanguageContext.tsx`
-2. Atualizar `Landing.tsx` com novas features
-3. Atualizar `PaywallDialog.tsx` com novo FOMO
-4. Atualizar `SubscriptionManagement.tsx` com lista expandida
