@@ -34,34 +34,48 @@ All colors MUST be HSL.
     --ring: 200 90% 50%;
     --radius: 1rem;
     
-    /* Fluid Gradient Colors - Ocean Theme */
-    --gradient-start: 210 100% 50%;
-    --gradient-mid: 195 100% 50%;
-    --gradient-end: 175 100% 45%;
-    --gradient-accent: 190 100% 55%;
+    /* Fluid Gradient Colors - Ocean Theme (Evolved) */
+    --gradient-start: 200 95% 50%;
+    --gradient-mid: 190 100% 45%;
+    --gradient-end: 175 100% 40%;
+    --gradient-accent: 185 100% 50%;
     
-    /* Modern shadows with depth */
-    --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.03);
-    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
-    --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.06), 0 2px 8px rgba(0, 0, 0, 0.03);
-    --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.04);
-    --shadow-xl: 0 16px 50px rgba(0, 0, 0, 0.1), 0 8px 20px rgba(0, 0, 0, 0.05);
-    --shadow-glow: 0 0 40px hsl(220 90% 56% / 0.15);
-    --shadow-inner-glow: inset 0 1px 0 rgba(255, 255, 255, 0.6), inset 0 -1px 0 rgba(0, 0, 0, 0.02);
+    /* Bento Grid accent colors */
+    --bento-blue: 210 100% 55%;
+    --bento-purple: 260 85% 60%;
+    --bento-pink: 330 85% 60%;
+    --bento-orange: 25 95% 55%;
+    --bento-green: 155 80% 45%;
+    --bento-cyan: 185 100% 50%;
     
-    /* Glass effect shadows */
-    --shadow-glass: 0 4px 24px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.02);
-    --shadow-glass-hover: 0 8px 32px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.04);
+    /* Modern shadows with depth - refined for Bento */
+    --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.03);
+    --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04);
+    --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.1), 0 4px 12px rgba(0, 0, 0, 0.05);
+    --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.12), 0 8px 24px rgba(0, 0, 0, 0.06);
+    --shadow-2xl: 0 24px 64px rgba(0, 0, 0, 0.15), 0 12px 32px rgba(0, 0, 0, 0.08);
+    --shadow-glow: 0 0 40px hsl(200 90% 50% / 0.2);
+    --shadow-glow-strong: 0 0 60px hsl(200 90% 50% / 0.3);
+    --shadow-inner-glow: inset 0 1px 0 rgba(255, 255, 255, 0.7), inset 0 -1px 0 rgba(0, 0, 0, 0.03);
     
-    /* Transitions */
-    --transition-smooth: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-    --transition-fast: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-    --transition-bounce: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
-    --transition-spring: all 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+    /* Glass effect shadows - enhanced */
+    --shadow-glass: 0 4px 24px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.03);
+    --shadow-glass-hover: 0 12px 40px rgba(0, 0, 0, 0.1), 0 4px 16px rgba(0, 0, 0, 0.05);
+    
+    /* Bento card specific shadows */
+    --shadow-bento: 0 4px 20px rgba(0, 0, 0, 0.06), 0 1px 4px rgba(0, 0, 0, 0.02);
+    --shadow-bento-hover: 0 12px 36px rgba(0, 0, 0, 0.1), 0 4px 12px rgba(0, 0, 0, 0.04);
+    
+    /* Transitions - snappier for modern feel */
+    --transition-smooth: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    --transition-fast: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+    --transition-bounce: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    --transition-spring: all 0.5s cubic-bezier(0.22, 1, 0.36, 1);
     
     /* Layout */
-    --nav-height: 4rem;
-    --header-height: 4rem;
+    --nav-height: 5rem;
+    --header-height: 4.5rem;
     
     /* Document Type Colors */
     --doc-prescription: 217 91% 60%;

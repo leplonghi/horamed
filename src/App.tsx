@@ -24,12 +24,16 @@ import Navigation from "./components/Navigation";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 // Lazy loaded components for code splitting
+const TodayBento = lazy(() => import("./pages/TodayBento"));
 const TodayRedesign = lazy(() => import("./pages/TodayRedesign"));
 const MedicamentosHub = lazy(() => import("./pages/MedicamentosHub"));
+const RotinaBento = lazy(() => import("./pages/RotinaBento"));
 const Progress = lazy(() => import("./pages/Progress"));
+const ProgressBento = lazy(() => import("./pages/ProgressBento"));
 const Achievements = lazy(() => import("./pages/Achievements"));
 const Gamification = lazy(() => import("./pages/Gamification"));
 const Cofre = lazy(() => import("./pages/Cofre"));
+const CofreBento = lazy(() => import("./pages/CofreBento"));
 const Profile = lazy(() => import("./pages/Profile"));
 const About = lazy(() => import("./pages/About"));
 const Auth = lazy(() => import("./pages/Auth"));
@@ -126,7 +130,8 @@ function AppContent() {
           <Route path="/landing-preview" element={<Landing />} />
           
           {/* Main navigation routes - HoraMed 2.0 */}
-          <Route path="/hoje" element={<ProtectedRoute><TodayRedesign /></ProtectedRoute>} />
+          <Route path="/hoje" element={<ProtectedRoute><TodayBento /></ProtectedRoute>} />
+          <Route path="/hoje-legacy" element={<ProtectedRoute><TodayRedesign /></ProtectedRoute>} />
           <Route path="/rotina" element={<ProtectedRoute><MedicamentosHub /></ProtectedRoute>} />
           <Route path="/progresso" element={<ProtectedRoute><Progress /></ProtectedRoute>} />
           <Route path="/conquistas" element={<ProtectedRoute><Achievements /></ProtectedRoute>} />
